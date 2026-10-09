@@ -314,6 +314,12 @@ Bone, socket and node names are lowercase with underscores (`hand_r`, `socket_se
 6. One `AnimationMixer` per entity: a locomotion layer blended by speed, an upper-body action layer for one-shots, and the procedural motion on top.
 7. Clips are rotation-only keyframes on template bone names, so any clip plays on any proportions. Procedural clips first, retargeted Mixamo clips later.
 
+### Animations: Astra wires them too, and they must feel great
+When Astra wires an entity it also wires its **animations**: for every verb the entity can use it picks the slot's clip (from the rig template or a delivered clip library) and a **motion profile** (anticipation, overshoot, easing, squash and stretch, secondary motion, hit-stop, camera shake, effect timing). The wired entity carries `anims: { slot: { clip, profile, fx } }`; `render.js` plays it through `anim.js`. The table lives in one shared file, `anims.js`, used by Astra on the server and `anim.js` in the browser.
+- **Ship:** hover bob at idle, banking into turns, boost (stretch, flame surge, a small field-of-view kick), shoot (recoil, muzzle flash on the frame), shield (bubble pops in with overshoot), drill (nose shake, spark spray), hit (knockback, white flash), death (spin-out, explosion, debris), respawn (warp-in materialise), flare and scan pulses. Landing and take-off are the transition shot (`transition.js`).
+- **Explorer:** breathing idle, walk and run with bob and lean, jump (crouch, stretch, landing squash, dust), dig loop (shovel and dirt), shoot, hit, fall on death, respawn, a celebration when the chest opens, stepping out of the ship.
+- **Rules:** every animation reads clearly at phone size, costs under 0.2 ms per entity per frame, allocates nothing per frame, and works on default meshes without bones (procedural motion on parts) and on rigged entities later (clips by slot, with A-008).
+
 ### Players and mounts
 - **Mounting** parents the rider to the mount's `seat` socket. The mount's verbs take over the controller; the rider keeps `primary`.
 - **The selfie** goes on the `head` socket, or on the cockpit glass of a ship.

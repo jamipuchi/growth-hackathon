@@ -5,15 +5,18 @@
 const Contract = require("./contract");
 const Verbs = require("./verbs");
 const Terrain = require("./terrain");
+const Rules = require("./rules");
 
 const { TUNING: T, ROUND, SCORING, ROCK_TYPES, ROCK_TYPE_NAMES, COLORS } = Contract;
 const ISL = T.island;
 const CHEST_COUNT = 3; // all buried, each marked with an X
-const HINT_STEP_SECONDS = 8;
 const WORLD_SEND_SECONDS = 0.25; // rock changes are coalesced; gate changes go out at once
 const BOSS_SHOT_RANGE = 150;
 const BOSS_HINT_RANGE = 40; // near an armoured boss also starts the DRILL hint
 const SHIP_RADIUS = 1.5;
+const EXPLORER_RADIUS = 0.9; // a capsule centred EXPLORER_CHEST m above the feet
+const EXPLORER_CHEST = 1.1;
+const SPAWN_SHIELD_SECONDS = 2;
 const BOT_FIRE_COOLDOWN = 0.5;
 const ROCK_WEIGHTS = { stone: 6, iron: 2, volatile: 1, crystal: 1, magnet: 1, splitter: 1 };
 const INACTIVE_MS = 10 * 60 * 1000;
@@ -36,10 +39,10 @@ const HOLD = ["shoot", "boost", "shield", "drill", "dig"];
 const PRESS = ["blast", "flare", "scan", "land", "takeoff", "jump", "invisible", "teleport", "heal"];
 const V1_VERBS = new Set([...HOLD, ...PRESS]);
 const GATES = ["drill", "land", "dig"];
-const HINTS = {
-  drill: ["Lasers bounce off the armour.", "Draw a DRILL button", "Trace the DRILL box and tap Done"],
-  land: ["Get closer and land. How do you land?", "Draw a LAND button", "Trace the LAND box and tap Done"],
-  dig: ["Something is buried here.", "Draw a DIG button", "Trace the DIG box and tap Done"],
+// The verbs each default entity can use (verbs.js modes), in v1 order.
+const ENTITY_VERBS = {
+  ship: [...V1_VERBS].filter((v) => (Verbs.VERBS[v] ? Verbs.VERBS[v].modes.includes("space") : true)),
+  person: [...V1_VERBS].filter((v) => (Verbs.VERBS[v] ? Verbs.VERBS[v].modes.includes("planet") : true)),
 };
 // The phone's default controller (controller.html defaultLayout): what a player has until a drawn one arrives.
 const DEFAULT_LAYOUT = {
@@ -63,6 +66,12 @@ const dot = (a, b) => a.x * b.x + a.y * b.y + a.z * b.z;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const r2 = (n) => Math.round(n * 100) / 100;
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+// Distance from p to the segment a→b: a bullet moves 4.7 m per step, more than a ship or explorer is wide.
+function segDist(p, a, b) {
+  const ab = sub(b, a), l2 = dot(ab, ab);
+  const t = l2 ? clamp(dot(sub(p, a), ab) / l2, 0, 1) : 0;
+  return dist(p, add(a, ab, t));
+}
 
 // Same convention as three.js: yaw around Y, then pitch around the ship's X; the nose points to -Z.
 function basis(yaw, pitch) {
@@ -94,20 +103,24 @@ function ghostBox(layout, action) {
   return { action, x: 0.39, y: 0.05, w: 0.22, h: 0.18 };
 }
 
-function createWorld({ broadcast = () => {}, random = Math.random, autoStart = false } = {}) {
+// wireAnimations(type, verbs) → anims (astra.js), optional: called on every entity switch.
+function createWorld({ broadcast = () => {}, random = Math.random, autoStart = false, wireAnimations = null } = {}) {
   const players = {};
+  // Hints run on the simulation clock so fast-forward tests see the same ladder as a live round.
+  const hints = Rules.createHints({ now: () => Math.round(S.t * 1000) });
+  const budget = Rules.createBudget();
   const rand = (min, max) => min + random() * (max - min);
   const S = { round: 0, phase: "lobby", phaseT: 0, playT: 0, t: 0, seed: 1 };
   let rocks = [], bullets = [], bossShots = [], flares = [];
-  let boss, planet, planetAt, nebula, island, landing, chests, revealUntil = {};
+  let boss, planet, planetAt, nebula, island, landing, chests, parked = [], revealUntil = {};
   let nextId = 1, worldDirty = false, lastWorldAt = -1, lastRevealed = "";
 
   const send = (m) => broadcast(m);
   const fx = (kind, pos, color = 0xffffff, size = 1, mode = "space") =>
     send({ type: "fx", kind, mode, pos: { x: r2(pos.x), y: r2(pos.y), z: r2(pos.z) }, color, size: r2(size) });
   const announce = (text, big = false) => send({ type: "announce", text, big });
-  const toast = (p, text, ghost = null) => { if (!p.bot) send({ type: "toast", player: p.name, text, ghost }); };
-  const sendWorld = () => { worldDirty = false; lastWorldAt = S.t; send(worldMessage()); };
+  // Broadcast world updates leave out `entities` (about 2 KB each with anims); `entity` messages carry the changes.
+  const sendWorld = () => { worldDirty = false; lastWorldAt = S.t; send(worldMessage({ entities: false })); };
   const active = () => Object.values(players).filter((p) => p.bot || Date.now() - p.lastSeen < INACTIVE_MS);
   const assists = () => S.phase === "assists";
   const islandFeet = (x, z) => Math.max(0, Terrain.height(x, z, island.seed));
@@ -184,13 +197,58 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
 
   // ---- Players -------------------------------------------------------------------------------------------------
 
+  // The entity a player drives: a default ship in space, a default explorer ("person") on the island.
+  const animCache = {};
+  function entityOf(type) {
+    const verbs = ENTITY_VERBS[type];
+    const entity = { type, verbs };
+    if (animCache[type]) entity.anims = animCache[type];
+    else if (typeof wireAnimations === "function") {
+      try { const anims = wireAnimations(type, verbs); if (anims) entity.anims = animCache[type] = anims; } catch {}
+    }
+    return entity;
+  }
+
+  // Every mode switch (and the first spawn) tells every screen which entity the player now drives.
+  function setMode(p, mode) {
+    if (p.mode === mode && p.entity) return;
+    p.mode = mode;
+    p.entity = entityOf(mode === "planet" ? "person" : "ship");
+    send({ type: "entity", player: p.name, entity: p.entity });
+  }
+
+  const slotOf = (p) => Math.max(0, Object.keys(players).indexOf(p.name));
+
   function spawnAt(p) {
-    const i = Object.keys(players).indexOf(p.name);
-    p.mode = "space";
+    const i = slotOf(p);
+    setMode(p, "space");
     p.pos = { x: (i % 4) * T.spawnSpacing - 1.5 * T.spawnSpacing, y: Math.floor(i / 4) * 6, z: 0 };
     p.yaw = boss ? Math.atan2(-boss.pos.x, -boss.pos.z) : 0;
     p.pitch = 0; p.roll = 0; p.vy = 0;
     p.hp = T.shipHp; p.stun = 0; p.dead = false; p.deadFor = 0;
+    p.landingFor = 0; p.takeoffFor = 0; p.spawnShield = 0;
+  }
+
+  // Each player has a parking bay on the landing pad; the explorer stands beside the parked ship.
+  function bay(p) {
+    const i = slotOf(p);
+    return { x: landing.x + (i % 4) * 4 - 6, z: landing.z + Math.floor(i / 4) * 4 };
+  }
+  function standBeside(p) {
+    const b = bay(p);
+    const x = b.x + 2.5, z = b.z;
+    p.pos = { x, y: islandFeet(x, z), z };
+    p.yaw = 0; p.pitch = 0; p.roll = 0; p.vy = 0; p.stun = 0;
+  }
+
+  // Death respawn: space at the spawn point, the island beside the parked ship; full health and a short spawn shield.
+  function respawn(p) {
+    if (p.mode === "planet") {
+      standBeside(p);
+      p.hp = T.shipHp; p.dead = false; p.deadFor = 0;
+    } else spawnAt(p);
+    p.spawnShield = SPAWN_SHIELD_SECONDS;
+    fx("respawn", p.pos, p.color, 3, p.mode);
   }
 
   function getPlayer(name, bot = false) {
@@ -200,7 +258,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       const p = {
         name, bot, color: COLORS[Object.keys(players).length % COLORS.length], score: 0, keys: {}, axes: {}, pressed: [],
         shieldEnergy: 1, boostEnergy: 1, boostLocked: false, shieldLocked: false, cd: {}, fireCd: 0,
-        invisibleFor: 0, ready: bot, layout: null, hints: {}, action: "", slot: "", startedAt: 0,
+        invisibleFor: 0, ready: bot, layout: null, hints: {}, action: "", slot: "", startedAt: 0, mode: null, entity: null,
         drilling: false, digging: false, boosting: false, shielding: false, botFire: 0, botSeed: random() * 100,
       };
       players[name] = p;
@@ -224,6 +282,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     const action = Contract.normaliseAction(msg.action);
     const down = !!msg.down;
     if (action === "ready") { if (down) p.ready = true; return; }
+    if (p.landingFor > 0 || p.takeoffFor > 0) return; // the landing / take-off shot plays without control
     if (Contract.MOVES.includes(action)) { p.keys[action] = down; return; }
     if (!V1_VERBS.has(action)) return;
     p.keys[action] = down;
@@ -247,14 +306,19 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     } else {
       p.layout = { buttons: layout.buttons.slice(0, 16), source: layout.source || "model" };
     }
-    for (const gate of GATES) if (p.hints[gate] && hasControl(p.layout, gate)) p.hints[gate].done = true;
   }
+
+  // Drawing budget (rules.js): lobby and space drawings count toward "space", island ones toward "planet".
+  const drawingWorld = (name) => { const p = players[Contract.cleanName(name)]; return p && p.mode === "planet" ? "planet" : "space"; };
+  const drawingsLeft = (name) => budget.left(Contract.cleanName(name));
+  const spendDrawing = (name, world = drawingWorld(name)) => budget.spend(Contract.cleanName(name), world);
 
   // ---- Round clock ---------------------------------------------------------------------------------------------
 
   function newRound() {
     S.round++; S.phase = "lobby"; S.phaseT = 0; S.playT = 0;
     buildWorld();
+    hints.reset(); budget.reset(); parked = [];
     for (const p of Object.values(players)) {
       spawnAt(p);
       Object.assign(p, { ready: p.bot, hints: {}, keys: {}, pressed: [], cd: {}, invisibleFor: 0, shieldEnergy: 1, boostEnergy: 1, boostLocked: false, shieldLocked: false });
@@ -333,11 +397,14 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     }
   }
 
+  // Ships shoot in space, explorers on the island (level, from chest height); a bullet only meets its own mode.
   function fire(p, dt) {
     p.fireCd = Math.max(0, p.fireCd - dt);
     if (!p.keys.shoot || p.shielding || p.fireCd > 0 || p.stun > 0) return;
-    const { forward } = basis(p.yaw, p.pitch);
-    bullets.push({ id: nextId++, pos: add(p.pos, forward, 3), dir: forward, owner: p.name, color: p.color, life: VERB.shoot.life, damage: VERB.shoot.damage });
+    const space = p.mode === "space";
+    const { forward } = basis(p.yaw, space ? p.pitch : 0);
+    const from = space ? add(p.pos, forward, 3) : add(add(p.pos, v3(0, EXPLORER_CHEST, 0)), forward, 1);
+    bullets.push({ id: nextId++, mode: p.mode, pos: from, dir: forward, owner: p.name, color: p.color, life: VERB.shoot.life, damage: VERB.shoot.damage });
     p.fireCd = p.bot ? BOT_FIRE_COOLDOWN : VERB.shoot.cooldown;
   }
 
@@ -374,19 +441,22 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     if (type.splitInto) for (let i = 0; i < type.splitInto; i++) rocks.push(spawnRock("stone", add(rock.pos, randomPoint(rock.size, rock.size + 2)), rock.size / 2));
   }
 
+  const invulnerable = (p) => p.landingFor > 0 || p.takeoffFor > 0 || p.spawnShield > 0;
+
+  // PvP everywhere: ships in space, explorers on the island.
   function hurt(p, amount, by) {
-    if (p.dead || p.mode !== "space") return;
-    if (p.shielding) { fx("spark", p.pos, p.color, 2); return; }
+    if (p.dead || invulnerable(p)) return;
+    if (p.shielding) { fx("spark", p.pos, p.color, 2, p.mode); return; }
     p.hp -= amount;
-    fx("hit", p.pos, 0xf97316, 1);
+    fx("hit", p.pos, 0xf97316, 1, p.mode);
     if (p.hp > 0) return;
-    p.hp = 0; p.dead = true; p.deadFor = 0;
-    fx("explode", p.pos, p.color, 8);
+    p.hp = 0; p.dead = true; p.deadFor = 0; p.drilling = false; p.digging = false;
+    fx("explode", p.pos, p.color, p.mode === "space" ? 8 : 3, p.mode);
     const killer = by && by !== p.name ? players[by] : null;
     if (killer) {
       killer.score += SCORING.kill;
       p.score += SCORING.killed;
-      announce(`${killer.name} ⚔ ${p.name}`);
+      announce(`${killer.name} ✕ ${p.name}`);
     } else announce(`${p.name} was destroyed`);
   }
 
@@ -394,7 +464,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     if (boss.armour > 0) {
       fx("spark", at, 0xfde047, 1.5);
       const p = players[owner];
-      if (p) startHint(p, "drill");
+      if (p) p.hints.drill = true; // a laser clanging off the armour counts as reaching the DRILL gate
       return;
     }
     boss.hp = Math.max(0, boss.hp - amount);
@@ -414,12 +484,19 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
 
   function updateBullets(dt) {
     bullets = bullets.filter((b) => {
+      const from = b.pos;
       b.pos = add(b.pos, b.dir, VERB.shoot.speed * dt);
       b.life -= dt;
+      if (b.mode === "planet") {
+        const hit = active().find((q) => q.name !== b.owner && q.mode === "planet" && !q.dead && segDist(add(q.pos, v3(0, EXPLORER_CHEST, 0)), from, b.pos) < EXPLORER_RADIUS + 0.3);
+        if (hit) { hurt(hit, b.damage, b.owner); return false; }
+        if (b.pos.y < Terrain.height(b.pos.x, b.pos.z, island.seed)) return false; // into a hill
+        return b.life > 0;
+      }
       if (!boss.dead && dist(b.pos, boss.pos) < boss.radius + 0.5) { hitBoss(b.damage, b.owner, b.pos); return false; }
       const rock = rocks.find((r) => dist(r.pos, b.pos) < r.size + 0.5);
       if (rock) { damageRock(rock, b.owner); return false; }
-      const ship = active().find((q) => q.name !== b.owner && q.mode === "space" && !q.dead && dist(q.pos, b.pos) < SHIP_RADIUS + 0.5);
+      const ship = active().find((q) => q.name !== b.owner && q.mode === "space" && !q.dead && segDist(q.pos, from, b.pos) < SHIP_RADIUS + 0.5);
       if (ship) { hurt(ship, b.damage, b.owner); return false; }
       return b.life > 0;
     });
@@ -465,26 +542,50 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
 
   // ---- Island --------------------------------------------------------------------------------------------------
 
+  // Landing and take-off are predefined animations (PLAN.md, The space-to-planet transition): the player has no
+  // control and cannot be hurt while flags.landing / flags.takingOff are on; render plays the shot from
+  // action "land" / "takeoff" + startedAt.
+  function startAnim(p, action) {
+    p.keys = {}; p.axes = {}; p.pressed = [];
+    p.boosting = false; p.shielding = false; p.drilling = false; p.digging = false;
+    p.action = action; p.slot = (Verbs.VERBS[action] && Verbs.VERBS[action].slot) || "mount"; p.startedAt = Date.now();
+  }
+
   function land(p) {
-    if (!planet || p.mode !== "space" || dist(p.pos, planet) > planet.radius + planet.landRange) return;
+    if (!planet || p.mode !== "space" || p.landingFor > 0 || dist(p.pos, planet) > planet.radius + planet.landRange) return;
+    startAnim(p, "land");
+    p.landingFor = T.planet.landingSeconds;
     fx("land", p.pos, p.color, 6);
-    const i = Object.keys(players).indexOf(p.name);
-    const x = landing.x + (i % 4) * 2 - 3, z = landing.z + Math.floor(i / 4) * 2;
-    p.mode = "planet";
-    p.keys = {}; // buttons held in the ship don't carry over to the explorer
-    p.pos = { x, y: islandFeet(x, z), z };
-    p.yaw = 0; p.pitch = 0; p.roll = 0; p.vy = 0; p.stun = 0;
+  }
+
+  function touchdown(p) {
+    p.landingFor = 0;
+    const b = bay(p);
+    parked = parked.filter((x) => x.player !== p.name).concat([{ player: p.name, x: r2(b.x), z: r2(b.z) }]);
+    setMode(p, "planet");
+    standBeside(p);
+    p.keys = {}; p.axes = {}; // buttons held in the ship don't carry over to the explorer
+    fx("land", { x: b.x, y: islandFeet(b.x, b.z), z: b.z }, p.color, 6, "planet");
     announce(`${p.name} landed on the planet. ${Contract.OBJECTIVES.chest}`);
+    sendWorld();
   }
 
   function takeoff(p) {
-    if (p.mode !== "planet" || !planet) return;
+    if (p.mode !== "planet" || !planet || p.takeoffFor > 0) return;
+    startAnim(p, "takeoff");
+    p.takeoffFor = T.planet.takeoffSeconds;
+  }
+
+  function liftoff(p) {
+    p.takeoffFor = 0;
+    parked = parked.filter((x) => x.player !== p.name);
     const out = norm(sub(v3(), planet));
-    p.mode = "space";
-    p.keys = {};
+    setMode(p, "space");
+    p.keys = {}; p.axes = {};
     p.pos = add(planet, out, planet.radius + 15);
-    p.yaw = Math.atan2(-out.x, -out.z); p.pitch = 0;
+    p.yaw = Math.atan2(-out.x, -out.z); p.pitch = 0; p.roll = 0;
     fx("land", p.pos, p.color, 6);
+    sendWorld();
   }
 
   function moveWalker(p, dt) {
@@ -571,15 +672,20 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     } else if (verb === "blast") {
       if (!ready(p, "blast", VERB.blast.cooldown)) return;
       fx("blast", add(p.pos, forward, VERB.blast.range / 2), p.color, VERB.blast.range, mode);
-      if (!space) return;
       const inCone = (pos, pad = 0) => { const d = sub(pos, p.pos); const l = len(d); return l < VERB.blast.range + pad && (l < pad || dot(d, forward) / l >= VERB.blast.coneCos); };
+      for (const q of active()) if (q !== p && q.mode === p.mode && inCone(q.pos)) hurt(q, VERB.blast.damage, p.name);
+      if (!space) return;
       for (const rock of rocks.filter((r) => inCone(r.pos, r.size))) damageRock(rock, p.name, rock.health);
-      for (const q of active()) if (q !== p && q.mode === "space" && inCone(q.pos)) hurt(q, VERB.blast.damage, p.name);
       if (!boss.dead && inCone(boss.pos, boss.radius)) hitBoss(VERB.blast.damage, p.name, boss.pos);
     }
   }
 
-  // ---- Hints (PLAN.md section 4): nudge, name the button 8 s later, then a ghost box to trace ---------------------
+  // ---- Hints (PLAN.md section 4, rules.js): riddle at 6 s stuck, faint sketch 10 s later, the answer with a ghost
+  // box 15 s after that (at once in assists). A player is stuck at a gate once they have reached it (close to the
+  // armoured boss or a laser bounced off it; in landing range; next to a buried X) for as long as the gate is open
+  // and they are in its world.
+
+  const GATE_MODE = { drill: "space", land: "space", dig: "planet" };
 
   function gateOpen(gate) {
     if (gate === "drill") return !boss.dead && boss.armour > 0;
@@ -587,28 +693,21 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     return chests.some((c) => c.buried);
   }
 
-  function startHint(p, gate) {
-    if (p.bot || p.hints[gate] || hasControl(p.layout, gate) || !gateOpen(gate)) return;
-    p.hints[gate] = { step: 0, at: S.t, done: false };
-    hintStep(p, gate, assists() ? 3 : 1);
-  }
-
-  function hintStep(p, gate, step) {
-    const h = p.hints[gate];
-    h.step = step; h.at = S.t;
-    toast(p, HINTS[gate][step - 1], step === 3 ? ghostBox(p.layout, gate) : null);
+  function atGate(p, gate) {
+    if (gate === "drill") return dist(p.pos, boss.pos) - boss.radius < BOSS_HINT_RANGE;
+    if (gate === "land") return dist(p.pos, planet) <= planet.radius + planet.landRange;
+    return chests.some((c) => c.buried && dist2(c, p.pos) <= VERB.dig.range + 2);
   }
 
   function updateHints(p) {
     if (p.bot) return;
-    if (p.mode === "space" && !boss.dead && boss.armour > 0 && dist(p.pos, boss.pos) - boss.radius < BOSS_HINT_RANGE) startHint(p, "drill");
-    if (p.mode === "space" && planet && dist(p.pos, planet) <= planet.radius + planet.landRange) startHint(p, "land");
-    if (p.mode === "planet" && chests.some((c) => c.buried && dist2(c, p.pos) <= VERB.dig.range + 2)) startHint(p, "dig");
+    const busy = p.dead || p.landingFor > 0 || p.takeoffFor > 0;
     for (const gate of GATES) {
-      const h = p.hints[gate];
-      if (!h || h.done) continue;
-      if (hasControl(p.layout, gate) || !gateOpen(gate)) { h.done = true; continue; }
-      if (h.step < 3 && (assists() || S.t - h.at >= HINT_STEP_SECONDS)) hintStep(p, gate, assists() ? 3 : h.step + 1);
+      const open = gateOpen(gate) && p.mode === GATE_MODE[gate];
+      if (open && !busy && atGate(p, gate)) p.hints[gate] = true;
+      const toast = hints.update(p.name, { gate, active: open && !busy && !!p.hints[gate], hasControl: hasControl(p.layout, gate), assists: assists(), layout: p.layout || DEFAULT_LAYOUT });
+      if (toast && toast.ghost) for (const k of ["x", "y", "w", "h"]) toast.ghost[k] = Math.round(toast.ghost[k] * 1000) / 1000;
+      if (toast) send(toast);
     }
   }
 
@@ -665,18 +764,27 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     for (const p of list) {
       for (const k of Object.keys(p.cd)) p.cd[k] = Math.max(0, p.cd[k] - dt);
       p.invisibleFor = Math.max(0, p.invisibleFor - dt);
+      p.spawnShield = Math.max(0, p.spawnShield - dt);
       if (p.dead) {
         p.pressed = []; p.drilling = false; p.digging = false;
         p.deadFor += dt;
-        if (p.deadFor >= T.respawnSeconds) spawnAt(p);
+        if (p.deadFor >= T.respawnSeconds) respawn(p);
+        continue;
+      }
+      // The landing / take-off shot: inputs ignored until it ends.
+      if (p.landingFor > 0 || p.takeoffFor > 0) {
+        p.pressed = []; p.keys = {};
+        if (p.landingFor > 0 && (p.landingFor -= dt) <= 1e-9) touchdown(p);
+        else if (p.takeoffFor > 0 && (p.takeoffFor -= dt) <= 1e-9) liftoff(p);
         continue;
       }
       if (p.bot) botThink(p);
       const presses = p.pressed; p.pressed = [];
       for (const verb of presses) if (S.phase !== "scoreboard") press(p, verb);
       if (S.phase === "scoreboard") return;
+      if (p.landingFor > 0 || p.takeoffFor > 0) continue;
       if (p.mode === "space") { moveShip(p, dt); fire(p, dt); drill(p, dt); p.digging = false; }
-      else { moveWalker(p, dt); p.drilling = false; dig(p, dt); pickup(p); if (S.phase === "scoreboard") return; }
+      else { moveWalker(p, dt); fire(p, dt); p.drilling = false; dig(p, dt); pickup(p); if (S.phase === "scoreboard") return; }
     }
     updateBullets(dt);
     updateBoss(dt);
@@ -692,17 +800,20 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     return Object.keys(revealUntil).filter((n) => revealUntil[n] > S.t);
   }
 
-  function worldMessage() {
-    return {
+  // entities: true (the default, used on connect) adds every player's entity so late screens get them.
+  function worldMessage({ entities = true } = {}) {
+    const m = {
       type: "world", round: S.round, seed: S.seed, radius: T.worldRadius,
       rocks: rocks.map((r) => [r.id, r2(r.pos.x), r2(r.pos.y), r2(r.pos.z), r2(r.size), ROCK_TYPE_NAMES.indexOf(r.type), r.health]),
       nebula: { x: r2(nebula.x), y: r2(nebula.y), z: r2(nebula.z), radius: nebula.radius },
       targets: [{ id: boss.id, kind: "boss", x: r2(boss.pos.x), y: r2(boss.pos.y), z: r2(boss.pos.z), radius: boss.radius, armour: r2(boss.armour), hp: r2(boss.hp), maxHp: boss.maxHp, cracked: boss.armour <= 0, dead: boss.dead }],
       revealedTo: revealedTo(),
       planet: planet && { x: r2(planet.x), y: r2(planet.y), z: r2(planet.z), radius: planet.radius, landRange: planet.landRange },
-      island: { seed: island.seed, size: island.size, landing: { x: r2(landing.x), z: r2(landing.z) } },
+      island: { seed: island.seed, size: island.size, landing: { x: r2(landing.x), z: r2(landing.z) }, parked },
       chests: chests.map((c) => ({ id: c.id, x: r2(c.x), z: r2(c.z), buried: c.buried, dug: r2(c.dug), open: c.open })),
     };
+    if (entities) m.entities = Object.fromEntries(active().filter((p) => p.entity).map((p) => [p.name, p.entity]));
+    return m;
   }
 
   function clock() {
@@ -713,7 +824,10 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
 
   // Only the flags that are on, to keep ticks small: a missing flag means false.
   function flags(p) {
-    const all = { boost: p.boosting, shield: p.shielding, stun: p.stun > 0, dead: p.dead, invisible: p.invisibleFor > 0, drilling: p.drilling, digging: p.digging, ready: p.ready, bot: p.bot };
+    const all = {
+      boost: p.boosting, shield: p.shielding, stun: p.stun > 0, dead: p.dead, invisible: p.invisibleFor > 0, drilling: p.drilling, digging: p.digging, ready: p.ready, bot: p.bot,
+      landing: p.landingFor > 0, takingOff: p.takeoffFor > 0, spawnShield: p.spawnShield > 0,
+    };
     const out = {};
     for (const k in all) if (all[k]) out[k] = true;
     return out;
@@ -722,14 +836,19 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   function tickMessage() {
     return {
       type: "tick", t: Date.now(), round: S.round, phase: S.phase, clock: clock(),
-      players: active().map((p) => ({
-        name: p.name, color: p.color, mode: p.mode, x: r2(p.pos.x), y: r2(p.pos.y), z: r2(p.pos.z),
-        yaw: r2(p.yaw), pitch: r2(p.pitch), roll: r2(p.roll || 0), hp: Math.round(p.hp), score: p.score,
-        shieldEnergy: r2(p.shieldEnergy), boostEnergy: r2(p.boostEnergy),
-        flags: flags(p),
-        action: p.action, slot: p.slot, startedAt: p.startedAt,
-      })),
-      bullets: bullets.slice(-TICK_MAX_BULLETS).map((b) => [b.id, r2(b.pos.x), r2(b.pos.y), r2(b.pos.z), b.color]),
+      players: active().map((p) => {
+        const out = {
+          name: p.name, color: p.color, mode: p.mode, x: r2(p.pos.x), y: r2(p.pos.y), z: r2(p.pos.z),
+          yaw: r2(p.yaw), pitch: r2(p.pitch), roll: r2(p.roll || 0), hp: Math.round(p.hp), score: p.score,
+          shieldEnergy: r2(p.shieldEnergy), boostEnergy: r2(p.boostEnergy),
+          flags: flags(p),
+          action: p.action, slot: p.slot, startedAt: p.startedAt,
+        };
+        if (!p.bot) out.drawingsLeft = budget.left(p.name); // bots never draw: keeps the tick small
+        if (p.dead) out.respawnIn = r2(Math.max(0, T.respawnSeconds - p.deadFor));
+        return out;
+      }),
+      bullets: bullets.slice(-TICK_MAX_BULLETS).map((b) => [b.id, r2(b.pos.x), r2(b.pos.y), r2(b.pos.z), b.color, b.mode === "planet" ? 1 : 0]),
       bossShots: bossShots.map((s) => [s.id, r2(s.pos.x), r2(s.pos.y), r2(s.pos.z)]),
       flares: flares.map((f) => [r2(f.pos.x), r2(f.pos.y), r2(f.pos.z), f.radius, r2(f.until - S.t)]),
     };
@@ -740,9 +859,10 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
 
   return {
     handleInput, setLayout, step, worldMessage, tickMessage, addBot, join, players,
+    budget, drawingWorld, drawingsLeft, spendDrawing, hints,
     get phase() { return S.phase; },
     get round() { return S.round; },
-    debug: () => ({ ...S, boss, planet, landing, chests, island, rocks, bullets, bossShots }),
+    debug: () => ({ ...S, boss, planet, landing, chests, island, parked, rocks, bullets, bossShots }),
   };
 }
 

@@ -40,7 +40,7 @@
     // v1 keeps the world simple: plain rocks plus bonus crystals. The other types stay defined for later.
     rockTypesInPlay: ["stone", "crystal"],
     planet: { offset: 150, radius: 40, landRange: 25, landingSeconds: 3, takeoffSeconds: 2 },
-    island: { chests: 4, buried: 2, chestSpread: 40, walkSpeed: 8, runMultiplier: 2, jumpSpeed: 9, gravity: 24, digSeconds: 1.5, pickupRange: 3, explorerDrawSeconds: 15 },
+    island: { chests: 3, buried: 3, chestSpread: 40, walkSpeed: 8, runMultiplier: 2, jumpSpeed: 9, gravity: 24, digSeconds: 1.5, pickupRange: 3, explorerDrawSeconds: 15 },
   };
 
   const ROCK_TYPES = {
@@ -82,18 +82,21 @@
    *              targets: [{ id, kind: "boss", x, y, z, radius, armour, hp, maxHp, cracked, dead }],  // v1: one boss, no decoys
    *              revealedTo: [playerName],                               // who has used SCAN (radar extras); everyone in "assists"
    *              planet: null | { x, y, z, radius, landRange },          // appears when the boss dies
-   *              island: { seed, size },
+   *              island: { seed, size, landing: { x, z }, parked: [{ player, x, z }] },
+   *              entities: { [player]: entity },                         // only in the world message sent on connect
    *              chests: [{ id, x, z, buried, dug, open }] }             // island coordinates; dug 0..1
    *            Sent on connect and whenever any of it changes.
    *
    * tick       { type, t, round, phase, clock,                           // lobby/scoreboard: seconds left; playing/assists: seconds since the start
    *              players: [{ name, color, mode: "space"|"planet", x, y, z, yaw, pitch, roll, hp, score,
    *                          shieldEnergy, boostEnergy,                  // 0..1, drive the HUD meters
-   *                          drawingsLeft: { space, planet },
+   *                          drawingsLeft: { space, planet },            // humans only; bots omit it
+   *                          respawnIn,                                  // seconds, only while flags.dead
    *                          flags: { boost, shield, stun, dead, invisible, drilling, digging, ready, bot,
-   *                                   landing, takingOff },        // landing/takingOff: the predefined animation plays, no control
+   *                                   landing, takingOff, spawnShield },  // flags list only what is on; landing/takingOff:
+   *                                                                      // the predefined animation plays, no control
    *                          action, slot, startedAt }],                 // last verb + animation slot + server ms
-   *              bullets: [[id, x, y, z, color]],
+   *              bullets: [[id, x, y, z, color, mode]],                   // mode 0 = space, 1 = planet (island x, z, height y)
    *              bossShots: [[id, x, y, z]],
    *              flares: [[x, y, z, radius, secondsLeft]] }
    *            15 per second. In "planet" mode x, z are island coordinates and y is the feet height.
@@ -106,6 +109,7 @@
    *                                                                      // on the pad; ghost: null | { action, x, y, w, h }, only in
    *                                                                      // the last step (PLAN.md section 4, Hints)
    * generated  { type, player, kind, layout }                            // a controller layout is ready
+   * entity     { type, player, entity: { type: "ship"|"person", verbs, anims } }  // on join and every mode switch
    *
    * Phone → server:
    * POST /join      { player }                       → { player, color }  (player = the cleaned name)

@@ -1,19 +1,23 @@
-// Live test of server.js: starts it on port 8101 with --bots 8, reads /events for 3 s, checks the allowlist and the
-// POST endpoints, then kills it. Astra runs in mock mode (ASTRA_MOCK=1, no network, no API key).
+// Live test of server.js: starts it on port 8101 (HTTPS 8441) with --bots 8, reads /events for 3 s, checks the
+// allowlist, the POST endpoints, the drawing budget, entity messages and HTTPS, then kills it. Astra runs in mock mode
+// (ASTRA_MOCK=1, no network, no API key).
 // Run: node dev/netcode/live-test.js
 const assert = require("assert");
 const http = require("http");
+const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 const Contract = require("../../contract");
 
 const PORT = 8101;
+const HTTPS_PORT = 8441;
+const HAS_HTTPS = fs.existsSync(path.join(__dirname, "..", "..", "https.js"));
 const ROOT = path.join(__dirname, "..", "..");
 const PERF_LOG = path.join(__dirname, "perf-test.log");
 const BASE = `http://localhost:${PORT}`;
 
-const env = { ...process.env, PORT: String(PORT), ASTRA_MOCK: "1", PERF_LOG };
+const env = { ...process.env, PORT: String(PORT), HTTPS_PORT: String(HTTPS_PORT), ASTRA_MOCK: "1", PERF_LOG };
 delete env.OPENAI_API_KEY;
 const server = spawn(process.execPath, ["server.js", "--bots", "8"], { cwd: ROOT, env, stdio: ["ignore", "pipe", "pipe"] });
 let serverOut = "";
@@ -94,14 +98,30 @@ async function main() {
   assert.deepStrictEqual(posted, { player: "livetest", color: Contract.COLORS[8 % Contract.COLORS.length] }, "join cleans the name");
   const me = players.find((p) => p.name === "livetest");
   assert(me && me.action === "shoot" && me.slot === "primary", "input normalised FIRE → shoot");
-  report.push(`${ticks.length} ticks in ${span.toFixed(2)} s = ${tps.toFixed(2)}/s, max tick ${maxBytes} B (avg ${Math.round(ticks.reduce((s, t) => s + t.bytes, 0) / ticks.length)} B), ${players.length} players, max ${Math.max(...ticks.map((t) => t.m.bullets.length))} bullets, ${worlds.length} world msgs (max ${Math.max(...worlds.map((w) => w.bytes))} B)`);
+  assert.deepStrictEqual(me.drawingsLeft, { space: 5, planet: 5 }, "tick drawingsLeft");
+  assert(players.filter((p) => p.flags.bot).every((p) => p.drawingsLeft === undefined), "bots carry no drawingsLeft");
+  const ents = worlds[0].m.entities;
+  assert(ents && ents.livetest && ents.livetest.type === "ship" && Array.isArray(ents.livetest.verbs) && Object.keys(ents).length === 9, "world.entities for every player");
+  assert(ticks.every((t) => t.m.bullets.every((b) => b.length === 6 && (b[5] === 0 || b[5] === 1))), "bullets carry their mode");
+  assert(worlds.slice(1).every((w) => w.m.entities === undefined), "broadcast world updates leave entities out");
+  report.push(`${ticks.length} ticks in ${span.toFixed(2)} s = ${tps.toFixed(2)}/s, max tick ${maxBytes} B (avg ${Math.round(ticks.reduce((s, t) => s + t.bytes, 0) / ticks.length)} B), ${players.length} players, max ${Math.max(...ticks.map((t) => t.m.bullets.length))} bullets, ${worlds.length} world msgs (connect ${worlds[0].bytes} B with entities, broadcast max ${Math.max(0, ...worlds.slice(1).map((w) => w.bytes))} B)`);
 
   // Allowlist.
-  for (const url of ["/.env", "/server.js", "/world.js", "/astra.js", "/perf.log", "/controllers/x.json", "/.orch/CONTRACT.md", "/assets/../server.js", "/assets/%2e%2e/server.js", "/PLAN.md", "/assets/A-001-boss-rock/generate.py", "/assets/A-001-boss-rock/boss_source.blend"]) {
+  const privatePaths = ["/.env", "/server.js", "/world.js", "/astra.js", "/rules.js", "/https.js", "/perf-report.js", "/perf.log", "/controllers/x.json", "/.orch/CONTRACT.md", "/.orch-certs/key.pem", "/assets/../server.js", "/assets/%2e%2e/server.js", "/PLAN.md", "/assets/A-001-boss-rock/generate.py", "/assets/A-001-boss-rock/boss_source.blend"];
+  for (const url of privatePaths) {
     const r = await request("GET", url);
     assert.strictEqual(r.status, 404, `${url} → ${r.status}`);
   }
   const types = { "/space.html": "text/html", "/controller.html": "text/html", "/contract.js": "text/javascript", "/verbs.js": "text/javascript", "/terrain.js": "text/javascript", "/assets/A-001-boss-rock/boss.glb": "model/gltf-binary", "/assets/A-001-boss-rock/boss.js": "text/javascript" };
+  // The new public modules: 200 when the file exists (other lanes may not have written it yet), else 404.
+  const extras = ["transition.js", "anim.js", "anims.js", "rigs.js", "phone-extras.js", "bigscreen-extras.js"];
+  let extrasServed = 0;
+  for (const f of extras) {
+    const r = await request("GET", "/" + f);
+    const exists = fs.existsSync(path.join(ROOT, f));
+    assert.strictEqual(r.status, exists ? 200 : 404, `/${f} → ${r.status}`);
+    if (exists) { extrasServed++; assert(r.headers["content-type"].startsWith("text/javascript")); }
+  }
   for (const [url, type] of Object.entries(types)) {
     const r = await request("GET", url);
     assert.strictEqual(r.status, 200, `${url} → ${r.status}`);
@@ -110,7 +130,7 @@ async function main() {
   }
   const root = await request("GET", "/");
   assert(root.status === 302 && root.headers.location === "/space.html", "/ redirects to /space.html");
-  report.push("allowlist: 12 private paths 404, 7 public files 200 with the right types, / → /space.html");
+  report.push(`allowlist: ${privatePaths.length} private paths 404, ${Object.keys(types).length} public files 200 with the right types, ${extrasServed}/${extras.length} new modules present and served, / → /space.html`);
 
   // /perf: validated, appended with a server timestamp, one console line.
   const sample = { player: "livetest", screen: "phone", ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)", fps: 58.9, low1: 41, p90ms: 21, calls: 64, tris: 98000, textures: 12, tier: 2, w: 844, h: 390, dpr: 3 };
@@ -130,7 +150,53 @@ async function main() {
   ]);
   const g = JSON.parse(gen.body);
   assert(gen.status === 200 && g.ok && g.layout.buttons[0].action === "land", `generate → ${gen.body.slice(0, 120)}`);
+  assert.deepStrictEqual(g.drawingsLeft, { space: 4, planet: 5 }, "a finished drawing spends one");
   assert(genMsgs.some((x) => x.m.type === "generated" && x.m.player === "livetest" && x.m.kind === "button"), "generated broadcast");
+
+  // Budget: speculative calls are free and never broadcast; 4 more finished drawings, then "no drawings left"
+  // before Astra is called.
+  const img = (i) => "data:image/png;base64," + Buffer.from(`drawing ${i}`).toString("base64");
+  const genBody = (i, speculative) => ({ player: "livetest", kind: "button", image: img(i), region: { x: 0.1, y: 0.05, w: 0.2, h: 0.2 }, speculative, requestId: `r${i}` });
+  const spec = JSON.parse((await request("POST", "/generate", genBody(100, true))).body);
+  assert(spec.ok && spec.drawingsLeft.space === 4, "speculative not counted");
+  for (let i = 1; i <= 4; i++) {
+    const r = JSON.parse((await request("POST", "/generate", genBody(i, false))).body);
+    assert(r.ok && r.drawingsLeft.space === 4 - i, `drawing ${i + 1}: ${JSON.stringify(r).slice(0, 120)}`);
+  }
+  const astraLines = () => (serverOut.match(/^astra button livetest/gm) || []).length;
+  const linesBefore = astraLines();
+  const t1 = Date.now();
+  const refused = await request("POST", "/generate", genBody(9, false));
+  const refusedMs = Date.now() - t1;
+  const rj = JSON.parse(refused.body);
+  assert(refused.status === 200 && rj.ok === false && rj.error === "no drawings left" && rj.drawingsLeft.space === 0 && rj.drawingsLeft.planet === 5, `refusal → ${refused.body}`);
+  await new Promise((r) => setTimeout(r, 400));
+  assert.strictEqual(astraLines(), linesBefore, "refused before Astra was called");
+  const spec2 = JSON.parse((await request("POST", "/generate", genBody(101, true))).body);
+  assert(spec2.ok, "speculative calls still work at 0 left");
+  report.push(`budget: 5 finished drawings in space, speculative free, 6th refused in ${refusedMs} ms without calling Astra`);
+
+  // Entity messages: a late joiner's ship is broadcast; HTTPS serves the same handler.
+  const [entMsgs] = await Promise.all([
+    readEvents(600),
+    new Promise((r) => setTimeout(r, 150)).then(() => request("POST", "/join", { player: "late" })),
+  ]);
+  const ent = entMsgs.find((x) => x.m.type === "entity" && x.m.player === "late");
+  assert(ent && ent.m.entity.type === "ship" && ent.m.entity.verbs.includes("drill"), "entity on join");
+  assert(entMsgs[0].m.type === "world" && entMsgs[0].m.entities.livetest.type === "ship", "world.entities for late screens");
+  report.push(`entity: on join ${JSON.stringify(ent.m.entity).slice(0, 80)}…, anims ${ent.m.entity.anims ? "wired" : "omitted (no astra.wireAnimations)"}`);
+  if (HAS_HTTPS) {
+    const r = await new Promise((resolve, reject) => {
+      https.get(`https://localhost:${HTTPS_PORT}/contract.js`, { rejectUnauthorized: false }, (res) => { res.resume(); res.on("end", () => resolve(res)); }).on("error", reject);
+    });
+    assert.strictEqual(r.statusCode, 200, "HTTPS contract.js");
+    const r404 = await new Promise((resolve, reject) => {
+      https.get(`https://localhost:${HTTPS_PORT}/server.js`, { rejectUnauthorized: false }, (res) => { res.resume(); res.on("end", () => resolve(res)); }).on("error", reject);
+    });
+    assert.strictEqual(r404.statusCode, 404, "HTTPS allowlist");
+    assert(new RegExp(`https://[0-9.]+:${HTTPS_PORT}`).test(serverOut) && new RegExp(`http://[0-9a-z.]+:${PORT}/controller.html`).test(serverOut), "both URLs printed with the LAN IP");
+    report.push(`https: :${HTTPS_PORT} serves the same handler (200 / 404), both URLs printed`);
+  } else report.push("https: https.js missing, skipped");
   const big = await request("POST", "/generate", "x".repeat(2 * 1024 * 1024 + 10));
   assert.strictEqual(big.status, 413, "2 MB body limit");
   report.push(`generate (mock): ok, broadcast, 2 MB limit → 413`);

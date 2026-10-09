@@ -1,19 +1,26 @@
 // Space Party server: an allowlist of public files, the live event stream to every screen, phone input, generation
-// through Astra, and perf samples. The game itself runs in world.js.
-// Usage: PORT=8000 node server.js [--bots N]
+// through Astra (within each player's drawing budget), and perf samples. The game itself runs in world.js.
+// HTTPS (https.js, self-signed for the LAN) runs next to HTTP with the same handler so phones get tilt and camera.
+// Usage: PORT=8000 HTTPS_PORT=8443 node server.js [--bots N]      (HTTPS_PORT=0 turns HTTPS off)
 const http = require("http");
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const Contract = require("./contract");
 const { createWorld } = require("./world");
 
 const PORT = Number(process.env.PORT) || 8000;
+const HTTPS_PORT = process.env.HTTPS_PORT === undefined ? 8443 : Number(process.env.HTTPS_PORT);
 const ROOT = __dirname;
 const ASSETS = path.join(ROOT, "assets");
 const PERF_LOG = process.env.PERF_LOG || path.join(ROOT, "perf.log");
 const BODY_LIMIT = 2 * 1024 * 1024;
 const KEEPALIVE_MS = 15000;
-const PUBLIC_FILES = new Set(["space.html", "controller.html", "render.js", "contract.js", "verbs.js", "terrain.js", "rigs.js"]);
+// rules.js, astra.js, world.js and the server stay private.
+const PUBLIC_FILES = new Set([
+  "space.html", "controller.html", "render.js", "contract.js", "verbs.js", "terrain.js", "rigs.js",
+  "transition.js", "anim.js", "anims.js", "phone-extras.js", "bigscreen-extras.js",
+]);
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".json": "application/json",
   ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp",
@@ -34,7 +41,17 @@ function writeAll(line) {
 const sse = (m) => `data: ${JSON.stringify(m)}\n\n`;
 const broadcast = (m) => writeAll(sse(m));
 
-const world = createWorld({ broadcast, autoStart: true });
+// Astra is loaded lazily and guarded: another lane may be mid-edit, and wireAnimations may not exist yet.
+let astra = null;
+function loadAstra() {
+  try { return (astra = astra || require("./astra")); } catch (err) { console.log(`astra unavailable: ${err.message}`); return null; }
+}
+function wireAnimations(type, verbs) {
+  const a = loadAstra();
+  return a && typeof a.wireAnimations === "function" ? a.wireAnimations(type, verbs) : undefined;
+}
+
+const world = createWorld({ broadcast, autoStart: true, wireAnimations });
 for (let i = 1; i <= BOTS; i++) world.addBot(`bot${i}`);
 
 setInterval(() => { if (streams.size) writeAll(sse(world.tickMessage())); }, 1000 / Contract.TICK_HZ);
@@ -104,11 +121,11 @@ function input(msg) {
   world.handleInput(msg);
 }
 
-let astra = null;
 async function generate(body) {
   try {
-    astra = astra || require("./astra");
-    return { status: 200, result: await astra.generate(body) };
+    const a = loadAstra();
+    if (!a) throw new Error("astra.js did not load");
+    return { status: 200, result: await a.generate(body) };
   } catch (err) {
     console.log(`generate failed: ${err.message}`);
     return { status: 503, result: { ok: false, error: "generation unavailable" } };
@@ -139,13 +156,21 @@ async function handlePost(req, res, url) {
     return joined ? json(res, 200, joined) : json(res, 400, { error: "player name required" });
   }
   if (url.pathname === "/generate") {
-    const { status, result } = await generate(body);
+    // Drawing budget (PLAN.md): only finished (non-speculative), successful drawings count, in the world the player
+    // is in when they send it (the lobby counts as space). Speculative calls are free and never change the layout.
     const player = Contract.cleanName(body.player);
-    if (result && result.ok && player && (body.kind === "controller" || body.kind === "button")) {
+    const finished = !body.speculative;
+    const where = world.drawingWorld(player);
+    if (finished && player && world.drawingsLeft(player)[where] <= 0) {
+      return json(res, 200, { ok: false, error: "no drawings left", drawingsLeft: world.drawingsLeft(player) });
+    }
+    let { status, result } = await generate(body);
+    if (result && result.ok && finished && player && !world.spendDrawing(player, where)) result = { ok: false, error: "no drawings left" };
+    if (result && result.ok && finished && player && (body.kind === "controller" || body.kind === "button")) {
       world.setLayout(player, result.layout, body.kind);
       broadcast({ type: "generated", player, kind: body.kind, layout: result.layout });
     }
-    return json(res, status, result);
+    return json(res, status, player && result ? { ...result, drawingsLeft: world.drawingsLeft(player) } : result);
   }
   if (url.pathname === "/perf") {
     if (Contract.CHECKS.perf(body).length) return json(res, 400, { error: Contract.CHECKS.perf(body).join("; ") });
@@ -155,7 +180,7 @@ async function handlePost(req, res, url) {
   res.writeHead(404).end();
 }
 
-http.createServer(async (req, res) => {
+async function handler(req, res) {
   const url = new URL(req.url, "http://localhost");
   try {
     if (req.method === "GET" && url.pathname === "/events") openStream(req, res);
@@ -165,4 +190,27 @@ http.createServer(async (req, res) => {
   } catch (err) {
     if (!res.headersSent) json(res, err.status || 400, { error: err.message });
   }
-}).listen(PORT, "0.0.0.0", () => console.log(`Space Party on http://localhost:${PORT}${BOTS ? ` with ${BOTS} bots` : ""}`));
+}
+
+function lanIp() {
+  for (const addrs of Object.values(os.networkInterfaces())) for (const a of addrs || []) if (a.family === "IPv4" && !a.internal) return a.address;
+  return "localhost";
+}
+
+http.createServer(handler).listen(PORT, "0.0.0.0", () => {
+  const ip = (httpsLib && httpsLib.lanIps && httpsLib.lanIps()[0]) || lanIp();
+  console.log(`Space Party on http://localhost:${PORT}${BOTS ? ` with ${BOTS} bots` : ""}`);
+  console.log(`  big screen: http://${ip}:${PORT}/space.html`);
+  console.log(`  phones:     http://${ip}:${PORT}/controller.html`);
+});
+
+// https.js may not exist yet (another lane): guarded, and a failure there never stops the HTTP server.
+let httpsLib = null;
+try { httpsLib = require("./https"); } catch (err) { console.log(`HTTPS off: ${err.code === "MODULE_NOT_FOUND" ? "no https.js" : err.message}`); }
+if (httpsLib && HTTPS_PORT > 0) {
+  try {
+    httpsLib.startHttps(handler, { port: HTTPS_PORT }).on("error", (err) => console.log(`HTTPS off: ${err.message}`));
+  } catch (err) {
+    console.log(`HTTPS off: ${err.message}`);
+  }
+}
