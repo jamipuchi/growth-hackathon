@@ -1,0 +1,53 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>phone extras demo</title>
+<style>
+html,body{margin:0;height:100%;background:#05070f;overflow:hidden;font-family:-apple-system,system-ui,sans-serif}
+#stage{position:relative;width:844px;height:390px;background:radial-gradient(ellipse at 60% 30%,#1b1650,#05070f 70%)}
+#vitals{position:absolute;left:14px;top:12px}
+#count{position:absolute;left:50%;top:14px;transform:translateX(-50%)}
+#pad{position:absolute;left:0;right:0;bottom:0;height:62%;border-top:1px dashed rgba(143,220,240,.15)}
+#ctl{position:absolute;right:8px;top:8px;display:flex;gap:4px;flex-wrap:wrap;max-width:260px;justify-content:flex-end;z-index:5}
+#ctl button{font:600 9px system-ui;letter-spacing:.1em;background:#10203a;color:#8fdcf0;border:1px solid #2a4a6a;border-radius:4px;padding:4px 6px}
+.fakebtn{position:absolute;border:1.5px solid rgba(255,255,255,.5);border-radius:50%;width:70px;height:70px}
+</style></head>
+<body>
+<div id="stage">
+  <div id="vitals"></div><div id="count"></div>
+  <div id="pad"><div class="fakebtn" style="left:40px;top:40px"></div><div class="fakebtn" style="left:130px;top:70px"></div></div>
+  <div id="ctl"></div>
+</div>
+<script type="module">
+import { injectStyles, createVitals, createSketchHint, createDrawCounter } from "/phone-extras.js";
+injectStyles();
+const vitals = createVitals(document.getElementById("vitals"));
+const hint = createSketchHint(document.getElementById("pad"));
+const count = createDrawCounter(document.getElementById("count"));
+const S = { hp: 100, maxHp: 100, shieldEnergy: 0.8, boostEnergy: 0.55, dead: false, respawnIn: 0 };
+const C = { left: 3, max: 5, world: "space" };
+const states = {
+  full: () => Object.assign(S, { hp: 100, dead: false }),
+  hurt: () => Object.assign(S, { hp: 45, dead: false }),
+  hit: () => Object.assign(S, { hp: Math.max(1, S.hp - 20), dead: false }),
+  low: () => Object.assign(S, { hp: 15, dead: false }),
+  dead: () => Object.assign(S, { hp: 0, dead: true, respawnIn: 3 }),
+  "dead 1": () => Object.assign(S, { hp: 0, dead: true, respawnIn: 0.4 }),
+  "3 of 5": () => Object.assign(C, { left: 3 }),
+  "1 of 5": () => Object.assign(C, { left: 1 }),
+  "none (space)": () => Object.assign(C, { left: 0, world: "space" }),
+  "none (planet)": () => Object.assign(C, { left: 0, world: "planet" }),
+  drill: () => hint.show("drill"),
+  landing: () => hint.show("landing"),
+  shovel: () => hint.show("shovel"),
+  "hide sketch": () => hint.hide(),
+};
+const ctl = document.getElementById("ctl");
+for (const [k, f] of Object.entries(states)) {
+  const b = document.createElement("button"); b.textContent = k; b.id = "b-" + k.replace(/\W+/g, "_");
+  b.onclick = () => { f(); vitals.update(S); count.update(C); };
+  ctl.appendChild(b);
+}
+vitals.update(S); count.update(C);
+window.__pe = { vitals, count, hint, S, C, states };
+</script></body></html>
