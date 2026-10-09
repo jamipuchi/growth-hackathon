@@ -1,0 +1,4 @@
+[
+  { "type": "input", "player": "ana", "action": "shoot", "down": true },
+  { "type": "axis", "player": "ana", "axis": "steer", "x": -0.42, "y": 0.18 }
+]
