@@ -69,7 +69,7 @@ Phone to server, `POST /input`:
 Server to every screen, over the event stream:
 - `world`: rocks (id, position, size, type, health), nebula, boss and decoys, planet, island seed, chests. Sent on connect and whenever any of it changes.
 - `tick`: 15 times a second. Round `phase` (`lobby`, `playing`, `sudden`, `scoreboard`) and `clock` (seconds left). Players (position, yaw, pitch, roll, health, mode `space`/`planet`, status flags, score, current `action` + `slot` + `startedAt` for animation), bullets, boss shots, flares.
-- `fx`: explosions, sparks, blasts. `announce`: kill feed, treasure found, win. `toast`: a message to one player ("Draw a LAND button!").
+- `fx`: explosions, sparks, blasts. `announce`: kill feed, treasure found, win. `toast`: a message to one player ("Draw a LAND button"), with an optional `ghost: {action, x, y, w, h}` for the trace-it hint (section 4, Hints).
 - `generated`: `{player, kind}` once a layout or entity is ready. `entity`: a player's wired entity (type, rig joints, parts on sockets, verbs, bindings).
 
 ### Generation (`POST /generate`, handled by Astra)
@@ -123,6 +123,21 @@ Server to every screen, over the event stream:
 4. **Island.** A hyper-realistic island: sky, ocean and terrain.
    - Chests sit on the surface, and some are buried, which needs **DIG**.
    - **The first chest collected wins the round.**
+
+### Hints: nobody gets stuck
+Every chain obstacle has a three-step hint ladder. Each hint is a `toast` to that player only, shown on the phone above the drawing pad. Hints never fire in the lobby, and sudden death skips straight to step 3.
+
+| Obstacle | 1. Nudge (when it starts) | 2. Name the button (8 s later) | 3. Trace it (8 s after that) |
+| --- | --- | --- | --- |
+| **LAND** | Entering landing range of the planet without a LAND control: "Get closer and land. How do you land?" The planet's landing ring pulses | "Draw a LAND button" | A dashed ghost box with the word LAND appears on the pad where a button fits; trace it and tap Done |
+| FLARE | Entering the nebula: "It's too dark to see. Light it up?" | "Draw a FLARE button" | Ghost FLARE box on the pad |
+| SCAN | 10 s inside the nebula: "Five identical rocks. Which one is real?" | "Draw a SCAN button" | Ghost SCAN box on the pad |
+| DRILL | Your first laser bounces off the boss: "Lasers bounce off the armour." | "Draw a DRILL button" | Ghost DRILL box on the pad |
+| DIG | Standing on a buried chest: "Something is buried here." | "Draw a DIG button" | Ghost DIG box on the pad |
+
+- The ghost box sits in the largest empty area of the player's pad, so tracing it never covers an existing control.
+- A hint stops as soon as the player has a control bound to that verb.
+- The server owns the ladder (it knows positions and bindings); the phone only shows the toast and the ghost box (`toast` carries an optional `ghost: { action, x, y, w, h }`).
 
 ### Round clock: winnable in 2:00, over by 3:00
 Before the clock: a **20 s lobby** to draw your ship and controller (defaults if you skip).
