@@ -125,6 +125,17 @@ Server to every screen, over the event stream:
 
 FLARE and SCAN stay as abilities (a bright flare others can see; a scan that adds extras to your radar), but no gate needs them.
 
+### Drawing budget: 10 per round
+Each player has **10 drawings per round: 5 while in space and 5 on the planet**. Every finished drawing counts (ship, controller, an added button, explorer); speculative calls while drawing and failed generations do not. The lobby drawings count toward the space five. The phone shows the drawings left in draw mode ("3 of 5 left"); when a world's five are used, draw mode is closed for that world and the server answers `{ok:false, error:"no drawings left"}`. The budget resets each round. A typical space run uses 4 (ship, controller, DRILL, LAND) and a planet run 2 to 3 (explorer, DIG), so there is room for one mistake in each.
+
+### The space-to-planet transition
+Landing and take-off are one continuous shot, never a cut, on both the phone and the big screen:
+1. **Approach (0 to 1 s):** the camera swings behind the ship as it glides onto the pulsing landing ring; the controller overlay fades to 20%.
+2. **Entry (1 to 2 s):** the ship tilts nose-down into the atmosphere: heat glow on the hull, streaks, the starfield fades to sky blue, a soft white bloom fills the screen.
+3. **Touchdown (2 to 3 s):** the bloom clears to the island seen from above, the camera follows the ship down to the landing pad, dust bursts, the engine sound drops.
+4. **Step out:** the explorer climbs out next to the parked ship (it stays on the pad, and take-off starts from it), and the phone slides in "Draw your explorer" while the island is already live behind it.
+Take-off plays it in reverse: the explorer climbs in, the ship lifts off, the sky darkens to space, and the space controller fades back in. On the big screen the spectator camera follows the same shot when it is following that player.
+
 ### Hints: make people think
 Hints guide without giving the answer away, but **a regular person must still finish within about 3 minutes**. The world hints first; then a riddle, then a sketch; the button's name comes only after about 30 s stuck at a gate. A player who knows the route never sees a hint.
 
