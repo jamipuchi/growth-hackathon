@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Space Party Controller</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent}
+body{font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif;user-select:none;-webkit-user-select:none}
+.control{position:absolute;opacity:.92;animation:appear .45s backwards;transition:scale .18s cubic-bezier(.2,.9,.35,1.5),translate .18s,filter .18s,box-shadow .18s}
+@keyframes appear{0%{opacity:0;scale:.35}75%{opacity:.96;scale:1.07}100%{opacity:.92;scale:1}}
+.btn{border:4px solid white;background:linear-gradient(#86dcff 0%,#2f8bff 48%,#1647c8 100%);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033;display:flex;align-items:center;justify-content:center;transform:skewX(-9deg);border-radius:12px;color:white}
+.content{transform:skewX(9deg);display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;padding:8px}
+.label{font-size:clamp(16px,3vw,26px);font-weight:900;font-style:italic;text-transform:uppercase;letter-spacing:.04em;text-shadow:-2px 0 #0b1033,2px 0 #0b1033,0 -2px #0b1033,0 2px #0b1033,0 3px 3px #0b1033;line-height:1}
+.icon{width:clamp(25px,4.5vw,42px);height:clamp(25px,4.5vw,42px);flex-shrink:0;filter:drop-shadow(0 2px 0 #0b1033);fill:none;stroke:white;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.shoot{--size:max(64px,min(15vw,32vh));width:var(--size);height:var(--size);left:clamp(calc(var(--size)/2 + 7px),49.5vw,calc(100vw - var(--size)/2 - 7px));top:clamp(calc(var(--size)/2 + 7px),28vh,calc(100vh - var(--size)/2 - 10px));margin-left:calc(var(--size)/-2);margin-top:calc(var(--size)/-2);border-radius:50%;transform:none;background:linear-gradient(#ffe36e,#ffb21f 50%,#d26a06);animation-delay:.1s}
+.shoot .content{transform:none;flex-direction:column;gap:5px}
+.boost{--w:max(64px,21vw);--h:max(64px,24vh);width:var(--w);height:var(--h);left:clamp(calc(var(--w)/2 + 12px),49.5vw,calc(100vw - var(--w)/2 - 12px));top:clamp(calc(var(--h)/2 + 7px),74vh,calc(100vh - var(--h)/2 - 10px));margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);animation-delay:.15s}
+.stick{--size:max(110px,min(26vw,58vh));width:var(--size);height:var(--size);margin-left:calc(var(--size)/-2);margin-top:calc(var(--size)/-2);top:clamp(calc(var(--size)/2 + 7px),65vh,calc(100vh - var(--size)/2 - 10px));border:4px solid #fff;border-radius:50%;background:radial-gradient(circle at 45% 30%,#355d89d9,#111d3bdd);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033}
+.steer{left:clamp(calc(var(--size)/2 + 7px),17vw,calc(100vw - var(--size)/2 - 7px))}
+.move{left:clamp(calc(var(--size)/2 + 7px),83vw,calc(100vw - var(--size)/2 - 7px));animation-delay:.05s}
+.arrows{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:white;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 #0b1033)}
+.knob{position:absolute;left:50%;top:50%;width:40%;height:40%;margin-left:-20%;margin-top:-20%;border-radius:50%;border:3px solid white;background:linear-gradient(155deg,#a9e8ff 0%,#2f8bff 50%,#1647c8 100%);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033}
+.btn.is-down{translate:0 4px;scale:.95;filter:brightness(1.18);box-shadow:inset 0 3px 0 #ffffff80,0 1px 0 #0b1033}
+.stick.is-down{filter:brightness(1.16)}
+.stick.is-down .knob{box-shadow:inset 0 3px 0 #ffffff80,0 2px 0 #0b1033}
+.control.is-on,.stick.is-on .knob{background:linear-gradient(#ffe36e,#ffb21f 50%,#d26a06)}
+.control.is-disabled{opacity:.35;filter:grayscale(.75)}
+</style>
+</head>
+<body>
+<div class="control stick steer" data-stick="steer" aria-label="Steer">
+<svg class="arrows" viewBox="0 0 100 100" aria-hidden="true"><path d="M44 16L50 9L56 16M44 84L50 91L56 84M16 44L9 50L16 56M84 44L91 50L84 56"/></svg>
+<div class="knob" data-knob></div>
+</div>
+<div class="control stick move" data-stick="move" aria-label="Move">
+<svg class="arrows" viewBox="0 0 100 100" aria-hidden="true"><path d="M44 16L50 9L56 16M44 84L50 91L56 84M16 44L9 50L16 56M84 44L91 50L84 56"/></svg>
+<div class="knob" data-knob></div>
+</div>
+<div class="control btn shoot" data-action="shoot" data-label="PEW">
+<div class="content">
+<svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="13"/><path d="M24 3V15M24 33V45M3 24H15M33 24H45"/><circle cx="24" cy="24" r="3" fill="white" stroke="none"/></svg>
+<span class="label">PEW</span>
+</div>
+</div>
+<div class="control btn boost" data-action="boost" data-label="TURBO">
+<div class="content">
+<svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M8 9L22 24L8 39M25 9L39 24L25 39" stroke-width="6"/></svg>
+<span class="label">TURBO</span>
+</div>
+</div>
+</body>
+</html>

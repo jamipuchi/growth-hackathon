@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Space Party Controller</title>
+<style>
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:transparent;overflow:hidden}
+body{font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+.control{position:absolute;opacity:.92;animation:pop .45s cubic-bezier(.2,.8,.3,1) both;transition:scale .18s cubic-bezier(.2,1.6,.5,1),translate .18s,filter .18s; color:white}
+.tile{width:var(--w);height:var(--h);left:clamp(calc(var(--w)/2 + 2vw),17vw,calc(98vw - var(--w)/2));margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);border:4px solid white;border-radius:10px;transform:skewX(-9deg);background:linear-gradient(#86dcff,#2f8bff 52%,#1647c8);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033}
+.inner{width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;transform:skewX(9deg)}
+.label{font-style:italic;font-weight:900;font-size:clamp(16px,3vw,26px);letter-spacing:.04em;text-transform:uppercase;line-height:1.05;text-shadow:-2px 0 #0b1033,2px 0 #0b1033,0 -2px #0b1033,0 2px #0b1033,0 3px 3px #0b1033}
+.icon{width:clamp(25px,4.5vw,42px);height:clamp(25px,8vh,38px);fill:white;stroke:white;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 #0b1033)}
+.go{--w:max(64px,18vw);--h:max(64px,30vh);top:clamp(calc(var(--h)/2 + 2vh),27vh,calc(98vh - var(--h)/2))}
+.brake{--w:max(64px,22vw);--h:max(64px,30vh);top:clamp(calc(var(--h)/2 + 2vh),73vh,calc(98vh - var(--h)/2));animation-delay:50ms}
+.blast{--w:max(90px,20vw);--h:max(90px,40vh);width:var(--w);height:var(--h);left:clamp(calc(var(--w)/2 + 1vw),46vw,calc(99vw - var(--w)/2));top:clamp(calc(var(--h)/2 + 2vh),52vh,calc(98vh - var(--h)/2));margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);animation-delay:100ms}
+.star{position:absolute;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 5px 0 #0b1033)}
+.blast .inner{position:absolute;transform:none;gap:2px;padding-top:3%}
+.blast .icon{width:23%;height:23%}
+.blast .label{font-size:clamp(16px,2.5vw,23px)}
+.stick{--d:max(110px,min(27vw,60vh));width:var(--d);height:var(--d);left:clamp(calc(var(--d)/2 + 1vw),81.5vw,calc(99vw - var(--d)/2));top:clamp(calc(var(--d)/2 + 2vh),60vh,calc(98vh - var(--d)/2));margin-left:calc(var(--d)/-2);margin-top:calc(var(--d)/-2);border:4px solid white;border-radius:50%;background:radial-gradient(circle,#213968b8,#101d3ad9);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033;animation-delay:150ms}
+.chevrons{position:absolute;width:100%;height:100%;inset:0;fill:none;stroke:white;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 #0b1033)}
+.knob{position:absolute;left:30%;top:30%;width:40%;height:40%;border:3px solid white;border-radius:50%;background:linear-gradient(#86dcff,#2f8bff 52%,#1647c8);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033}
+.control.is-down{translate:0 4px;scale:.95;filter:brightness(1.16)}
+.tile.is-down,.stick.is-down{box-shadow:inset 0 3px 0 #ffffff80,0 1px 0 #0b1033}
+.blast.is-down .star{filter:drop-shadow(0 1px 0 #0b1033)}
+.control.is-on{background:linear-gradient(#ffe36e,#ffb21f 52%,#d26a06)}
+.stick.is-on .knob{background:linear-gradient(#ffe36e,#ffb21f 52%,#d26a06)}
+.blast.is-on .star polygon{fill:#ffb21f}
+.control.is-disabled{opacity:.35;filter:grayscale(.75);box-shadow:none}
+@keyframes pop{0%{opacity:0;scale:.35}75%{opacity:.92;scale:1.07}100%{opacity:.92;scale:1}}
+@media(prefers-reduced-motion:reduce){.control{animation:none}}
+</style>
+</head>
+<body>
+<div class="control tile go" data-action="forward" data-label="GO">
+<div class="inner">
+<svg class="icon" viewBox="0 0 48 40" aria-hidden="true"><path d="M24 5 8 22h10v13h12V22h10Z"/></svg>
+<span class="label">GO</span>
+</div>
+</div>
+<div class="control tile brake" data-action="back" data-label="BRAKE">
+<div class="inner">
+<svg class="icon" viewBox="0 0 48 40" aria-hidden="true"><path d="M18 5h12v13h10L24 35 8 18h10Z"/></svg>
+<span class="label">BRAKE</span>
+</div>
+</div>
+<div class="control blast" data-action="blast" data-label="BOOM">
+<svg class="star" viewBox="0 0 160 160" preserveAspectRatio="none" aria-hidden="true">
+<defs><linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffe36e"/><stop offset=".52" stop-color="#ffb21f"/><stop offset="1" stop-color="#d26a06"/></linearGradient></defs>
+<polygon points="80,5 101,53 155,58 114,94 127,150 80,122 33,150 46,94 5,58 59,53" fill="url(#gold)" stroke="white" stroke-width="4" stroke-linejoin="round"/>
+<path d="M66 48 80 16 94 48" fill="none" stroke="#ffffff80" stroke-width="3" stroke-linecap="round"/>
+</svg>
+<div class="inner">
+<svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><path d="m22 3-3 12 12-6-7 13 13 2-15 5-3 9-5-12-11-6 12-2Z"/></svg>
+<span class="label">BOOM</span>
+</div>
+</div>
+<div class="control stick" data-stick="move" aria-label="Move">
+<svg class="chevrons" viewBox="0 0 200 200" aria-hidden="true">
+<path d="m89 25 11-12 11 12M175 89l12 11-12 11M111 175l-11 12-11-12M25 111l-12-11 12-11"/>
+</svg>
+<div class="knob" data-knob></div>
+</div>
+</body>
+</html>

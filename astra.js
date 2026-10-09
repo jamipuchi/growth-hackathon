@@ -26,7 +26,14 @@
 // (HEDGE_MS); one retry with a bigger budget after an "incomplete" answer, and one stricter retry when a controller or
 // button answer has no usable control.
 //
-// Env: OPENAI_API_KEY (else a .env next to this file), OPENAI_MODEL, OPENAI_SERVICE_TIER ("" or "none" omits it),
+// inkRegions (optional, controller kind): the connected ink components the phone found, [{ x, y, w, h, round }] as
+// fractions of the drawing. When the model cannot answer (ASTRA_MOCK=1, no key, a timeout) the layout is built from
+// them: round → a stick (steer on the left half, move on the right), the rest → buttons in drawing order with the
+// usual verbs (source "regions"). Without them a controller timeout is { ok: false, error: "timeout" } (nothing is
+// spent and the phone keeps its controller: PLAN.md "If generation fails"); a button timeout uses `expect` if given.
+//
+// Env: OPENAI_API_KEY (else a .env next to this file; set but empty means no key, the .env is not read),
+// OPENAI_MODEL (only a gpt-6.1-sol snapshot: the model is pinned), OPENAI_SERVICE_TIER ("" or "none" omits it),
 // OPENAI_REASONING_EFFORT (default "low"; "" or "none" omits it), ASTRA_MOCK=1 (no network, deterministic layouts
 // after 300 ms).
 const crypto = require("crypto");
@@ -61,7 +68,11 @@ const ACTIONS = [...Object.keys(Verbs.VERBS), ...Verbs.MOVES, ...Verbs.STICKS, .
 let fetchImpl = (...args) => globalThis.fetch(...args);
 let outDir = path.join(__dirname, "controllers");
 let timeoutMs = TIMEOUT_MS;
-let defaultTierOnly = false; // set once a call proves the fast tier rejects images or structured output
+// Set for TIER_MEMORY_MS once the fast tier rejected a request that the default tier then answered (v1.0 review: one
+// unrelated 4xx used to switch the whole process off the fast tier for good).
+const TIER_MEMORY_MS = 10 * 60 * 1000;
+let defaultTierUntil = 0;
+const defaultTierOnly = () => Date.now() < defaultTierUntil;
 let envKey; // undefined = not read yet
 const cache = new Map(); // hash → reading { value, looksLike, thing, wrong }
 const inflight = new Map(); // hash → { promise, controller, owners: Set<token> }
@@ -70,7 +81,8 @@ const pads = new Map(); // player → [{ type, action, label }] on their phone n
 const MAX_PADS = 500;
 
 function apiKey() {
-  if (process.env.OPENAI_API_KEY) return process.env.OPENAI_API_KEY;
+  // Present but blank (a harness turning the network off) means no key: never fall back to the .env then.
+  if ("OPENAI_API_KEY" in process.env) return process.env.OPENAI_API_KEY || null;
   if (envKey === undefined) {
     envKey = null;
     try {
@@ -215,9 +227,11 @@ function entityPrompt(kind, source) {
     : "The image is usually a PHOTO of a notebook page, cropped to the drawing and possibly turned by 90 degrees. Ignore paper lines, grids, shadows and fingers.";
   const table = Verbs.SKILLS[world].map((v) => `${v}: ${Verbs.PARTS[v]}`).join("; ");
   const looks = "looksLike: \"entity\" for any picture of a thing (a ship, rocket, vehicle, person, robot, animal, creature or object), even a rough one. \"controller\" ONLY if the drawing is a game-controller layout instead: joystick circles, D-pads, arrows, or boxes and circles labelled with action words (FIRE, BOOST, LAND, DIG...), with no vehicle or creature drawn. \"nothing\" if it is blank.";
+  // Mischief parts (v1.3, PLAN.md "Mischief"), the same on ships and explorers.
+  const mischief = `a zigzag lightning bolt → emp; a magnet (a U or horseshoe shape, often with lines coming off its tips) → tractor; spikes along the back, or bombs hanging behind or under it → mine; an octopus, a squid or an ink bottle → inkbomb; a second, smaller copy of the ${kind === "ship" ? "ship" : "explorer"} drawn next to it → decoy`;
   const hints = kind === "ship"
-    ? "How parts look: wavy tongues of fire behind the ship or under a rocket = exhaust flames → boost; a tube or barrel = cannon → shoot; a cone or triangle with ridges, zigzag or spiral lines on the nose = drill → drill; struts with feet under the ship = landing legs → land; a big circle or bubble around the whole ship = shield → shield; a small circle or bulb with straight rays fanning out = lamp → flare; a stick with a dish or ball = antenna → scan; a plus sign or cross = red cross → heal; a ball with a fuse = bomb → blast. Windows, a cockpit, fins and wings unlock nothing."
-    : "How parts look: a shovel, spade or big claws on the feet or hands → dig; a drill: any hand-held tool or front part ending in a cone or point with ridges, zigzag or spiral lines, even with a gun-like grip → drill; a gun or blaster with a straight barrel → shoot; a jetpack or exhaust with flames → boost; a torch or lamp with rays → flare; a shield → shield; an antenna or radar dish → scan; a red cross → heal. The eyes of a face and a helmet visor unlock nothing; wheels and legs are how it moves (no skill).";
+    ? `How parts look: wavy tongues of fire behind the ship or under a rocket = exhaust flames → boost; a tube or barrel = cannon → shoot; struts with feet under the ship = landing legs → land; a big circle or bubble around the whole ship = shield → shield; a small circle or bulb with straight rays fanning out = lamp → flare; a stick with a dish or ball = antenna → scan; a plus sign or cross = red cross → heal; a ball with a fuse = bomb → blast; ${mischief}. Windows, a cockpit, fins and wings unlock nothing.`
+    : `How parts look: a shovel, spade or big claws on the feet or hands → dig; a drill: any hand-held tool or front part ending in a cone or point with ridges, zigzag or spiral lines, even with a gun-like grip → drill; a gun or blaster with a straight barrel → shoot; a jetpack or exhaust with flames → boost; a torch or lamp with rays → flare; a shield → shield; an antenna or radar dish → scan; a red cross → heal; ${mischief}. The eyes of a face and a helmet visor unlock nothing; wheels and legs are how it moves (no skill).`;
   return [
     kind === "ship"
       ? "You read a hand-drawn SPACESHIP for a party game. type is always \"ship\"."
@@ -232,9 +246,18 @@ function entityPrompt(kind, source) {
   ].join("\n");
 }
 
+// The model is pinned (owner): gpt-6.1-sol, or a dated gpt-6.1-sol snapshot from OPENAI_MODEL; anything else is ignored.
+let modelWarned = false;
+function modelId() {
+  const m = process.env.OPENAI_MODEL;
+  if (!m || /^gpt-6\.1-sol(-[\w.-]+)?$/.test(m)) return m || DEFAULT_MODEL;
+  if (!modelWarned) { modelWarned = true; console.log(`astra: OPENAI_MODEL=${String(m).slice(0, 40)} ignored; the model is pinned to ${DEFAULT_MODEL}`); }
+  return DEFAULT_MODEL;
+}
+
 function buildRequest(kind, image, region, source, useTier = true, opts = {}) {
   const req = {
-    model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+    model: modelId(),
     input: [{ role: "user", content: [
       { type: "input_text", text: ENTITY_KINDS[kind] ? entityPrompt(kind, source) : promptFor(kind, source, region, opts) },
       { type: "input_image", image_url: image, detail: "low" },
@@ -244,7 +267,7 @@ function buildRequest(kind, image, region, source, useTier = true, opts = {}) {
     store: false,
   };
   const tier = process.env.OPENAI_SERVICE_TIER ?? DEFAULT_TIER;
-  if (useTier && !defaultTierOnly && tier && tier !== "none") req.service_tier = tier;
+  if (useTier && !defaultTierOnly() && tier && tier !== "none") req.service_tier = tier;
   const effort = process.env.OPENAI_REASONING_EFFORT ?? DEFAULT_EFFORT;
   if (effort && effort !== "none") req.reasoning = { effort };
   return req;
@@ -352,9 +375,41 @@ function readAnswer(kind, data, region, expect) {
   }
 }
 
-function mockLayout(kind, hash, region) {
+// The usual verbs for drawn buttons nobody could read, in drawing order (inkRegions fallback).
+const REGION_VERBS = ["shoot", "boost", "land", "dig", "drill", "shield", "scan", "flare", "jump", "blast", "heal", "invisible", "teleport", "takeoff"];
+
+// inkRegions from the phone → a layout that follows the drawing, or null (none usable).
+function regionsLayout(regions) {
+  if (!Array.isArray(regions)) return null;
+  const list = regions.slice(0, 40).filter((r) => r && typeof r === "object").map((r) => {
+    const x = clamp01(r.x), y = clamp01(r.y);
+    return { x: round3(x), y: round3(y), w: round3(Math.min(clamp01(r.w), 1 - x)), h: round3(Math.min(clamp01(r.h), 1 - y)), round: r.round === true };
+  }).filter((r) => r.w >= 0.03 && r.h >= 0.03);
+  const out = [];
+  let verb = 0;
+  const sticks = new Set();
+  for (const r of list) {
+    if (out.length >= MAX_BUTTONS) break;
+    const stick = r.round ? (r.x + r.w / 2 < 0.5 ? "steer" : "move") : null;
+    if (stick && !sticks.has(stick)) {
+      sticks.add(stick);
+      out.push({ type: "stick", action: stick, label: "", x: r.x, y: r.y, w: r.w, h: r.h });
+    } else if (verb < REGION_VERBS.length) {
+      out.push({ type: "button", action: REGION_VERBS[verb], label: REGION_VERBS[verb].toUpperCase(), x: r.x, y: r.y, w: r.w, h: r.h });
+      verb++;
+    }
+  }
+  try { return out.length ? finishLayout(out, "regions") : null; } catch { return null; }
+}
+
+function mockLayout(kind, hash, region, extra = {}) {
   const j = (i) => (parseInt(hash.slice(i * 2, i * 2 + 2), 16) / 255) * 0.06; // deterministic jitter, 0..0.06
-  if (kind === "button") return finishLayout([{ type: "button", action: "land", label: "LAND", ...region }], "model");
+  if (kind === "button") {
+    const action = extra.expect && ACTIONS.includes(extra.expect) && !Verbs.STICKS.includes(extra.expect) ? extra.expect : "land";
+    return finishLayout([{ type: "button", action, label: action.toUpperCase(), ...region }], "model");
+  }
+  const fromInk = regionsLayout(extra.inkRegions);
+  if (fromInk) return fromInk;
   return finishLayout([
     { type: "stick", action: "steer", label: "", x: round3(0.03 + j(0)), y: round3(0.35 + j(1)), w: 0.3, h: 0.55 },
     { type: "button", action: "shoot", label: "SHOOT", x: round3(0.72 + j(2)), y: round3(0.5 + j(3)), w: 0.2, h: 0.35 },
@@ -417,13 +472,16 @@ async function askOnce(kind, image, region, source, signal, opts) {
   let res = await post(req, key, signal);
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    const tierProblem = res.status >= 400 && res.status < 500 && req.service_tier && /service_tier|image|format|schema/i.test(text);
+    // Only an error that names the tier is a tier problem (a bad image or schema is not), and it is remembered only
+    // once the default tier has answered the same request.
+    const tier = req.service_tier;
+    const tierProblem = res.status >= 400 && res.status < 500 && tier && /service[_ ]?tier|ultrafast|\btier\b/i.test(text);
     if (!tierProblem) throw new Error(`OpenAI HTTP ${res.status}`);
-    defaultTierOnly = true; // remembered for the process
-    console.log(`astra: service tier ${req.service_tier} rejected (HTTP ${res.status}); using the default tier from now on`);
     req = buildRequest(kind, image, region, source, false, opts);
     res = await post(req, key, signal);
     if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}`);
+    if (!defaultTierOnly()) console.log(`astra: service tier ${tier} rejected (HTTP 4xx); using the default tier for the next ${TIER_MEMORY_MS / 60000} min`);
+    defaultTierUntil = Date.now() + TIER_MEMORY_MS;
   }
   const data = await res.json().catch(() => {
     throw new Error("bad response: not JSON");
@@ -441,9 +499,18 @@ async function callModel(kind, image, region, source, signal, extra = {}) {
   try {
     answer = await ask(kind, image, region, source, signal, { expect, pad });
   } catch (err) {
-    if (!/^incomplete: max_output_tokens/.test(err.message) || !timeLeft()) throw err;
-    console.log(`astra ${kind}: ${err.message} after ${Date.now() - t0} ms, retrying with ${RETRY_OUTPUT_TOKENS} tokens`);
-    answer = await ask(kind, image, region, source, signal, { expect, pad, maxTokens: RETRY_OUTPUT_TOKENS });
+    // A rate limit, a server error or a dropped connection: one quick retry while time is left (v1.0 review: 25
+    // phones generating at once in the lobby got no second chance).
+    const transient = /^OpenAI HTTP (429|5\d\d)$/.test(err.message) || err.name === "TypeError" || /fetch failed|ECONNRESET|ETIMEDOUT|socket hang up/i.test(err.message);
+    if (transient && timeLeft()) {
+      console.log(`astra ${kind}: ${err.message} after ${Date.now() - t0} ms, retrying once`);
+      await sleep(250, signal);
+      answer = await ask(kind, image, region, source, signal, { expect, pad });
+    } else {
+      if (!/^incomplete: max_output_tokens/.test(err.message) || !timeLeft()) throw err;
+      console.log(`astra ${kind}: ${err.message} after ${Date.now() - t0} ms, retrying with ${RETRY_OUTPUT_TOKENS} tokens`);
+      answer = await ask(kind, image, region, source, signal, { expect, pad, maxTokens: RETRY_OUTPUT_TOKENS });
+    }
   }
   try {
     return readAnswer(kind, answer, region, expect);
@@ -475,7 +542,7 @@ function startEntry(hash, kind, image, region, source, extra) {
   entry.promise = (async () => {
     try {
       const reading = process.env.ASTRA_MOCK === "1"
-        ? (await sleep(ENTITY_KINDS[kind] ? 0 : MOCK_MS, controller.signal), { value: ENTITY_KINDS[kind] ? devKitEntity(kind) : mockLayout(kind, hash, region), looksLike: null, thing: null, wrong: false })
+        ? (await sleep(ENTITY_KINDS[kind] ? 0 : MOCK_MS, controller.signal), { value: ENTITY_KINDS[kind] ? devKitEntity(kind) : mockLayout(kind, hash, region, extra), looksLike: null, thing: null, wrong: false })
         : await callModel(kind, image, region, source, controller.signal, extra);
       cache.set(hash, reading);
       return { ok: true, reading, ms: Date.now() - t0, outcome: outcomeOf(reading) };
@@ -484,9 +551,17 @@ function startEntry(hash, kind, image, region, source, extra) {
       // An entity always comes back: the dev kit keeps the game playable without a key or when the call fails.
       if (ENTITY_KINDS[kind] && !entry.superseded) return { ok: true, reading: { value: devKitEntity(kind), looksLike: null, thing: null, wrong: false }, ms, outcome: `${entry.timedOut ? "timeout" : `error: ${err && err.message}`} → dev kit` };
       if (err && err.final && !entry.superseded) return { ok: false, error: err.message, looksLike: err.looksLike, ms, outcome: `error: ${err.message}` };
-      if (entry.timedOut) {
-        if (kind === "controller") return { ok: true, reading: { value: defaultLayout(), looksLike: null, thing: null, wrong: false }, ms, outcome: "timeout → default layout" };
-        return { ok: false, error: "timeout", ms, outcome: "timeout" };
+      // No answer in time (or no key): the drawing's own ink regions, the button the game asked for, else nothing
+      // (a fallback layout the player never drew would be charged and sit under the wrong ink).
+      const noKey = /^no OPENAI_API_KEY/.test(String(err && err.message));
+      if ((entry.timedOut || noKey) && !entry.superseded) {
+        const why = entry.timedOut ? "timeout" : "no key";
+        const fromInk = kind === "controller" ? regionsLayout(extra.inkRegions) : null;
+        if (fromInk) return { ok: true, reading: { value: fromInk, looksLike: null, thing: null, wrong: false }, ms, outcome: `${why} → ink regions` };
+        if (kind === "button" && extra.expect && !Verbs.STICKS.includes(extra.expect)) {
+          try { return { ok: true, reading: { value: finishLayout([{ type: "button", action: extra.expect, label: extra.expect.toUpperCase(), ...region }], "model"), looksLike: null, thing: null, wrong: false }, ms, outcome: `${why} → expected ${extra.expect}` }; } catch {}
+        }
+        return { ok: false, error: entry.timedOut ? "timeout" : "generation unavailable", ms, outcome: why };
       }
       if (entry.superseded) return { ok: false, error: "superseded", ms, outcome: "superseded" };
       return { ok: false, error: String(err && err.message || err), looksLike: err && err.looksLike, ms, outcome: `error: ${err && err.message}` };
@@ -574,6 +649,7 @@ async function generate(body) {
   const expectRaw = kind === "button" && typeof body.expect === "string" ? Contract.normaliseAction(body.expect) : null;
   const expect = expectRaw && VERB_IDS.has(expectRaw) ? expectRaw : null;
   const pad = kind === "button" ? (Array.isArray(body.pad) ? cleanPad(body.pad) : pads.get(player) || []) : [];
+  const inkRegions = kind === "controller" && Array.isArray(body.inkRegions) ? body.inkRegions.slice(0, 40) : null;
   const hash = sha1(kind + image + (region ? JSON.stringify(region) : "") + (expect ? `expect:${expect}` : "") + (pad.length ? `pad:${pad.map((c) => c.action).join(",")}` : ""));
   const slotKey = `${player}:${kind}`;
 
@@ -589,7 +665,7 @@ async function generate(body) {
   if (!cached) {
     entry = inflight.get(hash);
     hit = entry ? "joined" : "miss";
-    if (!entry) entry = startEntry(hash, kind, image, region, source, { expect, pad });
+    if (!entry) entry = startEntry(hash, kind, image, region, source, { expect, pad, inkRegions });
     entry.owners.add(token);
     token.entry = entry;
   }
@@ -704,14 +780,14 @@ const _internals = {
     inflight.clear();
     slots.clear();
     pads.clear();
-    defaultTierOnly = false;
+    defaultTierUntil = 0;
     timeoutMs = TIMEOUT_MS;
   },
-  state: () => ({ cache: cache.size, inflight: inflight.size, slots: slots.size, pads: pads.size, defaultTierOnly }),
+  state: () => ({ cache: cache.size, inflight: inflight.size, slots: slots.size, pads: pads.size, defaultTierOnly: defaultTierOnly() }),
   padOf: (player) => (pads.get(Contract.cleanName(player)) || []).map((c) => ({ ...c })),
   TIMEOUT_MS, MOCK_MS, HEDGE_MS, SCHEMAS, ACTIONS, ENTITY_KINDS, MAX_OUTPUT_TOKENS, LOOKS, THINGS, entityFromModel, devKitEntity,
   entityPrompt, buildRequest, promptFor, extractText, parseJson, cleanControl, layoutFromModel, readAnswer, mockLayout,
-  cleanRegion, sha1, wrongKindError, hedged,
+  cleanRegion, sha1, wrongKindError, hedged, regionsLayout, modelId, REGION_VERBS,
 };
 
 module.exports = { generate, defaultLayout, wireAnimations, _internals };

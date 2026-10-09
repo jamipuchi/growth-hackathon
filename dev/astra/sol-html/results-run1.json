@@ -1,0 +1,238 @@
+{
+  "at": "2026-10-09T23:28:04.731Z",
+  "tag": "run1",
+  "promptSha1": "5be1c3cd5f10",
+  "promptChars": 6360,
+  "n": 10,
+  "model": 10,
+  "template": 0,
+  "fullStyle": 10,
+  "italic": 10,
+  "medianMs": 5104,
+  "maxMs": 6917,
+  "medianBytes": 5235,
+  "callsUsedTotal": 10,
+  "callCap": 30,
+  "results": [
+    {
+      "name": "c01-basic",
+      "ok": true,
+      "source": "model",
+      "ms": 5043,
+      "bytes": 4576,
+      "controls": 3,
+      "drawn": 3,
+      "style": {
+        "score": 7,
+        "of": 7,
+        "missing": [],
+        "italic": true
+      },
+      "error": null,
+      "warnings": null,
+      "tokens": {
+        "input": 2008,
+        "output": 1703,
+        "reasoning": 0
+      }
+    },
+    {
+      "name": "c02-dpad",
+      "ok": true,
+      "source": "model",
+      "ms": 4936,
+      "bytes": 4823,
+      "controls": 4,
+      "drawn": 4,
+      "style": {
+        "score": 7,
+        "of": 7,
+        "missing": [],
+        "italic": true
+      },
+      "error": null,
+      "warnings": null,
+      "tokens": {
+        "input": 2053,
+        "output": 1831,
+        "reasoning": 0
+      }
+    },
+    {
+      "name": "c03-twosticks",
+      "ok": true,
+      "source": "model",
+      "ms": 5104,
+      "bytes": 4933,
+      "controls": 4,
+      "drawn": 4,
+      "style": {
+        "score": 7,
+        "of": 7,
+        "missing": [],
+        "italic": true
+      },
+      "error": null,
+      "warnings": null,
+      "tokens": {
+        "input": 2053,
+        "output": 1845,
+        "reasoning": 0
+      }
+    },
+    {
+      "name": "c04-arrows",
+      "ok": true,
+      "source": "model",
+      "ms": 4930,
+      "bytes": 4070,
+      "controls": 5,
+      "drawn": 5,
+      "style": {
+        "score": 7,
+        "of": 7,
+        "missing": [],
+        "italic": true
+      },
+      "error": null,
+      "warnings": null,
+      "tokens": {
+        "input": 2105,
+        "output": 1514,
+        "reasoning": 0
+      }
+    },
+    {
+      "name": "c05-gates",
+      "ok": true,
+      "source": "model",
+      "ms": 5325,
+      "bytes": 5565,
+      "controls": 5,
+      "drawn": 5,
+      "style": {
+        "score": 7,
+        "of": 7,
+        "missing": [],
+        "italic": true
+      },
+      "error": null,
+      "warnings": null,
+      "tokens": {
+        "input": 2104,
+        "output": 2139,
+        "reasoning": 0
+      }
+    },
+    {
+      "name": "c06-planet",
+      "ok": true,
+      "source": "model",
+      "ms": 5022,
+      "bytes": 5284,
+      "controls": 4,
+      "drawn": 4,
+      "style": {
+        "score": 7,
+        "of": 7,
+        "missing": [],
+        "italic": true
+      },
+      "error": null,
+      "warnings": null,
+      "tokens": {
+        "input": 2061,
+        "output": 1966,
+        "reasoning": 0
+      }
+    },
+    {
+      "name": "c07-many",
+      "ok": true,
+      "source": "model",
+      "ms": 6917,
+      "bytes": 6108,
+      "controls": 7,
+      "drawn": 7,
+      "style": {
+        "score": 7,
+        "of": 7,
+        "missing": [],
+        "italic": true
+      },
+      "error": null,
+      "warnings": null,
+      "tokens": {
+        "input": 2216,
+        "output": 2447,
+        "reasoning": 72
+      }
+    },
+    {
+      "name": "c08-toggle",
+      "ok": true,
+      "source": "model",
+      "ms": 5669,
+      "bytes": 5235,
+      "controls": 4,
+      "drawn": 4,
+      "style": {
+        "score": 7,
+        "of": 7,
+        "missing": [],
+        "italic": true
+      },
+      "error": null,
+      "warnings": null,
+      "tokens": {
+        "input": 2055,
+        "output": 1966,
+        "reasoning": 0
+      }
+    },
+    {
+      "name": "c09-messy",
+      "ok": true,
+      "source": "model",
+      "ms": 6299,
+      "bytes": 5395,
+      "controls": 4,
+      "drawn": 4,
+      "style": {
+        "score": 7,
+        "of": 7,
+        "missing": [],
+        "italic": true
+      },
+      "error": null,
+      "warnings": null,
+      "tokens": {
+        "input": 2054,
+        "output": 2137,
+        "reasoning": 111
+      }
+    },
+    {
+      "name": "c10-drawmode",
+      "ok": true,
+      "source": "model",
+      "ms": 3789,
+      "bytes": 3584,
+      "controls": 2,
+      "drawn": 2,
+      "style": {
+        "score": 7,
+        "of": 7,
+        "missing": [],
+        "italic": true
+      },
+      "error": null,
+      "warnings": null,
+      "tokens": {
+        "input": 1955,
+        "output": 1296,
+        "reasoning": 0
+      }
+    }
+  ]
+}
