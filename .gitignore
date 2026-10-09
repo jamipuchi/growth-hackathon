@@ -12,3 +12,4 @@ perf.log
 .orch-certs/
 dev/**/shots/
 dev/**/*.log
+videos/
