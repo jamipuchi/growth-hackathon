@@ -20,6 +20,14 @@ const RUNS = ["after", "confirm", "pad"]; // later runs win when they hold a com
 const sha1 = (s) => crypto.createHash("sha1").update(s).digest("hex");
 
 const cases = JSON.parse(fs.readFileSync(path.join(CORPUS, "index.json"), "utf8"));
+// v1.2 (PLAN.md section 0): the drill is a planet skill only. A ship drawing can no longer unlock it (astra keeps the
+// model's reading and filters the skill out), so for ship cases the expectation and the recorded answer drop it.
+// Nothing else is adjusted: every other answer must still match its recording exactly.
+const NOT_ON_SHIPS = ["drill"];
+for (const c of cases) if (c.kind === "ship" && c.entity) for (const k of ["must", "ok"]) c.entity[k] = c.entity[k].filter((v) => !NOT_ON_SHIPS.includes(v));
+const asShipToday = (r) => (r && r.entity && r.entity.type === "ship"
+  ? { ...r, entity: { ...r.entity, verbs: r.entity.verbs.filter((v) => !NOT_ON_SHIPS.includes(v)), unlocked: r.entity.unlocked.filter((u) => !NOT_ON_SHIPS.includes(u.verb)) } }
+  : r);
 const answered = (f) => f && f.calls.some((c) => c.status === 200 && c.response);
 const fixtures = new Map();
 for (const run of RUNS) {
@@ -81,7 +89,8 @@ const essence = (r) => r && {
     const score = scoreCase(c, r);
     out.push({ id: c.id, ms, result: r, score });
     // 1. the same answer as recorded live (post-processing unchanged)
-    try { assert.deepStrictEqual(essence(r), essence(f.result)); } catch { failures.push(`${c.id}: answer changed\n     now ${JSON.stringify(essence(r))}\n     was ${JSON.stringify(essence(f.result))}`); }
+    const was = asShipToday(f.result);
+    try { assert.deepStrictEqual(essence(r), essence(was)); } catch { failures.push(`${c.id}: answer changed\n     now ${JSON.stringify(essence(r))}\n     was ${JSON.stringify(essence(was))}`); }
     // 2. a case that passed live still passes
     if (f.pass && !score.pass) failures.push(`${c.id}: passed live, fails now: ${score.note}`);
     // 3. "Use it anyway" on a refused drawing: answered from the cache, no new call

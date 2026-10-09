@@ -1,31 +1,156 @@
 {
   "type": "world",
   "round": 1,
-  "seed": 4242,
-  "radius": 600,
+  "seed": 546706133,
+  "radius": 2000,
   "rocks": [
-    [1, 40, 5, -60, 3.2, 0, 1],
-    [2, -80, -12, 30, 5.5, 1, 4],
-    [3, 120, 20, 90, 2.4, 2, 1],
-    [4, -30, 44, -150, 4.1, 3, 2],
-    [5, 200, -30, -10, 6.0, 4, 3],
-    [6, -160, 8, 210, 3.7, 5, 2]
+    [
+      1,
+      -348,
+      -2.75,
+      984.13,
+      8.02,
+      0,
+      1
+    ],
+    [
+      2,
+      1524.16,
+      -251.17,
+      774.8,
+      8.79,
+      0,
+      1
+    ],
+    [
+      3,
+      -239.56,
+      11.75,
+      1030.65,
+      7.78,
+      0,
+      1
+    ],
+    [
+      4,
+      -478.17,
+      191.62,
+      1050.08,
+      3.77,
+      0,
+      1
+    ],
+    [
+      5,
+      -602.62,
+      114.84,
+      264.19,
+      3.12,
+      0,
+      1
+    ],
+    [
+      6,
+      -1516.51,
+      -21.62,
+      382.68,
+      2.21,
+      0,
+      1
+    ]
   ],
-  "nebula": { "x": 260, "y": 20, "z": -270, "radius": 60 },
+  "nebula": {
+    "x": -196.67,
+    "y": 34.5,
+    "z": 1082.28,
+    "radius": 220
+  },
   "targets": [
-    { "id": "t0", "kind": "boss", "x": 270, "y": 24, "z": -282, "radius": 9, "armour": 100, "hp": 300, "maxHp": 300, "cracked": false, "dead": false },
-    { "id": "t1", "kind": "decoy", "x": 240, "y": 10, "z": -250, "radius": 9, "armour": 100, "hp": 300, "maxHp": 300, "cracked": false, "dead": false },
-    { "id": "t2", "kind": "decoy", "x": 290, "y": 35, "z": -240, "radius": 9, "armour": 100, "hp": 300, "maxHp": 300, "cracked": false, "dead": false },
-    { "id": "t3", "kind": "decoy", "x": 250, "y": 2, "z": -300, "radius": 9, "armour": 100, "hp": 300, "maxHp": 300, "cracked": false, "dead": false },
-    { "id": "t4", "kind": "decoy", "x": 275, "y": 40, "z": -300, "radius": 9, "armour": 100, "hp": 300, "maxHp": 300, "cracked": false, "dead": false }
+    {
+      "id": 1,
+      "kind": "boss",
+      "x": -196.67,
+      "y": 34.5,
+      "z": 1082.28,
+      "radius": 20,
+      "armour": 0,
+      "hp": 3900,
+      "maxHp": 3900,
+      "cracked": true,
+      "dead": false
+    }
   ],
-  "revealedTo": ["ana"],
-  "planet": { "x": 380, "y": 30, "z": -360, "radius": 40, "landRange": 25 },
-  "island": { "seed": 4242, "size": 420 },
+  "revealedTo": [],
+  "planet": null,
+  "island": {
+    "seed": 40274,
+    "size": 420,
+    "landing": {
+      "x": -15.63,
+      "z": 12.48
+    },
+    "parked": []
+  },
   "chests": [
-    { "id": "c0", "x": 12, "z": -8, "buried": false, "dug": 0, "open": false },
-    { "id": "c1", "x": -30, "z": 25, "buried": true, "dug": 0.4, "open": false },
-    { "id": "c2", "x": 35, "z": 30, "buried": false, "dug": 0, "open": false },
-    { "id": "c3", "x": -20, "z": -38, "buried": true, "dug": 0, "open": false }
+    {
+      "id": 1,
+      "kind": "buried",
+      "x": -17.17,
+      "z": 26.78,
+      "buried": true,
+      "dug": 0,
+      "open": false,
+      "by": null
+    },
+    {
+      "id": 2,
+      "kind": "rock",
+      "x": -1.26,
+      "z": 10.67,
+      "buried": true,
+      "dug": 0,
+      "open": false,
+      "by": null
+    },
+    {
+      "id": 3,
+      "kind": "buried",
+      "x": -53.69,
+      "z": 3.28,
+      "buried": true,
+      "dug": 0,
+      "open": false,
+      "by": null
+    },
+    {
+      "id": 4,
+      "kind": "rock",
+      "x": -30.99,
+      "z": 1.82,
+      "buried": true,
+      "dug": 0,
+      "open": false,
+      "by": null
+    }
+  ],
+  "assists": false,
+  "playerCount": 2.25,
+  "result": null,
+  "leaderboard": [
+    {
+      "name": "ana",
+      "stars": 0,
+      "total": 0
+    },
+    {
+      "name": "ben",
+      "stars": 0,
+      "total": 0
+    },
+    {
+      "name": "bot1",
+      "stars": 0,
+      "total": 0
+    }
   ]
 }

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Space Party Controller</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;user-select:none;-webkit-user-select:none}
+body{font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif}
+.control{position:absolute;opacity:.92;animation:pop .45s cubic-bezier(.2,.8,.3,1.15) both;transition:scale .18s cubic-bezier(.2,1.7,.5,1),translate .15s,filter .15s,box-shadow .15s}
+.btn{border:4px solid white;border-radius:15px;background:linear-gradient(#86dcff 0%,#2f8bff 48%,#1647c8 100%);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033;transform:skewX(-9deg);display:flex;align-items:center;justify-content:center}
+.inner{transform:skewX(9deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%;height:100%;padding:8px}
+.label{font-size:clamp(16px,3vw,26px);font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:.04em;line-height:1.05;color:white;white-space:nowrap;text-shadow:2px 0 #0b1033,-2px 0 #0b1033,0 2px #0b1033,0 -2px #0b1033,0 3px 3px #0b1033}
+.icon{width:clamp(27px,5vw,45px);height:clamp(27px,9vh,45px);color:white;fill:none;stroke:currentColor;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 #0b1033);flex-shrink:0}
+.move{--size:max(110px,min(27vw,62vh));width:var(--size);height:var(--size);left:clamp(calc(var(--size)/2 + 5px),18.5vw,calc(100vw - var(--size)/2 - 5px));top:clamp(calc(var(--size)/2 + 5px),61vh,calc(100vh - var(--size)/2 - 10px));margin-left:calc(var(--size)/-2);margin-top:calc(var(--size)/-2);border-radius:50%;border:4px solid white;background:radial-gradient(circle at 40% 20%,#354b75dc,#101d3bdc);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033}
+.directions{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:white;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 #0b1033)}
+.knob{position:absolute;left:30%;top:30%;width:40%;height:40%;border:3px solid white;border-radius:50%;background:linear-gradient(#86dcff,#2f8bff 50%,#1647c8);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033;display:flex;align-items:center;justify-content:center}
+.knob .label{font-size:clamp(16px,2.4vw,22px)}
+.dig{--w:max(64px,20vw);--h:max(64px,40vh);width:var(--w);height:var(--h);left:clamp(calc(var(--w)/2 + 16px),84vw,calc(100vw - var(--w)/2 - 16px));top:clamp(calc(var(--h)/2 + 6px),70vh,calc(100vh - var(--h)/2 - 10px));margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);animation-delay:.05s;border-radius:10px}
+.jump{--size:max(64px,min(17vw,30vh));width:var(--size);height:var(--size);left:clamp(calc(var(--size)/2 + 6px),58.5vw,calc(100vw - var(--size)/2 - 6px));top:clamp(calc(var(--size)/2 + 6px),77vh,calc(100vh - var(--size)/2 - 10px));margin-left:calc(var(--size)/-2);margin-top:calc(var(--size)/-2);border-radius:50%;transform:none;animation-delay:.1s}
+.jump .inner{transform:none}
+.takeoff{--w:max(64px,26vw);--h:max(64px,24vh);width:var(--w);height:var(--h);left:clamp(calc(var(--w)/2 + 14px),83vw,calc(100vw - var(--w)/2 - 14px));top:clamp(calc(var(--h)/2 + 6px),20vh,calc(100vh - var(--h)/2 - 10px));margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);animation-delay:.15s;border-radius:10px}
+.takeoff .inner{flex-direction:row;gap:10px}
+.takeoff .icon{width:clamp(24px,4vw,36px);height:clamp(24px,7vh,36px)}
+.control.is-down{translate:0 4px;scale:.95;filter:brightness(1.16);box-shadow:inset 0 3px 0 #ffffff80,0 1px 0 #0b1033}
+.control.is-on{background:linear-gradient(#ffe36e,#ffb21f 50%,#d26a06)}
+.control.is-disabled{opacity:.35;filter:grayscale(.7);box-shadow:inset 0 3px 0 #ffffff50,0 3px 0 #0b1033}
+@keyframes pop{0%{opacity:0;scale:.35}72%{opacity:.92;scale:1.07}100%{opacity:.92;scale:1}}
+@media(prefers-reduced-motion:reduce){.control{animation:none}}
+</style>
+</head>
+<body>
+<div class="control move" data-stick="move" aria-label="Walk">
+<svg class="directions" viewBox="0 0 200 200" aria-hidden="true"><path d="m90 30 10-13 10 13M90 170l10 13 10-13M30 90l-13 10 13 10M170 90l13 10-13 10"/></svg>
+<div class="knob" data-knob><span class="label">WALK</span></div>
+</div>
+<div class="control btn dig" data-action="dig" data-label="DIG">
+<div class="inner">
+<svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M17 5h14v8H17zM24 13v17"/><path d="M14 29h20v6q-2 8-10 10-8-2-10-10z" fill="white" stroke="#fff"/></svg>
+<span class="label">DIG</span>
+</div>
+</div>
+<div class="control btn jump" data-action="jump" data-label="JUMP">
+<div class="inner">
+<svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 34V9M13 20 24 9l11 11M10 40h28"/></svg>
+<span class="label">JUMP</span>
+</div>
+</div>
+<div class="control btn takeoff" data-action="takeoff" data-label="TAKE OFF">
+<div class="inner">
+<svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="m13 19 11-12 11 12M13 32l11-12 11 12M24 24v17"/></svg>
+<span class="label">TAKE OFF</span>
+</div>
+</div>
+</body>
+</html>

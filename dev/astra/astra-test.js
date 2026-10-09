@@ -208,20 +208,26 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
   });
 
   let timeoutMs;
-  await test("4 s timeout → default layout (controller), timeout error (button)", async () => {
+  // v1.0 review: a timeout used to answer the default layout as a success (charged, under the wrong ink). Now: the
+  // drawing's own ink regions when the phone sent them, the expected button, else an honest timeout (nothing spent).
+  await test("4 s timeout → the ink regions (controller) or the expected verb (button), else a timeout error", async () => {
     assert.strictEqual(_internals.TIMEOUT_MS, 4000);
     fakeFetch(() => ({ ...answer({ buttons: [] }), delay: 60000 }));
     const t0 = Date.now();
-    const [c, b] = await Promise.all([
+    const ink = [{ x: 0.05, y: 0.45, w: 0.28, h: 0.5, round: true }, { x: 0.7, y: 0.55, w: 0.12, h: 0.2 }, { x: 0.55, y: 0.6, w: 0.1, h: 0.18 }, { x: 0.9, y: 0.1, w: 0.01, h: 0.01 }];
+    const [c, b, ci, be] = await Promise.all([
       Astra.generate({ player: "ana", kind: "controller", image: image("slow") }),
       Astra.generate({ player: "ana", kind: "button", image: image("slowb"), region: { x: 0.5, y: 0.5, w: 0.2, h: 0.2 } }),
+      Astra.generate({ player: "bea", kind: "controller", image: image("slow-ink"), inkRegions: ink }),
+      Astra.generate({ player: "bea", kind: "button", image: image("slow-exp"), region: { x: 0.5, y: 0.1, w: 0.2, h: 0.2 }, expect: "dig" }),
     ]);
     timeoutMs = Date.now() - t0;
     assert.ok(timeoutMs >= 3990 && timeoutMs < 4300, `took ${timeoutMs} ms`);
-    assert.ok(c.ok);
-    assert.deepStrictEqual(c.layout, Astra.defaultLayout());
-    assert.strictEqual(c.layout.source, "default");
+    assert.deepStrictEqual(c, { ok: false, error: "timeout" }, "no default layout passed off as the drawing");
     assert.deepStrictEqual(b, { ok: false, error: "timeout" });
+    assert.ok(ci.ok && ci.layout.source === "regions", JSON.stringify(ci));
+    assert.deepStrictEqual(ci.layout.buttons.map((x) => [x.type, x.action, x.x]), [["stick", "steer", 0.05], ["button", "shoot", 0.7], ["button", "boost", 0.55]], "round → stick, the rest → shoot, boost in drawing order; specks dropped");
+    assert.ok(be.ok && be.layout.buttons[0].action === "dig", "the button the game asked for");
     assert.ok(calls.every((call) => call.aborted));
     assert.strictEqual(_internals.state().cache, 0, "timeouts are not cached");
   });
@@ -256,15 +262,27 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     const r3 = await Astra.generate({ player: "ana", kind: "controller", image: image("tier3") });
     assert.deepStrictEqual(r3, { ok: false, error: "OpenAI HTTP 401" });
     assert.strictEqual(calls.length, 1, "unrelated 4xx is not retried");
+    // v1.0 review: a bad image is not a tier problem; and a tier error whose default-tier retry fails is not remembered.
+    fakeFetch(() => ({ status: 400, text: JSON.stringify({ error: { message: "Invalid image: could not decode the image_url" } }) }));
+    const r4 = await Astra.generate({ player: "ana", kind: "controller", image: image("tier4") });
+    assert.ok(!r4.ok && calls.length === 1 && !_internals.state().defaultTierOnly, "an image error: no retry, still on the fast tier");
+    fakeFetch(() => ({ status: 400, text: JSON.stringify({ error: { message: "Unsupported service_tier" } }) }));
+    const r5 = await Astra.generate({ player: "ana", kind: "controller", image: image("tier5") });
+    assert.ok(!r5.ok && calls.length === 2 && !_internals.state().defaultTierOnly, "retried once, both failed: not remembered");
   });
 
   await test("env overrides: OPENAI_MODEL, OPENAI_SERVICE_TIER, OPENAI_REASONING_EFFORT", async () => {
+    // The model is pinned (owner): another model name is ignored; a gpt-6.1-sol snapshot is allowed.
     process.env.OPENAI_MODEL = "gpt-test";
     process.env.OPENAI_SERVICE_TIER = "none";
     process.env.OPENAI_REASONING_EFFORT = "minimal";
     try {
       const req = _internals.buildRequest("controller", image("env"), null, "photo");
-      assert.deepStrictEqual([req.model, req.service_tier, req.reasoning], ["gpt-test", undefined, { effort: "minimal" }]);
+      assert.deepStrictEqual([req.model, req.service_tier, req.reasoning], ["gpt-6.1-sol", undefined, { effort: "minimal" }]);
+      process.env.OPENAI_MODEL = "gpt-6-astra";
+      assert.strictEqual(_internals.buildRequest("controller", image("env2"), null, "photo").model, "gpt-6.1-sol", "never gpt-6-astra");
+      process.env.OPENAI_MODEL = "gpt-6.1-sol-2026-09-30";
+      assert.strictEqual(_internals.buildRequest("controller", image("env3"), null, "photo").model, "gpt-6.1-sol-2026-09-30");
     } finally {
       delete process.env.OPENAI_MODEL;
       delete process.env.OPENAI_SERVICE_TIER;
@@ -336,20 +354,25 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     try {
       const r = await Astra.generate({ player: "cy", kind: "ship", image: image("mock-ship") });
       assert.strictEqual(r.entity.source, "devkit");
-      for (const v of ["shoot", "land", "drill"]) assert.ok(r.entity.verbs.includes(v));
+      for (const v of ["shoot", "land", "emp", "mine"]) assert.ok(r.entity.verbs.includes(v));
+      assert.ok(!r.entity.verbs.includes("drill"), "v1.2: no drill on a ship");
       const e = await Astra.generate({ player: "cy", kind: "explorer", image: image("mock-ex") });
       for (const v of ["dig", "drill", "jump", "takeoff"]) assert.ok(e.entity.verbs.includes(v));
     } finally { delete process.env.ASTRA_MOCK; }
     fakeFetch(() => ({ status: 500, text: "boom" }));
     const f = await Astra.generate({ player: "cy", kind: "ship", image: image("fail") });
     assert.strictEqual(f.ok, true); assert.strictEqual(f.entity.source, "devkit");
+    // A blank key means no key: astra never falls back to the .env then (and this test never reads it).
     const key = process.env.OPENAI_API_KEY;
-    delete process.env.OPENAI_API_KEY;
+    process.env.OPENAI_API_KEY = "";
     _internals.setFetch(() => { throw new Error("network used"); });
     try {
-      // apiKey() may still find a .env: only assert when it really has none.
       const r = await Astra.generate({ player: "cy", kind: "explorer", image: image("nokey") });
       assert.strictEqual(r.ok, true); assert.strictEqual(r.entity.source, "devkit");
+      const c = await Astra.generate({ player: "cy", kind: "controller", image: image("nokey-c") });
+      assert.deepStrictEqual(c, { ok: false, error: "generation unavailable" }, "no internal text, no fake layout");
+      const ci = await Astra.generate({ player: "cy", kind: "controller", image: image("nokey-ci"), inkRegions: [{ x: 0.6, y: 0.5, w: 0.2, h: 0.3 }] });
+      assert.ok(ci.ok && ci.layout.source === "regions" && ci.layout.buttons[0].action === "shoot", "no key: the ink regions");
     } finally { process.env.OPENAI_API_KEY = key; }
   });
 
@@ -506,6 +529,27 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     assert.strictEqual(calls.length, 2, "anyway never calls the model again");
   });
 
+  await test("a 429 / 5xx / dropped connection gets one quick retry; a second failure is reported", async () => {
+    fakeFetch((req, i) => (i === 1 ? { status: 503, text: "busy" } : answer({ buttons: [{ type: "button", label: "FIRE", action: "shoot", x: 0.6, y: 0.5, w: 0.2, h: 0.3 }] })));
+    const r = await Astra.generate({ player: "ret", kind: "controller", image: image("retry-503") });
+    assert.ok(r.ok && calls.length === 2, `retried: ${JSON.stringify(r)}`);
+    fakeFetch(() => ({ status: 429, text: "slow down" }));
+    const r2 = await Astra.generate({ player: "ret", kind: "controller", image: image("retry-429") });
+    assert.deepStrictEqual([r2.ok, r2.error, calls.length], [false, "OpenAI HTTP 429", 2], "one retry, then the error");
+  });
+
+  await test("ASTRA_MOCK=1: a button answers the expected verb when the game asked for one; inkRegions shape the controller", async () => {
+    _internals.setFetch(() => { throw new Error("network used"); });
+    process.env.ASTRA_MOCK = "1";
+    try {
+      const b = await Astra.generate({ player: "mo", kind: "button", image: image("mock-b"), region: { x: 0.4, y: 0.1, w: 0.2, h: 0.2 }, expect: "drill" });
+      const l = await Astra.generate({ player: "mo", kind: "button", image: image("mock-l"), region: { x: 0.4, y: 0.1, w: 0.2, h: 0.2 } });
+      const c = await Astra.generate({ player: "mo", kind: "controller", image: image("mock-c"), inkRegions: [{ x: 0.7, y: 0.4, w: 0.25, h: 0.5, round: true }] });
+      assert.deepStrictEqual([b.layout.buttons[0].action, l.layout.buttons[0].action], ["drill", "land"]);
+      assert.deepStrictEqual(c.layout.buttons.map((x) => [x.type, x.action]), [["stick", "move"]], "a round blob on the right half moves");
+    } finally { delete process.env.ASTRA_MOCK; }
+  });
+
   await test("review: a slow stricter retry reports the first answer, not the timeout default", async () => {
     _internals.setTimeoutMs(700);
     fakeFetch((req, i) => (i === 1 ? answer({ looksLike: "controller", thing: "none", buttons: [] }) : { ...answer({ looksLike: "controller", thing: "none", buttons: [] }), delay: 60000 }));
@@ -544,11 +588,18 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     assert.ok(ms >= 2450 && ms < 3200, `took ${ms} ms`);
     assert.strictEqual(calls.length, 2);
     assert.strictEqual(calls[0].aborted, true, "the hung call is aborted");
-    fakeFetch(() => ({ status: 500, text: "boom" }));
+    // A fast failure is not hedged: a 400 is reported at once (one call); a 500 gets one quick transient retry
+    // (250 ms later), never the 2.2 s twin.
+    fakeFetch(() => ({ status: 400, text: "bad request" }));
     const t1 = Date.now();
     const f = await Astra.generate({ player: "ana", kind: "controller", image: image("fast-fail") });
-    assert.deepStrictEqual(f, { ok: false, error: "OpenAI HTTP 500" });
+    assert.deepStrictEqual(f, { ok: false, error: "OpenAI HTTP 400" });
     assert.ok(Date.now() - t1 < 500 && calls.length === 1, "no hedge after a fast failure");
+    fakeFetch(() => ({ status: 500, text: "boom" }));
+    const t2 = Date.now();
+    const f5 = await Astra.generate({ player: "ana", kind: "controller", image: image("fast-fail-500") });
+    assert.deepStrictEqual(f5, { ok: false, error: "OpenAI HTTP 500" });
+    assert.ok(Date.now() - t2 < 900 && calls.length === 2, `a 5xx: one quick retry, no hedge (${calls.length} calls in ${Date.now() - t2} ms)`);
   });
 
   console.log = realLog;

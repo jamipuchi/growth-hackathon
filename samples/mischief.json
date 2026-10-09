@@ -1,0 +1,47 @@
+[
+  {
+    "type": "mischief",
+    "kind": "emp",
+    "player": "ben",
+    "from": "ana",
+    "seconds": 5
+  },
+  {
+    "type": "mischief",
+    "kind": "inkbomb",
+    "player": "ben",
+    "from": "ana",
+    "seconds": 4
+  },
+  {
+    "type": "mischief",
+    "kind": "tractor",
+    "player": "ben",
+    "from": "ana",
+    "seconds": 1.5,
+    "dir": 3.14
+  },
+  {
+    "type": "mischief",
+    "kind": "mine",
+    "player": "ben",
+    "from": "ana",
+    "seconds": 1.5,
+    "points": 30
+  },
+  {
+    "type": "mischief",
+    "kind": "decoy",
+    "player": "ben",
+    "from": "ana",
+    "seconds": 0
+  },
+  {
+    "type": "mischief",
+    "kind": "decoy",
+    "player": "ana",
+    "from": "ana",
+    "victim": "ben",
+    "seconds": 0
+  }
+]

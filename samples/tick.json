@@ -1,26 +1,103 @@
 {
   "type": "tick",
-  "t": 1760040000000,
+  "t": 1791589320405,
   "round": 1,
   "phase": "playing",
-  "clock": 74.5,
+  "clock": 0.5,
+  "left": 239.5,
   "players": [
     {
-      "name": "ana", "color": 2282478, "mode": "space",
-      "x": 262, "y": 22, "z": -268, "yaw": 0.8, "pitch": -0.1, "roll": 0.2,
-      "hp": 84, "score": 140, "shieldEnergy": 0.9, "boostEnergy": 0.4,
-      "flags": { "boost": false, "shield": false, "stun": false, "dead": false, "invisible": false, "drilling": true, "digging": false, "ready": true, "bot": false },
-      "action": "drill", "slot": "primary", "startedAt": 1760039999200
+      "name": "ana",
+      "color": 2282478,
+      "mode": "space",
+      "x": 0,
+      "y": 0,
+      "z": -415.3,
+      "yaw": 0,
+      "pitch": 0,
+      "roll": 0,
+      "hp": 100,
+      "score": 0,
+      "shieldEnergy": 1,
+      "boostEnergy": 0.85,
+      "flags": {
+        "boost": true
+      },
+      "action": "decoy",
+      "slot": "defend",
+      "startedAt": 1791589320405,
+      "drawingsLeft": {
+        "space": 5,
+        "planet": 5
+      }
     },
     {
-      "name": "ben", "color": 16020150, "mode": "planet",
-      "x": -28, "y": 3.5, "z": 24, "yaw": 2.1, "pitch": 0, "roll": 0,
-      "hp": 100, "score": 1060, "shieldEnergy": 1, "boostEnergy": 1,
-      "flags": { "boost": false, "shield": false, "stun": false, "dead": false, "invisible": false, "drilling": false, "digging": true, "ready": true, "bot": false },
-      "action": "dig", "slot": "use", "startedAt": 1760039999800
+      "name": "ben",
+      "color": 16020150,
+      "mode": "space",
+      "x": 32.3,
+      "y": 0,
+      "z": -409.9,
+      "yaw": 0,
+      "pitch": 0,
+      "roll": 0,
+      "hp": 100,
+      "score": 0,
+      "shieldEnergy": 1,
+      "boostEnergy": 1,
+      "flags": {
+        "emp": true,
+        "inked": true,
+        "tractored": true
+      },
+      "drawingsLeft": {
+        "space": 5,
+        "planet": 5
+      }
+    },
+    {
+      "name": "bot1",
+      "color": 10741301,
+      "mode": "space",
+      "x": -2.7,
+      "y": -14,
+      "z": 15,
+      "yaw": 2.96,
+      "pitch": 0.04,
+      "roll": 0,
+      "hp": 100,
+      "score": 0,
+      "shieldEnergy": 1,
+      "boostEnergy": 0.85,
+      "flags": {
+        "boost": true,
+        "bot": true
+      }
     }
   ],
-  "bullets": [[101, 250, 20, -260, 2282478]],
-  "bossShots": [[7, 268, 24, -275]],
-  "flares": [[258, 20, -266, 120, 9.5]]
+  "bullets": [],
+  "bossShots": [],
+  "flares": [],
+  "mines": [
+    [
+      321,
+      0,
+      0,
+      -405.2,
+      0,
+      2282478
+    ]
+  ],
+  "decoys": [
+    [
+      322,
+      6,
+      0,
+      -412.8,
+      0,
+      2282478,
+      "ana",
+      0
+    ]
+  ]
 }

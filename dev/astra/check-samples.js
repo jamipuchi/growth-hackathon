@@ -4,7 +4,10 @@ const path = require("path");
 const Contract = require("../../contract.js");
 
 const dir = path.join(__dirname, "../../samples");
-const files = { "world.json": "world", "tick.json": "tick", "layout.json": "layout", "input.json": "input", "perf.json": "perf" };
+const files = {
+  "world.json": "world", "tick.json": "tick", "layout.json": "layout", "input.json": "input", "perf.json": "perf",
+  "mischief.json": "mischief", "cooldown.json": "cooldown", "generated.json": "generated", // v1.2 / v1.3 (regenerate: node dev/astra/make-samples.js)
+};
 let failed = 0;
 for (const [file, check] of Object.entries(files)) {
   const data = JSON.parse(fs.readFileSync(path.join(dir, file), "utf8"));

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Space Party Controller</title>
+<style>
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:transparent;overflow:hidden}
+body{font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+.control{position:absolute;opacity:.92;animation:pop .45s cubic-bezier(.2,.8,.3,1.2) backwards;transition:scale .18s cubic-bezier(.2,1.5,.4,1),translate .14s,filter .14s,box-shadow .14s}
+.tile{border:4px solid white;border-radius:15px;background:linear-gradient(#86dcff,#2f8bff 52%,#1647c8);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033;transform:skewX(-9deg);color:white;display:flex;align-items:center;justify-content:center}
+.inner{transform:skewX(9deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.label{font-size:clamp(16px,3.1vw,26px);font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:.04em;line-height:1.05;text-shadow:2px 0 #0b1033,-2px 0 #0b1033,0 2px #0b1033,0 -2px #0b1033,0 3px 3px #0b1033}
+svg{width:clamp(28px,5vw,46px);height:clamp(28px,5vw,46px);fill:none;stroke:white;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 #0b1033)}
+.cam{--w:max(84px,20vw);--h:max(64px,20vh);width:var(--w);height:var(--h);left:clamp(calc(var(--w)/2 + 10px),50vw,calc(100vw - var(--w)/2 - 10px));top:clamp(calc(var(--h)/2 + 5px),20vh,calc(100vh - var(--h)/2 - 10px));margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);border-radius:999px;transform:none;animation-delay:.05s}
+.cam .inner{transform:none;flex-direction:row;gap:10px}
+.cam svg{width:32px;height:32px}
+.fire{--w:max(64px,22vw);--h:max(64px,40vh);width:var(--w);height:var(--h);left:clamp(calc(var(--w)/2 + 18px),83vw,calc(100vw - var(--w)/2 - 18px));top:clamp(calc(var(--h)/2 + 6px),70vh,calc(100vh - var(--h)/2 - 10px));margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);background:linear-gradient(#ffe36e,#ffb21f 52%,#d26a06);animation-delay:.1s}
+.shield{--d:max(64px,min(20vw,36vh));width:var(--d);height:var(--d);left:clamp(calc(var(--d)/2 + 5px),54vw,calc(100vw - var(--d)/2 - 5px));top:clamp(calc(var(--d)/2 + 5px),74vh,calc(100vh - var(--d)/2 - 10px));margin-left:calc(var(--d)/-2);margin-top:calc(var(--d)/-2);border-radius:50%;transform:none;background:linear-gradient(#d49bff,#9d4dff 52%,#5a1bc4);animation-delay:.15s}
+.shield .inner{transform:none}
+.shield .label{font-size:clamp(16px,2.8vw,24px)}
+.stick{--d:max(110px,min(27vw,60vh));width:var(--d);height:var(--d);left:clamp(calc(var(--d)/2 + 5px),18.5vw,calc(100vw - var(--d)/2 - 5px));top:clamp(calc(var(--d)/2 + 5px),64vh,calc(100vh - var(--d)/2 - 10px));margin-left:calc(var(--d)/-2);margin-top:calc(var(--d)/-2);border:4px solid white;border-radius:50%;background:radial-gradient(circle,#304b80c9,#101e40d9);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033}
+.chevrons{position:absolute;width:100%;height:100%;inset:0;filter:drop-shadow(0 2px 0 #0b1033);stroke-width:5}
+.knob{position:absolute;left:30%;top:30%;width:40%;height:40%;border-radius:50%;border:3px solid white;background:linear-gradient(#86dcff,#2f8bff 55%,#1647c8);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033;transition:filter .15s}
+.tile.is-down{translate:0 4px;scale:.95;filter:brightness(1.18);box-shadow:inset 0 3px 0 #ffffff80,0 1px 0 #0b1033}
+.is-on{background:linear-gradient(#ffe36e,#ffb21f 52%,#d26a06)}
+.stick.is-down .knob{filter:brightness(1.2)}
+.stick.is-on{border-color:#ffe36e}
+.control.is-disabled{opacity:.35;filter:grayscale(.8)}
+@keyframes pop{0%{opacity:0;scale:.35}75%{opacity:.92;scale:1.07}100%{opacity:.92;scale:1}}
+@media(prefers-reduced-motion:reduce){.control{animation:none;transition:none}}
+</style>
+</head>
+<body>
+<div class="control stick" data-stick="steer" aria-label="Steer">
+<svg class="chevrons" viewBox="0 0 200 200" aria-hidden="true"><path d="M90 29L100 16L110 29M90 171L100 184L110 171M29 90L16 100L29 110M171 90L184 100L171 110"/></svg>
+<div class="knob" data-knob></div>
+</div>
+<div class="control tile cam" data-action="view" data-label="CAM" data-toggle aria-label="CAM">
+<div class="inner">
+<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 15H15L19 9H29L33 15H41V38H7Z"/><circle cx="24" cy="26" r="8"/></svg>
+<span class="label">CAM</span>
+</div>
+</div>
+<div class="control tile fire" data-action="shoot" data-label="FIRE" aria-label="FIRE">
+<div class="inner">
+<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="13"/><path d="M24 4V16M24 32V44M4 24H16M32 24H44"/><circle cx="24" cy="24" r="3" fill="white" stroke="none"/></svg>
+<span class="label">FIRE</span>
+</div>
+</div>
+<div class="control tile shield" data-action="shield" data-label="SHIELD" aria-label="SHIELD">
+<div class="inner">
+<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5L40 12V24C40 33 32 40 24 44C16 40 8 33 8 24V12Z" fill="#ffffff35"/><path d="M24 13V34"/></svg>
+<span class="label">SHIELD</span>
+</div>
+</div>
+</body>
+</html>

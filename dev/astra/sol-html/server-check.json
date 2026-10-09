@@ -1,0 +1,86 @@
+{
+  "speculative": {
+    "ms": 1646,
+    "ok": true,
+    "htmlSource": "template",
+    "controls": [
+      "steer",
+      "boost",
+      "shoot"
+    ],
+    "drawingsLeft": {
+      "space": 5,
+      "planet": 5
+    }
+  },
+  "solBackground": {
+    "done": true,
+    "line": "astra-html solcheck model 4410ms 4386B style 7/7"
+  },
+  "finished": {
+    "ms": 2,
+    "ok": true,
+    "htmlSource": "model",
+    "bytes": 4386,
+    "style": {
+      "score": 7,
+      "of": 7,
+      "missing": [],
+      "italic": true
+    },
+    "controls": [
+      "steer",
+      "boost",
+      "shoot"
+    ],
+    "generated": {
+      "htmlSource": "model",
+      "sameHtml": true,
+      "checks": []
+    }
+  },
+  "button": {
+    "ms": 1713,
+    "ok": true,
+    "action": "land",
+    "htmlSource": "template",
+    "pad": [
+      "steer",
+      "boost",
+      "shoot",
+      "land"
+    ]
+  },
+  "upgrade": {
+    "arrived": true,
+    "afterMs": 7673,
+    "htmlSource": "model",
+    "controls": [
+      "steer",
+      "boost",
+      "shoot",
+      "land"
+    ],
+    "style": {
+      "score": 7,
+      "of": 7,
+      "missing": [],
+      "italic": true
+    },
+    "checks": []
+  },
+  "controllerHtml": {
+    "ok": true,
+    "htmlSource": "model",
+    "pending": false,
+    "sameAsUpgrade": true
+  },
+  "solCalls": 2,
+  "astraLines": [
+    "astra controller solcheck miss model=1638ms speculative ok 3 control(s) looksLike=controller",
+    "astra controller solcheck hit model=0ms ok 3 control(s) looksLike=controller",
+    "astra button solcheck miss model=1710ms ok 1 control(s) looksLike=controller"
+  ],
+  "callsTotalLog": 12,
+  "at": "2026-10-09T23:36:41.129Z"
+}

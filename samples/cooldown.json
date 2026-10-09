@@ -1,0 +1,32 @@
+[
+  {
+    "type": "cooldown",
+    "player": "ana",
+    "verb": "emp",
+    "seconds": 20
+  },
+  {
+    "type": "cooldown",
+    "player": "ana",
+    "verb": "inkbomb",
+    "seconds": 15
+  },
+  {
+    "type": "cooldown",
+    "player": "ana",
+    "verb": "tractor",
+    "seconds": 12
+  },
+  {
+    "type": "cooldown",
+    "player": "ana",
+    "verb": "mine",
+    "seconds": 10
+  },
+  {
+    "type": "cooldown",
+    "player": "ana",
+    "verb": "decoy",
+    "seconds": 18
+  }
+]

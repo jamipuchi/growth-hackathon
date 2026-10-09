@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Space Party Controller</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
+body{font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+.control{position:absolute;opacity:.92;animation:pop .45s cubic-bezier(.2,.8,.3,1) backwards;transition:scale .18s cubic-bezier(.2,1.6,.4,1),translate .13s,filter .13s,box-shadow .13s}
+.btn{border:4px solid #fff;border-radius:12px;transform:skewX(-9deg);background:linear-gradient(#86dcff,#2f8bff 48%,#1647c8);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033;display:flex;align-items:center;justify-content:center}
+.inner{transform:skewX(9deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.label{color:#fff;font-size:clamp(16px,3vw,26px);font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:.04em;line-height:1;text-shadow:-2px 0 #0b1033,2px 0 #0b1033,0 -2px #0b1033,0 2px #0b1033,0 3px 3px #0b1033}
+.icon{width:clamp(27px,5vh,40px);height:clamp(27px,5vh,40px);color:#fff;filter:drop-shadow(0 2px 0 #0b1033);flex-shrink:0}
+#fire{--w:max(64px,20vw);--h:max(64px,34vh);width:var(--w);height:var(--h);left:clamp(calc(var(--w)/2 + 3vw),84vw,calc(100vw - var(--w)/2 - 3vw));top:clamp(calc(var(--h)/2 + 2vh),65vh,calc(100vh - var(--h)/2 - 2vh));margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);background:linear-gradient(#ffe36e,#ffb21f 48%,#d26a06);animation-delay:.05s}
+#boost{--w:max(64px,21vw);--h:max(64px,28vh);width:var(--w);height:var(--h);left:clamp(calc(var(--w)/2 + 3vw),57.5vw,calc(100vw - var(--w)/2 - 3vw));top:clamp(calc(var(--h)/2 + 2vh),74vh,calc(100vh - var(--h)/2 - 2vh));margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);animation-delay:.1s}
+#steer{--d:max(110px,min(27vw,60vh));width:var(--d);height:var(--d);left:clamp(calc(var(--d)/2 + 1vw),18.5vw,calc(100vw - var(--d)/2 - 1vw));top:clamp(calc(var(--d)/2 + 2vh),60vh,calc(100vh - var(--d)/2 - 2vh));margin-left:calc(var(--d)/-2);margin-top:calc(var(--d)/-2);border:4px solid #fff;border-radius:50%;background:radial-gradient(circle,#243665b8,#0b1033cc);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033}
+.directions{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 2px 0 #0b1033);pointer-events:none}
+[data-knob]{position:absolute;left:30%;top:30%;width:40%;height:40%;border:3px solid #fff;border-radius:50%;background:linear-gradient(#86dcff,#2f8bff 50%,#1647c8);box-shadow:inset 0 3px 0 #ffffff80,0 4px 0 #0b1033;transition:filter .13s}
+.btn.is-down{translate:0 4px;scale:.95;filter:brightness(1.17);box-shadow:inset 0 3px 0 #ffffff80,0 1px 0 #0b1033}
+.is-on{background:linear-gradient(#ffe36e,#ffb21f 48%,#d26a06)!important}
+#steer.is-down{filter:brightness(1.15)}
+#steer.is-on [data-knob]{background:linear-gradient(#ffe36e,#ffb21f 48%,#d26a06)}
+.control.is-disabled{opacity:.35;filter:grayscale(.75)}
+@keyframes pop{0%{opacity:0;scale:.35}75%{opacity:.96;scale:1.07}100%{opacity:.92;scale:1}}
+@media(prefers-reduced-motion:reduce){.control{animation:none}}
+</style>
+</head>
+<body>
+<div id="steer" class="control" data-stick="steer" aria-label="Steer">
+<svg class="directions" viewBox="0 0 100 100" aria-hidden="true">
+<g fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+<path d="M44 18 50 10 56 18M44 82 50 90 56 82M18 44 10 50 18 56M82 44 90 50 82 56"/>
+</g>
+</svg>
+<div data-knob></div>
+</div>
+<div id="fire" class="control btn" data-action="shoot" data-label="FIRE">
+<div class="inner">
+<svg class="icon" viewBox="0 0 40 40" aria-hidden="true">
+<g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round">
+<circle cx="20" cy="20" r="11"/>
+<path d="M20 3v9M20 28v9M3 20h9M28 20h9"/>
+</g>
+<circle cx="20" cy="20" r="3" fill="currentColor"/>
+</svg>
+<span class="label">FIRE</span>
+</div>
+</div>
+<div id="boost" class="control btn" data-action="boost" data-label="BOOST">
+<div class="inner">
+<svg class="icon" viewBox="0 0 40 40" aria-hidden="true">
+<path d="m7 7 13 13L7 33M23 7l13 13-13 13" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+<span class="label">BOOST</span>
+</div>
+</div>
+</body>
+</html>

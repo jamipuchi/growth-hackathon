@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
+body{font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif;user-select:none;-webkit-user-select:none}
+.control{position:absolute;opacity:.92;touch-action:none;animation:pop .45s both;transition:scale .18s cubic-bezier(.2,1.7,.5,1),translate .15s,filter .15s,box-shadow .15s}
+.btn{width:var(--w);height:var(--h);margin-left:calc(var(--w) / -2);margin-top:calc(var(--h) / -2);left:clamp(calc(var(--w)/2 + 2vw),var(--cx),calc(100vw - var(--w)/2 - 2vw));top:clamp(calc(var(--h)/2 + 2vh),var(--cy),calc(100vh - var(--h)/2 - 2vh));border:4px solid white;border-radius:12px;transform:skewX(-9deg);background:linear-gradient(#86dcff,#2f8bff 52%,#1647c8);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033;color:white}
+.inner{height:100%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transform:skewX(9deg)}
+.label{font-size:clamp(16px,3.1vw,26px);font-weight:900;font-style:italic;text-transform:uppercase;letter-spacing:.04em;line-height:1.05;text-shadow:-2px 0 #0b1033,2px 0 #0b1033,0 -2px #0b1033,0 2px #0b1033,0 3px 3px #0b1033}
+svg{display:block;flex-shrink:0;filter:drop-shadow(0 2px 0 #0b1033)}
+.icon{width:clamp(26px,5vw,44px);height:clamp(26px,7vh,40px);fill:none;stroke:white;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.shoot{--w:max(64px,min(22vw,42vh));--h:max(64px,min(22vw,42vh));--cx:83vw;--cy:71vh;border-radius:50%;transform:none;background:linear-gradient(#ffe36e,#ffb21f 52%,#d26a06);animation-delay:.05s}
+.shoot .inner{transform:none;gap:8px}
+.shoot .icon{width:clamp(32px,7vw,58px);height:clamp(32px,11vh,52px)}
+.shield{--w:max(64px,20vw);--h:max(64px,26vh);--cx:55vw;--cy:75vh;background:linear-gradient(#d49bff,#9d4dff 52%,#5a1bc4);animation-delay:.1s}
+.land{--w:max(64px,18vw);--h:max(64px,26vh);--cx:85vw;--cy:20vh;animation-delay:.15s}
+.stick{--size:max(110px,min(28vw,62vh));width:var(--size);height:var(--size);margin-left:calc(var(--size)/-2);margin-top:calc(var(--size)/-2);left:clamp(calc(var(--size)/2 + 1vw),18vw,calc(100vw - var(--size)/2 - 1vw));top:clamp(calc(var(--size)/2 + 2vh),61vh,calc(100vh - var(--size)/2 - 2vh));border:4px solid white;border-radius:50%;background:radial-gradient(circle,#23376bc9,#101936d9);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033}
+.directions{position:absolute;inset:5%;width:90%;height:90%;fill:none;stroke:white;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.knob{position:absolute;left:30%;top:30%;width:40%;height:40%;border:3px solid white;border-radius:50%;background:linear-gradient(#86dcff,#2f8bff 55%,#1647c8);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033}
+.btn.is-down{translate:0 4px;scale:.95;filter:brightness(1.18);box-shadow:inset 0 3px 0 #ffffff80,0 1px 0 #0b1033}
+.stick.is-down{filter:brightness(1.15);box-shadow:inset 0 3px 0 #ffffff80,0 2px 0 #0b1033}
+.stick.is-down .knob{background:linear-gradient(#b3eaff,#469bff 55%,#245bdd)}
+.control.is-on{background:linear-gradient(#ffe36e,#ffb21f 52%,#d26a06)}
+.control.is-disabled{opacity:.35;filter:grayscale(.7)}
+@keyframes pop{0%{opacity:0;scale:.35}75%{opacity:.96;scale:1.07}100%{opacity:.92;scale:1}}
+@media(prefers-reduced-motion:reduce){.control{animation:none}}
+</style>
+</head>
+<body>
+<div class="control stick" data-stick="steer" aria-label="Steer">
+<svg class="directions" viewBox="0 0 100 100" aria-hidden="true"><path d="M43 15 50 7 57 15M85 43 93 50 85 57M43 85 50 93 57 85M15 43 7 50 15 57"/></svg>
+<div class="knob" data-knob></div>
+</div>
+<div class="control btn shoot" data-action="shoot" data-label="SHOOT">
+<div class="inner">
+<svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="14"/><path d="M24 3v12m0 18v12M3 24h12m18 0h12"/><circle cx="24" cy="24" r="3" fill="white" stroke="none"/></svg>
+<span class="label">SHOOT</span>
+</div>
+</div>
+<div class="control btn shield" data-action="shield" data-label="SHIELD">
+<div class="inner">
+<svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4 40 10v13c0 10-8 17-16 21C16 40 8 33 8 23V10Z" fill="#ffffff30"/><path d="m16 24 6 6 11-13"/></svg>
+<span class="label">SHIELD</span>
+</div>
+</div>
+<div class="control btn land" data-action="land" data-label="LAND">
+<div class="inner">
+<svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7v13l-6 16h9m15-29v13l6 16h-9M5 41h38M24 5v19m-6-6 6 6 6-6"/></svg>
+<span class="label">LAND</span>
+</div>
+</div>
+</body>
+</html>

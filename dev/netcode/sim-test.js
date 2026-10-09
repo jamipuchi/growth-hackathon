@@ -8,7 +8,7 @@
 const assert = require("assert");
 const Contract = require("../../contract");
 const Verbs = require("../../verbs");
-const { createWorld, chestCount, bossHp, DEFAULT_LAYOUT } = require("../../world");
+const { createWorld, chestCount, bossHp, DEFAULT_LAYOUT, withSteer } = require("../../world");
 
 const { TUNING: T, SCORING, ROUND } = Contract;
 const DT = 1 / Contract.SIM_HZ;
@@ -113,14 +113,15 @@ const LAYOUT = { buttons: [
 // Put a player on the island next to their parked ship: kill the boss, park the ship near the planet, LAND.
 function killBoss(h, by) { const b = h.dbg().boss; b.hp = 1; h.w.handleInput({ type: "input", player: by, action: "noop", down: false }); hitBossVia(h, by); }
 function hitBossVia(h, by) {
-  // A drill pressed against the boss's surface: the cheapest way to land the last hit from a test.
+  // A shot from 20 m off the boss's surface (rocks keep 25 m clear of it): the cheapest way to land the last hit from a
+  // test. Ships have no drill since v1.2 (PLAN.md section 0: the drill is a planet skill).
   const p = h.p(by), b = h.dbg().boss;
   const drawn = p.drawn.space;
   h.w.setEntity(by, "ship", devKit("ship"));
-  p.pos = { x: b.pos.x + b.radius + 3, y: b.pos.y, z: b.pos.z };
-  h.input(by, "drill", true);
-  h.until("boss dies", () => h.dbg().boss.dead, 5);
-  h.input(by, "drill", false);
+  p.pos = { x: b.pos.x, y: b.pos.y, z: b.pos.z + b.radius + 20 }; p.yaw = 0; p.pitch = 0;
+  h.input(by, "shoot", true);
+  h.until("boss dies", () => h.dbg().boss.dead, 5, () => aim(h, by, b.pos));
+  h.input(by, "shoot", false);
   if (drawn) h.w.setEntity(by, "ship", drawn);
 }
 function landNow(h, name) {
@@ -742,6 +743,286 @@ test("hints point at the drawing first, then at the button", () => {
   h.wait(40, () => { p.pos = { x: b.pos.x, y: b.pos.y, z: b.pos.z + b.radius + 100 }; });
   assert.strictEqual(h.toasts("ana", f3).filter((t) => t.kind === "hint").length, 0, "skill + button: no more hints");
   return `part ladder at ${at.join(", ")} s; then the button ladder with a ghost box`;
+});
+
+// ---- v1.2 / v1.3: the drill on the planet only, mischief, the LAND ladder, names and caps ---------------------------
+
+const mischiefKit = { type: "ship", unlocked: Verbs.MISCHIEF.map((v) => ({ verb: v, part: Verbs.VERBS[v].grantedBy[0] })).concat([{ verb: "shoot", part: "gun" }, { verb: "shield", part: "bubble" }]), parts: [], source: "model" };
+const mischiefOf = (h, from) => h.msgs.filter((x) => x.at >= from && x.m.type === "mischief").map((x) => x.m);
+const tickOf = (h, name) => h.w.tickMessage().players.find((p) => p.name === name);
+const press = (h, name, verb) => { h.input(name, verb, true); h.input(name, verb, false); };
+// Level ships facing -z, far from the rocks (cleared), 400 m out from spawn.
+function lineUp(h, at) { for (const [name, x] of Object.entries(at)) Object.assign(h.p(name), { pos: { x, y: 0, z: -400 }, yaw: 0, pitch: 0, spawnShield: 0 }); }
+
+test("v1.2: the drill is a planet skill: no ship gets it, a ship never drills the boss, pressing it says where it works", () => {
+  assert(!Verbs.SKILLS.space.includes("drill") && !Verbs.DEV_KIT.space.some((u) => u.verb === "drill") && Verbs.SKILLS.planet.includes("drill"), "drill: planet skills only");
+  const h = harness(21);
+  h.w.join("ana");
+  h.w.start();
+  h.w.setEntity("ana", "ship", { type: "ship", unlocked: [{ verb: "drill", part: "nose drill" }, { verb: "shoot", part: "gun" }], parts: [], source: "model" });
+  h.w.setLayout("ana", LAYOUT);
+  const p = h.p("ana"), b = h.dbg().boss;
+  assert.deepStrictEqual(p.entity.verbs, ["shoot"], "a drawn nose drill unlocks nothing in space");
+  const from = h.steps, hp0 = b.hp;
+  h.input("ana", "drill", true);
+  h.wait(2, () => { p.pos = { x: b.pos.x + b.radius + 3, y: b.pos.y, z: b.pos.z }; p.spawnShield = 1; });
+  h.input("ana", "drill", false);
+  assert.strictEqual(b.hp, hp0, "the boss takes nothing from a ship's drill");
+  assert(!h.lastTick.players.find((q) => q.name === "ana").flags.drilling, "no drilling flag in space");
+  const t = h.toasts("ana", from).filter((x) => x.kind === "refused" && x.verb === "drill");
+  assert.strictEqual(t[0] && t[0].text, "DRILL · not here: only on the planet");
+  return `ship verbs [${p.entity.verbs}], boss hp ${b.hp}/${hp0} after 2 s pressed on it, "${t[0].text}"`;
+});
+
+test("v1.3 mischief: EMP, ink bomb and tractor hit the nearest human rival in reach (never a bot, never one landing or spawn-shielded), with cooldowns", () => {
+  const h = harness(22);
+  for (const n of ["ana", "bob", "cy", "dan"]) h.w.join(n);
+  for (let i = 1; i <= 3; i++) h.w.addBot(`bot${i}`);
+  h.w.start();
+  h.dbg().rocks.splice(0);
+  h.w.setEntity("ana", "ship", mischiefKit); h.w.setEntity("dan", "ship", mischiefKit);
+  lineUp(h, { ana: 0, bob: 60, cy: 100, dan: 1000, bot1: 6, bot2: 12, bot3: 1006 });
+  let from = h.steps;
+  press(h, "ana", "emp"); h.step();
+  assert.deepStrictEqual(mischiefOf(h, from), [{ type: "mischief", kind: "emp", player: "bob", from: "ana", seconds: 5 }], "EMP: the nearest human (bots at 6 and 12 m are skipped)");
+  assert(h.announces(from).includes("⚡ ana scrambled bob's buttons"), "kill feed");
+  const cools = h.msgs.filter((x) => x.at >= from && x.m.type === "cooldown").map((x) => x.m);
+  assert(tickOf(h, "bob").flags.emp, "bob's tick flags emp");
+  assert.deepStrictEqual(cools, [{ type: "cooldown", player: "ana", verb: "emp", seconds: 20 }], "ana's phone hears the EMP cools down 20 s");
+  from = h.steps;
+  press(h, "ana", "emp"); h.step();
+  assert.strictEqual(mischiefOf(h, from).length, 0, "a second EMP inside the cooldown does nothing");
+  press(h, "ana", "inkbomb"); h.step();
+  assert.deepStrictEqual(mischiefOf(h, from), [{ type: "mischief", kind: "inkbomb", player: "bob", from: "ana", seconds: 4 }], "ink: 4 s");
+  // bob is landing (the predefined shot): immune, so the tractor reaches past him to cy at 100 m.
+  h.p("bob").landingFor = 3;
+  from = h.steps;
+  press(h, "ana", "tractor"); h.step();
+  const pullMsg = mischiefOf(h, from)[0];
+  assert.deepStrictEqual([pullMsg.kind, pullMsg.player, pullMsg.from, pullMsg.seconds, pullMsg.dir], ["tractor", "cy", "ana", 1.5, 3.14], "tractor: cy, pulled to the left of their screen");
+  const x0 = h.p("cy").pos.x;
+  h.wait(1.6);
+  const pulled = x0 - h.p("cy").pos.x;
+  assert(pulled > 30 && pulled < 45, `cy pulled ${pulled.toFixed(1)} m toward ana`);
+  // Nobody human in reach (only a bot next to dan): told so, no cooldown spent, nothing sent.
+  from = h.steps;
+  press(h, "dan", "emp"); h.step();
+  assert.strictEqual(mischiefOf(h, from).length, 0);
+  assert.deepStrictEqual(h.toasts("dan", from).map((t) => t.text), ["EMP · no rival close enough"]);
+  assert(!h.msgs.some((x) => x.at >= from && x.m.type === "cooldown" && x.m.player === "dan") && !(h.p("dan").cd.emp > 0), "no cooldown spent on a miss");
+  // A spawn shield protects too.
+  lineUp(h, { dan: 2000, cy: 2050 }); h.p("cy").spawnShield = 2;
+  from = h.steps;
+  press(h, "dan", "inkbomb"); h.step();
+  assert.strictEqual(mischiefOf(h, from).length, 0, "spawn-shielded cy is immune");
+  return `EMP → bob (5 s), ink → bob (4 s), tractor past landing bob → cy (pulled ${pulled.toFixed(1)} m in 1.6 s); bots, shields and misses respected`;
+});
+
+test("v1.3 mischief: a mine stuns, costs 30 and hurts; a mine kill is a kill (+200 / -50, kill feed); a shield eats it", () => {
+  const h = harness(23);
+  h.w.join("ana"); h.w.join("bob");
+  h.w.start();
+  h.dbg().rocks.splice(0);
+  h.w.setEntity("ana", "ship", mischiefKit); h.w.setEntity("bob", "ship", mischiefKit);
+  lineUp(h, { ana: 0, bob: 300 });
+  const ana = h.p("ana"), bob = h.p("bob");
+  press(h, "ana", "mine"); h.step();
+  const mine = h.dbg().mines[0];
+  assert(mine && Math.abs(mine.pos.z - -396) < 1 && h.w.tickMessage().mines.length === 1, "a mine 4 m behind the ship, in the tick");
+  h.wait(1);
+  let from = h.steps;
+  bob.pos = { ...mine.pos }; h.step();
+  assert.deepStrictEqual(mischiefOf(h, from), [{ type: "mischief", kind: "mine", player: "bob", from: "ana", seconds: T.stunSeconds, points: 30 }]);
+  assert.deepStrictEqual([bob.score, bob.hp, bob.stun > 0, h.dbg().mines.length], [-30, 70, true, 0], "-30, 30 damage, stunned, the mine is gone");
+  assert(h.announces(from).includes("💣 bob hit ana's mine (-30)"));
+  // A mine kill (bob waits off ana's line, or he would fly into the new mine while it arms).
+  ana.cd.mine = 0; bob.hp = 20; bob.stun = 0; bob.pos = { x: 300, y: 0, z: -400 };
+  press(h, "ana", "mine"); h.step();
+  h.wait(1);
+  from = h.steps;
+  bob.pos = { ...h.dbg().mines[0].pos }; h.step();
+  assert(bob.dead, "bob dies on the mine");
+  assert.deepStrictEqual([ana.score, bob.score], [SCORING.kill, -30 + SCORING.mineHit + SCORING.killed], "a mine kill scores as a kill");
+  assert(h.announces(from).includes("ana ✕ bob 💣"), "the kill feed says how");
+  // A shield eats a mine whole.
+  h.wait(T.respawnSeconds + 0.5);
+  ana.cd.mine = 0; bob.pos = { x: 300, y: 0, z: -400 };
+  press(h, "ana", "mine"); h.step();
+  h.wait(1);
+  const before = bob.score;
+  bob.spawnShield = 0; bob.shieldEnergy = 1;
+  h.input("bob", "shield", true); h.step();
+  from = h.steps;
+  bob.pos = { ...h.dbg().mines[0].pos }; h.step();
+  h.input("bob", "shield", false);
+  assert.deepStrictEqual([mischiefOf(h, from).length, bob.score, h.dbg().mines.length], [0, before, 0], "shielded: the mine pops, nothing lost");
+  return `mine: -30, 30 damage, ${T.stunSeconds} s stun; mine kill → ana ${ana.score}, bob ${bob.score}; shield eats it`;
+});
+
+test("v1.3 mischief: a decoy soaks a rival's shots and the boss's fire; the shooter learns they were fooled", () => {
+  const h = harness(26);
+  h.w.join("ana"); h.w.join("bob");
+  h.w.start();
+  h.dbg().rocks.splice(0);
+  h.w.setEntity("ana", "ship", mischiefKit); h.w.setEntity("bob", "ship", mischiefKit);
+  lineUp(h, { ana: 0, bob: 500 });
+  press(h, "ana", "decoy"); h.step();
+  const d = h.dbg().decoys[0];
+  assert(d && Math.abs(d.pos.x - 6) < 0.5, "the decoy appears 6 m to the right");
+  const td = h.w.tickMessage().decoys[0];
+  assert.deepStrictEqual([td.length, td[6], td[7]], [8, "ana", 0], "tick decoys: [id, x, y, z, yaw, color, owner, mode]");
+  // bob, 30 m behind the decoy on its line, shoots it (both fly -z at cruise speed).
+  Object.assign(h.p("bob"), { pos: { x: d.pos.x, y: d.pos.y, z: d.pos.z + 30 }, yaw: 0, pitch: 0 });
+  const from = h.steps;
+  h.input("bob", "shoot", true);
+  h.until("the decoy pops", () => !h.dbg().decoys.length, 3);
+  const popped = (h.steps - from) / Contract.SIM_HZ;
+  h.input("bob", "shoot", false);
+  assert.deepStrictEqual(mischiefOf(h, from), [
+    { type: "mischief", kind: "decoy", player: "bob", from: "ana", seconds: 0 },
+    { type: "mischief", kind: "decoy", player: "ana", from: "ana", victim: "bob", seconds: 0 },
+  ]);
+  assert(h.announces(from).includes("🎭 bob shot ana's decoy") && h.p("ana").hp === 100, "kill feed; ana unhurt");
+  // The boss fires at a decoy parked in its range when no ship is (it counts as one more target).
+  const b = h.dbg().boss;
+  h.p("ana").cd.decoy = 0;
+  Object.assign(h.p("ana"), { pos: { x: b.pos.x, y: b.pos.y, z: b.pos.z + 120 }, yaw: 0, pitch: 0 });
+  press(h, "ana", "decoy"); h.step();
+  const lure = h.dbg().decoys[0];
+  lure.speed = 0;
+  h.p("ana").pos = { x: 0, y: 0, z: -400 };
+  const t1 = h.steps;
+  h.until("the boss shoots the decoy down", () => !h.dbg().decoys.length, 8);
+  return `bob popped ana's decoy in ${popped.toFixed(2)} s (bob told he was fooled, ana told who); the boss shot a parked decoy down in ${((h.steps - t1) / Contract.SIM_HZ).toFixed(1)} s`;
+});
+
+test("v1.3 mischief: a rock hit while being pulled hurts, credited to the puller; a pull kill is a kill", () => {
+  const h = harness(27);
+  h.w.join("ana"); h.w.join("cy");
+  h.w.start();
+  const rocks = h.dbg().rocks; rocks.splice(0);
+  h.w.setEntity("ana", "ship", mischiefKit);
+  lineUp(h, { ana: 0, cy: 100 });
+  const cy = h.p("cy");
+  cy.hp = 25;
+  press(h, "ana", "tractor"); h.step();
+  h.wait(0.3);
+  const from = h.steps;
+  rocks.push({ id: 99999, pos: { ...cy.pos }, size: 4, type: "stone", health: 1 });
+  h.step();
+  assert(cy.dead, "cy slammed into a rock while pulled");
+  assert.deepStrictEqual([h.p("ana").score, cy.score], [SCORING.kill, SCORING.hitByRock + SCORING.killed]);
+  assert(h.announces(from).includes("ana ✕ cy 🧲"));
+  return "pulled into a rock: 30 damage credited to ana, a kill (+200), kill feed 🧲";
+});
+
+test("LAND hint: a regular player circling near the planet gets the riddle at 6 s, the sketch 10 s later, the answer and ghost box 15 s after", () => {
+  const h = harness(24);
+  h.w.join("ana");
+  h.w.start();
+  h.w.setEntity("ana", "ship", { type: "ship", unlocked: [{ verb: "shoot", part: "gun" }, { verb: "land", part: "legs" }], parts: [], source: "model" });
+  h.w.setLayout("ana", { buttons: [LAYOUT.buttons[0], LAYOUT.buttons[1]], source: "model" });
+  killBoss(h, "ana");
+  const pl = h.dbg().planet, p = h.p("ana");
+  const from = h.steps;
+  // 90 m from the centre (50 m off the surface): outside landing range (65 m), inside the LAND gate.
+  h.wait(32, () => { const a = ((h.steps - from) / Contract.SIM_HZ) * 0.2; p.pos = { x: pl.x + Math.cos(a) * 90, y: pl.y, z: pl.z + Math.sin(a) * 90 }; });
+  const land = h.toasts("ana", from).filter((t) => t.kind === "hint" && t.gate === "land");
+  assert.deepStrictEqual(land.map((t) => [t.need, t.text, t.sketch]), [["button", "So close you could touch down.", null], ["button", "", "landing"], ["button", "Draw LAND", null]]);
+  assert.strictEqual(land[2].ghost.action, "land");
+  const at = land.map((t) => ((t.at - from) / Contract.SIM_HZ).toFixed(1));
+  // Then the button, LAND: the tick names the bay the landing shot ends on, and it is where the ship parks.
+  h.w.setLayout("ana", LAYOUT);
+  p.pos = { x: pl.x + pl.radius + 10, y: pl.y, z: pl.z };
+  press(h, "ana", "land"); h.step(); h.step();
+  const bay = tickOf(h, "ana").bay;
+  h.until("ana lands", () => p.mode === "planet" && !p.landingFor, 6);
+  const car = h.dbg().parked.find((c) => c.player === "ana");
+  assert(bay && Math.abs(bay[0] - car.x) < 0.1 && Math.abs(bay[1] - car.z) < 0.1, `tick bay ${bay} = parked ${car.x},${car.z}`);
+  return `LAND ladder at ${at.join(", ")} s while circling 50 m off the surface; landing bay ${bay} in the tick`;
+});
+
+test("names and caps: a second device gets name2, the same device its ship back; 'constructor' is a name; 32 active humans at most; floods are cut", () => {
+  const h = harness(25);
+  const a = h.w.join("ana", "device-aaaa-1111"), b = h.w.join("Ana", "device-bbbb-2222");
+  assert.deepStrictEqual([a, b], [{ player: "ana", color: a.color }, { player: "ana2", color: b.color, renamed: true }]);
+  assert.strictEqual(h.w.join("ana", "device-aaaa-1111").player, "ana", "the same device gets its ship back");
+  assert.strictEqual(h.w.join("ana").player, "ana", "no device token: the old behaviour (same name, same ship)");
+  assert.strictEqual(h.w.join("constructor").player, "constructor");
+  h.input("constructor", "boost", true); h.input("tostring", "boost", true);
+  assert(h.p("constructor").keys && h.p("tostring").name === "tostring", "prototype names are plain names");
+  for (let i = 0; i < 40; i++) h.w.join(`g${i}`);
+  const humans = Object.values(h.w.players).filter((p) => !p.bot).length;
+  assert.strictEqual(humans, 32);
+  assert.strictEqual(h.w.join("late"), null, "no room for a 33rd");
+  h.input("ghost", "boost", true);
+  assert.strictEqual(h.p("ghost"), undefined, "a POST /input with a new name makes no player when full");
+  h.w.start();
+  h.w.setEntity("ana", "ship", devKit("ship"));
+  const from = h.steps;
+  for (let i = 0; i < 20; i++) press(h, "ana", "flare");
+  assert.strictEqual(h.p("ana").pressed.length, 6, "at most 6 queued presses");
+  h.step();
+  h.wait(1, () => press(h, "ana", "flare"));
+  const flares = h.msgs.filter((x) => x.at >= from && x.m.type === "fx" && x.m.kind === "flare").length;
+  assert.strictEqual(flares, 1, "flare has a cooldown");
+  return `ana2 for a second device; ${humans} humans max; 20 flare presses → 6 queued → ${flares} flare`;
+});
+
+test("drawing: while the draw sheet is open the ship hovers and nothing can hurt it, for at most 30 s; never stuck: a pad with no way to turn gets a steer stick", () => {
+  const h = harness(28);
+  h.w.join("ana"); h.w.join("bob");
+  h.w.start();
+  h.dbg().rocks.splice(0);
+  h.w.setEntity("ana", "ship", mischiefKit); h.w.setEntity("bob", "ship", mischiefKit);
+  lineUp(h, { ana: 0, bob: 300 });
+  const ana = h.p("ana");
+  h.input("ana", "boost", true);
+  h.input("ana", "drawing", true);
+  const z0 = ana.pos.z;
+  h.wait(1);
+  const speed = Math.abs(ana.pos.z - z0);
+  assert(speed < T.cruiseSpeed - T.brakeSpeed + 0.5, `hovering at ${speed.toFixed(1)} m/s`);
+  assert(h.lastTick.players.find((p) => p.name === "ana").flags.drawing, "tick flags drawing");
+  h.input("bob", "emp", true); h.input("bob", "emp", false); h.step();
+  assert.strictEqual(mischiefOf(h, 0).filter((m) => m.player === "ana").length, 0, "no mischief on a drawing player");
+  ana.hp = 100;
+  Object.assign(h.p("bob"), { pos: { x: 0, y: 0, z: ana.pos.z + 30 }, yaw: 0, pitch: 0 });
+  h.input("bob", "shoot", true); h.wait(1); h.input("bob", "shoot", false);
+  assert.strictEqual(ana.hp, 100, "bullets do nothing while drawing");
+  h.input("ana", "shoot", true); h.step();
+  assert(!ana.keys.shoot, "no control while drawing");
+  h.input("ana", "drawing", false); h.step();
+  assert(!h.w.tickMessage().players.find((p) => p.name === "ana").flags.drawing, "drawing up ends it");
+  h.input("ana", "drawing", true); h.wait(29);
+  assert(h.w.tickMessage().players.find((p) => p.name === "ana").flags.drawing, "still drawing at 29 s");
+  h.wait(2);
+  assert(!h.w.tickMessage().players.find((p) => p.name === "ana").flags.drawing, "it ends by itself after 30 s");
+  // Never stuck (PLAN.md section 7).
+  const noTurn = { buttons: [{ type: "button", action: "shoot", label: "FIRE", x: 0.7, y: 0.5, w: 0.2, h: 0.3 }, { type: "stick", action: "move", label: "", x: 0.6, y: 0.1, w: 0.2, h: 0.3 }], source: "model" };
+  const fixed = withSteer(noTurn);
+  const auto = fixed.buttons.find((b) => b.auto);
+  assert(auto && auto.type === "stick" && auto.action === "steer" && auto.x < 0.5, "a steer stick, left side");
+  assert(noTurn.buttons.every((b) => Math.max(b.x - (auto.x + auto.w), auto.x - (b.x + b.w), b.y - (auto.y + auto.h), auto.y - (b.y + b.h)) > 0), "clear of the drawn controls");
+  assert.strictEqual(withSteer(LAYOUT), LAYOUT, "a pad that can turn is left alone");
+  return `hover ${speed.toFixed(1)} m/s, immune to shots and EMP, ends on release or after 30 s; auto steer stick at ${auto.x},${auto.y} ${auto.w}×${auto.h}`;
+});
+
+test("explorers never step out onto water: every bay on 300 islands leaves them on dry land", () => {
+  let wet = 0, total = 0;
+  for (let seed = 1; seed <= 300; seed++) {
+    const h = harness(1000 + seed);
+    h.w.join("ana");
+    h.w.start();
+    killBoss(h, "ana");
+    landNow(h, "ana");
+    const p = h.p("ana"), isl = h.dbg().island;
+    const Terrain = require("../../terrain");
+    total++;
+    if (!(Terrain.height(p.pos.x, p.pos.z, isl.seed) > 0.3)) wet++;
+  }
+  assert.strictEqual(wet, 0, `${wet} of ${total} explorers stood in the water`);
+  return `${total} landings, 0 in the water`;
 });
 
 // ---- Network budget ------------------------------------------------------------------------------------------------

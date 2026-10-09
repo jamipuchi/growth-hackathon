@@ -39,11 +39,11 @@ function request(method, url, body) {
 }
 
 // Read the event stream for `ms` and return every message with its byte size.
-function readEvents(ms, during) {
+function readEvents(ms, during, events = "/events") {
   return new Promise((resolve, reject) => {
     const messages = [];
     let buf = "";
-    const req = http.get(BASE + "/events", (res) => {
+    const req = http.get(BASE + events, (res) => {
       assert.strictEqual(res.headers["content-type"], "text/event-stream");
       res.setEncoding("utf8");
       res.on("data", (chunk) => {
@@ -58,6 +58,19 @@ function readEvents(ms, during) {
       setTimeout(() => { req.destroy(); resolve(messages); }, ms);
     });
     req.on("error", (err) => { if (err.code !== "ECONNRESET") reject(err); });
+  });
+}
+
+// One raw HTTP/1.1 request line on a socket → the status code (or "closed").
+function rawRequest(line) {
+  return new Promise((resolve) => {
+    const net = require("net");
+    const sock = net.connect(PORT, "127.0.0.1", () => sock.write(`${line}\r\nHost: localhost\r\nConnection: close\r\n\r\n`));
+    let data = "";
+    sock.on("data", (d) => (data += d));
+    sock.on("close", () => resolve((/^HTTP\/1\.1 (\d{3})/.exec(data) || [])[1] || "closed"));
+    sock.on("error", () => resolve("error"));
+    setTimeout(() => sock.destroy(), 2000);
   });
 }
 
@@ -80,7 +93,8 @@ async function main() {
   const lobbyTick = (await readEvents(300)).find((x) => x.m.type === "tick");
   assert.strictEqual(lobbyTick.m.phase, "lobby", "ready alone no longer starts the round");
   // A drawn ship (Astra mock → the dev kit) unlocks shoot; a plain ship could not fire.
-  const shipPng = "data:image/png;base64," + Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.from("live-ship")]).toString("base64");
+  // A real 1 × 1 PNG: drawings must be PNGs with an IHDR of at most 1024 px to be kept and served (v1.0 review).
+  const shipPng = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
   const ship = JSON.parse((await request("POST", "/generate", { player: "livetest", kind: "ship", image: shipPng })).body);
   assert(ship.ok && ship.entity.verbs.includes("shoot") && ship.entity.source === "devkit" && ship.entity.unlocked.length > 0, `ship → ${JSON.stringify(ship).slice(0, 160)}`);
   const started = await request("POST", "/start", {});
@@ -186,6 +200,79 @@ async function main() {
   assert(spec2.ok, "speculative calls still work at 0 left");
   report.push(`budget: 5 finished drawings in space, speculative free, 6th refused in ${refusedMs} ms without calling Astra`);
 
+  // v1.2: Sol writes the controller. A controller drawing answers with the whole pad as HTML at once (the template in
+  // mock mode); `generated` carries it to the player's own screens only (the TV gets it without the HTML); a reloaded
+  // phone gets it from POST /controller-html. inkRegions with no stick → the regions layout plus a steer stick.
+  await request("POST", "/join", { player: "pad" });
+  const ink = [{ x: 0.62, y: 0.5, w: 0.15, h: 0.3 }, { x: 0.8, y: 0.45, w: 0.15, h: 0.35 }];
+  const padImg = "data:image/png;base64," + Buffer.from("pad controller drawing").toString("base64");
+  const [anyMsgs, bigMsgs, mineMsgs, ctlRes] = await Promise.all([
+    readEvents(1500),
+    readEvents(1500, null, "/events?screen=big"),
+    readEvents(1500, null, "/events?player=pad"),
+    new Promise((r) => setTimeout(r, 250)).then(() => request("POST", "/generate", { player: "pad", kind: "controller", image: padImg, source: "draw", inkRegions: ink })),
+  ]);
+  const ctl = JSON.parse(ctlRes.body);
+  assert(ctl.ok && ctl.layout.source === "regions" && /^<!doctype html/i.test(ctl.html) && ctl.htmlSource === "template", `controller → ${ctlRes.body.slice(0, 160)}`);
+  assert.deepStrictEqual(ctl.layout.buttons.map((b) => [b.type, b.action, !!b.auto]), [["button", "shoot", false], ["button", "boost", false], ["stick", "steer", true]], "regions → shoot, boost + an auto steer stick (never stuck)");
+  assert.deepStrictEqual(ctl.controls.map((c) => c.action).sort(), ["boost", "shoot", "steer"], "controls = the allowed actions");
+  assert.deepStrictEqual(ctl.padLayout.buttons.length, 3);
+  const genOf = (list) => list.filter((x) => x.m.type === "generated" && x.m.player === "pad").map((x) => x.m);
+  const [gAny, gBig, gMine] = [genOf(anyMsgs), genOf(bigMsgs), genOf(mineMsgs)];
+  assert(gAny.length === 1 && gAny[0].html === ctl.html && gMine.length === 1 && gMine[0].html === ctl.html, "generated with the html to the player (and to unnamed screens)");
+  assert(gBig.length === 1 && gBig[0].html === undefined && gBig[0].layout && gBig[0].htmlSource === "template", "the TV gets generated without the html");
+  for (const m of [...gAny, ...gBig]) assert.deepStrictEqual(Contract.CHECKS.generated(m), [], "generated passes CHECKS.generated");
+  const cur = JSON.parse((await request("POST", "/controller-html", { player: "pad" })).body);
+  assert(cur.ok && cur.html === ctl.html && cur.pending === false && cur.htmlSource === "template", "POST /controller-html → the same pad");
+  assert.strictEqual((await request("POST", "/controller-html", { player: "nobody" })).status, 404);
+  report.push(`controller html: ${Buffer.byteLength(ctl.html)} B template with ${ctl.controls.length} controls (auto steer stick added), generated to the player (TV without html), /controller-html ok`);
+
+  // Personal messages go to the player's own streams: a refused verb's toast reaches /events?player=pad, not the TV.
+  const [toAny, toBig, toPad, toOther] = await Promise.all([
+    readEvents(800), readEvents(800, null, "/events?screen=big"), readEvents(800, null, "/events?player=pad"), readEvents(800, null, "/events?player=late"),
+    new Promise((r) => setTimeout(r, 200)).then(() => request("POST", "/input", { type: "input", player: "pad", action: "dig", down: true })),
+  ]);
+  const toastsOf = (list) => list.filter((x) => x.m.type === "toast" && x.m.player === "pad").length;
+  assert.deepStrictEqual([toastsOf(toAny), toastsOf(toBig), toastsOf(toPad), toastsOf(toOther)], [1, 0, 1, 0], "toast: unnamed and own stream yes, TV and other phones no");
+  // A verb with a cooldown (the dev-kit ship's FLARE): only its owner's phone hears when it is ready again.
+  const [cdBig, cdMine, cdOther] = await Promise.all([
+    readEvents(800, null, "/events?screen=big"), readEvents(800, null, "/events?player=livetest"), readEvents(800, null, "/events?player=pad"),
+    new Promise((r) => setTimeout(r, 200)).then(() => request("POST", "/input", { type: "input", player: "livetest", action: "flare", down: true })),
+  ]);
+  const cdOf = (list) => list.filter((x) => x.m.type === "cooldown");
+  assert.deepStrictEqual([cdOf(cdBig).length, cdOf(cdMine).length, cdOf(cdOther).length], [0, 1, 0], "cooldown: the owner's phone only");
+  assert.deepStrictEqual(Contract.CHECKS.cooldown(cdOf(cdMine)[0].m), [], `cooldown message ${JSON.stringify(cdOf(cdMine)[0].m)}`);
+  report.push(`streams: toasts and cooldowns (${JSON.stringify(cdOf(cdMine)[0].m)}) only to the player's own phone (and unnamed streams), never to ?screen=big`);
+
+  // Speculative calls: at most 8 per player per 10 s.
+  const specs = [];
+  for (let i = 0; i < 9; i++) specs.push(JSON.parse((await request("POST", "/generate", { player: "spammer", kind: "button", image: img(200 + i), region: { x: 0.1, y: 0.1, w: 0.2, h: 0.2 }, speculative: true })).body));
+  assert(specs.slice(0, 8).every((r) => r.ok) && specs[8].ok === false && specs[8].error === "slow down", `9th speculative → ${JSON.stringify(specs[8])}`);
+  // Names: a second device asking for a name in use gets name2; the first device keeps it.
+  const d1 = JSON.parse((await request("POST", "/join", { player: "dev", device: "device-aaaa-1111" })).body);
+  const d2 = JSON.parse((await request("POST", "/join", { player: "dev", device: "device-bbbb-2222" })).body);
+  assert.deepStrictEqual([d1.player, d2.player, d2.renamed], ["dev", "dev2", true], "device tokens");
+  // GET /info for the join QR.
+  const inf = JSON.parse((await request("GET", "/info")).body);
+  assert(/^http:\/\/[0-9a-z.]+:\d+$/.test(inf.lanUrl) && inf.bigScreenUrl === `${inf.lanUrl}/space.html`, `/info → ${JSON.stringify(inf)}`);
+  if (HAS_HTTPS) assert(inf.httpsUrl === inf.lanUrl.replace("http:", "https:").replace(`:${PORT}`, `:${HTTPS_PORT}`) && inf.controllerUrl === `${inf.httpsUrl}/controller.html`, "/info: the QR opens the HTTPS controller");
+  report.push(`speculative: 9th in 10 s → "slow down"; join: a second device → dev2; /info ${inf.controllerUrl}`);
+
+  // Robustness: malformed request targets never take the server down.
+  const raw = [];
+  for (const line of ["GET // HTTP/1.1", "GET //evil.example/x HTTP/1.1", "GET /%E0%A4%A HTTP/1.1", "GET http://x/ HTTP/1.1", "BREW / HTTP/1.1", "GET /a b c HTTP/1.1"]) raw.push(`${line.split(" ")[1]} → ${await rawRequest(line)}`);
+  const alive = await request("GET", "/contract.js");
+  assert.strictEqual(alive.status, 200, `still serving after: ${raw.join(", ")}`);
+  assert.strictEqual(await rawRequest("GET // HTTP/1.1"), "404");
+  // A fake PNG (the signature, then junk) is not kept as a drawing.
+  await request("POST", "/join", { player: "fake" });
+  const fakePng = "data:image/png;base64," + Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(40, 7)]).toString("base64");
+  const fake = JSON.parse((await request("POST", "/generate", { player: "fake", kind: "ship", image: fakePng })).body);
+  assert(fake.ok && !fake.entity.image, "a fake PNG unlocks skills but is never served as a drawing");
+  assert.strictEqual((await request("GET", "/drawings/fake-ship.png")).status, 404);
+  assert.strictEqual((await request("POST", "/perf", { ...sample, ua: "x".repeat(20000) })).status, 413, "/perf body cap");
+  report.push(`robustness: ${raw.join(", ")}; still serving; fake PNG not kept; /perf 16 KB cap`);
+
   // Entity messages: a late joiner's ship is broadcast; HTTPS serves the same handler.
   const [entMsgs] = await Promise.all([
     readEvents(600),
@@ -223,7 +310,7 @@ function finish(code) {
   server.kill();
   fs.rmSync(PERF_LOG, { force: true });
   for (const f of fs.existsSync(path.join(ROOT, "controllers")) ? fs.readdirSync(path.join(ROOT, "controllers")) : []) {
-    if (f.startsWith("livetest-")) fs.rmSync(path.join(ROOT, "controllers", f), { force: true });
+    if (/^(livetest|pad|fake|spammer|dev2?|late)-/.test(f)) fs.rmSync(path.join(ROOT, "controllers", f), { force: true });
   }
   process.exit(code);
 }

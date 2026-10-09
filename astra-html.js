@@ -1,28 +1,42 @@
 // Astra HTML: the drawn controller, written by Sol as one self-contained HTML document (PLAN.md section 0, "The
 // controller is written by Sol as HTML"). One gpt-6.1-sol call (Responses API, service tier ultrafast, reasoning
-// effort low) gets the photo of the drawing plus the layout Astra already read from it and returns a clean sci-fi
-// controller in the HUD style, laid out where the player drew each control. Everything after the call is plain
-// code: the answer is checked here (size, no network, no storage, no escape from the frame, only allowed actions,
-// every drawn control present) and on any failure the deterministic template below is used instead: same look,
-// always works. The phone runs the result with ctrl-sandbox.js, whose kit does all the input handling.
+// effort low) gets the photo of the drawing plus the layout Astra already read from it and returns a FORTNITE-style
+// controller (owner, 9 October 23:55): chunky slanted tiles in rarity colours (gold weapons, purple powers, blue
+// the rest), thick white borders, hard dark drop shadows, heavy condensed ITALIC capitals in white with a dark
+// outline, big touch targets and playful pop-ins; NOT thin sci-fi lines (no 1-2 px neon outlines, no wireframe or
+// HUD look). Every control sits where the player drew it. Everything after the call is plain code: the answer is
+// checked here (size, no network, no storage, no escape from the frame, only allowed actions, every drawn control
+// present, and a static style gate that sends a clearly non-Fortnite answer back to the template) and on any
+// failure the deterministic template below is used instead: same Fortnite look, always works. The phone runs the
+// result with ctrl-sandbox.js, whose kit does all the input handling.
 //
 //   generateControllerHtml({ image, layout, allowedActions, style, signal, timeoutMs, player })
 //     → Promise<{ ok: true, html, controls: [{ action, kind: "button"|"stick"|"toggle", label }],
-//                 source: "model"|"template", ms, bytes, error?, warnings? }
+//                 source: "model"|"template", ms, bytes, style: { score, of, missing, italic }, error?, warnings? }
 //       | { ok: false, error }                       // only when the layout has no usable control at all
 //     image: PNG/JPEG data URL of the drawing (optional; without it Sol works from the layout alone).
 //     layout: contract layout v2 { buttons: [{ type, action, label, x, y, w, h }] } (fractions of the drawing,
 //       which maps onto the whole play area). allowedActions: the actions the HTML may use (default: the
-//       layout's own). style: { accent: "#2f8bff" } (stick knob colour). error says why the model's HTML was not used.
+//       layout's own). style: { accent: "#2f8bff" } (stick knob colour). error says why the model's HTML was not
+//       used ("rejected: style (…)" when it was valid but not Fortnite-like). The result's own `style` is the
+//       Fortnite score of the HTML that is returned (the template always scores full marks); `warnings` carries
+//       the mild misses ("style: no condensed font").
 //   templateHtml(layout, { allowedActions, style }) → html          (sync, deterministic, < 1 ms)
-//   validateHtml(html, { allowedActions, layout }) → { ok, errors, warnings, controls, bytes }
+//   validateHtml(html, { allowedActions, layout }) → { ok, errors, warnings, controls, bytes,
+//                                                      style: { score, of, missing, italic } }
+//     style is the static Fortnite gate (7 checks: slant, 3 px borders, heavy weight, dark text outline, two
+//     rarity colours, condensed font, no thin-line look). It never changes `ok`; generateControllerHtml refuses
+//     an answer that misses 3 or more checks, or the thin-line check plus any other.
 //
 // Markup contract (kit v1, dev/v12-modules/SPEC.md): buttons carry data-action (+ data-toggle), sticks
 // data-stick="steer"|"move" with a data-knob child, labels data-label; the kit sets .is-down/.is-on/.is-disabled.
 //
-// Env: OPENAI_API_KEY (else a .env next to this file, the same loader as astra.js), OPENAI_MODEL,
+// Env: OPENAI_API_KEY (else a .env next to this file, the same loader as astra.js; a key that is present but blank
+// means NO key and .env is not consulted), OPENAI_MODEL (pinned to gpt-6.1-sol: only a value starting with
+// "gpt-6.1-sol", e.g. a dated snapshot, is used; anything else is ignored with one warning),
 // OPENAI_SERVICE_TIER ("" or "none" omits it), ASTRA_HTML_EFFORT (default low), ASTRA_HTML_TIMEOUT_MS,
-// ASTRA_HTML_CALL_LOG (append one JSON line per model call), ASTRA_MOCK=1 (no network: the template, at once).
+// ASTRA_HTML_CALL_LOG (append one JSON line per HTTP request to the model), ASTRA_MOCK=1 (no network: the
+// template, at once).
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
@@ -38,21 +52,25 @@ const MAX_HTML_BYTES = 60 * 1024;
 const MAX_OUTPUT_TOKENS = 12000;
 const MAX_IMAGE_CHARS = 4 * 1024 * 1024;
 const MAX_CONTROLS = 16;
-const MIN_TOUCH_PX = 56;
+const MIN_TOUCH_PX = 56;    // the kit's hit minimum (ctrl-sandbox.js MIN_HIT_PX): what a finger must be able to hit
+const MIN_VISUAL_PX = 64;   // how big the template draws a button: fat and easy to see (the hit area is a bonus)
 const MIN_STICK_PX = 110;
-const ACCENT = "#2f8bff";   // stick knobs and the default line of the HUD blue
+const ACCENT = "#2f8bff";   // stick knob colour: Fortnite rare blue
 const STICKS = Verbs.STICKS;
 const ACTIONS = [...Object.keys(Verbs.VERBS), ...Verbs.MOVES, ...Verbs.STICKS, ...Contract.META_ACTIONS];
 
 let fetchImpl = (...args) => globalThis.fetch(...args);
 let timeoutMs = Number(process.env.ASTRA_HTML_TIMEOUT_MS) || TIMEOUT_MS;
-let defaultTierOnly = false;
+let defaultTierOnly = false;   // set only once a request WITHOUT the tier worked after the tier was named in a 4xx
+let warnedModel = false;
 let envKey;
 const cache = new Map();     // key → result (newest 64)
 const inflight = new Map();  // key → { promise, controller, owners }
 
+// The key from the environment, else .env. A key that is present but blank (a harness blanks it on purpose) means
+// NO key: .env is not consulted then.
 function apiKey() {
-  if (process.env.OPENAI_API_KEY) return process.env.OPENAI_API_KEY;
+  if (process.env.OPENAI_API_KEY !== undefined) return String(process.env.OPENAI_API_KEY).trim() || null;
   if (envKey === undefined) {
     envKey = null;
     try {
@@ -62,6 +80,19 @@ function apiKey() {
     } catch {}
   }
   return envKey;
+}
+
+// The model is pinned (owner): gpt-6.1-sol, or a snapshot of it ("gpt-6.1-sol-…"). OPENAI_MODEL may only pick such a
+// name; any other value is ignored with one warning and the default is used.
+function modelName() {
+  const want = String(process.env.OPENAI_MODEL || "").trim();
+  if (!want) return DEFAULT_MODEL;
+  if (/^gpt-6\.1-sol(-[\w.-]+)?$/.test(want)) return want;   // same rule as astra.js
+  if (!warnedModel) {
+    warnedModel = true;
+    console.warn(`astra-html: OPENAI_MODEL "${want.slice(0, 40)}" ignored: the controller model is pinned to ${DEFAULT_MODEL} (or a ${DEFAULT_MODEL}-… snapshot)`);
+  }
+  return DEFAULT_MODEL;
 }
 
 const sha1 = (text) => crypto.createHash("sha1").update(text).digest("hex");
@@ -143,13 +174,19 @@ const hexRgb = (hex) => {
 };
 const toHex = (rgb) => `#${rgb.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("")}`;
 
-// The look (PLAN.md section 0, "Style like Fortnite"): chunky slanted panels in rarity colours (gold for weapons,
-// purple for powers, blue for moving and the gates), heavy condensed capitals in white with a dark outline, a press
-// that sinks and bounces back, and a pop-in when the controller appears. The frame's CSP allows no web fonts, so
-// the stack starts with the condensed heavy faces every iPhone and Mac has.
+// The look (PLAN.md section 0, "Style like Fortnite"): chunky slanted tiles in rarity colours (gold for weapons,
+// purple for powers, blue for moving and the rest) with thick white borders and a hard dark drop shadow, heavy
+// condensed ITALIC capitals in white with a dark outline, a press that sinks and bounces back, and a pop-in when the
+// controller appears. Nothing thin: no 1-2 px lines, no glow outlines. The frame's CSP allows no web fonts, so the
+// stack starts with the condensed heavy faces every iPhone and Mac has.
 const FONT = '"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Bebas Neue","Barlow Condensed","Arial Narrow",Impact,system-ui,sans-serif';
 const TIERS = { gold: ["#ffe36e", "#ffb21f", "#d26a06"], purple: ["#d49bff", "#9d4dff", "#5a1bc4"], blue: ["#86dcff", "#2f8bff", "#1647c8"] };
-const TIER_OF = { shoot: "gold", blast: "gold", drill: "gold", shield: "purple", invisible: "purple", teleport: "purple", shapeshift: "purple", heal: "purple", grapple: "purple", scan: "purple", flare: "purple" };
+const TIER_OF = {
+  shoot: "gold", blast: "gold", drill: "gold", mine: "gold",
+  shield: "purple", invisible: "purple", teleport: "purple", shapeshift: "purple", heal: "purple", grapple: "purple", scan: "purple", flare: "purple",
+  emp: "purple", inkbomb: "purple", tractor: "purple", decoy: "purple",
+};
+const tierOf = (action) => TIER_OF[action] || "blue";
 const OUTLINE = "#0b1033";
 
 function templateCss(accent) {
@@ -172,7 +209,11 @@ function templateCss(accent) {
     `.ico{width:min(34px,46%);max-height:46%;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;overflow:visible;filter:drop-shadow(0 2px 0 ${o})}`,
     ".ico .f{fill:#fff}.ico .d{stroke-dasharray:2 2.4;opacity:.8}",
     ".only .ico{width:min(46px,62%);max-height:66%}",
-    ".lab{font-size:var(--fs,16px);font-weight:900;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;line-height:.95;color:#fff;" +
+    // Slant, once: the tile is skewed -9deg and its contents are skewed back +9deg, so icons keep their shape and the
+    // capitals lean only by their italic (a synthesised italic leans about 14deg, near the tile's 9). Without the
+    // skew-back the capitals would be sheared AND italic: 23deg of lean, mushy strokes.
+    ".btn>.lab,.btn>.ico,.btn>.led{transform:skewX(9deg)}",
+    ".lab{font-size:var(--fs,16px);font-style:italic;font-weight:900;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;line-height:.95;color:#fff;" +
       `text-shadow:0 2px 0 ${o},1.5px 0 0 ${o},-1.5px 0 0 ${o},0 -1.5px 0 ${o},0 4px 7px rgba(0,0,0,.45)}`,
     ".tog{flex-direction:row;gap:9px;border-radius:999px}",
     ".led{width:13px;height:13px;border-radius:50%;border:3px solid #fff;box-sizing:border-box;flex:none;background:rgba(11,16,51,.6)}",
@@ -191,7 +232,8 @@ function templateCss(accent) {
   ].join("\n");
 }
 
-// Each control centred where it was drawn, never smaller than the touch minimum, always fully on screen.
+// Each control centred where it was drawn, never visually smaller than MIN_VISUAL_PX (the kit's hit area is at least
+// MIN_TOUCH_PX around it), always fully on screen.
 function placeCss(id, c, n, i) {
   const cx = fix((c.x + c.w / 2) * 100), cy = fix((c.y + c.h / 2) * 100), W = fix(c.w * 100), H = fix(c.h * 100);
   const delay = `--d:${(i * 0.055).toFixed(3)}s;`;
@@ -199,11 +241,11 @@ function placeCss(id, c, n, i) {
     const size = `max(${MIN_STICK_PX}px,min(${W}vw,${H}vh))`, half = `max(${MIN_STICK_PX / 2}px,min(${fix(W / 2)}vw,${fix(H / 2)}vh))`;
     return `#${id}{${delay}width:${size};height:${size};left:clamp(${half},${cx}vw,calc(100vw - ${half}));top:clamp(${half},${cy}vh,calc(100vh - ${half}))}`;
   }
-  const tier = TIERS[TIER_OF[c.action] || "blue"];
-  const hw = `max(${MIN_TOUCH_PX / 2}px,${fix(W / 2)}vw)`, hh = `max(${MIN_TOUCH_PX / 2}px,${fix(H / 2)}vh)`;
+  const tier = TIERS[tierOf(c.action)];
+  const hw = `max(${MIN_VISUAL_PX / 2}px,${fix(W / 2)}vw)`, hh = `max(${MIN_VISUAL_PX / 2}px,${fix(H / 2)}vh)`;
   // Label size: fits the width (≈ 0.56 em per heavy condensed capital), between 12 and 24 px.
   const fs = n ? `--fs:clamp(12px,${fix((W * 0.8) / Math.max(2.4, n * 0.56))}vw,24px);` : "";
-  return `#${id}{${delay}--t1:${tier[0]};--t2:${tier[1]};--t3:${tier[2]};${fs}width:max(${MIN_TOUCH_PX}px,${W}vw);height:max(${MIN_TOUCH_PX}px,${H}vh);` +
+  return `#${id}{${delay}--t1:${tier[0]};--t2:${tier[1]};--t3:${tier[2]};${fs}width:max(${MIN_VISUAL_PX}px,${W}vw);height:max(${MIN_VISUAL_PX}px,${H}vh);` +
     `left:clamp(${hw},${cx}vw,calc(100vw - ${hw}));top:clamp(${hh},${cy}vh,calc(100vh - ${hh}))}`;
 }
 
@@ -280,9 +322,169 @@ function attrsOf(tagBody) {
   return out;
 }
 
+// ---- Style gate: Fortnite or not, read from the CSS alone ----------------------------------------------------------
+// Seven static checks on everything styled in the answer (style blocks, style attributes, svg attributes). A document
+// that misses 3 or more, or the thin-line check together with any other, is not the bold chunky look the owner asked
+// for (PLAN.md section 0): generateControllerHtml refuses it and the template shows instead. Fewer misses are only
+// warnings. The template scores full marks.
+
+const STYLE_MISS = {
+  slant: "no slant", chunky: "no 3px border", heavy: "no heavy weight", outline: "no dark text outline",
+  rarity: "under 2 rarity colours", font: "no condensed font", thin: "thin lines",
+};
+const STYLE_OF = Object.keys(STYLE_MISS).length;
+const NAMED_COLOURS = { black: [0, 0, 0], white: [255, 255, 255], navy: [0, 0, 128], darkblue: [0, 0, 139], midnightblue: [25, 25, 112], indigo: [75, 0, 130], darkslateblue: [72, 61, 139], darkslategray: [47, 79, 79], darkslategrey: [47, 79, 79] };
+const COLOUR_RE = /#[0-9a-f]{3,8}\b|rgba?\([^)]{0,60}\)|hsla?\([^)]{0,60}\)/gi;   // bounded: no slow scans on hostile text
+const BORDER_PROP = /^(border|outline)(-(top|right|bottom|left|block|inline)(-(start|end))?)?$/;
+const BORDER_WIDTH_PROP = /^(border|outline)(-(top|right|bottom|left|block|inline)(-(start|end))?)?-width$/;
+
+// "#rgb", "#rrggbb" (alpha digits ignored), rgb()/rgba(), hsl()/hsla() and a few dark names → [r, g, b] or null.
+function parseColour(text) {
+  const s = String(text).trim().toLowerCase();
+  let m = /^#([0-9a-f]+)$/.exec(s);
+  if (m) {
+    const h = m[1];
+    if (h.length === 3 || h.length === 4) return [...h.slice(0, 3)].map((c) => parseInt(c + c, 16));
+    if (h.length === 6 || h.length === 8) return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+    return null;
+  }
+  m = /^(rgba?|hsla?)\(\s*([^)]*)\)$/.exec(s);
+  if (m) {
+    const p = m[2].split(/[\s,/]+/).filter(Boolean).slice(0, 3);
+    if (p.length < 3) return null;
+    if (m[1][0] === "r") {
+      const rgb = p.map((v) => (v.endsWith("%") ? parseFloat(v) * 2.55 : parseFloat(v)));
+      return rgb.every(Number.isFinite) ? rgb.map((v) => Math.max(0, Math.min(255, v))) : null;
+    }
+    const h = (((parseFloat(p[0]) % 360) + 360) % 360) / 360, sat = Math.min(1, Math.max(0, parseFloat(p[1]) / 100)), l = Math.min(1, Math.max(0, parseFloat(p[2]) / 100));
+    if (![h, sat, l].every(Number.isFinite)) return null;
+    const q = l < 0.5 ? l * (1 + sat) : l + sat - l * sat, pp = 2 * l - q;
+    const f = (t) => { t = (t + 1) % 1; return (t < 1 / 6 ? pp + (q - pp) * 6 * t : t < 0.5 ? q : t < 2 / 3 ? pp + (q - pp) * (2 / 3 - t) * 6 : pp) * 255; };
+    return [f(h + 1 / 3), f(h), f(h - 1 / 3)];
+  }
+  return Object.prototype.hasOwnProperty.call(NAMED_COLOURS, s) ? NAMED_COLOURS[s] : null;
+}
+
+const linear = (v) => ((v /= 255) <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+const luminance = ([r, g, b]) => 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+
+// The rarity colour family of a colour (near shades count), or null for greys, near-black, near-white and pastels.
+function rarityFamily([r, g, b]) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2, d = max - min;
+  if (!d || l < 0.18 || l > 0.9) return null;
+  const sat = d / (1 - Math.abs(2 * l - 1));
+  if (sat < 0.5) return null;
+  const hue = (((max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4) * 60) + 360) % 360;
+  if (hue >= 25 && hue <= 58) return "gold";     // #ffe36e #ffb21f #d26a06
+  if (hue >= 250 && hue <= 295) return "purple"; // #d49bff #9d4dff #5a1bc4
+  if (hue >= 200 && hue <= 245) return "blue";   // #2f8bff #1647c8 (the light tint #86dcff and sci-fi cyan #5ee7ff are not)
+  return null;
+}
+
+// Splits at the top level only: outside parentheses. sep "," or whitespace.
+function splitTop(text, sep) {
+  const out = [];
+  let depth = 0, cur = "";
+  for (const ch of String(text)) {
+    if (ch === "(") depth++;
+    else if (ch === ")") depth = Math.max(0, depth - 1);
+    if (!depth && (sep === "," ? ch === "," : /\s/.test(ch))) { if (cur.trim()) out.push(cur.trim()); cur = ""; continue; }
+    cur += ch;
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out;
+}
+
+const WIDTH_WORDS = { thin: 1, medium: 3, thick: 5 };
+// A CSS length token in px (a 800 x 390 frame: 1vw = 8px, 1vh = 3.9px), or null when it is not a plain length.
+function lengthPx(token) {
+  const t = String(token).trim().toLowerCase();
+  if (t.length > 24) return null;
+  if (Object.prototype.hasOwnProperty.call(WIDTH_WORDS, t)) return WIDTH_WORDS[t];
+  const m = /^([+-]?(?:\d+\.?\d*|\.\d+))(px|pt|em|rem|vw|vh|vmin|vmax)?$/.exec(t);
+  if (!m) return null;
+  const n = parseFloat(m[1]);
+  return { em: n * 16, rem: n * 16, pt: n * 1.33, vw: n * 8, vmax: n * 8, vh: n * 3.9, vmin: n * 3.9 }[m[2]] ?? n;
+}
+
+// [property, value] pairs of every declaration (custom properties resolved), rules and @media flattened.
+function cssDecls(css) {
+  const decls = [], vars = {};
+  // Linear scan: every chunk between ; { } is "name: value" or a selector (no valid name before its first colon).
+  for (const chunk of String(css).replace(/\/\*[\s\S]*?\*\//g, " ").split(/[;{}]/).slice(0, 6000)) {
+    const i = chunk.indexOf(":");
+    if (i < 0) continue;
+    const name = chunk.slice(0, i).trim().toLowerCase(), value = chunk.slice(i + 1).trim();
+    if (!/^-{0,2}[a-z_][\w-]*$/.test(name)) continue;
+    if (name.startsWith("--")) vars[name] = value; else decls.push([name, value]);
+  }
+  const sub = (v) => v.replace(/var\(\s*(--[\w-]+)\s*(?:,([^()]*))?\)/gi, (all, n, fallback) => String(vars[n.toLowerCase()] ?? fallback ?? "").trim().slice(0, 200));
+  return decls.map(([name, value]) => [name, sub(sub(value)).slice(0, 2000)]);
+}
+
+// Widths in px of every visible border and outline, and of box-shadow rings (0 0 0 3px #fff).
+function borderWidths(decls) {
+  const out = [];
+  for (const [prop, value] of decls) {
+    if (BORDER_PROP.test(prop) && !/\btransparent\b/i.test(value)) {
+      const first = splitTop(value, " ").map(lengthPx).find((n) => n !== null);
+      if (first !== undefined) out.push(first);
+    } else if (BORDER_WIDTH_PROP.test(prop)) {
+      for (const n of splitTop(value, " ").map(lengthPx)) if (n !== null) out.push(n);
+    } else if (prop === "box-shadow") {
+      for (const layer of splitTop(value, ",")) {
+        if (/\binset\b/i.test(layer)) continue;
+        const lens = splitTop(layer, " ").map(lengthPx).filter((n) => n !== null);
+        if (lens.length >= 4 && lens[0] === 0 && lens[1] === 0 && lens[2] === 0 && lens[3] > 0) out.push(lens[3]);
+      }
+    }
+  }
+  return out.filter((w) => w > 0);
+}
+
+const firstColour = (text) => { for (const tok of splitTop(text, " ")) { const c = parseColour(tok); if (c) return c; } return null; };
+const isDark = (text) => { const c = firstColour(text); return !!c && luminance(c) < 0.12; };
+
+function styleGate(css = "", doc = css) {
+  css = String(css); doc = String(doc);
+  const decls = cssDecls(css);
+  // Svg presentation attributes count like declarations (<text font-weight="900" font-style="italic" ...>).
+  for (const m of doc.matchAll(/\s(font-weight|font-style|font-family|font-stretch|transform)\s*=\s*(?:"([^"]*)"|'([^']*)')/gi)) decls.push([m[1].toLowerCase(), (m[2] ?? m[3]).slice(0, 2000)]);
+  const miss = [];
+  // 1. A slant: a skew of 3 degrees or more, or an italic (custom properties resolved).
+  const skew = decls.some(([p, v]) => /^(-webkit-)?transform$/.test(p) && [...v.matchAll(/skew[xy]?\(\s*([-+]?(?:\d+\.?\d*|\.\d+))\s*(deg|rad|turn|grad)?/gi)]
+    .some((m) => Math.abs(parseFloat(m[1])) * { deg: 1, rad: 57.3, turn: 360, grad: 0.9 }[(m[2] || "deg").toLowerCase()] >= 3));
+  const italic = decls.some(([p, v]) => (p === "font-style" && /^(italic|oblique)\b/i.test(v)) || (p === "font" && /(^|\s)(italic|oblique)(\s|$)/i.test(v)));
+  if (!skew && !italic) miss.push(STYLE_MISS.slant);
+  // 2 and 7. Borders: some 3 px or more (chunky); only thin ones, or thin strokes and no fills, is the sci-fi line look.
+  const borders = borderWidths(decls);
+  const strokes = [...doc.matchAll(/stroke-width\s*[:=]\s*["']?\s*(\d*\.?\d+)/gi)].map((m) => parseFloat(m[1])).filter((w) => w > 0);
+  const chunky = borders.some((w) => w >= 3);
+  const thin = borders.length ? !chunky : strokes.length > 0 && strokes.every((w) => w < 3) && !/(linear|radial|conic)-gradient\(/i.test(css);
+  if (!chunky) miss.push(STYLE_MISS.chunky);
+  // 3. Heavy weight (bold or 700+).
+  if (!decls.some(([p, v]) => (p === "font-weight" && /^(bold|bolder|[7-9]00|1000)\b/i.test(v)) || (p === "font" && /(^|\s)(bold|bolder|[7-9]00)(\s|$)/i.test(v)))) miss.push(STYLE_MISS.heavy);
+  // 4. A dark text outline: a text-shadow layer or a text-stroke in a dark colour (a neon glow is not one).
+  const outline = decls.some(([p, v]) => (p === "text-shadow" && splitTop(v, ",").some(isDark)) || (/^(-webkit-)?text-stroke(-color)?$/.test(p) && isDark(v)));
+  if (!outline) miss.push(STYLE_MISS.outline);
+  // 5. At least two rarity colour families (gold, purple, blue) among the colours used anywhere.
+  const families = new Set();
+  for (const m of doc.matchAll(COLOUR_RE)) { const c = parseColour(m[0]); const f = c && rarityFamily(c); if (f) families.add(f); }
+  if (families.size < 2) miss.push(STYLE_MISS.rarity);
+  // 6. A condensed heavy font stack.
+  const fonts = decls.filter(([p]) => p === "font-family" || p === "font" || p === "font-stretch").map(([, v]) => v).join(" ");
+  if (!/condensed|impact|bebas|oswald|anton|league gothic|arial narrow|haettenschweiler|compacta|knockout/i.test(fonts)) miss.push(STYLE_MISS.font);
+  if (thin) miss.push(STYLE_MISS.thin);
+  return { score: STYLE_OF - miss.length, of: STYLE_OF, missing: miss, italic };
+}
+
+// The answer is refused when it misses 3 or more checks, or the thin-line check plus any other.
+const styleRejects = (style) => style.missing.length >= 3 || (style.missing.includes(STYLE_MISS.thin) && style.missing.length >= 2);
+
 function validateHtml(html, { allowedActions, layout } = {}) {
   const errors = [], warnings = [];
-  if (typeof html !== "string" || !html.trim()) return { ok: false, errors: ["empty"], warnings, controls: [], bytes: 0 };
+  if (typeof html !== "string" || !html.trim()) return { ok: false, errors: ["empty"], warnings, controls: [], bytes: 0, style: { score: 0, of: STYLE_OF, missing: Object.values(STYLE_MISS), italic: false } };
   const bytes = Buffer.byteLength(html, "utf8");
   if (bytes > MAX_HTML_BYTES) errors.push(`too large: ${bytes} bytes`);
   const doc = html.replace(/<!--[\s\S]*?-->/g, "");
@@ -343,12 +545,12 @@ function validateHtml(html, { allowedActions, layout } = {}) {
   for (const c of drawn) if (!controls.some((k) => k.action === c.action)) errors.push(`missing control: ${c.action}`);
   if (controls.some((c) => c.kind === "stick") && !/\bdata-knob\b/i.test(markup)) warnings.push("stick without data-knob");
   if (!/<style\b/i.test(doc) && !/\sstyle\s*=/i.test(markup)) errors.push("no styles");
-  return { ok: errors.length === 0, errors: [...new Set(errors)], warnings, controls, bytes };
+  return { ok: errors.length === 0, errors: [...new Set(errors)], warnings, controls, bytes, style: styleGate(css, doc) };
 }
 
 // ---- Prompt ----------------------------------------------------------------------------------------------------------
 
-const INSTRUCTIONS = `You write the touch controller for one player of SPACE PARTY, a multiplayer sci-fi party game played on phones held in LANDSCAPE. The player drew their controller on paper or on the phone; you get the picture of the drawing and the controls the game already read from it (action, label and where each one was drawn). Turn it into ONE self-contained HTML document: a bold, beautiful game controller that matches the game's UI and keeps the player's layout.
+const INSTRUCTIONS = `You write the touch controller for one player of SPACE PARTY, a multiplayer sci-fi party game played on phones held in LANDSCAPE. The player drew their controller on paper or on the phone; you get the picture of the drawing and the controls the game already read from it (action, label, rarity colour and where each one was drawn). Turn it into ONE self-contained HTML document: a bold, chunky, FORTNITE-STYLE game controller that keeps the player's layout.
 
 THE PAGE
 - It is shown in a full-screen TRANSPARENT frame ON TOP of the live 3D game. html and body backgrounds stay transparent and nothing covers the screen with a solid or dark fill: only the controls are visible.
@@ -364,29 +566,32 @@ INPUT IS HANDLED FOR YOU
 - The kit sets classes; style every one: .is-down (held), .is-on (toggle on), .is-disabled (dimmed; a default exists). Dragged sticks get --x and --y (-1..1).
 - Use EXACTLY the action ids listed below, one control per entry, nothing added, dropped or renamed.
 
-LOOK: MATCH THE GAME'S UI (bold, chunky and playful, like Fortnite)
-- Buttons are chunky slanted tiles: skewX about -9deg (or slanted sides), a thick 3 px white border, rounded corners, a vertical gradient fill in a rarity colour, a light inner highlight on top and a hard dark drop shadow underneath (box-shadow 0 5px 0 #0b1033) so each one reads as a solid tile. Keep them slightly see-through (opacity about 0.9) so the game stays visible around them.
-- Rarity colours: gold (#ffe36e to #ffb21f to #d26a06) for weapons (shoot, blast, drill); purple (#d49bff to #9d4dff to #5a1bc4) for powers (shield, invisible, teleport, heal, scan, flare, grapple, shapeshift); blue (#86dcff to #2f8bff to #1647c8) for moving and everything else. A toggle turns gold when on.
-- Labels: heavy condensed capitals, white with a dark #0b1033 outline (text-shadow on all four sides plus a soft drop), 14-24 px, letter-spacing about 0.04em, weight 900. The frame cannot load web fonts, so use exactly this font stack: "Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif.
-- Use the player's own word from the label (or the action name when the label is empty). Add a bold white stroke SVG icon that fits the action when it helps: crosshair (shoot), double chevron (boost), shield (shield), drill bit (drill), legs touching a line (land), shovel (dig), radar arcs (scan), sun (flare), arrows for movement; give icons the same dark drop shadow.
-- Sticks: a round base (4 px white rim, dark translucent fill, four chunky white chevrons near the rim) with a big glossy knob about 40% of the base (3 px white rim, blue gradient, dark drop shadow). Its diameter is the smaller side of its rectangle and at least 110 px.
-- Motion: every control pops in once when the page appears (scale from about 0.35 with a small overshoot, staggered by about 50 ms). Animate only opacity and the CSS scale property, never transform or translate, so the centring and the kit's own moves are untouched. .is-down sinks a button (translateY 4px, scale 0.95, a shorter shadow, brighter) and it bounces back on release with an overshoot easing. No animation that runs forever.
+LOOK: FORTNITE (chunky, bold, slanted, playful). NOT a thin sci-fi HUD.
+Picture Fortnite's mobile buttons: fat, solid, saturated, cartoony, easy to hit with a thumb. Every control is a big SOLID filled shape.
+- Tiles: slanted with transform: skewX(-9deg) (a button drawn round stays a round disc). A thick 3-4 px WHITE border, rounded corners, a vertical rarity-colour gradient fill, a light inner highlight on top (inset 0 3px 0 #ffffff80) and a HARD dark drop shadow under it (box-shadow: 0 5px 0 #0b1033, no blur), so every button reads as a chunky solid tile. Slightly see-through (opacity about 0.92) so the game shows around them.
+- Rarity colours: gold (#ffe36e to #ffb21f to #d26a06) for weapons (shoot, blast, drill, mine); purple (#d49bff to #9d4dff to #5a1bc4) for powers (shield, invisible, teleport, heal, scan, flare, grapple, shapeshift, emp, inkbomb, tractor, decoy); blue (#86dcff to #2f8bff to #1647c8) for moving and everything else. The control list below names each rarity. A toggle turns gold when on.
+- Labels: heavy condensed ITALIC capitals: font-style: italic; font-weight: 900; text-transform: uppercase; letter-spacing about 0.04em; 16-26 px; white with a dark #0b1033 outline (text-shadow on all four sides plus a soft drop). The frame cannot load web fonts, so use exactly this font stack: "Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif. The tile is skewed, so put its icon and label in one inner element with transform: skewX(9deg): the letters stay clean and their italic is their only slant.
+- Use the player's own word from the label (or the action name when the label is empty). Add a chunky white SVG icon that fits the action (stroke-width 3 or more, same dark drop shadow: filter: drop-shadow(0 2px 0 #0b1033)): crosshair (shoot), double chevron (boost), shield (shield), drill bit (drill), legs touching a line (land), shovel (dig), radar arcs (scan), sun (flare), arrows for movement.
+- Sticks: a round base (4 px white rim, dark translucent fill, four chunky white chevrons near the rim) with a big glossy knob of about 40% of the base (3 px white rim, blue gradient, hard dark drop shadow). The base diameter is the smaller side of its rectangle and at least 110 px.
+- NOT thin sci-fi lines: no border or stroke under 3 px on a control, no 1-2 px neon outlines, no wireframe or HUD-frame look, no glow-only outlines, no hairlines, no thin cyan line art, no empty see-through frames. Solid, fat, bright.
+- Motion: every control pops in once when the page appears (keyframes on opacity and the CSS scale property only: from about 0.35 over 1.07 to 1 in about 0.45 s, staggered by about 50 ms; never animate transform or translate, the skew and the kit's own moves use them). .is-down sinks a button (translate: 0 4px; scale: .95; shorter shadow; brighter) and it bounces back on release (overshoot easing). Nothing animates forever.
 - Nothing overlaps: labels, icons, chevrons and the knob each keep clear space. A stick label is optional; if you add one put it on the knob.
-- Echo the drawing: a button drawn round is round, a square one is square, a star is a star, arrows look like arrows, a joystick is a round base with a knob. Keep it bold, clean and readable at phone size.
-- Touch: every button at least 56 x 56 CSS px (use max(56px, ...)); keep every control fully on screen (use clamp() on its centre).
-- Layout: centre each control on the centre of the rectangle where the player drew it. Rectangles are fractions of the drawing (x, y = top left; w, h = size) and the drawing maps onto the whole frame, so centre = left (x + w/2) * 100vw, top (y + h/2) * 100vh. Keep the player's relative sizes; grow small controls to the minimum.
+- Echo the drawing: a button drawn round is a round disc, a square one a square tile, a star a star, arrows look like arrows, a joystick is a round base with a knob.
+- Touch: every button at least 64 x 64 CSS px (use max(64px, ...)); keep every control fully on screen (use clamp() on its centre).
+- Layout: centre each control on the centre of the rectangle where the player drew it, with left/top plus negative half-size margins (transform stays free for the skew). Rectangles are fractions of the drawing (x, y = top left; w, h = size) and the drawing maps onto the whole frame, so centre = left (x + w/2) * 100vw, top (y + h/2) * 100vh. Keep the player's relative sizes; grow small controls to the minimum.
 - iPhone performance over a 3D game: no backdrop-filter, no blur filters on large areas. Keep the whole document under 10 KB.
 - A <script> is optional and only for cosmetics; it must never handle input or call the game.
 
 OUTPUT: only the HTML document, starting with <!doctype html>. No markdown fences, no explanations.`;
 
 function layoutText(controls, style) {
-  const lines = controls.map((c, i) => `${i + 1}. type ${c.type}, action "${c.action}", label "${c.label}", x ${c.x}, y ${c.y}, w ${c.w}, h ${c.h}` +
+  const lines = controls.map((c, i) => `${i + 1}. type ${c.type}, action "${c.action}", label "${c.label}"${c.type === "stick" ? "" : `, rarity ${tierOf(c.action)}`}, x ${c.x}, y ${c.y}, w ${c.w}, h ${c.h}` +
     ` (centre ${fix((c.x + c.w / 2) * 100)}vw ${fix((c.y + c.h / 2) * 100)}vh)`);
   return [
     "Controls read from the drawing (rectangles as fractions of the drawing):",
     ...lines,
     `Stick knob colour: ${(style && style.accent) || ACCENT}.`,
+    "Style: Fortnite (chunky slanted tiles, 3-4 px white borders, italic 900 capitals with a dark outline, rarity gradients, hard drop shadows), NOT thin sci-fi lines.",
     "Write the controller now.",
   ].join("\n");
 }
@@ -395,7 +600,7 @@ function buildRequest(controls, image, style, useTier = true) {
   const content = [{ type: "input_text", text: layoutText(controls, style) }];
   if (image) content.push({ type: "input_image", image_url: image, detail: "low" });
   const req = {
-    model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+    model: modelName(),
     instructions: INSTRUCTIONS,
     input: [{ role: "user", content }],
     reasoning: { effort: process.env.ASTRA_HTML_EFFORT || DEFAULT_EFFORT },
@@ -456,19 +661,31 @@ async function callModel(controls, image, style, signal) {
   if (!key) throw new Error("no OPENAI_API_KEY");
   let req = buildRequest(controls, image, style);
   const t0 = Date.now();
-  let res = await post(req, key, signal);
+  // One HTTP request = one log line, whatever happens to it (a recording run counts these lines against its call cap).
+  const send = async (r) => {
+    try { return await post(r, key, signal); } catch (err) {
+      logCall({ ms: Date.now() - t0, tier: r.service_tier || null, outcome: `no response: ${String((err && err.message) || err).slice(0, 80)}` });
+      throw err;
+    }
+  };
+  let res = await send(req);
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     logCall({ status: res.status, ms: Date.now() - t0, tier: req.service_tier || null, outcome: "http error" });
-    const tierProblem = res.status >= 400 && res.status < 500 && req.service_tier && /service_tier|image|format|reasoning/i.test(text);
+    // Only an error that NAMES the tier is a tier problem: a bad image, format or reasoning setting fails the same on
+    // any tier, so it must not switch the fast tier off. Retry once without the tier, and remember "default tier only"
+    // when (and only when) that retry works.
+    const tierProblem = res.status >= 400 && res.status < 500 && req.service_tier && /service[_ ]tier|ultrafast|\btiers?\b/i.test(text);
     if (!tierProblem) throw new Error(`OpenAI HTTP ${res.status}`);
-    defaultTierOnly = true;
-    console.log(`astra-html: service tier ${req.service_tier} rejected (HTTP ${res.status}); using the default tier from now on`);
+    const refused = { tier: req.service_tier, status: res.status };
     req = buildRequest(controls, image, style, false);
-    res = await post(req, key, signal);
+    res = await send(req);
     if (!res.ok) { logCall({ status: res.status, ms: Date.now() - t0, tier: null, outcome: "http error" }); throw new Error(`OpenAI HTTP ${res.status}`); }
+    defaultTierOnly = true;
+    console.log(`astra-html: service tier ${refused.tier} rejected (HTTP ${refused.status}) and the default tier works; using the default tier from now on`);
   }
-  const data = await res.json().catch(() => { throw new Error("bad response: not JSON"); });
+  const data = await res.json().catch(() => null);
+  if (!data) { logCall({ status: res.status, ms: Date.now() - t0, tier: req.service_tier || null, outcome: "bad response: not JSON" }); throw new Error("bad response: not JSON"); }
   const usage = data.usage ? { input: data.usage.input_tokens, output: data.usage.output_tokens, reasoning: data.usage.output_tokens_details && data.usage.output_tokens_details.reasoning_tokens } : null;
   try {
     const html = extractHtml(extractText(data));
@@ -484,7 +701,8 @@ async function callModel(controls, image, style, signal) {
 
 const templateResult = (controls, allowed, style, ms, error) => {
   const html = templateHtml({ buttons: controls }, { allowedActions: [...allowed], style });
-  return { ok: true, html, controls: validateHtml(html, { allowedActions: [...allowed] }).controls, source: "template", ms, bytes: Buffer.byteLength(html), ...(error ? { error } : {}) };
+  const check = validateHtml(html, { allowedActions: [...allowed] });
+  return { ok: true, html, controls: check.controls, source: "template", ms, bytes: Buffer.byteLength(html), style: check.style, ...(error ? { error } : {}) };
 };
 
 async function generateControllerHtml({ image, layout, allowedActions, style, signal, timeoutMs: perCallTimeout, player } = {}) {
@@ -493,7 +711,7 @@ async function generateControllerHtml({ image, layout, allowedActions, style, si
   if (!controls.length) return { ok: false, error: dropped.length ? `no allowed controls (${dropped.join(", ")})` : "layout has no controls" };
   const img = typeof image === "string" && /^data:image\/(png|jpe?g|webp);base64,/.test(image) && image.length <= MAX_IMAGE_CHARS ? image : null;
   const accent = hexRgb(style && style.accent) ? style.accent : ACCENT;
-  const log = (r) => console.log(`astra-html ${Contract.cleanName(player) || "-"} ${r.source} ${r.ms}ms ${r.bytes}B${r.error ? ` (${r.error})` : ""}`);
+  const log = (r) => console.log(`astra-html ${Contract.cleanName(player) || "-"} ${r.source} ${r.ms}ms ${r.bytes}B style ${r.style.score}/${r.style.of}${r.error ? ` (${r.error})` : ""}`);
   if (process.env.ASTRA_MOCK === "1") { const r = templateResult(controls, allowed, { accent }, Date.now() - t0, "mock"); log(r); return r; }
   if (signal && signal.aborted) return templateResult(controls, allowed, { accent }, 0, "aborted");
 
@@ -511,7 +729,11 @@ async function generateControllerHtml({ image, layout, allowedActions, style, si
         const { html } = await callModel(controls, img, { accent }, controller.signal);
         const check = validateHtml(html, { allowedActions: [...allowed], layout: { buttons: controls } });
         if (!check.ok) return templateResult(controls, allowed, { accent }, 0, `rejected: ${check.errors.slice(0, 4).join("; ")}`);
-        const result = { ok: true, html, controls: check.controls, source: "model", ms: 0, bytes: check.bytes, ...(check.warnings.length ? { warnings: check.warnings } : {}) };
+        // Valid but not Fortnite (a thin-line sci-fi HUD...): the template has the look the owner asked for. Mild misses
+        // only warn.
+        if (styleRejects(check.style)) return templateResult(controls, allowed, { accent }, 0, `rejected: style (${check.style.missing.join(", ")})`);
+        const warnings = [...check.warnings, ...check.style.missing.map((m) => `style: ${m}`), ...(check.style.italic ? [] : ["style: no italic labels"])];
+        const result = { ok: true, html, controls: check.controls, source: "model", ms: 0, bytes: check.bytes, style: check.style, ...(warnings.length ? { warnings } : {}) };
         cache.set(key, result);
         if (cache.size > 64) cache.delete(cache.keys().next().value);
         return result;
@@ -542,9 +764,10 @@ async function generateControllerHtml({ image, layout, allowedActions, style, si
 const _internals = {
   setFetch: (fn) => (fetchImpl = fn),
   setTimeoutMs: (ms) => (timeoutMs = ms),
-  reset: () => { cache.clear(); inflight.clear(); defaultTierOnly = false; timeoutMs = Number(process.env.ASTRA_HTML_TIMEOUT_MS) || TIMEOUT_MS; },
-  state: () => ({ cache: cache.size, inflight: inflight.size, defaultTierOnly }),
-  INSTRUCTIONS, ICONS, MAX_HTML_BYTES, MIN_TOUCH_PX, MIN_STICK_PX, cleanLayout, buildRequest, layoutText, extractText, extractHtml, attrsOf,
+  reset: () => { cache.clear(); inflight.clear(); defaultTierOnly = false; warnedModel = false; timeoutMs = Number(process.env.ASTRA_HTML_TIMEOUT_MS) || TIMEOUT_MS; },
+  state: () => ({ cache: cache.size, inflight: inflight.size, defaultTierOnly, warnedModel }),
+  INSTRUCTIONS, ICONS, MAX_HTML_BYTES, MIN_TOUCH_PX, MIN_VISUAL_PX, MIN_STICK_PX, STYLE_MISS, TIER_OF, cleanLayout, buildRequest, layoutText, extractText, extractHtml, attrsOf,
+  modelName, styleGate, styleRejects, tierOf,
 };
 
 module.exports = { generateControllerHtml, templateHtml, validateHtml, _internals };

@@ -45,7 +45,8 @@
     // No armour gate any more (armour is always 0 on the wire; TUNING.boss.armour stays for old readers). Any weapon
     // hurts it. maxHp = hp × (1 + hpPerExtraPlayer × (players − 1)), players counted at START as humans + botWeight ×
     // bots (bots are fillers, not players; the chest count uses the same number): solo ≈ 30 s of steady fire (one gun
-    // lands ≈ 80 dps), 25 players ≈ 16 s all firing. A ship's drill does drillPerSecond within drillRange.
+    // lands ≈ 80 dps), 25 players ≈ 16 s all firing. v1.2: ships have no drill (it is a planet skill for the chests
+    // locked in rocks); boss.drillRange / drillPerSecond are unused and stay only for old readers.
     botWeight: 0.25,
     // It shoots back: every shotEverySeconds / √(ships in shotRange), at a random one of them. A ship destroyed in
     // space respawns where it died, but at least respawnDistance m from a living boss.
@@ -78,9 +79,13 @@
 
   // Most points wins the round; the winner gets a star on the session leaderboard. Scores reset every round.
   // wreck: wrecking a rival's parked ship on the landing pad (ruthless, announced in the kill feed).
-  const SCORING = { rock: 10, crystal: 50, bossLastHit: 1000, chest: 1500, kill: 200, killed: -50, hitByRock: -30, wreck: 150 };
+  // mineHit: running into a rival's mine (v1.3 mischief, PLAN.md: "stunned and loses 30 points"). A kill by mischief
+  // (a mine, or a tractor pull into a rock) scores like any kill.
+  const SCORING = { rock: 10, crystal: 50, bossLastHit: 1000, chest: 1500, kill: 200, killed: -50, hitByRock: -30, wreck: 150, mineHit: -30 };
 
-  const COLORS = [0x22d3ee, 0xf472b6, 0xa3e635, 0xfacc15, 0xfb923c, 0xc084fc, 0x60a5fa, 0xf87171, 0x34d399, 0xe879f9, 0xfbbf24, 0x38bdf8];
+  // 25 player colours, one per player of a full round (the first 12 are the original set).
+  const COLORS = [0x22d3ee, 0xf472b6, 0xa3e635, 0xfacc15, 0xfb923c, 0xc084fc, 0x60a5fa, 0xf87171, 0x34d399, 0xe879f9, 0xfbbf24, 0x38bdf8,
+    0x2dd4bf, 0xa78bfa, 0xfde047, 0x4ade80, 0xfb7185, 0x818cf8, 0xf97316, 0x84cc16, 0x06b6d4, 0xd946ef, 0xeab308, 0x10b981, 0x3b82f6];
 
   // Input vocabulary. Movement names and sticks are always available; everything else is a verb from verbs.js.
   const MOVES = ["left", "right", "up", "down", "forward", "back", "strafeleft", "straferight", "rise", "sink"];
@@ -120,7 +125,10 @@
                                                                       // rock), dug 0..1 progress, open = collected,
                                                                       // by = who opened it (or null)
    *              assists: bool,                                      // v1.1: the chests glow, gate skills are free
-   *              playerCount: n,                                     // players counted at START (boss HP, chests)
+   *              playerCount: n,                                     // who the round is scaled for, counted at START:
+   *                                                                  // humans + TUNING.botWeight (0.25) × bots, so it
+   *                                                                  // can be fractional (1 human + 24 bots = 7). Boss
+   *                                                                  // HP and the chest count use it
    *              result: null | { round, winner, scores: [[name, score]] },   // the scoreboard (phase "scoreboard")
    *              leaderboard: [{ name, stars, total }] }             // session: stars = rounds won, total = points
    *            Sent on connect and whenever any of it changes.
@@ -133,26 +141,68 @@
    *                          shieldEnergy, boostEnergy,                  // 0..1, drive the HUD meters
    *                          drawingsLeft: { space, planet },            // humans only; bots omit it
    *                          respawnIn,                                  // seconds, only while flags.dead
+   *                          bay: [x, z],                                // v1.2: only while landing / takingOff: the
+   *                                                                      // island parking bay the shot ends on (= its
+   *                                                                      // world.island.parked entry after touchdown)
    *                          flags: { boost, shield, stun, dead, invisible, drilling, digging, ready, bot,
-   *                                   landing, takingOff, spawnShield },  // flags list only what is on; landing/takingOff:
-   *                                                                      // the predefined animation plays, no control
+   *                                   landing, takingOff, spawnShield,
+   *                                   emp, inked, tractored, drawing },  // flags list only what is on; landing/takingOff:
+   *                                                                      // the predefined animation plays, no control.
+   *                                                                      // v1.3: emp / inked while that mischief runs on
+   *                                                                      // the player's phone, tractored while pulled.
+   *                                                                      // drawing: the phone's draw sheet is open (input
+   *                                                                      // action "drawing"): hovering, protected, ≤ 30 s
    *                          action, slot, startedAt }],                 // last verb + animation slot + server ms
    *              bullets: [[id, x, y, z, color, mode]],                   // mode 0 = space, 1 = planet (island x, z, height y)
    *              bossShots: [[id, x, y, z]],
-   *              flares: [[x, y, z, radius, secondsLeft]] }
+   *              flares: [[x, y, z, radius, secondsLeft]],                // the newest 16
+   *              mines: [[id, x, y, z, mode, color]],                     // v1.3: mines (newest 16), mode as bullets;
+   *                                                                      // color = the owner's
+   *              decoys: [[id, x, y, z, yaw, color, owner, mode]] }       // v1.3 (newest 16): draw the owner's entity
+   *                                                                      // (their drawing) there, facing yaw
    *            15 per second. In "planet" mode x, z are island coordinates and y is the feet height.
    *
    * fx         { type, kind, mode, pos: { x, y, z }, color, size }       // kind: explode, blast, spark, flare, scan,
-   *                                                                      // drill, crack, land, dig, treasure, hit
-   * announce   { type, text, big }                                       // kill feed, boss down, winner
-   * toast      { type, player, text, sketch, ghost, kind, verb }         // one player only. Hints are riddles first:
+   *                                                                      // drill, crack, land, dig, treasure, hit, respawn;
+   *                                                                      // v1.3: emp, inkbomb, tractor, mine (dropped or
+   *                                                                      // hit), decoy (appears). Unknown kinds: a burst
+   * announce   { type, text, big }                                       // kill feed, boss down, winner. A kill is
+   *                                                                      // "killer ✕ victim", plus 💣 / 🧲 for a mischief
+   *                                                                      // kill; mischief lines start with ⚡ 🦑 🧲 💣 🎭
+   * toast      { type, player, text, sketch, ghost, kind, verb, need, gate }  // one player only. Hints are riddles first:
    *                                                                      // kind "hint" (ladder) | "refused" (a verb the
    *                                                                      // entity has not unlocked; verb set) | "info".
-   *                                                                      // need: "part" (draw it on the entity) | "button"
+   *                                                                      // need: "part" (draw it on the entity) | "button";
+   *                                                                      // gate: weapon | land | dig | drill (hints only).
+   *                                                                      // On death the victim gets kind "info" with
+   *                                                                      // killer (name | null): "Destroyed by bob · back
+   *                                                                      // in 3 s"
    *                                                                      // sketch: null | "drill"|"landing"|"shovel"|"gun", drawn faintly
    *                                                                      // on the pad; ghost: null | { action, x, y, w, h }, only in
    *                                                                      // the last step (PLAN.md section 4, Hints)
-   * generated  { type, player, kind, layout }                            // a controller layout is ready
+   * mischief   { type, kind, player, from, seconds, points?, dir?, victim? }   // v1.3, one player only: play it on that
+   *                                                                      // phone. kind: emp (the buttons swap places for
+   *                                                                      // seconds, 5) | inkbomb (ink over the screen,
+   *                                                                      // seconds ≤ 4, wiped with a finger) | tractor
+   *                                                                      // (pulled for seconds; dir = where the puller is
+   *                                                                      // on this player's screen, radians, 0 = right,
+   *                                                                      // π/2 = up) | mine (stunned for seconds; points
+   *                                                                      // lost, 30) | decoy (seconds 0: this player shot
+   *                                                                      // from's decoy; with victim: your decoy fooled
+   *                                                                      // victim, player = from = the owner)
+   * cooldown   { type, player, verb, seconds }                           // v1.3, one player only: that verb just fired
+   *                                                                      // and is ready again in seconds (mischief, blast,
+   *                                                                      // invisible, teleport, heal, flare, scan)
+   * generated  { type, player, kind, layout, html, controls, htmlSource, padLayout }   // a controller layout is ready.
+   *                                                                      // kind controller | button: layout as Astra read
+   *                                                                      // it (button: the new control only); padLayout:
+   *                                                                      // the whole pad now; html: the pad as one
+   *                                                                      // controller document (kit v1, ctrl-sandbox.js);
+   *                                                                      // controls: [{ action, kind, label }] in it =
+   *                                                                      // the allowed actions; htmlSource "template" |
+   *                                                                      // "model". kind "html": Sol's own HTML for the
+   *                                                                      // same pad arrived later (no layout): swap it in.
+   *                                                                      // Only the player's own screens get html.
    * entity     { type, player, entity }                                  // on join, every mode switch, redraw, unlock
    *              entity: { type: "ship"|"person"|"car"|"bike"|"quadruped"|"blob", rig,   // rig: the rigs.js template
    *                        verbs,                                        // EVERYTHING it can do now (innate + drawn
@@ -160,21 +210,50 @@
    *                        unlocked: [{ verb, part }],                   // the card: what the drawing unlocked and why
    *                        parts: [{ name, x, y }],                      // drawn parts, x, y fractions of the drawing
    *                        source: "plain"|"model"|"devkit"|"bot", anims, image? }
+   *              verbs may include the v1.3 mischief skills: mine, tractor, emp, inkbomb, decoy (verbs.js MISCHIEF).
    *
    * Phone → server:
-   * POST /join      { player }                       → { player, color }  (player = the cleaned name)
+   * GET  /events?player=<name> | ?screen=big          // SSE. A phone names itself (it alone gets its toast, mischief
+   *                                                  // and controller html); the TV says screen=big (no toasts).
+   *                                                  // A stream with neither gets everything, as before
+   * GET  /info                                        → { lanUrl, httpsUrl, controllerUrl, bigScreenUrl }   // v1.2: the
+   *                                                  // join QR opens controllerUrl (HTTPS when it is up, else HTTP);
+   *                                                  // httpsUrl is null when HTTPS is off
+   * POST /join      { player, device? }              → { player, color, renamed? }  (player = the cleaned name;
+   *                                                  // device: a random token the phone keeps; a name in use by
+   *                                                  // another device gets "name2" and renamed: true; 400 when the
+   *                                                  // name is empty or 32 humans are playing)
    * POST /start     {}                               → { ok, round } | 409 { ok: false, error: "not in the lobby" }
    *                                                  // the big screen's START button
-   * POST /input     { type: "input", player, action, down }
+   * POST /input     { type: "input", player, action, down }    // action "drawing" (not a verb, never on a control):
+   *                                                  // down when the draw / add-a-button sheet opens, up when it
+   *                                                  // closes: the ship hovers and cannot be hurt (≤ 30 s per press)
    *                 { type: "axis", player, axis: "steer"|"move", x, y }  // -1..1, at most 20 per second
-   * POST /generate  { player, kind: "controller"|"button"|"ship"|"explorer", image, speculative, requestId }
-   *                 → { ok: true, layout | entity, drawingsLeft } | { ok: false, error }   // image: PNG data URL, max 512 px;
-   *                                                                      // error "no drawings left" when the world's 5 are used
+   * POST /generate  { player, kind: "controller"|"button"|"ship"|"explorer", image, speculative, requestId,
+   *                   source?: "photo"|"draw", region?, expect?, pad?, anyway?, inkRegions? }
+   *                 → { ok: true, layout | entity, looksLike?, drawingsLeft,
+   *                     html, controls, htmlSource, padLayout }          // controller | button only: the pad as HTML now
+   *                                                                      // (see generated); Sol's own follows
+   *                 | { ok: false, error, message, looksLike?, thing?, drawingsLeft }   // image: PNG data URL, max 512 px.
+   *                 // message: plain words to show the player as they are ("" = show nothing, e.g. "slow down").
+   *                 // region (button): its rectangle on the pad. expect (button): the verb the game asked for (a ghost
+   *                 // box). pad (button): the controls on the phone now (action ids). anyway: true = "Use it anyway" on
+   *                 // a refused drawing (answered from the cache). inkRegions (controller): [{ x, y, w, h, round }] the
+   *                 // phone's ink components, used when the model cannot answer. Refusals (looksLike = the other
+   *                 // kind; thing: ship|person|car|bike|animal|creature|object) and errors spend no drawing. Errors:
+   *                 // "no drawings left", "slow down" (more than 8 speculative calls in 10 s), "timeout",
+   *                 // "generation unavailable", refusal texts ("looks like a ship"...)
+   * POST /controller-html { player, wait? }          → { ok, html, controls, htmlSource, padLayout, pending }  // v1.2:
+   *                                                  // the player's controller document now (a reloaded phone);
+   *                                                  // wait: true waits for a Sol call still running
    * POST /perf      { player, screen: "phone"|"big", ua, fps, low1, p90ms, calls, tris, textures, tier, w, h, dpr }
    *
    * Controller layout v2 (PLAN.md section 3):
-   *   { buttons: [{ type: "button"|"stick"|"toggle", action, label, x, y, w, h }], source: "model"|"default"|"manual" }
-   *   x, y, w, h are fractions of the drawing pad. A stick's action is "steer" or "move".
+   *   { buttons: [{ type: "button"|"stick"|"toggle", action, label, x, y, w, h, auto? }],
+   *     source: "model"|"default"|"manual"|"regions" }
+   *   x, y, w, h are fractions of the drawing pad. A stick's action is "steer" or "move". source "regions": built from
+   *   the phone's inkRegions (no model answer). auto: true = a steer stick the server added because the drawing had no
+   *   way to turn (PLAN.md section 7, "Never stuck").
    *
    * render.js (ES module, shared by space.html and controller.html):
    *   startGame({ canvas, screen: "big"|"phone", view: "spectator"|"chase"|"cockpit", player }) → game
@@ -222,6 +301,34 @@
       check(errors, p.flags && typeof p.flags === "object", `tick: players[${i}].flags`);
     });
     check(errors, Array.isArray(m.bullets) && Array.isArray(m.bossShots) && Array.isArray(m.flares), "tick: bullets, bossShots, flares");
+    check(errors, (m.mines === undefined || Array.isArray(m.mines)) && (m.decoys === undefined || Array.isArray(m.decoys)), "tick: mines, decoys");
+    return errors;
+  }
+
+  const MISCHIEF_KINDS = ["mine", "tractor", "emp", "inkbomb", "decoy"];
+  function checkMischief(m, errors = []) {
+    check(errors, m.type === "mischief", "mischief: type");
+    check(errors, MISCHIEF_KINDS.includes(m.kind), "mischief: kind");
+    check(errors, isStr(m.player) && isStr(m.from), "mischief: player and from");
+    check(errors, isNum(m.seconds) && m.seconds >= 0 && m.seconds <= 10, "mischief: seconds");
+    check(errors, m.kind !== "inkbomb" || m.seconds <= 4, "mischief: ink lasts at most 4 s");
+    check(errors, m.dir === undefined || isNum(m.dir), "mischief: dir");
+    return errors;
+  }
+
+  function checkCooldown(m, errors = []) {
+    check(errors, m.type === "cooldown" && isStr(m.player) && isStr(m.verb), "cooldown: type, player, verb");
+    check(errors, isNum(m.seconds) && m.seconds > 0 && m.seconds <= 60, "cooldown: seconds");
+    return errors;
+  }
+
+  function checkGenerated(m, errors = []) {
+    check(errors, m.type === "generated", "generated: type");
+    check(errors, isStr(m.player), "generated: player");
+    check(errors, ["controller", "button", "html"].includes(m.kind), "generated: kind");
+    if (m.kind !== "html") checkLayout(m.layout || {}, errors);
+    check(errors, m.html === undefined || (typeof m.html === "string" && /^\s*(<!doctype html|<html[\s>])/i.test(m.html)), "generated: html");
+    check(errors, m.html === undefined || (["template", "model"].includes(m.htmlSource) && Array.isArray(m.controls) && m.padLayout && Array.isArray(m.padLayout.buttons)), "generated: htmlSource, controls, padLayout");
     return errors;
   }
 
@@ -251,14 +358,14 @@
     return errors;
   }
 
-  const CHECKS = { world: checkWorld, tick: checkTick, layout: checkLayout, input: checkInput, perf: checkPerf };
+  const CHECKS = { world: checkWorld, tick: checkTick, layout: checkLayout, input: checkInput, perf: checkPerf, mischief: checkMischief, cooldown: checkCooldown, generated: checkGenerated };
 
   const normaliseAction = (action) => ALIASES[String(action).toLowerCase()] || String(action).toLowerCase();
   const cleanName = (name) => String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20);
 
   const Contract = {
     SIM_HZ, TICK_HZ, PERF_POST_SECONDS, PHASES, ROUND, TUNING, ROCK_TYPES, ROCK_TYPE_NAMES, SCORING, COLORS,
-    MOVES, STICKS, META_ACTIONS, ALIASES, OBJECTIVES, CHECKS, CHEST_KINDS, normaliseAction, cleanName,
+    MOVES, STICKS, META_ACTIONS, ALIASES, OBJECTIVES, CHECKS, CHEST_KINDS, MISCHIEF_KINDS, normaliseAction, cleanName,
   };
   root.Contract = Contract;
   if (typeof module !== "undefined") module.exports = Contract;

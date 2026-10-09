@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Space Party Controller</title>
+<style>
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:transparent;overflow:hidden}
+body{font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif;user-select:none;-webkit-user-select:none}
+.control{position:absolute;opacity:.92;animation:pop .45s both;transition:scale .2s cubic-bezier(.2,.8,.3,1.5),translate .16s,filter .16s,box-shadow .16s}
+.btn{width:var(--w);height:var(--h);left:clamp(calc(var(--w)/2 + 9px),var(--cx),calc(100vw - var(--w)/2 - 9px));top:clamp(calc(var(--h)/2 + 8px),var(--cy),calc(100vh - var(--h)/2 - 10px));margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);border:4px solid white;border-radius:12px;transform:skewX(-9deg);background:linear-gradient(var(--light),var(--mid) 52%,var(--dark));box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033;display:flex;align-items:center;justify-content:center}
+.purple{--light:#d49bff;--mid:#9d4dff;--dark:#5a1bc4}
+.gold{--light:#ffe36e;--mid:#ffb21f;--dark:#d26a06}
+.blue{--light:#86dcff;--mid:#2f8bff;--dark:#1647c8}
+.inside{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transform:skewX(9deg);width:100%;height:100%;padding:8px}
+.label{font-size:clamp(16px,2.8vw,26px);font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:.04em;line-height:1;color:white;text-shadow:-2px 0 #0b1033,2px 0 #0b1033,0 -2px #0b1033,0 2px #0b1033,0 3px 3px #0b1033}
+.icon{width:clamp(26px,5vw,44px);height:clamp(26px,9vh,40px);fill:none;stroke:white;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 #0b1033);flex-shrink:0}
+.round{border-radius:50%;transform:none}
+.round .inside{transform:none}
+.btn.is-down{translate:0 4px;scale:.95;filter:brightness(1.15);box-shadow:inset 0 3px 0 #ffffff80,0 1px 0 #0b1033}
+.control.is-on{--light:#ffe36e;--mid:#ffb21f;--dark:#d26a06;background:linear-gradient(var(--light),var(--mid) 52%,var(--dark))}
+.control.is-disabled{opacity:.35;filter:grayscale(.75)}
+.stick{--d:max(110px,min(25vw,58vh));width:var(--d);height:var(--d);left:clamp(calc(var(--d)/2 + 5px),15.5vw,calc(100vw - var(--d)/2 - 5px));top:clamp(calc(var(--d)/2 + 5px),65vh,calc(100vh - var(--d)/2 - 10px));margin-left:calc(var(--d)/-2);margin-top:calc(var(--d)/-2);border:4px solid white;border-radius:50%;background:radial-gradient(circle at 40% 25%,#315880b8,#0b1033c9);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033}
+.stick::before{content:"";position:absolute;inset:8%;background:center/100% 100% no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M43 14L50 5L57 14M43 86L50 95L57 86M14 43L5 50L14 57M86 43L95 50L86 57'/%3E%3C/g%3E%3C/svg%3E")}
+[data-knob]{position:absolute;left:29%;top:29%;width:42%;height:42%;border:3px solid white;border-radius:50%;background:linear-gradient(#86dcff,#2f8bff 55%,#1647c8);box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033}
+.stick.is-down [data-knob]{filter:brightness(1.2);box-shadow:inset 0 3px 0 #ffffff80,0 3px 0 #0b1033}
+@keyframes pop{0%{opacity:0;scale:.35}75%{opacity:.96;scale:1.07}100%{opacity:.92;scale:1}}
+@media(prefers-reduced-motion:reduce){.control{animation:none}}
+</style>
+</head>
+<body>
+<div class="control stick" data-stick="steer" aria-label="Steer"><div data-knob></div></div>
+
+<div class="control btn purple" data-action="heal" data-label="HEAL" style="--w:max(64px,14vw);--h:max(64px,27vh);--cx:43vw;--cy:23.5vh;animation-delay:50ms">
+<div class="inside"><svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M18 7h12v11h11v12H30v11H18V30H7V18h11Z" fill="white" stroke="#fff"/></svg><span class="label">HEAL</span></div>
+</div>
+
+<div class="control btn purple round" data-action="flare" data-label="FLARE" style="--w:max(64px,min(14vw,27vh));--h:var(--w);--cx:61vw;--cy:23.5vh;animation-delay:100ms">
+<div class="inside"><svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="9" fill="white"/><path d="M24 3v6m0 30v6M3 24h6m30 0h6M9 9l5 5m20 20 5 5M9 39l5-5m20-20 5-5"/></svg><span class="label">FLARE</span></div>
+</div>
+
+<div class="control btn gold" data-action="blast" data-label="NUKE" style="--w:max(64px,14vw);--h:max(64px,27vh);--cx:79vw;--cy:23.5vh;animation-delay:150ms">
+<div class="inside"><svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="m24 4 5 12 12-5-5 13 9 7-15 2-6 12-6-12-15-2 9-7-5-13 12 5Z" fill="white"/><circle cx="24" cy="25" r="5" fill="#d26a06" stroke="#d26a06"/></svg><span class="label">NUKE</span></div>
+</div>
+
+<div class="control btn purple" data-action="invisible" data-label="CLOAK" style="--w:max(64px,16vw);--h:max(64px,27vh);--cx:44vw;--cy:73.5vh;animation-delay:200ms">
+<div class="inside"><svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M11 40 15 19Q16 6 24 6t9 13l4 21-13-6Z" fill="white"/><path d="m19 22 4 2m6-2-3 2" stroke="#5a1bc4"/></svg><span class="label">CLOAK</span></div>
+</div>
+
+<div class="control btn blue" data-action="boost" data-label="BOOST" style="--w:max(64px,16vw);--h:max(64px,27vh);--cx:64vw;--cy:73.5vh;animation-delay:250ms">
+<div class="inside"><svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="m8 8 15 16L8 40h10l15-16L18 8Zm18 0 15 16-15 16" stroke-width="5"/></svg><span class="label">BOOST</span></div>
+</div>
+
+<div class="control btn gold round" data-action="shoot" data-label="FIRE" style="--w:max(64px,min(19vw,40vh));--h:var(--w);--cx:86.5vw;--cy:72vh;animation-delay:300ms">
+<div class="inside"><svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="14"/><path d="M24 3v12m0 18v12M3 24h12m18 0h12"/><circle cx="24" cy="24" r="3" fill="white" stroke="white"/></svg><span class="label">FIRE</span></div>
+</div>
+</body>
+</html>

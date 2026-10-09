@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Space Party Controller</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
+body{font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+.btn{
+position:absolute;
+width:var(--w);height:var(--h);
+left:clamp(calc(var(--w)/2 + 2vw),var(--cx),calc(100vw - var(--w)/2 - 2vw));
+top:clamp(calc(var(--h)/2 + 1vh),var(--cy),calc(100vh - var(--h)/2 - 2vh));
+margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);
+display:flex;align-items:center;justify-content:center;
+border:4px solid white;border-radius:12px;
+background:linear-gradient(180deg,#86dcff 0%,#2f8bff 48%,#1647c8 100%);
+box-shadow:inset 0 3px 0 #ffffff80,0 5px 0 #0b1033;
+transform:skewX(-9deg);opacity:.92;
+color:white;
+transition:scale .18s cubic-bezier(.2,1.7,.4,1),translate .16s,filter .16s,box-shadow .16s;
+animation:pop .45s backwards;animation-delay:var(--delay);
+}
+.inner{transform:skewX(9deg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+svg{display:block;width:clamp(30px,5vw,54px);height:clamp(30px,5vw,54px);fill:none;stroke:white;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 #0b1033)}
+.direction .inner{width:70%;height:70%}
+.direction svg{width:80%;height:80%}
+.label{font-size:clamp(18px,3.2vw,26px);font-weight:900;font-style:italic;text-transform:uppercase;letter-spacing:.04em;line-height:1;text-shadow:-2px 0 #0b1033,2px 0 #0b1033,0 -2px #0b1033,0 2px #0b1033,0 3px 3px #0b1033}
+.disc{--w:max(64px,min(26vw,56vh));--h:var(--w);border-radius:50%;transform:none;background:linear-gradient(180deg,#ffe36e,#ffb21f 50%,#d26a06)}
+.disc .inner{transform:none;gap:12px}
+.disc svg{width:clamp(40px,8vw,78px);height:clamp(40px,8vw,78px)}
+.disc .label{font-size:clamp(22px,4vw,38px)}
+.btn.is-down{translate:0 4px;scale:.95;filter:brightness(1.18);box-shadow:inset 0 3px 0 #ffffff80,0 1px 0 #0b1033}
+.btn.is-on{background:linear-gradient(180deg,#ffe36e,#ffb21f 50%,#d26a06)}
+.btn.is-disabled{opacity:.35;filter:grayscale(.7)}
+@keyframes pop{0%{opacity:0;scale:.35}72%{opacity:.92;scale:1.07}100%{opacity:.92;scale:1}}
+@media(prefers-reduced-motion:reduce){.btn{animation:none;transition:none}}
+</style>
+</head>
+<body>
+<div class="btn direction" data-action="left" data-label="◀" aria-label="◀" style="--w:max(64px,12vw);--h:max(64px,24vh);--cx:9vw;--cy:54vh;--delay:0ms">
+<div class="inner"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M53 32H13M29 15L12 32l17 17"/></svg></div>
+</div>
+<div class="btn direction" data-action="right" data-label="▶" aria-label="▶" style="--w:max(64px,12vw);--h:max(64px,24vh);--cx:33vw;--cy:54vh;--delay:50ms">
+<div class="inner"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M11 32h40M35 15l17 17-17 17"/></svg></div>
+</div>
+<div class="btn direction" data-action="up" data-label="▲" aria-label="▲" style="--w:max(64px,12vw);--h:max(64px,26vh);--cx:21vw;--cy:27vh;--delay:100ms">
+<div class="inner"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 53V13M15 29l17-17 17 17"/></svg></div>
+</div>
+<div class="btn direction" data-action="down" data-label="▼" aria-label="▼" style="--w:max(64px,12vw);--h:max(64px,26vh);--cx:21vw;--cy:81vh;--delay:150ms">
+<div class="inner"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 11v40M15 35l17 17 17-17"/></svg></div>
+</div>
+<div class="btn disc" data-action="shoot" data-label="ZAP" aria-label="ZAP" style="--cx:81vw;--cy:58vh;--delay:200ms">
+<div class="inner">
+<svg viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="23"/><path d="M40 6v17M40 57v17M6 40h17M57 40h17"/><path d="M44 27L33 42h10l-7 12" stroke-width="4"/></svg>
+<span class="label">ZAP</span>
+</div>
+</div>
+</body>
+</html>
