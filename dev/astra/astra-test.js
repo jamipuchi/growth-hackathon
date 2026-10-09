@@ -92,8 +92,11 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     assert.strictEqual(opts.headers.Authorization, "Bearer sk-test-not-a-real-key");
     assert.strictEqual(req.model, "gpt-6.1-sol");
     assert.strictEqual(req.service_tier, "ultrafast");
-    assert.strictEqual(req.reasoning, undefined);
-    assert.ok(req.max_output_tokens <= 1000);
+    // v1-gen-quality: reasoning effort defaults to low (accepted by gpt-6.1-sol, faster), and the budget leaves room
+    // for the reasoning tokens (a 200-token button budget ran out in play: "incomplete: max_output_tokens").
+    assert.deepStrictEqual(req.reasoning, { effort: "low" });
+    assert.ok(req.max_output_tokens >= 1200 && req.max_output_tokens <= 4000);
+    assert.deepStrictEqual(req.text.format.schema.required, ["looksLike", "thing", "buttons"]);
     const [text, img] = req.input[0].content;
     assert.strictEqual(text.type, "input_text");
     assert.ok(/PHOTO of a notebook page/.test(text.text) && /paper lines/.test(text.text) && /fractions/.test(text.text));
@@ -232,7 +235,8 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     assert.deepStrictEqual(r.layout.buttons, [{ type: "button", action: "land", label: "LAND", ...region }]);
     const prompt = calls[0].req.input[0].content[0].text;
     assert.ok(/x=0.62, y=0.08, w=0.2, h=0.22/.test(prompt) && /ONE new control/.test(prompt));
-    assert.deepStrictEqual(calls[0].req.text.format.schema.required, ["type", "label", "action"]);
+    assert.deepStrictEqual(calls[0].req.text.format.schema.required, ["looksLike", "thing", "type", "label", "action"]);
+    assert.ok(/shows only that ONE new control/.test(prompt), "the image is the cropped button, not the whole pad");
     fakeFetch(() => answer({ type: "button", label: "???", action: "none" }));
     const bad = await Astra.generate({ player: "ana", kind: "button", image: image("btn2"), region });
     assert.deepStrictEqual(bad, { ok: false, error: "unreadable button" });
@@ -303,7 +307,7 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     const req = calls[0].req;
     assert.strictEqual(req.model, "gpt-6.1-sol"); assert.strictEqual(req.service_tier, "ultrafast");
     assert.strictEqual(req.text.format.strict, true); assert.strictEqual(req.text.format.name, "entity");
-    assert.deepStrictEqual(req.text.format.schema.required, ["type", "parts", "verbs", "unlocked"]);
+    assert.deepStrictEqual(req.text.format.schema.required, ["looksLike", "type", "parts", "verbs", "unlocked"]);
     assert.strictEqual(req.input[0].content[1].detail, "low");
     assert.strictEqual(ship.ok, true);
     assert.strictEqual(ship.entity.type, "ship"); assert.strictEqual(ship.entity.rig, "ship"); assert.strictEqual(ship.entity.source, "model");
@@ -361,6 +365,190 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     assert.strictEqual(Astra.defaultLayout().source, "default");
     assert.ok(logLines.length > 10);
     assert.ok(logLines.every((l) => !l.includes("sk-test") && !l.includes("base64") && !l.includes("ZmFrZS")), "a log line leaked the key or image");
+  });
+
+  // ---- v1-gen-quality: wrong kind, "use it anyway", expected button, retries, hedged requests -------------------------
+  await test("wrong kind: a ship in the controller step → refused with looksLike; anyway → default layout from cache", async () => {
+    fakeFetch(() => answer({ looksLike: "entity", thing: "ship", buttons: [{ type: "button", label: "", action: "fly", x: 0, y: 0, w: 1, h: 1 }] }));
+    const img = image("ship-as-controller");
+    const r = await Astra.generate({ player: "ana", kind: "controller", image: img, source: "draw" });
+    assert.deepStrictEqual(r, { ok: false, error: "looks like a ship", looksLike: "entity", thing: "ship" });
+    const spec = await Astra.generate({ player: "ana", kind: "controller", image: img, speculative: true });
+    assert.strictEqual(spec.error, "looks like a ship", "the confirmed call answers the same from the cache");
+    const anyway = await Astra.generate({ player: "ana", kind: "controller", image: img, anyway: true });
+    assert.strictEqual(calls.length, 1, "anyway is answered from the cache");
+    assert.ok(anyway.ok, anyway.error);
+    valid(anyway.layout);
+    assert.deepStrictEqual(anyway.layout.buttons.map((b) => b.action), ["fly"], "the controls the model read are kept");
+    fakeFetch(() => answer({ looksLike: "entity", thing: "person", buttons: [] }));
+    const fig = await Astra.generate({ player: "ana", kind: "controller", image: image("figure") });
+    assert.deepStrictEqual(fig, { ok: false, error: "looks like a person", looksLike: "entity", thing: "person" });
+    const figAnyway = await Astra.generate({ player: "ana", kind: "controller", image: image("figure").replace(/-\d+$/, ""), anyway: true });
+    assert.ok(figAnyway.ok || figAnyway.error, "never throws");
+  });
+
+  await test("wrong kind: a figure as an added button; a controller in the ship / explorer step", async () => {
+    fakeFetch(() => answer({ looksLike: "entity", thing: "animal", type: "button", label: "", action: "none" }));
+    const b = await Astra.generate({ player: "ana", kind: "button", image: image("dog-button"), region: { x: 0.4, y: 0.3, w: 0.2, h: 0.3 } });
+    assert.deepStrictEqual(b, { ok: false, error: "looks like an animal", looksLike: "entity", thing: "animal" });
+    assert.strictEqual(calls.length, 1, "a wrong-kind answer is not retried");
+    fakeFetch(() => answer({ looksLike: "controller", type: "ship", parts: [], verbs: [], unlocked: [] }));
+    const img = image("controller-as-ship");
+    const s = await Astra.generate({ player: "ana", kind: "ship", image: img });
+    assert.deepStrictEqual(s, { ok: false, error: "looks like a controller", looksLike: "controller" });
+    const sAnyway = await Astra.generate({ player: "ana", kind: "ship", image: img, anyway: true });
+    assert.ok(sAnyway.ok && sAnyway.entity.type === "ship" && sAnyway.entity.source === "model" && sAnyway.looksLike === "controller");
+    assert.strictEqual(calls.length, 1);
+    fakeFetch(() => answer({ looksLike: "controller", type: "person", parts: [], verbs: [], unlocked: [] }));
+    const e = await Astra.generate({ player: "ana", kind: "explorer", image: image("controller-as-explorer") });
+    assert.deepStrictEqual(e, { ok: false, error: "looks like a controller", looksLike: "controller" });
+  });
+
+  await test("right kind: answers carry looksLike; 'nothing' is not a wrong kind", async () => {
+    fakeFetch(() => answer({ looksLike: "controller", thing: "none", buttons: [{ type: "button", label: "FIRE", action: "shoot", x: 0.6, y: 0.5, w: 0.2, h: 0.3 }] }));
+    const c = await Astra.generate({ player: "ana", kind: "controller", image: image("rk1") });
+    assert.ok(c.ok && c.looksLike === "controller" && c.layout.buttons[0].action === "shoot");
+    fakeFetch(() => answer({ looksLike: "entity", type: "car", parts: [{ name: "cannon", x: 0.5, y: 0.2 }], verbs: ["shoot"], unlocked: [{ verb: "shoot", part: "cannon" }] }));
+    const e = await Astra.generate({ player: "ana", kind: "explorer", image: image("rk2") });
+    assert.ok(e.ok && e.looksLike === "entity" && e.entity.type === "car" && e.entity.verbs.includes("shoot"));
+    fakeFetch(() => answer({ looksLike: "nothing", thing: "none", buttons: [] }));
+    const n = await Astra.generate({ player: "ana", kind: "controller", image: image("rk3") });
+    assert.deepStrictEqual(n, { ok: false, error: "no controls found", looksLike: "nothing" });
+    assert.strictEqual(calls.length, 1, "a blank drawing is not retried");
+  });
+
+  await test("added button: the prompt says the image is the cropped button; expect fills an unreadable one", async () => {
+    const region = { x: 0.6, y: 0.1, w: 0.2, h: 0.3 };
+    fakeFetch(() => answer({ looksLike: "controller", thing: "none", type: "button", label: "", action: "none" }));
+    const r = await Astra.generate({ player: "ana", kind: "button", image: image("ghost"), region, expect: "DIG" });
+    assert.ok(r.ok, r.error);
+    assert.deepStrictEqual(r.layout.buttons, [{ type: "button", action: "dig", label: "", ...region }]);
+    assert.ok(/add a DIG button/.test(calls[0].req.input[0].content[0].text));
+    fakeFetch(() => answer({ looksLike: "controller", thing: "none", type: "button", label: "LAND", action: "land" }));
+    const follow = await Astra.generate({ player: "ana", kind: "button", image: image("ghost2"), region, expect: "dig" });
+    assert.strictEqual(follow.layout.buttons[0].action, "land", "a readable drawing wins over expect");
+    fakeFetch(() => answer({ looksLike: "controller", thing: "none", type: "button", label: "BANANA", action: "none" }));
+    const banana = await Astra.generate({ player: "ana", kind: "button", image: image("banana"), region });
+    assert.deepStrictEqual(banana, { ok: false, error: 'no skill called "BANANA"', looksLike: "controller" });
+    assert.strictEqual(calls.length, 2, "one stricter retry, then the error");
+    assert.ok(/Look again carefully/.test(calls[1].req.input[0].content[0].text));
+    const bogus = await Astra.generate({ player: "ana", kind: "button", image: image("bogus"), region, expect: "rm -rf" });
+    assert.ok(!/RM -RF/.test(calls[calls.length - 1].req.input[0].content[0].text), "an unknown expect is ignored");
+  });
+
+  await test("retries: incomplete → one retry with a bigger budget; an empty controller → one stricter retry", async () => {
+    fakeFetch((req, i) => i === 1
+      ? { body: { status: "incomplete", incomplete_details: { reason: "max_output_tokens" }, output: [{ type: "reasoning", content: [] }] } }
+      : answer({ looksLike: "controller", thing: "none", type: "button", label: "LAND", action: "land" }));
+    const r = await Astra.generate({ player: "ana", kind: "button", image: image("inc"), region: { x: 0.1, y: 0.1, w: 0.2, h: 0.2 } });
+    assert.ok(r.ok, r.error);
+    assert.strictEqual(calls.length, 2);
+    assert.strictEqual(calls[0].req.max_output_tokens, 1200);
+    assert.strictEqual(calls[1].req.max_output_tokens, 4000);
+    fakeFetch((req, i) => answer(i === 1 ? { looksLike: "controller", thing: "none", buttons: [] } : { looksLike: "controller", thing: "none", buttons: [{ type: "stick", label: "", action: "steer", x: 0.05, y: 0.4, w: 0.3, h: 0.5 }] }));
+    const c = await Astra.generate({ player: "ana", kind: "controller", image: image("empty") });
+    assert.ok(c.ok && c.layout.buttons[0].type === "stick", c.error);
+    assert.strictEqual(calls.length, 2);
+  });
+
+  await test("pad memory: a finished controller and added buttons are remembered and named in the next button prompt", async () => {
+    fakeFetch((req) => req.text.format.schema.required.includes("buttons")
+      ? answer({ looksLike: "controller", thing: "none", buttons: [{ type: "stick", label: "", action: "steer", x: 0.05, y: 0.4, w: 0.3, h: 0.5 }, { type: "button", label: "FIRE", action: "shoot", x: 0.7, y: 0.5, w: 0.2, h: 0.3 }] })
+      : answer({ looksLike: "controller", thing: "none", type: "button", label: "LAND", action: "land" }));
+    await Astra.generate({ player: "Pia", kind: "controller", image: image("pad-spec"), speculative: true });
+    assert.deepStrictEqual(_internals.padOf("pia"), [], "a speculative controller is not the pad yet");
+    await Astra.generate({ player: "Pia", kind: "controller", image: image("pad-ctl") });
+    assert.deepStrictEqual(_internals.padOf("pia").map((c) => c.action), ["steer", "shoot"]);
+    const region = { x: 0.6, y: 0.1, w: 0.2, h: 0.3 };
+    const b = await Astra.generate({ player: "Pia", kind: "button", image: image("pad-btn"), region });
+    assert.ok(b.ok && b.layout.buttons[0].action === "land");
+    const prompt = calls[calls.length - 1].req.input[0].content[0].text;
+    assert.ok(/Already on this player's pad: a steer stick, FIRE\./.test(prompt), prompt);
+    assert.deepStrictEqual(_internals.padOf("pia").map((c) => c.action), ["steer", "shoot", "land"]);
+    // the phone may send its own pad (action ids); unknown actions are dropped
+    await Astra.generate({ player: "Pia", kind: "button", image: image("pad-btn2"), region, pad: ["move", "dig", "banana"] });
+    assert.ok(/Already on this player's pad: a move stick, \(dig\)\./.test(calls[calls.length - 1].req.input[0].content[0].text));
+    // a new controller replaces the pad
+    await Astra.generate({ player: "Pia", kind: "controller", image: image("pad-ctl2") });
+    assert.deepStrictEqual(_internals.padOf("pia").map((c) => c.action), ["steer", "shoot"]);
+  });
+
+  // ---- review fixes (independent review, 10 Oct 00:25) ----------------------------------------------------------------
+  await test("review: a blank ship / explorer is refused (no drawing spent); one with parts is kept; a refused one is not saved", async () => {
+    fakeFetch(() => answer({ looksLike: "nothing", type: "ship", parts: [], verbs: [], unlocked: [] }));
+    const blank = await Astra.generate({ player: "Rex", kind: "ship", image: image("blank-ship") });
+    assert.deepStrictEqual(blank, { ok: false, error: "nothing to read", looksLike: "nothing" });
+    fakeFetch(() => answer({ looksLike: "nothing", type: "person", parts: [{ name: "shovel", x: 0.5, y: 0.5 }], verbs: ["dig"], unlocked: [{ verb: "dig", part: "shovel" }] }));
+    const faint = await Astra.generate({ player: "Rex", kind: "explorer", image: image("faint-explorer") });
+    assert.ok(faint.ok && faint.entity.verbs.includes("dig"), "a faint drawing with a part is still read");
+    // an accepted ship is kept on disk; a refused redraw does not overwrite it
+    fakeFetch(() => answer({ looksLike: "entity", type: "ship", parts: [{ name: "cannon", x: 0.5, y: 0.5 }], verbs: ["shoot"], unlocked: [{ verb: "shoot", part: "cannon" }] }));
+    await Astra.generate({ player: "Rex", kind: "ship", image: image("good-ship") });
+    fakeFetch(() => answer({ looksLike: "controller", type: "ship", parts: [], verbs: [], unlocked: [] }));
+    const refused = await Astra.generate({ player: "Rex", kind: "ship", image: image("refused-ship") });
+    assert.strictEqual(refused.error, "looks like a controller");
+    await new Promise((res) => setTimeout(res, 50));
+    assert.ok(fs.readFileSync(path.join(tmp, "rex-ship.png")).toString().startsWith("fake-png-good-ship"));
+    assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(tmp, "rex-ship.json"), "utf8")).verbs, ["shoot"]);
+  });
+
+  await test("review: anyway on a refused button binds the expected verb; without expect it stays refused", async () => {
+    const region = { x: 0.4, y: 0.3, w: 0.2, h: 0.3 };
+    fakeFetch(() => answer({ looksLike: "entity", thing: "person", type: "button", label: "", action: "none" }));
+    const img = image("figure-btn");
+    assert.strictEqual((await Astra.generate({ player: "Rex", kind: "button", image: img, region, expect: "dig" })).error, "looks like a person");
+    const anyway = await Astra.generate({ player: "Rex", kind: "button", image: img, region, expect: "dig", anyway: true });
+    assert.deepStrictEqual(anyway.layout.buttons, [{ type: "button", action: "dig", label: "", ...region }]);
+    const img2 = image("figure-btn2");
+    await Astra.generate({ player: "Rex", kind: "button", image: img2, region });
+    const no = await Astra.generate({ player: "Rex", kind: "button", image: img2, region, anyway: true });
+    assert.strictEqual(no.ok, false);
+    assert.strictEqual(calls.length, 2, "anyway never calls the model again");
+  });
+
+  await test("review: a slow stricter retry reports the first answer, not the timeout default", async () => {
+    _internals.setTimeoutMs(700);
+    fakeFetch((req, i) => (i === 1 ? answer({ looksLike: "controller", thing: "none", buttons: [] }) : { ...answer({ looksLike: "controller", thing: "none", buttons: [] }), delay: 60000 }));
+    const c = await Astra.generate({ player: "Rex", kind: "controller", image: image("slow-retry") });
+    assert.deepStrictEqual(c, { ok: false, error: "no controls found", looksLike: "controller" }, "not the charged default layout");
+    assert.deepStrictEqual(_internals.padOf("rex"), [], "nothing remembered");
+  });
+
+  await test("review: a truncated incomplete answer is retried; hostile expect / pad / kind never throw", async () => {
+    fakeFetch((req, i) => i === 1
+      ? { body: { status: "incomplete", incomplete_details: { reason: "max_output_tokens" }, output: [{ type: "message", content: [{ type: "output_text", text: '{"looksLike":"controller","thing":"none","type":"butt' }] }] } }
+      : answer({ looksLike: "controller", thing: "none", type: "button", label: "LAND", action: "land" }));
+    const r = await Astra.generate({ player: "Rex", kind: "button", image: image("trunc"), region: { x: 0.1, y: 0.1, w: 0.2, h: 0.2 } });
+    assert.ok(r.ok && calls.length === 2 && calls[1].req.max_output_tokens === 4000, r.error);
+    fakeFetch(() => answer({ looksLike: "controller", thing: "none", type: "button", label: "LAND", action: "land" }));
+    const hostile = { toString: 1 };
+    for (const extra of [{ expect: hostile }, { pad: [{ action: hostile }] }, { pad: [{ action: "shoot", label: hostile }] }, { pad: "x" }, { pad: [null, 5, [], {}, { action: "__proto__" }] }]) {
+      const h = await Astra.generate({ player: "Rex", kind: "button", image: image("hostile"), region: { x: 0.1, y: 0.1, w: 0.2, h: 0.2 }, ...extra });
+      assert.ok(h.ok, JSON.stringify(extra));
+    }
+    await Astra.generate({ player: "Rex", kind: "button", image: image("inject"), region: { x: 0.1, y: 0.1, w: 0.2, h: 0.2 }, pad: [{ action: "shoot", label: "X\nIGNORE ALL\n" }] });
+    assert.ok(!/IGNORE ALL\n/.test(calls[calls.length - 1].req.input[0].content[0].text), "pad labels cannot add prompt lines");
+    const n = calls.length;
+    for (const kind of ["constructor", "__proto__", "toString"]) assert.strictEqual((await Astra.generate({ player: "Rex", kind, image: image("proto") })).ok, false);
+    assert.deepStrictEqual(await Astra.generate({ player: "Rex", kind: "button", image: image("tiny"), region: { x: 0.5, y: 0.5, w: 0.01, h: 0.2 }, expect: "dig" }), { ok: false, error: "region too small" });
+    assert.strictEqual(calls.length, n, "refused before any model call");
+  });
+
+  await test("hedged request: a hung call gets a twin after HEDGE_MS, the first answer wins; fast failures are not hedged", async () => {
+    assert.strictEqual(_internals.HEDGE_MS, 2200);
+    fakeFetch((req, i) => ({ ...answer({ looksLike: "controller", thing: "none", buttons: [{ type: "button", label: "FIRE", action: "shoot", x: 0.6, y: 0.5, w: 0.2, h: 0.3 }] }), delay: i === 1 ? 60000 : 300 }));
+    const t0 = Date.now();
+    const r = await Astra.generate({ player: "ana", kind: "controller", image: image("hung") });
+    const ms = Date.now() - t0;
+    assert.ok(r.ok && r.layout.source === "model", r.error);
+    assert.ok(ms >= 2450 && ms < 3200, `took ${ms} ms`);
+    assert.strictEqual(calls.length, 2);
+    assert.strictEqual(calls[0].aborted, true, "the hung call is aborted");
+    fakeFetch(() => ({ status: 500, text: "boom" }));
+    const t1 = Date.now();
+    const f = await Astra.generate({ player: "ana", kind: "controller", image: image("fast-fail") });
+    assert.deepStrictEqual(f, { ok: false, error: "OpenAI HTTP 500" });
+    assert.ok(Date.now() - t1 < 500 && calls.length === 1, "no hedge after a fast failure");
   });
 
   console.log = realLog;

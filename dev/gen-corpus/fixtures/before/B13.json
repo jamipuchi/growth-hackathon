@@ -1,0 +1,216 @@
+{
+ "id": "B13",
+ "file": "button/B13.png",
+ "kind": "button",
+ "source": "photo",
+ "region": {
+  "x": 0.45,
+  "y": 0.1,
+  "w": 0.16,
+  "h": 0.3
+ },
+ "imageSha": "5204876ebf3390a081e91885cea00a36fbf18d90",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 200,
+    "format": "layout",
+    "detail": "low",
+    "promptSha": "613f2301a96c",
+    "prompt": "You read one hand-drawn button for a landscape phone game controller.\nThe image is usually a PHOTO of a notebook page, already cropped by the phone to the drawn controller. It is greyscale and may show ruled or squared paper lines, shadows, smudges, slight perspective or a thumb at the edge. Ignore paper lines, grids, shadows, fingers and anything that was not deliberately drawn as a control.\nThe image is the player's whole controller pad. They just drew ONE new control inside this region (fractions of the image, origin top left): x=0.45, y=0.1, w=0.16, h=0.3. Read only the strokes inside that region and ignore everything outside it.\nControls: a circle, joystick, D-pad or cluster of arrows is ONE control of type \"stick\" whose rectangle covers the whole cluster; its action is \"steer\" if it is on the left half, else \"move\".\nA single arrow drawn on its own is a \"button\" with action left, right, up or down.\nA box, circle or shape with a word or symbol in it is a \"button\" (a drawn switch or slider is a \"toggle\"). Copy the written word exactly into label, in UPPERCASE (FIRE, LAND, PEW, DIG...). Use \"\" if nothing is written.\naction: the closest game action, or \"none\". Verbs with typical labels: shoot (SHOOT, FIRE, PEW, LASER); boost (BOOST, TURBO, NITRO, FAST); shield (SHIELD, BUBBLE, ARMOR, ARMOUR); blast (BLAST, BOMB, WIN, NUKE); invisible (INVISIBLE, CLOAK, GHOST, HIDE); shapeshift (SHAPESHIFT, MASK, DISGUISE, MORPH); teleport (TELEPORT, WARP, BLINK, PORTAL); heal (HEAL, REPAIR, POTION, MEDKIT); jump (JUMP, HOP, SPRING, LEAP); land (LAND, LANDING, TOUCHDOWN, DOCK); takeoff (TAKEOFF, TAKE OFF, LAUNCH, LIFTOFF); scan (SCAN, RADAR, EYE, SONAR); flare (FLARE, LIGHT, TORCH, LAMP); drill (DRILL, SAW, PICK, PICKAXE); dig (DIG, SHOVEL, SPADE, CLAW); drive (DRIVE, CAR, WHEELS, BIKE); fly (FLY, WINGS, JETPACK, HOVER); swim (SWIM, FINS, FLIPPERS, BOAT); grapple (GRAPPLE, HOOK, ROPE, MAGNET). Movement: left, right, up, down, forward, back, strafeleft, straferight, rise, sink. Meta: ready, view.\nReturn exactly that one control: its type, label and action."
+   },
+   "status": 200,
+   "ms": 1644,
+   "error": null,
+   "response": {
+    "id": "resp_050c0dec1671409a016ac9616e8d4487d2bb0e883358308217",
+    "object": "response",
+    "created_at": 1791582574,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582575,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 200,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "rs_050c0dec1671409a016ac9616f68b087d2a4931ac622f862cb",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqyWFvsfLUDQBPto8ri1gWfpQQ1BCGGwnGjgDobTxQfZt_sg2YL8CLRIwOatpA0GFQMLj_OIM1NdENrult_F5q23adBEM49MqC1VXXitvLwPC8sCOf5oBjBU2S6x8Rje8_Nn-sbt-nZsAHHggNBTPvUBcnLOU_JgDHf2vUoeOfy-AhaXb0N-6iRS2xSZHMilwxawUl_ixSV9Ph_-XHWO56qmvARYEg0A4t-gD5qbxU5UBvDBMemX2-8bDQulJKi2vfBA8d6P7Q5G1UkThU1VsU1F9pAk4be9RuktGeaTGtFcCMhbw0Y0fz7ePlvPsASLmhyWmH402HGCUdrFTrugbdGNDEwPn5JuphG7BjRLQEG-42n2MH1h_KwAHshaOBoXy2LwP_Q0ixvcVOFl0CB0Dc3EW6ymKiTSEJbdtmwHZs5bADUtVdeqQKs7C9RpjBbgH4LGDs4y2z0FTz4unSfuOrVA3WrsbgdR09FMEGPlktVZut-zcOa3ybhDVwIQVyEwgQ4NBczhmOLEk4_qEJjRVH4lE3xLsMxwfUJRFDbOrg1UNFe2DXG4op4yogghKmeIge8QCpPiHjVvPiIFDuJIQSp734otoNW_9zUOkiZ-pfN6MVU8DXYPlSJuJ777mDR5sMeQ7O0J_mBUOs7zSbXmeQLXG_CdgfgiCqvzoLekN0g49WiEoy6m-rVFiIMqTeKhWo-6bQYl369rLS5AlNhYpEk-bPc9twEp8t1YIWl-IIzIbU694sR8qdiy1UAyYwiGuVav2SPpSYWwiyA0F8D5Mw1Q8_BkKHOEqeWq_jw8T213ZlMTgpWR7rwCBXSekKutg4EsHOCeG2djmxdSZUPftA7wjD2a--K7t6AzXOidWHn44JBEWrZpZShSqULU0H-hLU_KsrF7A9DcM3sfueCYM9dtahIUFMx5QMlmrrK-dTWD1aGE3XnX-03xk-7Hnbdba39kQoWPRoYskTLJYAB7LhIwjOF9ZocJoLbIa5AFCzBrq01uWT6Us0E58iqGtO35jUG0Dc4PLGrbTz8Ahdv_5wkGFaLGdae6R5OQAY2thQZTuep0fxzt7nXHzMaYcLfgAwkw19ZS8t50yefrrahDvQGlDF6huR4faphZnWmFC5Gy3RXfrPpsSioZIYaS9ytgl4DWXQXXgOUSCsAU7l_QnA9FOngyShPvUMKtJyTLZ3Dy7o6_kUSbowSjGnRfMjOxvPJkwZP56QkpoLtKLHsHquBwLah1VSRMnAmh_2-iwEwqltDMEsrVm8E3_wbnle39g-uru7W2eW0AouT0dIOpDalPp816ESSd7HsqnWDRiIp_1rhuCpnJj46lvVx7MYrkyIlL7ycfY3h4ELVg6bXT5QomEj_oO4hImRWwyFYjhtWj-bblWqj7k7beKXio7E2ioroFCfFgu6r3ovmgzdm2lEbgNaKq-pL1MYgZO6RimWbj50_gXILdhFwTZBJO7Ry6I7txlmsg_v7jkzbpBQeX6svUnXoPKh9K-iqXTb04fGhq2ZCsptXtrTRz_9RxQY2XQJOZX8ZUw-8hay5SUjDk4hjnt_5_s7z_lTnhtSUd5M72hgxJniuFcslthLscpCXbQdBwum5sBZzkEFTic7VpS9akivb51iVGhVsrNjyCN6UGwnkwgxmbGmXdcc65PsZv5M8LcI9CoFbu9ptrAAHKlSPEWpPQP2-w5_0XcONVlea6OE3httcNCJSJcqr9JlHvmXd8KwrpUeMgkGav8f4ppbd0GXFs8uUbX0QT2wvJHQisUoauKSHIQxWSQ9h93HvjRFAaCqk_PGCGSSP9nCQA5uLJCduz082h8nQd1i-n9TAUXp16IrYVXZVKuPu75Cs8FyK5uWUprdrSyYEa02otFTeGIB44yOxCwcAhDeglrZENmZM60MHw62XlH9GYAt8aneUNmRsGrIlXveqTW7sySDvXFBUQaA_zFRIjjxwraFFqkRc_3J_8zx8OA5oCaFxmJi1hr0dmw5dExJghKruUd6vZNGjTD7lUOe0jATVc9kGHNNSPtc9edz0YlvUN1Wd492ejfA38s1HJK2kgyatMPMtwM0WrBAIwO_sUoh-5Zp1yc1StMo9VJjlpN1a8mLF-rfLRg5ev9kF1ZiHQeaEqMVn89D7A4-Hhpl2P1vdY_ov-9Az3FYUPr9mYrD9H-ow7euTNhLlCBcYLR3dMRhB0zHAFqGVkRDnBoRCqI14jL-r8DFah9udWO5IPzjfjqOXnro4Z4Juv9XfFzT8YVegwBRGQK2sRrvs-Zit5Gh5UszatMSghA34yAqvTHPFSye-sH3em8Bt_7zTDvQ7hS70PPWhTIGGtqn4y5aenM6xyCfS4G8u-M=",
+      "summary": []
+     },
+     {
+      "id": "msg_050c0dec1671409a016ac9616fd8cc87d287510152a1780d52",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"type\":\"button\",\"label\":\"DIG\",\"action\":\"dig\"}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "layout",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "type",
+        "label",
+        "action"
+       ],
+       "properties": {
+        "type": {
+         "type": "string",
+         "enum": [
+          "button",
+          "stick",
+          "toggle"
+         ]
+        },
+        "label": {
+         "type": "string"
+        },
+        "action": {
+         "type": "string",
+         "enum": [
+          "shoot",
+          "boost",
+          "shield",
+          "blast",
+          "invisible",
+          "shapeshift",
+          "teleport",
+          "heal",
+          "jump",
+          "land",
+          "takeoff",
+          "scan",
+          "flare",
+          "drill",
+          "dig",
+          "drive",
+          "fly",
+          "swim",
+          "grapple",
+          "left",
+          "right",
+          "up",
+          "down",
+          "forward",
+          "back",
+          "strafeleft",
+          "straferight",
+          "rise",
+          "sink",
+          "steer",
+          "move",
+          "ready",
+          "view",
+          "none"
+         ]
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 1035,
+     "input_tokens_details": {
+      "cache_write_tokens": 1032,
+      "cached_tokens": 0
+     },
+     "output_tokens": 95,
+     "output_tokens_details": {
+      "reasoning_tokens": 73
+     },
+     "total_tokens": 1130
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "layout": {
+   "buttons": [
+    {
+     "type": "button",
+     "action": "dig",
+     "label": "DIG",
+     "x": 0.45,
+     "y": 0.1,
+     "w": 0.16,
+     "h": 0.3
+    }
+   ],
+   "source": "model"
+  }
+ },
+ "pass": true
+}

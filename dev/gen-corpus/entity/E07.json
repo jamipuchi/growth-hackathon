@@ -1,0 +1,20 @@
+{
+ "id": "E07",
+ "kind": "ship",
+ "source": "draw",
+ "desc": "fighter inside a shield bubble",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "shield"
+  ],
+  "ok": []
+ },
+ "size": [
+  512,
+  392
+ ],
+ "file": "entity/E07.png"
+}

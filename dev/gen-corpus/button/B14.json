@@ -1,0 +1,35 @@
+{
+ "id": "B14",
+ "kind": "button",
+ "source": "photo",
+ "desc": "photo: drill icon + DRILL (marker)",
+ "region": {
+  "x": 0.5,
+  "y": 0.05,
+  "w": 0.2,
+  "h": 0.4
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "drill",
+  "type": "button"
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "marker",
+  "rot": -4,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 3,
+ "size": [
+  512,
+  505
+ ],
+ "file": "button/B14.png"
+}

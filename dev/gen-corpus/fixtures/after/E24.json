@@ -1,0 +1,291 @@
+{
+ "id": "E24",
+ "file": "entity/E24.png",
+ "kind": "explorer",
+ "source": "draw",
+ "region": null,
+ "imageSha": "f2ffa813dfe51af50125dbd5981cd96cb2371de8",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 1600,
+    "format": "entity",
+    "detail": "low",
+    "promptSha": "54faedc4a16c",
+    "prompt": "You read a hand-drawn EXPLORER that walks or drives on a planet. type: person (a person, astronaut, or robot on two legs), car, bike (bicycle or motorbike), quadruped (any four-legged animal) or blob (anything else: blobs, snakes, birds, fish...).\nThe image is a finger drawing made on the phone screen.\nlooksLike: \"entity\" for any picture of a thing (a ship, rocket, vehicle, person, robot, animal, creature or object), even a rough one. \"controller\" ONLY if the drawing is a game-controller layout instead: joystick circles, D-pads, arrows, or boxes and circles labelled with action words (FIRE, BOOST, LAND, DIG...), with no vehicle or creature drawn. \"nothing\" if it is blank.\nparts: every distinct part that was deliberately drawn on it (cannon, exhaust flames, wheels, shovel, legs...), each with the centre of the part as x, y fractions of the image (origin top left). At most 12.\nSkills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still move). Part → skill: shoot: a gun, cannon or laser; boost: an exhaust with fire; shield: a shield or a bubble; dig: a shovel or claws; drill: a drill or a saw; jump: legs or springs; scan: an antenna, a radar dish or an eye; flare: a lamp or a torch; invisible: a cape or a ghost; heal: a red cross; blast: a bomb; teleport: a portal or a magic wand.\nHow parts look: a shovel, spade or big claws on the feet or hands → dig; a drill: any hand-held tool or front part ending in a cone or point with ridges, zigzag or spiral lines, even with a gun-like grip → drill; a gun or blaster with a straight barrel → shoot; a jetpack or exhaust with flames → boost; a torch or lamp with rays → flare; a shield → shield; an antenna or radar dish → scan; a red cross → heal. The eyes of a face and a helmet visor unlock nothing; wheels and legs are how it moves (no skill).\nBe generous: when a part is unclear or only roughly fits, unlock the closest skill. When a part could be either of two things, unlock BOTH skills: a pointed tool that could be a drill or a gun → drill and shoot; rays that could be a lamp's light or flames → flare and boost. Never unlock a skill with no part on the drawing that could mean it.\nverbs: the unlocked skills. unlocked: one entry per skill, with the part that unlocks it (its name as in parts)."
+   },
+   "status": 200,
+   "ms": 2107,
+   "error": null,
+   "response": {
+    "id": "resp_0c732a268f3ba3a7016ac962eb5bdc87d2bdd9d0f818c2d5ca",
+    "object": "response",
+    "created_at": 1791582955,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582957,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 1600,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "rs_0c732a268f3ba3a7016ac962ec4ae087d2915a28fcf9c46a0b",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqyWLt7Jze0SfJQwOt5jx7tzLPbnExEVUSB_8ow7Yp6PERtASN8_JuulIScseMBna-dzVnmzhsbJT5HrcgOfpGpcqCj2ukLNxHiLnQ-L9Kw_Ir1VTRHZTBdTzUg3WMUpa3mXehs8swQ49rglzysHSXkcdy5vVDW7tBEY2OLY_UO9GWIl8sI0DUZqQS9J0kS2lhITcbfSQ5CAneODTIqCl4SXvIlWXrrlZQfSlZCnqZCbn3jxW6CzmGAW9NnF9oUZZB8y58rqAmELZKTxwAGGSxrPBEobdj5ryHs3DXsT2kChgyD-lS4zwx44LEKQ7H1Fg2RwvQi8dAwrbcM3YQi647yHDAweONqonDbc54cptJLNNfRaLRF07Xx1TWWTtynv1V6de3O4sr5FlsXYT0AdYzXua1VBz6h8ShDEvR2gjWojIAhy8VfBsNOjLCmKLXHEJChkQusvh578-YR5ruXRCvtRuPH3vdmLQdC5htwIxCEYXhqinucrq5S70mSCxcwM84tiTH2Y97QdeEGiH29sd7nvPuMo7Pqz_K_gdGeOofEbfHMtYHdv_31PdKhkdwQV06U5H1tU6r8Ps1ECHKhcvW_yGGOrCZMVLLtSD53dymthh-pfQacIFUmnPEyVMyJiXTZsq0cPCqhUvFNkNk8Dsim75zupfyVCF2WoInpwq6mmnRtyQTJaGmFn22H7Viu-BbJeZkh7CX3PpTauGKodhEbvthROZ4KdXS8mupC5BrpUHe4YRce-Ea0Mh-pjG1q3MYQsbAo89NC8slr4kWGMPZH9sUjmdMpTFbNP0uom_O5C4CicekBL8xdxTZnco44ey8rIl1U4mnOPveBihlFf4qIkxl8_B_icfbGSWGApBGDrcIfX4ig9biVisxiqihiWwDrP67G0Jr4Sb702ypqCy_VnDHmc0VXi0Dfxi3PGQkzJmlbXV-xFQBxuaRJp8o7CwZwbJyD7XbHxvau8Xtw5HlfU8TMmMIQwTV8_yTA0o6oIbXe0yo__r1hzNGfYKEPfMcwcq-XFZYXaLMqoRROxwY4zCVdW6YQ_kGaMB9Wd23X-0TVAGU8ROymyLLOjLy_nHR5f4DZqVFkVYRRV_wOjWrb5bmlopp7UBvXNuJ2L2k98w_71p8qtbdrgnBaBzJmTG43bAE7aOlxKeVOb9cvqM7Vi8YRbVib8zrufcotlcdQmj4TCrCo0DAehkQzwTwqVB05zA7qfQ9mX4xW04uzc8H3sk995s5TLfvBF0cvi8f7TsIdftoWH1DCqSyT_G_bc3y7b04J2uUZevLd-4m9jR1A0h3vP13Bb8tiNA_EecRBsJBWFgbcDBQ1FsM3SDoJGwOFTRJb6za9Ctob4X1Eb6P7dB1edxZfwuOYLxcbPza7T5omE6WdB7VytecAPiMJYEGvafyVR_KLMrLZYr38QU15a2uc13Buku4febl-jv7VywUcKr9Z7NCjQW6RDqSKX63hJ3IiYEvEcmVXuWljxVCVQsf9HRUcbnEisrsUzOc16M_L2z389TRqkOG7YbBENtUDWAhbByDf-UQdZj_aRoTIjXudic0TpX3eTY3AXGZgxhn_OoNh5n06D-LxHYmx4hpdAOGti526rrQ3PEYvunZnlpwjKWqztTJOGaKG3OP2ryEWWm9C2jYaX8vc4xoPAp48QnShZATTkTASKZ-rU-KEYbI6egp9j4uMAvelosiBuA0wuLPJpSSwUUgTCcZM6y58h5mOG_PTmVsFuu8D3s5HwPFjlK0eMqpftzbE5UT9BQJh0sPm-REn05jgcNftdANR2yU",
+      "summary": []
+     },
+     {
+      "id": "msg_0c732a268f3ba3a7016ac962ec802887d2b98a2cb8359cf4b1",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"looksLike\":\"entity\",\"type\":\"car\",\"parts\":[{\"name\":\"body\",\"x\":0.432,\"y\":0.544},{\"name\":\"cabin\",\"x\":0.439,\"y\":0.234},{\"name\":\"rear wheel\",\"x\":0.209,\"y\":0.734},{\"name\":\"front wheel\",\"x\":0.647,\"y\":0.734},{\"name\":\"pointed drill or gun\",\"x\":0.893,\"y\":0.519}],\"verbs\":[\"drill\",\"shoot\"],\"unlocked\":[{\"verb\":\"drill\",\"part\":\"pointed drill or gun\"},{\"verb\":\"shoot\",\"part\":\"pointed drill or gun\"}]}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "entity",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "looksLike",
+        "type",
+        "parts",
+        "verbs",
+        "unlocked"
+       ],
+       "properties": {
+        "looksLike": {
+         "type": "string",
+         "enum": [
+          "controller",
+          "entity",
+          "nothing"
+         ]
+        },
+        "type": {
+         "type": "string",
+         "enum": [
+          "person",
+          "car",
+          "bike",
+          "quadruped",
+          "blob"
+         ]
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "name",
+           "x",
+           "y"
+          ],
+          "properties": {
+           "name": {
+            "type": "string"
+           },
+           "x": {
+            "type": "number"
+           },
+           "y": {
+            "type": "number"
+           }
+          }
+         }
+        },
+        "verbs": {
+         "type": "array",
+         "items": {
+          "type": "string",
+          "enum": [
+           "shoot",
+           "boost",
+           "shield",
+           "dig",
+           "drill",
+           "jump",
+           "scan",
+           "flare",
+           "invisible",
+           "heal",
+           "blast",
+           "teleport"
+          ]
+         }
+        },
+        "unlocked": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "verb",
+           "part"
+          ],
+          "properties": {
+           "verb": {
+            "type": "string",
+            "enum": [
+             "shoot",
+             "boost",
+             "shield",
+             "dig",
+             "drill",
+             "jump",
+             "scan",
+             "flare",
+             "invisible",
+             "heal",
+             "blast",
+             "teleport"
+            ]
+           },
+           "part": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 918,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+     },
+     "output_tokens": 175,
+     "output_tokens_details": {
+      "reasoning_tokens": 27
+     },
+     "total_tokens": 1093
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "entity": {
+   "type": "car",
+   "verbs": [
+    "shoot",
+    "drill",
+    "drive",
+    "takeoff"
+   ],
+   "unlocked": [
+    {
+     "verb": "drill",
+     "part": "pointed drill or gun"
+    },
+    {
+     "verb": "shoot",
+     "part": "pointed drill or gun"
+    }
+   ],
+   "parts": [
+    {
+     "name": "body",
+     "x": 0.432,
+     "y": 0.544
+    },
+    {
+     "name": "cabin",
+     "x": 0.439,
+     "y": 0.234
+    },
+    {
+     "name": "rear wheel",
+     "x": 0.209,
+     "y": 0.734
+    },
+    {
+     "name": "front wheel",
+     "x": 0.647,
+     "y": 0.734
+    },
+    {
+     "name": "pointed drill or gun",
+     "x": 0.893,
+     "y": 0.519
+    }
+   ],
+   "source": "model"
+  },
+  "looksLike": "entity"
+ },
+ "pass": true
+}

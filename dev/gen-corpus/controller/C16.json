@@ -1,0 +1,58 @@
+{
+ "id": "C16",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "plus sign (heal), BOMB, WARP, stick",
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0585,
+    "y": 0.3617,
+    "w": 0.2412,
+    "h": 0.4784
+   }
+  },
+  {
+   "type": "button",
+   "action": "heal",
+   "label": "",
+   "icon": "cross",
+   "rect": {
+    "x": 0.5002,
+    "y": 0.5794,
+    "w": 0.1588,
+    "h": 0.3196
+   }
+  },
+  {
+   "type": "button",
+   "action": "blast",
+   "label": "BOMB",
+   "rect": {
+    "x": 0.7386,
+    "y": 0.5363,
+    "w": 0.2123,
+    "h": 0.3075
+   }
+  },
+  {
+   "type": "button",
+   "action": "teleport",
+   "label": "WARP",
+   "rect": {
+    "x": 0.6995,
+    "y": 0.0952,
+    "w": 0.2226,
+    "h": 0.2682
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C16.png"
+}

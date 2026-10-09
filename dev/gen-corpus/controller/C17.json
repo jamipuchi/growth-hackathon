@@ -1,0 +1,57 @@
+{
+ "id": "C17",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "LEFT, RIGHT, THRUST and FIRE words in boxes, no stick",
+ "controls": [
+  {
+   "type": "button",
+   "action": "left",
+   "label": "LEFT",
+   "rect": {
+    "x": 0.0384,
+    "y": 0.598,
+    "w": 0.2038,
+    "h": 0.264
+   }
+  },
+  {
+   "type": "button",
+   "action": "right",
+   "label": "RIGHT",
+   "rect": {
+    "x": 0.2793,
+    "y": 0.5975,
+    "w": 0.2199,
+    "h": 0.2667
+   }
+  },
+  {
+   "type": "button",
+   "action": "forward",
+   "label": "THRUST",
+   "rect": {
+    "x": 0.1492,
+    "y": 0.1565,
+    "w": 0.261,
+    "h": 0.2655
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.7497,
+    "y": 0.4975,
+    "w": 0.2016,
+    "h": 0.3451
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C17.png"
+}

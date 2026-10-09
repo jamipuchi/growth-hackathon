@@ -1,0 +1,35 @@
+{
+ "id": "B18",
+ "kind": "button",
+ "source": "photo",
+ "desc": "photo of the whole page: stick, FIRE, BOOST and the new LAND box",
+ "region": {
+  "x": 0.62,
+  "y": 0.08,
+  "w": 0.2,
+  "h": 0.28
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "land",
+  "type": "button"
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": -2,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "size": [
+  512,
+  269
+ ],
+ "file": "button/B18.png"
+}

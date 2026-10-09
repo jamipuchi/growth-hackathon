@@ -1,0 +1,268 @@
+{
+ "id": "E06",
+ "file": "entity/E06.png",
+ "kind": "ship",
+ "source": "draw",
+ "region": null,
+ "imageSha": "61c3bf48472964058fbae6577d89e1d2ebb0a882",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 500,
+    "format": "entity",
+    "detail": "low",
+    "promptSha": "833381ec03ca",
+    "prompt": "You read a hand-drawn SPACESHIP for a party game. type is always \"ship\".\nThe image is a finger drawing made on the phone screen.\nparts: every distinct part that was deliberately drawn on it (cannon, exhaust flames, wheels, shovel, legs...), each with the centre of the part as x, y fractions of the image (origin top left). At most 12.\nSkills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still move). Part → skill: shoot: a gun, cannon or laser; boost: an exhaust with fire; shield: a shield or a bubble; drill: a drill or a saw; land: landing legs or a parachute; scan: an antenna, a radar dish or an eye; flare: a lamp or a torch; invisible: a cape or a ghost; heal: a red cross; blast: a bomb; teleport: a portal or a magic wand.\nBe generous: when a part is unclear or only roughly fits, unlock the closest skill. Never unlock a skill with no part on the drawing that could mean it.\nverbs: the unlocked skills. unlocked: one entry per skill, with the part that unlocks it (its name as in parts)."
+   },
+   "status": 200,
+   "ms": 1656,
+   "error": null,
+   "response": {
+    "id": "resp_0ba6dc955c2885dc016ac961713a0087d2a10d3ba3192453bd",
+    "object": "response",
+    "created_at": 1791582577,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582578,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 500,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "rs_0ba6dc955c2885dc016ac96171ca4c87d2b9dac4fb8251f46b",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqyWFy0PSUpyAMgcRU8kvMJJ_Y2H9lB-Zb5HPo3uQS1phqvbfikH4ENBKQflE8cZcmaVa95TzkDrCrUpTmZ-WzS63W1cNq0meWPhEBlwycPLymwcePVHlZo_VQffOvPOP5B5FB5SEWM4TG5UxQi9UocI4tomUkSjbaOhf7YOMBZ7syuNowWARe4AW-LRqix33H3MZMd8VgHS7XKdHgTHnTYUfwmpM2B7tlsE2LF6I1ZOgH_g4Kp8aJLdUd3uV1ccafkm3qWjWKf8KbNpdzCEth4tqugUIOpd1Lf_qntlq3_5vRNRyPINfZjQ2yXO6JyCf5CB-Dje1CoN5zccMdiLNy7aZIVtMqcm0djq6C2hGynuPAtbAAs0Ml216NQFWdHYVJuGvU1Ig_NyV9593bcCTLv6eiH9t8GPkuGoX2v75LnU38UBNe7RJ_QkWrl2VzM9ZOoxaNJvqLrEpCoclnFT1AWnCsZ_DdA75va9r-uFI-K0WZAs1zOjT7sQ0DiN6VlpqTbJSJ7QEWaKggwg9kuODEiplXJHuPqCLcvyRYb_ZOMM-tgcfxreQ__gbL86z1AVRrCqjv6krzCaE3lqr2lvVxR5UepYzQ9y33KhxasG5JU6G7vJvaTUqz6vHZVo0RUOLHFHlHuyy8fpBfeSila2-PrPyoHfB6fPpS-eddFhCmd-bb2rsidE3Fi3ScZDmE2IppDCqlPTut8QE2kZ8oy4l6UnYKgQ8B3dud4J5_q_E5uMxl3Zd6Xlrn0fMsvbC5iSUioxnpOJRdJtVUikAS4Vqnb7mYsQ_V-NhlSyp4ucWgrjiaBHHQny9AvfVc7wI7gELSW-yp_vBQjRjySXYIumy_Q-lbkmp-284bQ2G3Tbvr36ldjF2-ifclSk3LolAWZ65P5B1Lml7_O63FAHvMxcB2R-YXDUqAZ_hYL4clZgNLN7e0PUTgfE9QUj-8N80xLcEnIJZylDsCtX0CJsWGpJMwmGxds-RDWFWXFhab-Fl1h13DGwiB7jnN0T9N-7LGJWym4LgxDMkctVRqPr002xj_jWTcg2WJzaFiIiycjAXdkS95onDP15WakVGARHtHvLCMFoKHB8d53gSGKkeVN0Mn3O6uqjwkuPqcjjHN-DWPbvzrcyoWtVYoulTGcK1Ju8K7S4jx_EN6zLyye1o6Sb_QuZ0DAT0V0Bi0r4NrEvnEd0k6oKaqcoCk3ZLhnZPB22bPm2bS7atMovbvId91pfOO-JVYEoADZwYaOriGhCbeNzy_Qt5Uv4QJL8ShT8g4XXW4gWtzyZWBXKEUjs7E9Hvx-SHTgt8negYlEFEKWr271VVdS_PebuvND_tX310GI1VmK-Q-wOp8JLn8axHM2fq5HMapnGU0AYJrS8n0Yxk_dep9eXY1pXKRmGrNEHkZaZSd6C2SL894LhvCNyNzH1WLLqen8Y2-mcwwFD2b5RwKVdxr0jP4GlI2wDKUJxOaHuvEkVt3GxgPkifdQZBNkNYdRzHIYkd1M5pCdsAbObF5l-7bVS6VBQMNMrKMTwBRPDCcW8HdSVvCIzVY6YNpqYxG4LDmpdaMXuCJcNirU-CkkqKBYjfVINeVB1VsLaq6NsQaKZ9SS3CpLhza2drp5pnF8NehItB0JHMduJigw8MPxywV_PKN-z3H9dXZFvEhXl1URQrr-JGDHsuBQmwvw_fCjJp8DJuAvixijehVNg6ubj9zJh5ws0Qe5uEdYXKObPPhl1gpqOv4Gk7HEsugGiHJeUxmR7lhXYu8xDLFqK498AdEfGrLRmFGMaLb3U_lfqzlT29_A5BO9A88s946KHBmnxBdcCcCa5K_sab1Jy2roaVXcdlgzYr1HweyZ6qrsXspCOy49F8BB6V45qiIGU8QLEKzooVFVYN_yp0EjFpQR2FUXBw9GVRKVDXTwB6VuoKcCqeF_WeETzkkIihMbZm0wMsjNLXkgeAQr7NTM9Cb0OFlBNxCPKiAST1tcia1NyPt6YIcY5A10Mi3qyTCN-nGxVHYvTGVjGNW0NgjHuvm74VEGYZDfLb51jWBx7KExtqUmQ4d694BxEYF8Nyw9p-YEEvTlDAzrwlQllg90EeNZlFf2KV8YGJmWvgZuZIvsOkTH1rtr-6D3gyEytU7h14cxEQ_5Q==",
+      "summary": []
+     },
+     {
+      "id": "msg_0ba6dc955c2885dc016ac961722b7c87d2a429bde9a1777756",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"type\":\"ship\",\"parts\":[{\"name\":\"hull\",\"x\":0.416,\"y\":0.514},{\"name\":\"upper fin\",\"x\":0.236,\"y\":0.237},{\"name\":\"lower fin\",\"x\":0.269,\"y\":0.806},{\"name\":\"cockpit\",\"x\":0.598,\"y\":0.369},{\"name\":\"forward laser cannon\",\"x\":0.883,\"y\":0.529}],\"verbs\":[\"shoot\"],\"unlocked\":[{\"verb\":\"shoot\",\"part\":\"forward laser cannon\"}]}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "entity",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "type",
+        "parts",
+        "verbs",
+        "unlocked"
+       ],
+       "properties": {
+        "type": {
+         "type": "string",
+         "enum": [
+          "ship"
+         ]
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "name",
+           "x",
+           "y"
+          ],
+          "properties": {
+           "name": {
+            "type": "string"
+           },
+           "x": {
+            "type": "number"
+           },
+           "y": {
+            "type": "number"
+           }
+          }
+         }
+        },
+        "verbs": {
+         "type": "array",
+         "items": {
+          "type": "string",
+          "enum": [
+           "shoot",
+           "boost",
+           "shield",
+           "drill",
+           "land",
+           "scan",
+           "flare",
+           "invisible",
+           "heal",
+           "blast",
+           "teleport"
+          ]
+         }
+        },
+        "unlocked": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "verb",
+           "part"
+          ],
+          "properties": {
+           "verb": {
+            "type": "string",
+            "enum": [
+             "shoot",
+             "boost",
+             "shield",
+             "drill",
+             "land",
+             "scan",
+             "flare",
+             "invisible",
+             "heal",
+             "blast",
+             "teleport"
+            ]
+           },
+           "part": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 613,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+     },
+     "output_tokens": 176,
+     "output_tokens_details": {
+      "reasoning_tokens": 52
+     },
+     "total_tokens": 789
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "entity": {
+   "type": "ship",
+   "verbs": [
+    "shoot"
+   ],
+   "unlocked": [
+    {
+     "verb": "shoot",
+     "part": "forward laser cannon"
+    }
+   ],
+   "parts": [
+    {
+     "name": "hull",
+     "x": 0.416,
+     "y": 0.514
+    },
+    {
+     "name": "upper fin",
+     "x": 0.236,
+     "y": 0.237
+    },
+    {
+     "name": "lower fin",
+     "x": 0.269,
+     "y": 0.806
+    },
+    {
+     "name": "cockpit",
+     "x": 0.598,
+     "y": 0.369
+    },
+    {
+     "name": "forward laser cannon",
+     "x": 0.883,
+     "y": 0.529
+    }
+   ],
+   "source": "model"
+  }
+ },
+ "pass": false
+}

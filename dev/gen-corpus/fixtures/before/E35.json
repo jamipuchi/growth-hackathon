@@ -1,0 +1,300 @@
+{
+ "id": "E35",
+ "file": "entity/E35.png",
+ "kind": "explorer",
+ "source": "photo",
+ "region": null,
+ "imageSha": "ce223fd6ad09f673712217a15e7781f5a55bf6ad",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 500,
+    "format": "entity",
+    "detail": "low",
+    "promptSha": "5a479905761a",
+    "prompt": "You read a hand-drawn EXPLORER that walks or drives on a planet. type: person (a person, astronaut, robot on legs), car, bike, quadruped (any four-legged animal) or blob (anything else).\nThe image is usually a PHOTO of a notebook page, cropped to the drawing. Ignore paper lines, grids, shadows and fingers.\nparts: every distinct part that was deliberately drawn on it (cannon, exhaust flames, wheels, shovel, legs...), each with the centre of the part as x, y fractions of the image (origin top left). At most 12.\nSkills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still move). Part → skill: shoot: a gun, cannon or laser; boost: an exhaust with fire; shield: a shield or a bubble; dig: a shovel or claws; drill: a drill or a saw; jump: legs or springs; scan: an antenna, a radar dish or an eye; flare: a lamp or a torch; invisible: a cape or a ghost; heal: a red cross; blast: a bomb; teleport: a portal or a magic wand.\nBe generous: when a part is unclear or only roughly fits, unlock the closest skill. Never unlock a skill with no part on the drawing that could mean it.\nverbs: the unlocked skills. unlocked: one entry per skill, with the part that unlocks it (its name as in parts)."
+   },
+   "status": 200,
+   "ms": 2366,
+   "error": null,
+   "response": {
+    "id": "resp_037e8d3aa572b7d7016ac96179ce8487d29d34235510672ff2",
+    "object": "response",
+    "created_at": 1791582585,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582587,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 500,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "rs_037e8d3aa572b7d7016ac9617a7a5087d2ae314d9fcdc7b744",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqyWF7JURu9dIffhWMHiTazlq0FizuRGr8PSk-IvFSsNOGq5r12pSKwKOW4qbGzA6GbFk17A9fCyuM98_KchEz5tqVgSQx1A_x9sSulRiu8ESv0ZiAMAR00YHHQRj5qeSw2xy_Pv2g_Yz1OIRnK-FoauIx4_GPBZViVWzrfw2a_a748YXaBfzGc3WgsIVgz3J8VeMmLlLGq8g_eS8j7bXWtOIRbnTime8AUmKoPVO9gbLW7miBrwDjmDv3vUnWe0ndBTQZ1mAzE2YWAovHRvxeTG5TmZ5t1vDNUDABIKLkx91cI9pxxVA7x-dPZYb7MXB8xCaBD-_9bQ32fIsxo2EdNAJNGm0J8ZkqcjPpJzUbC9rmAIt40pRHPuJw9FNdYr8h_VZv0EsD3R413yRD2NR6NxnxZUwydrhxiALKfNE-325IRvKlp3Ing8lzwlUxojM7cA-4TWHyFxBY5FN0jhxyLJ5sty7OgYxOr21uq8VImVdlaPUJAWGMGypmsJ5Rg8Vu4d6tuWF_0pfuQ5P6ARmPvRQ7SIdq3xcFVldbUB_2FcQXGUMp-1J80QjAv-p22gUgE0EdB_KFRxpXBZNfzdFcb-vou3PpQLtjchOrQUJv5-oI8O2IfwmS2VO-3SmUGXdYiOKW3qP8_ih2TnE2u6lkN1WpW_X-BRm1cw-E6GWYSh173Htpmq06RuHVPZ8a8t2_W8l6S7dQTWpPuyoVexmhGWNY8BjDfCONq-3MnHmX3jnUDsBpj9Zr8u65x46lH4c8jGWEKpOrwot3LSqCI2coGjC1STIshtHR64QZywqzK1AE8-PnJoGL3V3Dir_bbVGcJlLO_UrO6l1BDSw44YHKNV4EL1QnDecA7EUu6a7yRf4EZx6CLZGgnVF6Z_omN6UimWsERhr_vpQBJLQGaEp3GVYF9PLuNnsPYIj7CxoHu4mimhh3ie7j7UwaSXjTLXQo-gfJbiBvF1vFBtOOLoC1krwkjJPJ1PWdk7gztkUhdRVT2V_LMl3YKF5_xg1FKTP-Jjv1dlH8h2ludqdf46mtalY9FV5R9KWZ1a1-ti_GJZL8r2TR6vycl8ttYAM-fxFAOhWL4lZxU_7m_D_-AuwJI3e6CoZg-7HmaEadLmvjv4ZQR-Ou-_aSN3nuMWiR-d5oHzV6iIaxgf_UrhyqeODs5YBMAY_xVhJ5E3jO-Nm3QLE7qNWM9CIkUfUYcHgYg9LFZHBKrb918XxDKszu7TQOhOALU-gKleYzipElg-pVBxnZNtX32C_vkiv4KF-6U5aR8GCZ_je0MMhLMowKXllnB-5R6kgSxj6AgRgJC-VDOIWCLui3Aq5eB_0wJ7tYYuxEbaa-WyC_IJvnFhmplplfeLiUNFUaNnVqgzs0QpuTl3o57va6gCFSiu73R2n0_CoWgIGZ3FLV2EVe8aeOIUUHCSrqmFFlQhLehfti-diiA99rL9GUTYckUYZh_fIMzYgPrCxCf-SBSaLwVUYWtNuVLjL23Jtv2IoLMcQ67BIdGHGvZUVfYbpOEgmY1J_sfeXsxdxrI-vl3OzakndpSWvMh7Gg6Q7Goun7yM9rQBObv_q2E4QOVSQzWaB17Yr4pFodM1uRG1xbszfS4UPeHKya_znycxB0i_4FcyDUyGT1m57r7vVCcq3gh30nYVQT4wZlQsqGdXhNGhSdpoY4S1u2a-4ARRxK_P9dYEt39rplWhseB-39WBxLzSmkIgkhcpYSV84txZr0yZoZmFmpAxiPCRVU4PNrbtOv3_TfXpvHoU8rLsyx3dkogBgh22NUl3BWxdxkJkIfm5jM1ccFs5quvLmvvwWDTx4sRxYnfh9ai1N-9ltzhEaOJTlvBwKjUgcbpfjFOLMhNLfyP_I-UY7LSMx4ulgxHuknybniOCVWVudWY_fEnKGtERhM299XL5eGJWN5u9BYAtrWZM6MliYqpzazK9y63Ybw4oLSlfumPbFk8yIV7tcIYy5sV9QS7JNx8RLv0T4UCjl54kbvxAZUnIrrqZvkej_-Y4yM12NvKrwrag3hY5aNRWD_iARA9_iJ9wWPDDJO8ZE1AZoB27L-zHdjNzPxVRYNuq7wpTVxih6kSx1SdYn6_W0xQmUEF0yeqEZppzv4-sxXCQCRgczXHaVppnSqwWi1h_WRrOl_EhtwsiSQBhl6KPu0C2takYM74OXEs0rAxcGmSPWcAYnJ70ITYGLEwO2jQTHDuQxzld0sDGeYeIF7HFHw7eTMGn0f0ghjgaWaQPJmWxIfRaoJHt_RjxZB7JUhNp8isVI8rS90NN-hKd2QsVMNnvNgjENorYi1VNmqFXyhfYJnONLlP6rJZhJSk3dmNNybAwyTKk_FVAlDuqtDAL-4_l8ryal5f67DXRTktT_O_vZRwTR9_jDRm8UKVjmWPV5NqB1MdGgz1ZwKi3rbseP0mGdVMKW2IdG6cGdToLaQoBZcrb2OSCpFMfLqdK8MIcx6Iw8ruxBjydwwSnwV9p_6H9ttZ7diSukojaL3glCbcoLRvae1H6zYEyGgRC9KOJ8VNEu0-UEIFMZ5T96CkGQYGgEK-rXwoTtGN7dP6EHPCbewDhjmW6CI1K45C99fGidTIkgH5vK1s1YgyRxLbttP_wn-esiVHdHBCp2EkLpu12wDOJwqJmQIF6vN0eg2y_K64oP7N-Hmw8s3Txrn2S8ELVKxC9SkcFj32issry_LOkK_StBpAVLzng==",
+      "summary": []
+     },
+     {
+      "id": "msg_037e8d3aa572b7d7016ac9617b090887d2bf89ff92aeb1f904",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"type\":\"person\",\"parts\":[{\"name\":\"head\",\"x\":0.163,\"y\":0.449},{\"name\":\"visor\",\"x\":0.173,\"y\":0.451},{\"name\":\"body\",\"x\":0.45,\"y\":0.437},{\"name\":\"upper arm\",\"x\":0.435,\"y\":0.16},{\"name\":\"lower arm\",\"x\":0.447,\"y\":0.713},{\"name\":\"upper leg\",\"x\":0.783,\"y\":0.266},{\"name\":\"lower leg\",\"x\":0.787,\"y\":0.558},{\"name\":\"cross-marked shield\",\"x\":0.56,\"y\":0.82}],\"verbs\":[\"shield\",\"jump\",\"scan\"],\"unlocked\":[{\"verb\":\"shield\",\"part\":\"cross-marked shield\"},{\"verb\":\"jump\",\"part\":\"upper leg\"},{\"verb\":\"scan\",\"part\":\"visor\"}]}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "entity",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "type",
+        "parts",
+        "verbs",
+        "unlocked"
+       ],
+       "properties": {
+        "type": {
+         "type": "string",
+         "enum": [
+          "person",
+          "car",
+          "bike",
+          "quadruped",
+          "blob"
+         ]
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "name",
+           "x",
+           "y"
+          ],
+          "properties": {
+           "name": {
+            "type": "string"
+           },
+           "x": {
+            "type": "number"
+           },
+           "y": {
+            "type": "number"
+           }
+          }
+         }
+        },
+        "verbs": {
+         "type": "array",
+         "items": {
+          "type": "string",
+          "enum": [
+           "shoot",
+           "boost",
+           "shield",
+           "dig",
+           "drill",
+           "jump",
+           "scan",
+           "flare",
+           "invisible",
+           "heal",
+           "blast",
+           "teleport"
+          ]
+         }
+        },
+        "unlocked": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "verb",
+           "part"
+          ],
+          "properties": {
+           "verb": {
+            "type": "string",
+            "enum": [
+             "shoot",
+             "boost",
+             "shield",
+             "dig",
+             "drill",
+             "jump",
+             "scan",
+             "flare",
+             "invisible",
+             "heal",
+             "blast",
+             "teleport"
+            ]
+           },
+           "part": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 712,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+     },
+     "output_tokens": 288,
+     "output_tokens_details": {
+      "reasoning_tokens": 93
+     },
+     "total_tokens": 1000
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "entity": {
+   "type": "person",
+   "verbs": [
+    "shield",
+    "jump",
+    "scan",
+    "takeoff"
+   ],
+   "unlocked": [
+    {
+     "verb": "shield",
+     "part": "cross-marked shield"
+    },
+    {
+     "verb": "jump",
+     "part": "upper leg"
+    },
+    {
+     "verb": "scan",
+     "part": "visor"
+    }
+   ],
+   "parts": [
+    {
+     "name": "head",
+     "x": 0.163,
+     "y": 0.449
+    },
+    {
+     "name": "visor",
+     "x": 0.173,
+     "y": 0.451
+    },
+    {
+     "name": "body",
+     "x": 0.45,
+     "y": 0.437
+    },
+    {
+     "name": "upper arm",
+     "x": 0.435,
+     "y": 0.16
+    },
+    {
+     "name": "lower arm",
+     "x": 0.447,
+     "y": 0.713
+    },
+    {
+     "name": "upper leg",
+     "x": 0.783,
+     "y": 0.266
+    },
+    {
+     "name": "lower leg",
+     "x": 0.787,
+     "y": 0.558
+    },
+    {
+     "name": "cross-marked shield",
+     "x": 0.56,
+     "y": 0.82
+    }
+   ],
+   "source": "model"
+  }
+ },
+ "pass": true
+}

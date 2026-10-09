@@ -1,0 +1,66 @@
+{
+ "id": "C30",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: planet controller DIG, JUMP, DRILL",
+ "photo": {
+  "paper": "grid",
+  "pen": "pen",
+  "rot": 0,
+  "keystone": 0,
+  "shadow": 0.4,
+  "thumb": null
+ },
+ "turns": 0,
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0389,
+    "y": 0.3729,
+    "w": 0.261,
+    "h": 0.5319
+   }
+  },
+  {
+   "type": "button",
+   "action": "dig",
+   "label": "DIG",
+   "rect": {
+    "x": 0.7511,
+    "y": 0.5723,
+    "w": 0.2114,
+    "h": 0.3257
+   }
+  },
+  {
+   "type": "button",
+   "action": "jump",
+   "label": "JUMP",
+   "rect": {
+    "x": 0.4905,
+    "y": 0.6377,
+    "w": 0.2096,
+    "h": 0.2833
+   }
+  },
+  {
+   "type": "button",
+   "action": "drill",
+   "label": "DRILL",
+   "rect": {
+    "x": 0.7312,
+    "y": 0.0809,
+    "w": 0.2306,
+    "h": 0.2842
+   }
+  }
+ ],
+ "size": [
+  512,
+  250
+ ],
+ "file": "controller/C30.png"
+}

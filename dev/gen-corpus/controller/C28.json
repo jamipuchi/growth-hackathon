@@ -1,0 +1,55 @@
+{
+ "id": "C28",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: messy writing, label arrow to a circle",
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": -2,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0359,
+    "y": 0.1985,
+    "w": 0.2775,
+    "h": 0.6768
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.7705,
+    "y": 0.3932,
+    "w": 0.1935,
+    "h": 0.4526
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "BOOST",
+   "rect": {
+    "x": 0.4656,
+    "y": 0.5331,
+    "w": 0.2215,
+    "h": 0.3798
+   }
+  }
+ ],
+ "size": [
+  512,
+  209
+ ],
+ "file": "controller/C28.png"
+}

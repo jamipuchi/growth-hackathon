@@ -1,0 +1,26 @@
+{
+ "id": "B05",
+ "kind": "button",
+ "source": "draw",
+ "desc": "shovel icon only",
+ "region": {
+  "x": 0.3,
+  "y": 0.08,
+  "w": 0.16,
+  "h": 0.32
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "dig",
+  "type": "button"
+ },
+ "size": [
+  512,
+  511
+ ],
+ "file": "button/B05.png"
+}

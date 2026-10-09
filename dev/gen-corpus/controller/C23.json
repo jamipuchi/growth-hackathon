@@ -1,0 +1,66 @@
+{
+ "id": "C23",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: lowercase fire, boost, shield (perspective)",
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": -2,
+  "keystone": 0.09,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0406,
+    "y": 0.5846,
+    "w": 0.2169,
+    "h": 0.355
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "fire",
+   "rect": {
+    "x": 0.6172,
+    "y": 0.67,
+    "w": 0.1849,
+    "h": 0.2182
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "boost",
+   "rect": {
+    "x": 0.4048,
+    "y": 0.7487,
+    "w": 0.1824,
+    "h": 0.1942
+   }
+  },
+  {
+   "type": "button",
+   "action": "shield",
+   "label": "shield",
+   "rect": {
+    "x": 0.591,
+    "y": 0.3902,
+    "w": 0.1955,
+    "h": 0.1863
+   }
+  }
+ ],
+ "size": [
+  512,
+  333
+ ],
+ "file": "controller/C23.png"
+}

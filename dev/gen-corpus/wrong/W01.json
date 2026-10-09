@@ -1,0 +1,14 @@
+{
+ "id": "W01",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "fighter with flames and cannon, drawn in the controller step",
+ "wrong": {
+  "looksLike": "entity"
+ },
+ "size": [
+  512,
+  256
+ ],
+ "file": "wrong/W01.png"
+}

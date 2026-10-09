@@ -1,0 +1,110 @@
+{
+ "id": "C27",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: stick plus seven boxes (perspective, thumb)",
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": 2,
+  "keystone": 0.07,
+  "shadow": 0.25,
+  "thumb": "right"
+ },
+ "turns": 0,
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0336,
+    "y": 0.3683,
+    "w": 0.2332,
+    "h": 0.4499
+   }
+  },
+  {
+   "type": "button",
+   "action": "scan",
+   "label": "SCAN",
+   "rect": {
+    "x": 0.339,
+    "y": 0.0778,
+    "w": 0.1855,
+    "h": 0.2131
+   }
+  },
+  {
+   "type": "button",
+   "action": "land",
+   "label": "LAND",
+   "rect": {
+    "x": 0.5484,
+    "y": 0.0949,
+    "w": 0.1839,
+    "h": 0.2098
+   }
+  },
+  {
+   "type": "button",
+   "action": "drill",
+   "label": "DRILL",
+   "rect": {
+    "x": 0.7594,
+    "y": 0.1101,
+    "w": 0.2023,
+    "h": 0.2088
+   }
+  },
+  {
+   "type": "button",
+   "action": "flare",
+   "label": "FLARE",
+   "rect": {
+    "x": 0.3245,
+    "y": 0.6213,
+    "w": 0.1908,
+    "h": 0.257
+   }
+  },
+  {
+   "type": "button",
+   "action": "shield",
+   "label": "SHIELD",
+   "rect": {
+    "x": 0.5389,
+    "y": 0.6326,
+    "w": 0.1981,
+    "h": 0.2607
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.7628,
+    "y": 0.6114,
+    "w": 0.1966,
+    "h": 0.3152
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "BOOST",
+   "rect": {
+    "x": 0.5442,
+    "y": 0.3616,
+    "w": 0.1959,
+    "h": 0.2131
+   }
+  }
+ ],
+ "size": [
+  512,
+  270
+ ],
+ "file": "controller/C27.png"
+}

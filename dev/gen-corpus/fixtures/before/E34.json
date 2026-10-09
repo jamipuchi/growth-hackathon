@@ -1,0 +1,313 @@
+{
+ "id": "E34",
+ "file": "entity/E34.png",
+ "kind": "explorer",
+ "source": "photo",
+ "region": null,
+ "imageSha": "fc0133dc5c537693bb6c784fdcc5de9dff5d1efd",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 500,
+    "format": "entity",
+    "detail": "low",
+    "promptSha": "5a479905761a",
+    "prompt": "You read a hand-drawn EXPLORER that walks or drives on a planet. type: person (a person, astronaut, robot on legs), car, bike, quadruped (any four-legged animal) or blob (anything else).\nThe image is usually a PHOTO of a notebook page, cropped to the drawing. Ignore paper lines, grids, shadows and fingers.\nparts: every distinct part that was deliberately drawn on it (cannon, exhaust flames, wheels, shovel, legs...), each with the centre of the part as x, y fractions of the image (origin top left). At most 12.\nSkills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still move). Part → skill: shoot: a gun, cannon or laser; boost: an exhaust with fire; shield: a shield or a bubble; dig: a shovel or claws; drill: a drill or a saw; jump: legs or springs; scan: an antenna, a radar dish or an eye; flare: a lamp or a torch; invisible: a cape or a ghost; heal: a red cross; blast: a bomb; teleport: a portal or a magic wand.\nBe generous: when a part is unclear or only roughly fits, unlock the closest skill. Never unlock a skill with no part on the drawing that could mean it.\nverbs: the unlocked skills. unlocked: one entry per skill, with the part that unlocks it (its name as in parts)."
+   },
+   "status": 200,
+   "ms": 2117,
+   "error": null,
+   "response": {
+    "id": "resp_01e66c80322f2baa016ac961798a3487d28b396de3b640b029",
+    "object": "response",
+    "created_at": 1791582585,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582587,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 500,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "msg_01e66c80322f2baa016ac9617a553087d2aef529a1b4c3a74f",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"type\":\"quadruped\",\"parts\":[{\"name\":\"body\",\"x\":0.453,\"y\":0.455},{\"name\":\"head\",\"x\":0.848,\"y\":0.257},{\"name\":\"eye\",\"x\":0.878,\"y\":0.237},{\"name\":\"horn\",\"x\":0.81,\"y\":0.102},{\"name\":\"neck\",\"x\":0.705,\"y\":0.376},{\"name\":\"tail\",\"x\":0.096,\"y\":0.289},{\"name\":\"rear leg left\",\"x\":0.226,\"y\":0.736},{\"name\":\"rear leg right\",\"x\":0.325,\"y\":0.736},{\"name\":\"front leg left\",\"x\":0.581,\"y\":0.738},{\"name\":\"front leg right\",\"x\":0.685,\"y\":0.738},{\"name\":\"left claws\",\"x\":0.608,\"y\":0.918},{\"name\":\"right claws\",\"x\":0.72,\"y\":0.918}],\"verbs\":[\"jump\",\"scan\",\"dig\"],\"unlocked\":[{\"verb\":\"jump\",\"part\":\"front leg left\"},{\"verb\":\"scan\",\"part\":\"eye\"},{\"verb\":\"dig\",\"part\":\"left claws\"}]}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "entity",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "type",
+        "parts",
+        "verbs",
+        "unlocked"
+       ],
+       "properties": {
+        "type": {
+         "type": "string",
+         "enum": [
+          "person",
+          "car",
+          "bike",
+          "quadruped",
+          "blob"
+         ]
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "name",
+           "x",
+           "y"
+          ],
+          "properties": {
+           "name": {
+            "type": "string"
+           },
+           "x": {
+            "type": "number"
+           },
+           "y": {
+            "type": "number"
+           }
+          }
+         }
+        },
+        "verbs": {
+         "type": "array",
+         "items": {
+          "type": "string",
+          "enum": [
+           "shoot",
+           "boost",
+           "shield",
+           "dig",
+           "drill",
+           "jump",
+           "scan",
+           "flare",
+           "invisible",
+           "heal",
+           "blast",
+           "teleport"
+          ]
+         }
+        },
+        "unlocked": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "verb",
+           "part"
+          ],
+          "properties": {
+           "verb": {
+            "type": "string",
+            "enum": [
+             "shoot",
+             "boost",
+             "shield",
+             "dig",
+             "drill",
+             "jump",
+             "scan",
+             "flare",
+             "invisible",
+             "heal",
+             "blast",
+             "teleport"
+            ]
+           },
+           "part": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 750,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+     },
+     "output_tokens": 261,
+     "output_tokens_details": {
+      "reasoning_tokens": 0
+     },
+     "total_tokens": 1011
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "entity": {
+   "type": "quadruped",
+   "verbs": [
+    "dig",
+    "jump",
+    "scan",
+    "takeoff"
+   ],
+   "unlocked": [
+    {
+     "verb": "jump",
+     "part": "front leg left"
+    },
+    {
+     "verb": "scan",
+     "part": "eye"
+    },
+    {
+     "verb": "dig",
+     "part": "left claws"
+    }
+   ],
+   "parts": [
+    {
+     "name": "body",
+     "x": 0.453,
+     "y": 0.455
+    },
+    {
+     "name": "head",
+     "x": 0.848,
+     "y": 0.257
+    },
+    {
+     "name": "eye",
+     "x": 0.878,
+     "y": 0.237
+    },
+    {
+     "name": "horn",
+     "x": 0.81,
+     "y": 0.102
+    },
+    {
+     "name": "neck",
+     "x": 0.705,
+     "y": 0.376
+    },
+    {
+     "name": "tail",
+     "x": 0.096,
+     "y": 0.289
+    },
+    {
+     "name": "rear leg left",
+     "x": 0.226,
+     "y": 0.736
+    },
+    {
+     "name": "rear leg right",
+     "x": 0.325,
+     "y": 0.736
+    },
+    {
+     "name": "front leg left",
+     "x": 0.581,
+     "y": 0.738
+    },
+    {
+     "name": "front leg right",
+     "x": 0.685,
+     "y": 0.738
+    },
+    {
+     "name": "left claws",
+     "x": 0.608,
+     "y": 0.918
+    },
+    {
+     "name": "right claws",
+     "x": 0.72,
+     "y": 0.918
+    }
+   ],
+   "source": "model"
+  }
+ },
+ "pass": true
+}

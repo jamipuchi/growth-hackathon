@@ -1,0 +1,3631 @@
+[
+ {
+  "id": "C01",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "knob stick left, FIRE and BOOST boxes",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0749,
+     "y": 0.3673,
+     "w": 0.2503,
+     "h": 0.4992
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7493,
+     "y": 0.4985,
+     "w": 0.2017,
+     "h": 0.3058
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "BOOST",
+    "rect": {
+     "x": 0.4987,
+     "y": 0.6174,
+     "w": 0.2024,
+     "h": 0.2846
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C01.png"
+ },
+ {
+  "id": "C02",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "D-pad, PEW circle, TURBO rounded box",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0602,
+     "y": 0.3367,
+     "w": 0.2608,
+     "h": 0.5241
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "PEW",
+    "rect": {
+     "x": 0.7596,
+     "y": 0.4475,
+     "w": 0.1796,
+     "h": 0.3632
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "TURBO",
+    "rect": {
+     "x": 0.5005,
+     "y": 0.6373,
+     "w": 0.2111,
+     "h": 0.2432
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C02.png"
+ },
+ {
+  "id": "C03",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "four loose arrows cluster, SHOOT box, LAND box top right",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.08,
+     "y": 0.3394,
+     "w": 0.24,
+     "h": 0.4806
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "SHOOT",
+    "rect": {
+     "x": 0.6984,
+     "y": 0.5752,
+     "w": 0.2343,
+     "h": 0.2868
+    }
+   },
+   {
+    "type": "button",
+    "action": "land",
+    "label": "LAND",
+    "rect": {
+     "x": 0.7479,
+     "y": 0.117,
+     "w": 0.193,
+     "h": 0.2461
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C03.png"
+ },
+ {
+  "id": "C04",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "two sticks and a BOOST box between them",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0597,
+     "y": 0.363,
+     "w": 0.2415,
+     "h": 0.4745
+    }
+   },
+   {
+    "type": "stick",
+    "action": "move",
+    "label": "",
+    "rect": {
+     "x": 0.7005,
+     "y": 0.3582,
+     "w": 0.2404,
+     "h": 0.4844
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "BOOST",
+    "rect": {
+     "x": 0.3999,
+     "y": 0.6568,
+     "w": 0.2028,
+     "h": 0.244
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C04.png"
+ },
+ {
+  "id": "C05",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "left and right arrow buttons in rings, FIRE circle, GO box",
+  "controls": [
+   {
+    "type": "button",
+    "action": "left",
+    "label": "",
+    "rect": {
+     "x": 0.0621,
+     "y": 0.5767,
+     "w": 0.1247,
+     "h": 0.2508
+    }
+   },
+   {
+    "type": "button",
+    "action": "right",
+    "label": "",
+    "rect": {
+     "x": 0.2885,
+     "y": 0.5744,
+     "w": 0.1233,
+     "h": 0.2515
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7492,
+     "y": 0.4824,
+     "w": 0.1917,
+     "h": 0.3769
+    }
+   },
+   {
+    "type": "button",
+    "action": "forward",
+    "label": "GO",
+    "rect": {
+     "x": 0.5239,
+     "y": 0.2001,
+     "w": 0.1512,
+     "h": 0.2245
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C05.png"
+ },
+ {
+  "id": "C06",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "stick plus six labelled boxes",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0486,
+     "y": 0.4007,
+     "w": 0.2415,
+     "h": 0.477
+    }
+   },
+   {
+    "type": "button",
+    "action": "scan",
+    "label": "SCAN",
+    "rect": {
+     "x": 0.3996,
+     "y": 0.1013,
+     "w": 0.1706,
+     "h": 0.2017
+    }
+   },
+   {
+    "type": "button",
+    "action": "land",
+    "label": "LAND",
+    "rect": {
+     "x": 0.6087,
+     "y": 0.0958,
+     "w": 0.1722,
+     "h": 0.2048
+    }
+   },
+   {
+    "type": "button",
+    "action": "drill",
+    "label": "DRILL",
+    "rect": {
+     "x": 0.8104,
+     "y": 0.0961,
+     "w": 0.1696,
+     "h": 0.206
+    }
+   },
+   {
+    "type": "button",
+    "action": "shield",
+    "label": "SHIELD",
+    "rect": {
+     "x": 0.3971,
+     "y": 0.6177,
+     "w": 0.1735,
+     "h": 0.246
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "BOOST",
+    "rect": {
+     "x": 0.6091,
+     "y": 0.6176,
+     "w": 0.1731,
+     "h": 0.2474
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "SHOOT",
+    "rect": {
+     "x": 0.809,
+     "y": 0.5785,
+     "w": 0.1732,
+     "h": 0.301
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C06.png"
+ },
+ {
+  "id": "C07",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "lowercase labels: fire, boost, land",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.075,
+     "y": 0.3494,
+     "w": 0.2495,
+     "h": 0.5017
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "fire",
+    "rect": {
+     "x": 0.7476,
+     "y": 0.5169,
+     "w": 0.2049,
+     "h": 0.3036
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "boost",
+    "rect": {
+     "x": 0.4986,
+     "y": 0.6184,
+     "w": 0.2025,
+     "h": 0.2642
+    }
+   },
+   {
+    "type": "button",
+    "action": "land",
+    "label": "land",
+    "rect": {
+     "x": 0.7487,
+     "y": 0.0946,
+     "w": 0.2013,
+     "h": 0.2681
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C07.png"
+ },
+ {
+  "id": "C08",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "icons only: crosshair, flame, shield",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0641,
+     "y": 0.3514,
+     "w": 0.2512,
+     "h": 0.4957
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "",
+    "icon": "crosshair",
+    "rect": {
+     "x": 0.7516,
+     "y": 0.4983,
+     "w": 0.1886,
+     "h": 0.3799
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "",
+    "icon": "flame",
+    "rect": {
+     "x": 0.4991,
+     "y": 0.579,
+     "w": 0.1833,
+     "h": 0.3453
+    }
+   },
+   {
+    "type": "button",
+    "action": "shield",
+    "label": "",
+    "icon": "shield",
+    "rect": {
+     "x": 0.7002,
+     "y": 0.0608,
+     "w": 0.1603,
+     "h": 0.3246
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C08.png"
+ },
+ {
+  "id": "C09",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "circles with the word written under each, D-pad",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0646,
+     "y": 0.3001,
+     "w": 0.2494,
+     "h": 0.5026
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.75,
+     "y": 0.381,
+     "w": 0.1496,
+     "h": 0.2972
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "BOOST",
+    "rect": {
+     "x": 0.5253,
+     "y": 0.4599,
+     "w": 0.131,
+     "h": 0.2576
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C09.png"
+ },
+ {
+  "id": "C10",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "a crossed-out JUMP box next to FIRE and BOOST",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0645,
+     "y": 0.3522,
+     "w": 0.2513,
+     "h": 0.4953
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7484,
+     "y": 0.5378,
+     "w": 0.2015,
+     "h": 0.3047
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "BOOST",
+    "rect": {
+     "x": 0.4978,
+     "y": 0.6183,
+     "w": 0.2037,
+     "h": 0.2647
+    }
+   }
+  ],
+  "excluded": [
+   {
+    "what": "crossed-out JUMP",
+    "rect": {
+     "x": 0.5997,
+     "y": 0.1193,
+     "w": 0.2013,
+     "h": 0.2453
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C10.png"
+ },
+ {
+  "id": "C11",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "FIRE written off to the side with an arrow to a circle",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0637,
+     "y": 0.3469,
+     "w": 0.2511,
+     "h": 0.5037
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7595,
+     "y": 0.5228,
+     "w": 0.1702,
+     "h": 0.3345
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "BOOST",
+    "rect": {
+     "x": 0.4577,
+     "y": 0.6579,
+     "w": 0.1932,
+     "h": 0.2433
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C11.png"
+ },
+ {
+  "id": "C12",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "very messy stick, FIRE and BOOST",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0761,
+     "y": 0.3208,
+     "w": 0.2669,
+     "h": 0.5167
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7362,
+     "y": 0.5027,
+     "w": 0.2186,
+     "h": 0.3231
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "BOOST",
+    "rect": {
+     "x": 0.4887,
+     "y": 0.5892,
+     "w": 0.2108,
+     "h": 0.312
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C12.png"
+ },
+ {
+  "id": "C13",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "mixed case: Fire, Boost, Shield",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0646,
+     "y": 0.3469,
+     "w": 0.2521,
+     "h": 0.5024
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "Fire",
+    "rect": {
+     "x": 0.7487,
+     "y": 0.5372,
+     "w": 0.2008,
+     "h": 0.305
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "Boost",
+    "rect": {
+     "x": 0.4991,
+     "y": 0.6397,
+     "w": 0.2126,
+     "h": 0.26
+    }
+   },
+   {
+    "type": "button",
+    "action": "shield",
+    "label": "Shield",
+    "rect": {
+     "x": 0.7004,
+     "y": 0.1198,
+     "w": 0.2299,
+     "h": 0.2431
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C13.png"
+ },
+ {
+  "id": "C14",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "icon plus word: flame BOOST, crosshair FIRE, drill DRILL",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.059,
+     "y": 0.3632,
+     "w": 0.2417,
+     "h": 0.4772
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "icon": "crosshair",
+    "rect": {
+     "x": 0.758,
+     "y": 0.4569,
+     "w": 0.2042,
+     "h": 0.4242
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "BOOST",
+    "icon": "flame",
+    "rect": {
+     "x": 0.519,
+     "y": 0.4977,
+     "w": 0.2011,
+     "h": 0.4265
+    }
+   },
+   {
+    "type": "button",
+    "action": "drill",
+    "label": "DRILL",
+    "icon": "drill",
+    "rect": {
+     "x": 0.6387,
+     "y": 0.0159,
+     "w": 0.2034,
+     "h": 0.4051
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C14.png"
+ },
+ {
+  "id": "C15",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "minimal: one stick and one FIRE button",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0747,
+     "y": 0.2505,
+     "w": 0.3004,
+     "h": 0.5985
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.6993,
+     "y": 0.3996,
+     "w": 0.2305,
+     "h": 0.3991
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C15.png"
+ },
+ {
+  "id": "C16",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "plus sign (heal), BOMB, WARP, stick",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0585,
+     "y": 0.3617,
+     "w": 0.2412,
+     "h": 0.4784
+    }
+   },
+   {
+    "type": "button",
+    "action": "heal",
+    "label": "",
+    "icon": "cross",
+    "rect": {
+     "x": 0.5002,
+     "y": 0.5794,
+     "w": 0.1588,
+     "h": 0.3196
+    }
+   },
+   {
+    "type": "button",
+    "action": "blast",
+    "label": "BOMB",
+    "rect": {
+     "x": 0.7386,
+     "y": 0.5363,
+     "w": 0.2123,
+     "h": 0.3075
+    }
+   },
+   {
+    "type": "button",
+    "action": "teleport",
+    "label": "WARP",
+    "rect": {
+     "x": 0.6995,
+     "y": 0.0952,
+     "w": 0.2226,
+     "h": 0.2682
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C16.png"
+ },
+ {
+  "id": "C17",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "LEFT, RIGHT, THRUST and FIRE words in boxes, no stick",
+  "controls": [
+   {
+    "type": "button",
+    "action": "left",
+    "label": "LEFT",
+    "rect": {
+     "x": 0.0384,
+     "y": 0.598,
+     "w": 0.2038,
+     "h": 0.264
+    }
+   },
+   {
+    "type": "button",
+    "action": "right",
+    "label": "RIGHT",
+    "rect": {
+     "x": 0.2793,
+     "y": 0.5975,
+     "w": 0.2199,
+     "h": 0.2667
+    }
+   },
+   {
+    "type": "button",
+    "action": "forward",
+    "label": "THRUST",
+    "rect": {
+     "x": 0.1492,
+     "y": 0.1565,
+     "w": 0.261,
+     "h": 0.2655
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7497,
+     "y": 0.4975,
+     "w": 0.2016,
+     "h": 0.3451
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C17.png"
+ },
+ {
+  "id": "C18",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "a drawn switch labelled SHIELD, stick, FIRE",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0644,
+     "y": 0.3529,
+     "w": 0.2523,
+     "h": 0.4957
+    }
+   },
+   {
+    "type": "toggle",
+    "action": "shield",
+    "label": "SHIELD",
+    "rect": {
+     "x": 0.4592,
+     "y": 0.2,
+     "w": 0.1795,
+     "h": 0.1627
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7478,
+     "y": 0.5147,
+     "w": 0.2021,
+     "h": 0.3278
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C18.png"
+ },
+ {
+  "id": "C19",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "small controls far apart",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.036,
+     "y": 0.5884,
+     "w": 0.1483,
+     "h": 0.3009
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.8587,
+     "y": 0.7,
+     "w": 0.1126,
+     "h": 0.1838
+    }
+   },
+   {
+    "type": "button",
+    "action": "land",
+    "label": "LAND",
+    "rect": {
+     "x": 0.8585,
+     "y": 0.0983,
+     "w": 0.1118,
+     "h": 0.161
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "BOOST",
+    "rect": {
+     "x": 0.4489,
+     "y": 0.8004,
+     "w": 0.1233,
+     "h": 0.1421
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C19.png"
+ },
+ {
+  "id": "C20",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "planet controller: stick, DIG, JUMP, TAKE OFF",
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0638,
+     "y": 0.3692,
+     "w": 0.2497,
+     "h": 0.4986
+    }
+   },
+   {
+    "type": "button",
+    "action": "dig",
+    "label": "DIG",
+    "rect": {
+     "x": 0.7478,
+     "y": 0.5594,
+     "w": 0.2047,
+     "h": 0.3019
+    }
+   },
+   {
+    "type": "button",
+    "action": "jump",
+    "label": "JUMP",
+    "rect": {
+     "x": 0.4977,
+     "y": 0.6168,
+     "w": 0.2024,
+     "h": 0.2669
+    }
+   },
+   {
+    "type": "button",
+    "action": "takeoff",
+    "label": "TAKE OFF",
+    "rect": {
+     "x": 0.6489,
+     "y": 0.0987,
+     "w": 0.3032,
+     "h": 0.2443
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C20.png"
+ },
+ {
+  "id": "C21",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: knob stick, FIRE, BOOST (pen, lined, shadow)",
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": -3,
+   "keystone": 0,
+   "shadow": 0.35,
+   "thumb": null
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0326,
+     "y": 0.0969,
+     "w": 0.2741,
+     "h": 0.8104
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7432,
+     "y": 0.19,
+     "w": 0.2202,
+     "h": 0.5014
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "BOOST",
+    "rect": {
+     "x": 0.4833,
+     "y": 0.4189,
+     "w": 0.2214,
+     "h": 0.4685
+    }
+   }
+  ],
+  "size": [
+   512,
+   176
+  ],
+  "file": "controller/C21.png"
+ },
+ {
+  "id": "C22",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: D-pad, SHOOT, LAND, DRILL (pencil, grid, thumb)",
+  "photo": {
+   "paper": "grid",
+   "pen": "pencil",
+   "rot": 2,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": "bottom"
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.035,
+     "y": 0.2918,
+     "w": 0.2767,
+     "h": 0.5826
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "SHOOT",
+    "rect": {
+     "x": 0.7179,
+     "y": 0.5749,
+     "w": 0.2437,
+     "h": 0.3477
+    }
+   },
+   {
+    "type": "button",
+    "action": "land",
+    "label": "LAND",
+    "rect": {
+     "x": 0.462,
+     "y": 0.6203,
+     "w": 0.2021,
+     "h": 0.3032
+    }
+   },
+   {
+    "type": "button",
+    "action": "drill",
+    "label": "DRILL",
+    "rect": {
+     "x": 0.696,
+     "y": 0.0811,
+     "w": 0.2323,
+     "h": 0.3029
+    }
+   }
+  ],
+  "size": [
+   512,
+   244
+  ],
+  "file": "controller/C22.png"
+ },
+ {
+  "id": "C23",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: lowercase fire, boost, shield (perspective)",
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": -2,
+   "keystone": 0.09,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0406,
+     "y": 0.5846,
+     "w": 0.2169,
+     "h": 0.355
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "fire",
+    "rect": {
+     "x": 0.6172,
+     "y": 0.67,
+     "w": 0.1849,
+     "h": 0.2182
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "boost",
+    "rect": {
+     "x": 0.4048,
+     "y": 0.7487,
+     "w": 0.1824,
+     "h": 0.1942
+    }
+   },
+   {
+    "type": "button",
+    "action": "shield",
+    "label": "shield",
+    "rect": {
+     "x": 0.591,
+     "y": 0.3902,
+     "w": 0.1955,
+     "h": 0.1863
+    }
+   }
+  ],
+  "size": [
+   512,
+   333
+  ],
+  "file": "controller/C23.png"
+ },
+ {
+  "id": "C24",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: icons crosshair, flame, landing legs (marker)",
+  "photo": {
+   "paper": "plain",
+   "pen": "marker",
+   "rot": 4,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0341,
+     "y": 0.2914,
+     "w": 0.2814,
+     "h": 0.5134
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "",
+    "icon": "crosshair",
+    "rect": {
+     "x": 0.7522,
+     "y": 0.5273,
+     "w": 0.2135,
+     "h": 0.3915
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "",
+    "icon": "flame",
+    "rect": {
+     "x": 0.4866,
+     "y": 0.5692,
+     "w": 0.2036,
+     "h": 0.3576
+    }
+   },
+   {
+    "type": "button",
+    "action": "land",
+    "label": "",
+    "icon": "legs",
+    "rect": {
+     "x": 0.7155,
+     "y": 0.078,
+     "w": 0.2061,
+     "h": 0.3766
+    }
+   }
+  ],
+  "size": [
+   512,
+   280
+  ],
+  "file": "controller/C24.png"
+ },
+ {
+  "id": "C25",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: crossed-out SCAN, FIRE, BOOST (strong shadow)",
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": 1,
+   "keystone": 0,
+   "shadow": 0.55,
+   "thumb": null
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0375,
+     "y": 0.3442,
+     "w": 0.2641,
+     "h": 0.5313
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7492,
+     "y": 0.5671,
+     "w": 0.2138,
+     "h": 0.3262
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "BOOST",
+    "rect": {
+     "x": 0.4885,
+     "y": 0.638,
+     "w": 0.2117,
+     "h": 0.2865
+    }
+   }
+  ],
+  "excluded": [
+   {
+    "what": "crossed-out SCAN",
+    "rect": {
+     "x": 0.6179,
+     "y": 0.0984,
+     "w": 0.2155,
+     "h": 0.2674
+    }
+   }
+  ],
+  "size": [
+   512,
+   256
+  ],
+  "file": "controller/C25.png"
+ },
+ {
+  "id": "C26",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: words under circles, four arrows (pencil, lined)",
+  "photo": {
+   "paper": "lined",
+   "pen": "pencil",
+   "rot": -4,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0296,
+     "y": 0.1475,
+     "w": 0.2911,
+     "h": 0.7769
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7875,
+     "y": 0.0893,
+     "w": 0.1803,
+     "h": 0.4756
+    }
+   },
+   {
+    "type": "button",
+    "action": "land",
+    "label": "LAND",
+    "rect": {
+     "x": 0.5373,
+     "y": 0.2539,
+     "w": 0.1549,
+     "h": 0.419
+    }
+   }
+  ],
+  "size": [
+   512,
+   192
+  ],
+  "file": "controller/C26.png"
+ },
+ {
+  "id": "C27",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: stick plus seven boxes (perspective, thumb)",
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": 2,
+   "keystone": 0.07,
+   "shadow": 0.25,
+   "thumb": "right"
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0336,
+     "y": 0.3683,
+     "w": 0.2332,
+     "h": 0.4499
+    }
+   },
+   {
+    "type": "button",
+    "action": "scan",
+    "label": "SCAN",
+    "rect": {
+     "x": 0.339,
+     "y": 0.0778,
+     "w": 0.1855,
+     "h": 0.2131
+    }
+   },
+   {
+    "type": "button",
+    "action": "land",
+    "label": "LAND",
+    "rect": {
+     "x": 0.5484,
+     "y": 0.0949,
+     "w": 0.1839,
+     "h": 0.2098
+    }
+   },
+   {
+    "type": "button",
+    "action": "drill",
+    "label": "DRILL",
+    "rect": {
+     "x": 0.7594,
+     "y": 0.1101,
+     "w": 0.2023,
+     "h": 0.2088
+    }
+   },
+   {
+    "type": "button",
+    "action": "flare",
+    "label": "FLARE",
+    "rect": {
+     "x": 0.3245,
+     "y": 0.6213,
+     "w": 0.1908,
+     "h": 0.257
+    }
+   },
+   {
+    "type": "button",
+    "action": "shield",
+    "label": "SHIELD",
+    "rect": {
+     "x": 0.5389,
+     "y": 0.6326,
+     "w": 0.1981,
+     "h": 0.2607
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7628,
+     "y": 0.6114,
+     "w": 0.1966,
+     "h": 0.3152
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "BOOST",
+    "rect": {
+     "x": 0.5442,
+     "y": 0.3616,
+     "w": 0.1959,
+     "h": 0.2131
+    }
+   }
+  ],
+  "size": [
+   512,
+   270
+  ],
+  "file": "controller/C27.png"
+ },
+ {
+  "id": "C28",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: messy writing, label arrow to a circle",
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": -2,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0359,
+     "y": 0.1985,
+     "w": 0.2775,
+     "h": 0.6768
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7705,
+     "y": 0.3932,
+     "w": 0.1935,
+     "h": 0.4526
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "BOOST",
+    "rect": {
+     "x": 0.4656,
+     "y": 0.5331,
+     "w": 0.2215,
+     "h": 0.3798
+    }
+   }
+  ],
+  "size": [
+   512,
+   209
+  ],
+  "file": "controller/C28.png"
+ },
+ {
+  "id": "C29",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: two sticks and FIRE (marker, rotated page)",
+  "photo": {
+   "paper": "lined",
+   "pen": "marker",
+   "rot": 6,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0292,
+     "y": 0.1859,
+     "w": 0.276,
+     "h": 0.6001
+    }
+   },
+   {
+    "type": "stick",
+    "action": "move",
+    "label": "",
+    "rect": {
+     "x": 0.6947,
+     "y": 0.3405,
+     "w": 0.2764,
+     "h": 0.5971
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.4124,
+     "y": 0.0889,
+     "w": 0.2055,
+     "h": 0.3636
+    }
+   }
+  ],
+  "size": [
+   512,
+   236
+  ],
+  "file": "controller/C29.png"
+ },
+ {
+  "id": "C30",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: planet controller DIG, JUMP, DRILL",
+  "photo": {
+   "paper": "grid",
+   "pen": "pen",
+   "rot": 0,
+   "keystone": 0,
+   "shadow": 0.4,
+   "thumb": null
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0389,
+     "y": 0.3729,
+     "w": 0.261,
+     "h": 0.5319
+    }
+   },
+   {
+    "type": "button",
+    "action": "dig",
+    "label": "DIG",
+    "rect": {
+     "x": 0.7511,
+     "y": 0.5723,
+     "w": 0.2114,
+     "h": 0.3257
+    }
+   },
+   {
+    "type": "button",
+    "action": "jump",
+    "label": "JUMP",
+    "rect": {
+     "x": 0.4905,
+     "y": 0.6377,
+     "w": 0.2096,
+     "h": 0.2833
+    }
+   },
+   {
+    "type": "button",
+    "action": "drill",
+    "label": "DRILL",
+    "rect": {
+     "x": 0.7312,
+     "y": 0.0809,
+     "w": 0.2306,
+     "h": 0.2842
+    }
+   }
+  ],
+  "size": [
+   512,
+   250
+  ],
+  "file": "controller/C30.png"
+ },
+ {
+  "id": "C31",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: icon + word, mixed case Land, Scan, Flare",
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": -3,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": "bottom"
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0342,
+     "y": 0.4338,
+     "w": 0.2597,
+     "h": 0.4673
+    }
+   },
+   {
+    "type": "button",
+    "action": "land",
+    "label": "Land",
+    "icon": "legs",
+    "rect": {
+     "x": 0.7417,
+     "y": 0.4614,
+     "w": 0.2198,
+     "h": 0.4145
+    }
+   },
+   {
+    "type": "button",
+    "action": "scan",
+    "label": "Scan",
+    "icon": "antenna",
+    "rect": {
+     "x": 0.4961,
+     "y": 0.5202,
+     "w": 0.2187,
+     "h": 0.4126
+    }
+   },
+   {
+    "type": "button",
+    "action": "flare",
+    "label": "Flare",
+    "icon": "bulb",
+    "rect": {
+     "x": 0.6076,
+     "y": 0.068,
+     "w": 0.2184,
+     "h": 0.3958
+    }
+   }
+  ],
+  "size": [
+   512,
+   284
+  ],
+  "file": "controller/C31.png"
+ },
+ {
+  "id": "C32",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: heavy shadow, stick and FIRE only",
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": 3,
+   "keystone": 0,
+   "shadow": 0.7,
+   "thumb": null
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0324,
+     "y": 0.078,
+     "w": 0.339,
+     "h": 0.8311
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7069,
+     "y": 0.3618,
+     "w": 0.2589,
+     "h": 0.5581
+    }
+   }
+  ],
+  "size": [
+   512,
+   211
+  ],
+  "file": "controller/C32.png"
+ },
+ {
+  "id": "C33",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: PEW PEW, NITRO, SHIELD with small writing",
+  "photo": {
+   "paper": "lined",
+   "pen": "pencil",
+   "rot": 0,
+   "keystone": 0.05,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0353,
+     "y": 0.3659,
+     "w": 0.2493,
+     "h": 0.5267
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "PEW PEW",
+    "rect": {
+     "x": 0.754,
+     "y": 0.5589,
+     "w": 0.2091,
+     "h": 0.3395
+    }
+   },
+   {
+    "type": "button",
+    "action": "boost",
+    "label": "NITRO",
+    "rect": {
+     "x": 0.4977,
+     "y": 0.6476,
+     "w": 0.2086,
+     "h": 0.2728
+    }
+   },
+   {
+    "type": "button",
+    "action": "shield",
+    "label": "SHIELD",
+    "rect": {
+     "x": 0.728,
+     "y": 0.0806,
+     "w": 0.2295,
+     "h": 0.2663
+    }
+   }
+  ],
+  "size": [
+   512,
+   242
+  ],
+  "file": "controller/C33.png"
+ },
+ {
+  "id": "C34",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: toggle switch for SHIELD, stick, FIRE, LAND",
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": -5,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "controls": [
+   {
+    "type": "stick",
+    "action": "steer",
+    "label": "",
+    "rect": {
+     "x": 0.0284,
+     "y": 0.3029,
+     "w": 0.2787,
+     "h": 0.6352
+    }
+   },
+   {
+    "type": "toggle",
+    "action": "shield",
+    "label": "SHIELD",
+    "rect": {
+     "x": 0.4277,
+     "y": 0.0841,
+     "w": 0.1925,
+     "h": 0.23
+    }
+   },
+   {
+    "type": "button",
+    "action": "shoot",
+    "label": "FIRE",
+    "rect": {
+     "x": 0.7411,
+     "y": 0.3949,
+     "w": 0.2219,
+     "h": 0.4193
+    }
+   },
+   {
+    "type": "button",
+    "action": "land",
+    "label": "LAND",
+    "rect": {
+     "x": 0.4462,
+     "y": 0.5742,
+     "w": 0.2097,
+     "h": 0.3249
+    }
+   }
+  ],
+  "size": [
+   512,
+   226
+  ],
+  "file": "controller/C34.png"
+ },
+ {
+  "id": "B01",
+  "kind": "button",
+  "source": "draw",
+  "desc": "LAND in a box",
+  "region": {
+   "x": 0.62,
+   "y": 0.08,
+   "w": 0.2,
+   "h": 0.28
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "land",
+   "type": "button"
+  },
+  "size": [
+   512,
+   370
+  ],
+  "file": "button/B01.png"
+ },
+ {
+  "id": "B02",
+  "kind": "button",
+  "source": "draw",
+  "desc": "DIG in a circle",
+  "region": {
+   "x": 0.45,
+   "y": 0.1,
+   "w": 0.16,
+   "h": 0.3
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "dig",
+   "type": "button"
+  },
+  "size": [
+   512,
+   475
+  ],
+  "file": "button/B02.png"
+ },
+ {
+  "id": "B03",
+  "kind": "button",
+  "source": "draw",
+  "desc": "DRILL in a rounded box",
+  "region": {
+   "x": 0.4,
+   "y": 0.3,
+   "w": 0.2,
+   "h": 0.3
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "drill",
+   "type": "button"
+  },
+  "size": [
+   512,
+   402
+  ],
+  "file": "button/B03.png"
+ },
+ {
+  "id": "B04",
+  "kind": "button",
+  "source": "draw",
+  "desc": "drill icon only",
+  "region": {
+   "x": 0.5,
+   "y": 0.1,
+   "w": 0.16,
+   "h": 0.3
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "drill",
+   "type": "button"
+  },
+  "size": [
+   512,
+   485
+  ],
+  "file": "button/B04.png"
+ },
+ {
+  "id": "B05",
+  "kind": "button",
+  "source": "draw",
+  "desc": "shovel icon only",
+  "region": {
+   "x": 0.3,
+   "y": 0.08,
+   "w": 0.16,
+   "h": 0.32
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "dig",
+   "type": "button"
+  },
+  "size": [
+   512,
+   511
+  ],
+  "file": "button/B05.png"
+ },
+ {
+  "id": "B06",
+  "kind": "button",
+  "source": "draw",
+  "desc": "the word land, no box",
+  "region": {
+   "x": 0.55,
+   "y": 0.1,
+   "w": 0.22,
+   "h": 0.26
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "land",
+   "type": "button"
+  },
+  "size": [
+   512,
+   233
+  ],
+  "file": "button/B06.png"
+ },
+ {
+  "id": "B07",
+  "kind": "button",
+  "source": "draw",
+  "desc": "SHOVEL in a box",
+  "region": {
+   "x": 0.4,
+   "y": 0.12,
+   "w": 0.24,
+   "h": 0.26
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "dig",
+   "type": "button"
+  },
+  "size": [
+   512,
+   301
+  ],
+  "file": "button/B07.png"
+ },
+ {
+  "id": "B08",
+  "kind": "button",
+  "source": "draw",
+  "desc": "landing legs icon + LAND",
+  "region": {
+   "x": 0.6,
+   "y": 0.05,
+   "w": 0.2,
+   "h": 0.4
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "land",
+   "type": "button"
+  },
+  "size": [
+   510,
+   512
+  ],
+  "file": "button/B08.png"
+ },
+ {
+  "id": "B09",
+  "kind": "button",
+  "source": "draw",
+  "desc": "antenna icon + SCAN",
+  "region": {
+   "x": 0.35,
+   "y": 0.05,
+   "w": 0.2,
+   "h": 0.4
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "scan",
+   "type": "button"
+  },
+  "size": [
+   504,
+   512
+  ],
+  "file": "button/B09.png"
+ },
+ {
+  "id": "B10",
+  "kind": "button",
+  "source": "draw",
+  "desc": "FIRE in a circle",
+  "region": {
+   "x": 0.7,
+   "y": 0.4,
+   "w": 0.18,
+   "h": 0.34
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "shoot",
+   "type": "button"
+  },
+  "size": [
+   512,
+   483
+  ],
+  "file": "button/B10.png"
+ },
+ {
+  "id": "B11",
+  "kind": "button",
+  "source": "draw",
+  "desc": "messy BOOST",
+  "region": {
+   "x": 0.45,
+   "y": 0.55,
+   "w": 0.22,
+   "h": 0.28
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "boost",
+   "type": "button"
+  },
+  "size": [
+   512,
+   356
+  ],
+  "file": "button/B11.png"
+ },
+ {
+  "id": "B12",
+  "kind": "button",
+  "source": "photo",
+  "desc": "photo: LAND in a box (pen)",
+  "region": {
+   "x": 0.62,
+   "y": 0.08,
+   "w": 0.2,
+   "h": 0.28
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "land",
+   "type": "button"
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": 3,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   390
+  ],
+  "file": "button/B12.png"
+ },
+ {
+  "id": "B13",
+  "kind": "button",
+  "source": "photo",
+  "desc": "photo: DIG in a circle (pencil)",
+  "region": {
+   "x": 0.45,
+   "y": 0.1,
+   "w": 0.16,
+   "h": 0.3
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "dig",
+   "type": "button"
+  },
+  "photo": {
+   "paper": "grid",
+   "pen": "pencil",
+   "rot": 0,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   477
+  ],
+  "file": "button/B13.png"
+ },
+ {
+  "id": "B14",
+  "kind": "button",
+  "source": "photo",
+  "desc": "photo: drill icon + DRILL (marker)",
+  "region": {
+   "x": 0.5,
+   "y": 0.05,
+   "w": 0.2,
+   "h": 0.4
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "drill",
+   "type": "button"
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "marker",
+   "rot": -4,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 3,
+  "size": [
+   512,
+   505
+  ],
+  "file": "button/B14.png"
+ },
+ {
+  "id": "B15",
+  "kind": "button",
+  "source": "photo",
+  "desc": "photo: parachute icon only",
+  "region": {
+   "x": 0.55,
+   "y": 0.05,
+   "w": 0.16,
+   "h": 0.34
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "land",
+   "type": "button"
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": 0,
+   "keystone": 0,
+   "shadow": 0.4,
+   "thumb": null
+  },
+  "turns": 3,
+  "size": [
+   512,
+   484
+  ],
+  "file": "button/B15.png"
+ },
+ {
+  "id": "B16",
+  "kind": "button",
+  "source": "photo",
+  "desc": "photo: Shield in a circle",
+  "region": {
+   "x": 0.4,
+   "y": 0.4,
+   "w": 0.2,
+   "h": 0.36
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "shield",
+   "type": "button"
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": 0,
+   "keystone": 0.06,
+   "shadow": 0.25,
+   "thumb": "bottom"
+  },
+  "turns": 0,
+  "size": [
+   512,
+   479
+  ],
+  "file": "button/B16.png"
+ },
+ {
+  "id": "B17",
+  "kind": "button",
+  "source": "photo",
+  "desc": "photo: crosshair icon only",
+  "region": {
+   "x": 0.7,
+   "y": 0.4,
+   "w": 0.18,
+   "h": 0.34
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "shoot",
+   "type": "button"
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": 2,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   499
+  ],
+  "file": "button/B17.png"
+ },
+ {
+  "id": "B18",
+  "kind": "button",
+  "source": "photo",
+  "desc": "photo of the whole page: stick, FIRE, BOOST and the new LAND box",
+  "region": {
+   "x": 0.62,
+   "y": 0.08,
+   "w": 0.2,
+   "h": 0.28
+  },
+  "pad": [
+   "steer",
+   "shoot",
+   "boost"
+  ],
+  "expect": {
+   "action": "land",
+   "type": "button"
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": -2,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   269
+  ],
+  "file": "button/B18.png"
+ },
+ {
+  "id": "B19",
+  "kind": "button",
+  "source": "photo",
+  "desc": "photo of the whole page: D-pad, SHOOT and the new shovel + DIG box",
+  "region": {
+   "x": 0.45,
+   "y": 0.1,
+   "w": 0.18,
+   "h": 0.3
+  },
+  "pad": [
+   "steer",
+   "shoot"
+  ],
+  "expect": {
+   "action": "dig",
+   "type": "button"
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pencil",
+   "rot": 3,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   251
+  ],
+  "file": "button/B19.png"
+ },
+ {
+  "id": "E01",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "plain fighter",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [],
+   "ok": []
+  },
+  "size": [
+   512,
+   345
+  ],
+  "file": "entity/E01.png"
+ },
+ {
+  "id": "E02",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "fighter + exhaust flames",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "boost"
+   ],
+   "ok": []
+  },
+  "size": [
+   512,
+   290
+  ],
+  "file": "entity/E02.png"
+ },
+ {
+  "id": "E03",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "fighter + cannon on top",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "shoot"
+   ],
+   "ok": []
+  },
+  "size": [
+   512,
+   341
+  ],
+  "file": "entity/E03.png"
+ },
+ {
+  "id": "E04",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "fighter + flames + cannon",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "shoot",
+    "boost"
+   ],
+   "ok": []
+  },
+  "size": [
+   512,
+   290
+  ],
+  "file": "entity/E04.png"
+ },
+ {
+  "id": "E05",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "fighter + landing legs",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "land"
+   ],
+   "ok": []
+  },
+  "size": [
+   512,
+   345
+  ],
+  "file": "entity/E05.png"
+ },
+ {
+  "id": "E06",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "fighter + drill on the nose",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "drill"
+   ],
+   "ok": [
+    "shoot"
+   ]
+  },
+  "size": [
+   512,
+   290
+  ],
+  "file": "entity/E06.png"
+ },
+ {
+  "id": "E07",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "fighter inside a shield bubble",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "shield"
+   ],
+   "ok": []
+  },
+  "size": [
+   512,
+   392
+  ],
+  "file": "entity/E07.png"
+ },
+ {
+  "id": "E08",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "saucer + legs + lamp",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "land",
+    "flare"
+   ],
+   "ok": [
+    "scan"
+   ]
+  },
+  "size": [
+   512,
+   308
+  ],
+  "file": "entity/E08.png"
+ },
+ {
+  "id": "E09",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "rocket + flames + legs",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "boost",
+    "land"
+   ],
+   "ok": []
+  },
+  "size": [
+   298,
+   512
+  ],
+  "file": "entity/E09.png"
+ },
+ {
+  "id": "E10",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "chunky ship with cannon, drill, flames, legs",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "shoot",
+    "drill",
+    "boost",
+    "land"
+   ],
+   "ok": []
+  },
+  "size": [
+   512,
+   266
+  ],
+  "file": "entity/E10.png"
+ },
+ {
+  "id": "E11",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "fighter + antenna dish",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "scan"
+   ],
+   "ok": []
+  },
+  "size": [
+   512,
+   351
+  ],
+  "file": "entity/E11.png"
+ },
+ {
+  "id": "E12",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "fighter + red cross + flames",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "heal",
+    "boost"
+   ],
+   "ok": []
+  },
+  "size": [
+   512,
+   289
+  ],
+  "file": "entity/E12.png"
+ },
+ {
+  "id": "E13",
+  "kind": "ship",
+  "source": "photo",
+  "desc": "photo: fighter + cannon + flames",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "shoot",
+    "boost"
+   ],
+   "ok": []
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": -3,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   293
+  ],
+  "file": "entity/E13.png"
+ },
+ {
+  "id": "E14",
+  "kind": "ship",
+  "source": "photo",
+  "desc": "photo: saucer + landing legs",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "land"
+   ],
+   "ok": []
+  },
+  "photo": {
+   "paper": "grid",
+   "pen": "pencil",
+   "rot": 0,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   347
+  ],
+  "file": "entity/E14.png"
+ },
+ {
+  "id": "E15",
+  "kind": "ship",
+  "source": "photo",
+  "desc": "photo: rocket + nose drill + flames",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "drill",
+    "boost"
+   ],
+   "ok": []
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "marker",
+   "rot": 3,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 3,
+  "size": [
+   512,
+   286
+  ],
+  "file": "entity/E15.png"
+ },
+ {
+  "id": "E16",
+  "kind": "ship",
+  "source": "photo",
+  "desc": "photo: chunky ship + bomb + bubble",
+  "entity": {
+   "types": [
+    "ship"
+   ],
+   "must": [
+    "blast",
+    "shield"
+   ],
+   "ok": []
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": 0,
+   "keystone": 0,
+   "shadow": 0.45,
+   "thumb": "bottom"
+  },
+  "turns": 0,
+  "size": [
+   512,
+   450
+  ],
+  "file": "entity/E16.png"
+ },
+ {
+  "id": "E17",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "astronaut + shovel",
+  "entity": {
+   "types": [
+    "person"
+   ],
+   "must": [
+    "dig"
+   ],
+   "ok": [
+    "jump"
+   ]
+  },
+  "size": [
+   335,
+   512
+  ],
+  "file": "entity/E17.png"
+ },
+ {
+  "id": "E18",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "astronaut + hand drill",
+  "entity": {
+   "types": [
+    "person"
+   ],
+   "must": [
+    "drill"
+   ],
+   "ok": [
+    "jump"
+   ]
+  },
+  "size": [
+   403,
+   512
+  ],
+  "file": "entity/E18.png"
+ },
+ {
+  "id": "E19",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "astronaut + blaster",
+  "entity": {
+   "types": [
+    "person"
+   ],
+   "must": [
+    "shoot"
+   ],
+   "ok": [
+    "jump"
+   ]
+  },
+  "size": [
+   419,
+   512
+  ],
+  "file": "entity/E19.png"
+ },
+ {
+  "id": "E20",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "astronaut + jetpack with flames",
+  "entity": {
+   "types": [
+    "person"
+   ],
+   "must": [
+    "boost"
+   ],
+   "ok": [
+    "fly",
+    "jump"
+   ]
+  },
+  "size": [
+   310,
+   512
+  ],
+  "file": "entity/E20.png"
+ },
+ {
+  "id": "E21",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "robot with a shovel",
+  "entity": {
+   "types": [
+    "person",
+    "blob"
+   ],
+   "must": [
+    "dig"
+   ],
+   "ok": [
+    "scan",
+    "jump"
+   ]
+  },
+  "size": [
+   341,
+   512
+  ],
+  "file": "entity/E21.png"
+ },
+ {
+  "id": "E22",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "plain car",
+  "entity": {
+   "types": [
+    "car"
+   ],
+   "must": [],
+   "ok": [
+    "boost",
+    "jump"
+   ]
+  },
+  "size": [
+   512,
+   251
+  ],
+  "file": "entity/E22.png"
+ },
+ {
+  "id": "E23",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "car + cannon on the roof",
+  "entity": {
+   "types": [
+    "car"
+   ],
+   "must": [
+    "shoot"
+   ],
+   "ok": [
+    "boost",
+    "jump"
+   ]
+  },
+  "size": [
+   512,
+   266
+  ],
+  "file": "entity/E23.png"
+ },
+ {
+  "id": "E24",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "car + drill at the front",
+  "entity": {
+   "types": [
+    "car"
+   ],
+   "must": [
+    "drill"
+   ],
+   "ok": [
+    "boost",
+    "jump"
+   ]
+  },
+  "size": [
+   512,
+   239
+  ],
+  "file": "entity/E24.png"
+ },
+ {
+  "id": "E25",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "plain bike",
+  "entity": {
+   "types": [
+    "bike"
+   ],
+   "must": [],
+   "ok": [
+    "boost",
+    "jump"
+   ]
+  },
+  "size": [
+   512,
+   267
+  ],
+  "file": "entity/E25.png"
+ },
+ {
+  "id": "E26",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "bike + headlamp",
+  "entity": {
+   "types": [
+    "bike"
+   ],
+   "must": [
+    "flare"
+   ],
+   "ok": [
+    "boost",
+    "jump"
+   ]
+  },
+  "size": [
+   512,
+   288
+  ],
+  "file": "entity/E26.png"
+ },
+ {
+  "id": "E27",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "dog",
+  "entity": {
+   "types": [
+    "quadruped"
+   ],
+   "must": [],
+   "ok": [
+    "jump"
+   ]
+  },
+  "size": [
+   512,
+   391
+  ],
+  "file": "entity/E27.png"
+ },
+ {
+  "id": "E28",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "dog with big digging claws",
+  "entity": {
+   "types": [
+    "quadruped"
+   ],
+   "must": [
+    "dig"
+   ],
+   "ok": [
+    "jump"
+   ]
+  },
+  "size": [
+   512,
+   408
+  ],
+  "file": "entity/E28.png"
+ },
+ {
+  "id": "E29",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "blob with a face",
+  "entity": {
+   "types": [
+    "blob"
+   ],
+   "must": [],
+   "ok": [
+    "jump"
+   ]
+  },
+  "size": [
+   512,
+   437
+  ],
+  "file": "entity/E29.png"
+ },
+ {
+  "id": "E30",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "snake",
+  "entity": {
+   "types": [
+    "blob"
+   ],
+   "must": [],
+   "ok": [
+    "jump"
+   ]
+  },
+  "size": [
+   512,
+   197
+  ],
+  "file": "entity/E30.png"
+ },
+ {
+  "id": "E31",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "astronaut + torch",
+  "entity": {
+   "types": [
+    "person"
+   ],
+   "must": [
+    "flare"
+   ],
+   "ok": [
+    "jump"
+   ]
+  },
+  "size": [
+   341,
+   512
+  ],
+  "file": "entity/E31.png"
+ },
+ {
+  "id": "E32",
+  "kind": "explorer",
+  "source": "photo",
+  "desc": "photo: astronaut + shovel",
+  "entity": {
+   "types": [
+    "person"
+   ],
+   "must": [
+    "dig"
+   ],
+   "ok": [
+    "jump"
+   ]
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": 2,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 3,
+  "size": [
+   512,
+   336
+  ],
+  "file": "entity/E32.png"
+ },
+ {
+  "id": "E33",
+  "kind": "explorer",
+  "source": "photo",
+  "desc": "photo: car + roof cannon",
+  "entity": {
+   "types": [
+    "car"
+   ],
+   "must": [
+    "shoot"
+   ],
+   "ok": [
+    "boost",
+    "jump"
+   ]
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "marker",
+   "rot": 0,
+   "keystone": 0,
+   "shadow": 0.4,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   269
+  ],
+  "file": "entity/E33.png"
+ },
+ {
+  "id": "E34",
+  "kind": "explorer",
+  "source": "photo",
+  "desc": "photo: dog with claws",
+  "entity": {
+   "types": [
+    "quadruped"
+   ],
+   "must": [
+    "dig"
+   ],
+   "ok": [
+    "jump"
+   ]
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pencil",
+   "rot": 0,
+   "keystone": 0.06,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   422
+  ],
+  "file": "entity/E34.png"
+ },
+ {
+  "id": "E35",
+  "kind": "explorer",
+  "source": "photo",
+  "desc": "photo: astronaut + round shield",
+  "entity": {
+   "types": [
+    "person"
+   ],
+   "must": [
+    "shield"
+   ],
+   "ok": [
+    "jump"
+   ]
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": -2,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": "right"
+  },
+  "turns": 3,
+  "size": [
+   512,
+   362
+  ],
+  "file": "entity/E35.png"
+ },
+ {
+  "id": "W01",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "fighter with flames and cannon, drawn in the controller step",
+  "wrong": {
+   "looksLike": "entity"
+  },
+  "size": [
+   512,
+   256
+  ],
+  "file": "wrong/W01.png"
+ },
+ {
+  "id": "W02",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "rocket drawn in the controller step",
+  "wrong": {
+   "looksLike": "entity"
+  },
+  "size": [
+   512,
+   256
+  ],
+  "file": "wrong/W02.png"
+ },
+ {
+  "id": "W03",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: saucer with legs in the controller step",
+  "wrong": {
+   "looksLike": "entity"
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": 2,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   315
+  ],
+  "file": "wrong/W03.png"
+ },
+ {
+  "id": "W04",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "astronaut with a shovel in the controller step",
+  "wrong": {
+   "looksLike": "entity"
+  },
+  "size": [
+   512,
+   256
+  ],
+  "file": "wrong/W04.png"
+ },
+ {
+  "id": "W05",
+  "kind": "controller",
+  "source": "photo",
+  "desc": "photo: car in the controller step",
+  "wrong": {
+   "looksLike": "entity"
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "marker",
+   "rot": 0,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   257
+  ],
+  "file": "wrong/W05.png"
+ },
+ {
+  "id": "W06",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "ship with handwritten notes LASER and FLAMES pointing at parts",
+  "wrong": {
+   "looksLike": "entity"
+  },
+  "size": [
+   512,
+   256
+  ],
+  "file": "wrong/W06.png"
+ },
+ {
+  "id": "W07",
+  "kind": "button",
+  "source": "draw",
+  "desc": "a little ship drawn as a new button",
+  "region": {
+   "x": 0.5,
+   "y": 0.05,
+   "w": 0.35,
+   "h": 0.4
+  },
+  "wrong": {
+   "looksLike": "entity"
+  },
+  "size": [
+   512,
+   264
+  ],
+  "file": "wrong/W07.png"
+ },
+ {
+  "id": "W08",
+  "kind": "button",
+  "source": "photo",
+  "desc": "photo: a dog drawn as a new button",
+  "region": {
+   "x": 0.3,
+   "y": 0.05,
+   "w": 0.4,
+   "h": 0.5
+  },
+  "wrong": {
+   "looksLike": "entity"
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": -2,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   356
+  ],
+  "file": "wrong/W08.png"
+ },
+ {
+  "id": "W09",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "a controller (stick, FIRE, BOOST) drawn in the ship step",
+  "wrong": {
+   "looksLike": "controller"
+  },
+  "size": [
+   512,
+   183
+  ],
+  "file": "wrong/W09.png"
+ },
+ {
+  "id": "W10",
+  "kind": "ship",
+  "source": "photo",
+  "desc": "photo: a controller (D-pad, SHOOT, LAND) in the ship step",
+  "wrong": {
+   "looksLike": "controller"
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pen",
+   "rot": 3,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   197
+  ],
+  "file": "wrong/W10.png"
+ },
+ {
+  "id": "W11",
+  "kind": "explorer",
+  "source": "draw",
+  "desc": "a controller (stick, DIG, JUMP) in the explorer step",
+  "wrong": {
+   "looksLike": "controller"
+  },
+  "size": [
+   512,
+   174
+  ],
+  "file": "wrong/W11.png"
+ },
+ {
+  "id": "W12",
+  "kind": "ship",
+  "source": "draw",
+  "desc": "just a LAND button drawn in the ship step",
+  "wrong": {
+   "looksLike": "controller"
+  },
+  "size": [
+   512,
+   390
+  ],
+  "file": "wrong/W12.png"
+ },
+ {
+  "id": "W13",
+  "kind": "explorer",
+  "source": "photo",
+  "desc": "photo: a controller with arrows and FIRE in the explorer step",
+  "wrong": {
+   "looksLike": "controller"
+  },
+  "photo": {
+   "paper": "lined",
+   "pen": "pencil",
+   "rot": 0,
+   "keystone": 0,
+   "shadow": 0.25,
+   "thumb": null
+  },
+  "turns": 0,
+  "size": [
+   512,
+   244
+  ],
+  "file": "wrong/W13.png"
+ },
+ {
+  "id": "R01",
+  "kind": "controller",
+  "source": "draw",
+  "desc": "REAL (owner 23:15): a spaceship drawn in the controller step; the model returned one giant 'fly' button",
+  "file": "real/jaume-ship-drawn-in-controller-step.png",
+  "wrong": {
+   "looksLike": "entity"
+  }
+ },
+ {
+  "id": "R02",
+  "kind": "button",
+  "source": "draw",
+  "desc": "REAL (owner 23:15): a figure drawn as an added button → 'unreadable button'",
+  "file": "real/jaume-figure-drawn-as-button.png",
+  "region": {
+   "x": 0.4,
+   "y": 0.3,
+   "w": 0.2,
+   "h": 0.3
+  },
+  "wrong": {
+   "looksLike": "entity"
+  }
+ }
+]

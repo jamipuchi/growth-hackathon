@@ -1,0 +1,44 @@
+{
+ "id": "C32",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: heavy shadow, stick and FIRE only",
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": 3,
+  "keystone": 0,
+  "shadow": 0.7,
+  "thumb": null
+ },
+ "turns": 0,
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0324,
+    "y": 0.078,
+    "w": 0.339,
+    "h": 0.8311
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.7069,
+    "y": 0.3618,
+    "w": 0.2589,
+    "h": 0.5581
+   }
+  }
+ ],
+ "size": [
+  512,
+  211
+ ],
+ "file": "controller/C32.png"
+}

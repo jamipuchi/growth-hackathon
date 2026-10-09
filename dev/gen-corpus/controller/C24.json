@@ -1,0 +1,69 @@
+{
+ "id": "C24",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: icons crosshair, flame, landing legs (marker)",
+ "photo": {
+  "paper": "plain",
+  "pen": "marker",
+  "rot": 4,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0341,
+    "y": 0.2914,
+    "w": 0.2814,
+    "h": 0.5134
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "",
+   "icon": "crosshair",
+   "rect": {
+    "x": 0.7522,
+    "y": 0.5273,
+    "w": 0.2135,
+    "h": 0.3915
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "",
+   "icon": "flame",
+   "rect": {
+    "x": 0.4866,
+    "y": 0.5692,
+    "w": 0.2036,
+    "h": 0.3576
+   }
+  },
+  {
+   "type": "button",
+   "action": "land",
+   "label": "",
+   "icon": "legs",
+   "rect": {
+    "x": 0.7155,
+    "y": 0.078,
+    "w": 0.2061,
+    "h": 0.3766
+   }
+  }
+ ],
+ "size": [
+  512,
+  280
+ ],
+ "file": "controller/C24.png"
+}

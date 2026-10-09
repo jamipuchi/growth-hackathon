@@ -1,0 +1,26 @@
+{
+ "id": "B02",
+ "kind": "button",
+ "source": "draw",
+ "desc": "DIG in a circle",
+ "region": {
+  "x": 0.45,
+  "y": 0.1,
+  "w": 0.16,
+  "h": 0.3
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "dig",
+  "type": "button"
+ },
+ "size": [
+  512,
+  475
+ ],
+ "file": "button/B02.png"
+}

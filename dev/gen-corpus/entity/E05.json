@@ -1,0 +1,20 @@
+{
+ "id": "E05",
+ "kind": "ship",
+ "source": "draw",
+ "desc": "fighter + landing legs",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "land"
+  ],
+  "ok": []
+ },
+ "size": [
+  512,
+  345
+ ],
+ "file": "entity/E05.png"
+}

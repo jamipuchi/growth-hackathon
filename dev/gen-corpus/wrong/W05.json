@@ -1,0 +1,23 @@
+{
+ "id": "W05",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: car in the controller step",
+ "wrong": {
+  "looksLike": "entity"
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "marker",
+  "rot": 0,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "size": [
+  512,
+  257
+ ],
+ "file": "wrong/W05.png"
+}

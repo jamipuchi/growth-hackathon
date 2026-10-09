@@ -1,0 +1,57 @@
+{
+ "id": "C10",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "a crossed-out JUMP box next to FIRE and BOOST",
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0645,
+    "y": 0.3522,
+    "w": 0.2513,
+    "h": 0.4953
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.7484,
+    "y": 0.5378,
+    "w": 0.2015,
+    "h": 0.3047
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "BOOST",
+   "rect": {
+    "x": 0.4978,
+    "y": 0.6183,
+    "w": 0.2037,
+    "h": 0.2647
+   }
+  }
+ ],
+ "excluded": [
+  {
+   "what": "crossed-out JUMP",
+   "rect": {
+    "x": 0.5997,
+    "y": 0.1193,
+    "w": 0.2013,
+    "h": 0.2453
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C10.png"
+}

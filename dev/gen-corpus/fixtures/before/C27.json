@@ -1,0 +1,295 @@
+{
+ "id": "C27",
+ "file": "controller/C27.png",
+ "kind": "controller",
+ "source": "photo",
+ "region": null,
+ "imageSha": "e65965f72272ac433aa82c90d2b5b65e3dc27278",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 900,
+    "format": "layout",
+    "detail": "low",
+    "promptSha": "c15da666e62a",
+    "prompt": "You read a hand-drawn game controller for a phone held in landscape.\nThe image is usually a PHOTO of a notebook page, already cropped by the phone to the drawn controller. It is greyscale and may show ruled or squared paper lines, shadows, smudges, slight perspective or a thumb at the edge. Ignore paper lines, grids, shadows, fingers and anything that was not deliberately drawn as a control.\nControls: a circle, joystick, D-pad or cluster of arrows is ONE control of type \"stick\" whose rectangle covers the whole cluster; its action is \"steer\" if it is on the left half, else \"move\".\nA single arrow drawn on its own is a \"button\" with action left, right, up or down.\nA box, circle or shape with a word or symbol in it is a \"button\" (a drawn switch or slider is a \"toggle\"). Copy the written word exactly into label, in UPPERCASE (FIRE, LAND, PEW, DIG...). Use \"\" if nothing is written.\naction: the closest game action, or \"none\". Verbs with typical labels: shoot (SHOOT, FIRE, PEW, LASER); boost (BOOST, TURBO, NITRO, FAST); shield (SHIELD, BUBBLE, ARMOR, ARMOUR); blast (BLAST, BOMB, WIN, NUKE); invisible (INVISIBLE, CLOAK, GHOST, HIDE); shapeshift (SHAPESHIFT, MASK, DISGUISE, MORPH); teleport (TELEPORT, WARP, BLINK, PORTAL); heal (HEAL, REPAIR, POTION, MEDKIT); jump (JUMP, HOP, SPRING, LEAP); land (LAND, LANDING, TOUCHDOWN, DOCK); takeoff (TAKEOFF, TAKE OFF, LAUNCH, LIFTOFF); scan (SCAN, RADAR, EYE, SONAR); flare (FLARE, LIGHT, TORCH, LAMP); drill (DRILL, SAW, PICK, PICKAXE); dig (DIG, SHOVEL, SPADE, CLAW); drive (DRIVE, CAR, WHEELS, BIKE); fly (FLY, WINGS, JETPACK, HOVER); swim (SWIM, FINS, FLIPPERS, BOAT); grapple (GRAPPLE, HOOK, ROPE, MAGNET). Movement: left, right, up, down, forward, back, strafeleft, straferight, rise, sink. Meta: ready, view.\nRectangles: x, y are the top-left corner and w, h the size, all as fractions (0 to 1) of the whole image, origin top left. Make each rectangle hug the drawn control.\nReturn every drawn control, at most 16, no duplicates. Never invent controls that are not drawn."
+   },
+   "status": 200,
+   "ms": 2267,
+   "error": null,
+   "response": {
+    "id": "resp_0aaa2ff885ec3bf6016ac96168ba0087d285122343aad7eae6",
+    "object": "response",
+    "created_at": 1791582568,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582570,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 900,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "msg_0aaa2ff885ec3bf6016ac96169adf487d282c1b0386a8bf124",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"buttons\":[{\"type\":\"stick\",\"label\":\"\",\"action\":\"steer\",\"x\":0.037,\"y\":0.367,\"w\":0.227,\"h\":0.448},{\"type\":\"button\",\"label\":\"SCAN\",\"action\":\"scan\",\"x\":0.34,\"y\":0.074,\"w\":0.184,\"h\":0.219},{\"type\":\"button\",\"label\":\"LAND\",\"action\":\"land\",\"x\":0.547,\"y\":0.093,\"w\":0.188,\"h\":0.211},{\"type\":\"button\",\"label\":\"DRILL\",\"action\":\"drill\",\"x\":0.758,\"y\":0.107,\"w\":0.205,\"h\":0.215},{\"type\":\"button\",\"label\":\"BOOST\",\"action\":\"boost\",\"x\":0.543,\"y\":0.359,\"w\":0.197,\"h\":0.215},{\"type\":\"button\",\"label\":\"FLARE\",\"action\":\"flare\",\"x\":0.322,\"y\":0.622,\"w\":0.193,\"h\":0.256},{\"type\":\"button\",\"label\":\"SHIELD\",\"action\":\"shield\",\"x\":0.539,\"y\":0.63,\"w\":0.199,\"h\":0.263},{\"type\":\"button\",\"label\":\"FIRE\",\"action\":\"shoot\",\"x\":0.762,\"y\":0.607,\"w\":0.199,\"h\":0.322}]}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "layout",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "buttons"
+       ],
+       "properties": {
+        "buttons": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "type",
+           "label",
+           "action",
+           "x",
+           "y",
+           "w",
+           "h"
+          ],
+          "properties": {
+           "type": {
+            "type": "string",
+            "enum": [
+             "button",
+             "stick",
+             "toggle"
+            ]
+           },
+           "label": {
+            "type": "string"
+           },
+           "action": {
+            "type": "string",
+            "enum": [
+             "shoot",
+             "boost",
+             "shield",
+             "blast",
+             "invisible",
+             "shapeshift",
+             "teleport",
+             "heal",
+             "jump",
+             "land",
+             "takeoff",
+             "scan",
+             "flare",
+             "drill",
+             "dig",
+             "drive",
+             "fly",
+             "swim",
+             "grapple",
+             "left",
+             "right",
+             "up",
+             "down",
+             "forward",
+             "back",
+             "strafeleft",
+             "straferight",
+             "rise",
+             "sink",
+             "steer",
+             "move",
+             "ready",
+             "view",
+             "none"
+            ]
+           },
+           "x": {
+            "type": "number"
+           },
+           "y": {
+            "type": "number"
+           },
+           "w": {
+            "type": "number"
+           },
+           "h": {
+            "type": "number"
+           }
+          }
+         }
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 948,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+     },
+     "output_tokens": 304,
+     "output_tokens_details": {
+      "reasoning_tokens": 0
+     },
+     "total_tokens": 1252
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "layout": {
+   "buttons": [
+    {
+     "type": "stick",
+     "action": "steer",
+     "label": "",
+     "x": 0.037,
+     "y": 0.367,
+     "w": 0.227,
+     "h": 0.448
+    },
+    {
+     "type": "button",
+     "action": "scan",
+     "label": "SCAN",
+     "x": 0.34,
+     "y": 0.074,
+     "w": 0.184,
+     "h": 0.219
+    },
+    {
+     "type": "button",
+     "action": "land",
+     "label": "LAND",
+     "x": 0.547,
+     "y": 0.093,
+     "w": 0.188,
+     "h": 0.211
+    },
+    {
+     "type": "button",
+     "action": "drill",
+     "label": "DRILL",
+     "x": 0.758,
+     "y": 0.107,
+     "w": 0.205,
+     "h": 0.215
+    },
+    {
+     "type": "button",
+     "action": "boost",
+     "label": "BOOST",
+     "x": 0.543,
+     "y": 0.359,
+     "w": 0.197,
+     "h": 0.215
+    },
+    {
+     "type": "button",
+     "action": "flare",
+     "label": "FLARE",
+     "x": 0.322,
+     "y": 0.622,
+     "w": 0.193,
+     "h": 0.256
+    },
+    {
+     "type": "button",
+     "action": "shield",
+     "label": "SHIELD",
+     "x": 0.539,
+     "y": 0.63,
+     "w": 0.199,
+     "h": 0.263
+    },
+    {
+     "type": "button",
+     "action": "shoot",
+     "label": "FIRE",
+     "x": 0.762,
+     "y": 0.607,
+     "w": 0.199,
+     "h": 0.322
+    }
+   ],
+   "source": "model"
+  }
+ },
+ "pass": true
+}

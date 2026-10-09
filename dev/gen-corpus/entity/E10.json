@@ -1,0 +1,23 @@
+{
+ "id": "E10",
+ "kind": "ship",
+ "source": "draw",
+ "desc": "chunky ship with cannon, drill, flames, legs",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "shoot",
+   "drill",
+   "boost",
+   "land"
+  ],
+  "ok": []
+ },
+ "size": [
+  512,
+  266
+ ],
+ "file": "entity/E10.png"
+}

@@ -1,0 +1,66 @@
+{
+ "id": "C33",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: PEW PEW, NITRO, SHIELD with small writing",
+ "photo": {
+  "paper": "lined",
+  "pen": "pencil",
+  "rot": 0,
+  "keystone": 0.05,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0353,
+    "y": 0.3659,
+    "w": 0.2493,
+    "h": 0.5267
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "PEW PEW",
+   "rect": {
+    "x": 0.754,
+    "y": 0.5589,
+    "w": 0.2091,
+    "h": 0.3395
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "NITRO",
+   "rect": {
+    "x": 0.4977,
+    "y": 0.6476,
+    "w": 0.2086,
+    "h": 0.2728
+   }
+  },
+  {
+   "type": "button",
+   "action": "shield",
+   "label": "SHIELD",
+   "rect": {
+    "x": 0.728,
+    "y": 0.0806,
+    "w": 0.2295,
+    "h": 0.2663
+   }
+  }
+ ],
+ "size": [
+  512,
+  242
+ ],
+ "file": "controller/C33.png"
+}

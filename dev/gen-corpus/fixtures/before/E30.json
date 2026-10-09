@@ -1,0 +1,271 @@
+{
+ "id": "E30",
+ "file": "entity/E30.png",
+ "kind": "explorer",
+ "source": "draw",
+ "region": null,
+ "imageSha": "a9de4febb53c293f465dd68dc11080887048e65c",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 500,
+    "format": "entity",
+    "detail": "low",
+    "promptSha": "39d5048277a2",
+    "prompt": "You read a hand-drawn EXPLORER that walks or drives on a planet. type: person (a person, astronaut, robot on legs), car, bike, quadruped (any four-legged animal) or blob (anything else).\nThe image is a finger drawing made on the phone screen.\nparts: every distinct part that was deliberately drawn on it (cannon, exhaust flames, wheels, shovel, legs...), each with the centre of the part as x, y fractions of the image (origin top left). At most 12.\nSkills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still move). Part → skill: shoot: a gun, cannon or laser; boost: an exhaust with fire; shield: a shield or a bubble; dig: a shovel or claws; drill: a drill or a saw; jump: legs or springs; scan: an antenna, a radar dish or an eye; flare: a lamp or a torch; invisible: a cape or a ghost; heal: a red cross; blast: a bomb; teleport: a portal or a magic wand.\nBe generous: when a part is unclear or only roughly fits, unlock the closest skill. Never unlock a skill with no part on the drawing that could mean it.\nverbs: the unlocked skills. unlocked: one entry per skill, with the part that unlocks it (its name as in parts)."
+   },
+   "status": 200,
+   "ms": 1486,
+   "error": null,
+   "response": {
+    "id": "resp_0f772ddef11a96f6016ac961788fb487d28b70e40cad48cddf",
+    "object": "response",
+    "created_at": 1791582584,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582585,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 500,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "rs_0f772ddef11a96f6016ac961791e2487d2897eec03caa97456",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqyWF5y_uGacIXtBVr2341h-YSYrA4dNIyajLFTQIgAm_qPTWghfnoL_e_a814TWgwLdo3yIYxqWZAAFnbd0jhAmRFeq4VaeUL-8al8tx1j_pMcQEOg40qfSH8dU_TUBDdeXklN2OzG3OGNdtyYo9oxf6oX8nnknmM1FSLhDrf4sSkqnB3rfrlAA6Zuz1XZCdtInJPZKujynRh05u7M6LG5k5-CxSAi00uRMDkPU4lDGyS73Sun_oxT9iYOqEmAY6BSDTX9eKEbQe4nhg8dIxopN5u38h2FUI-9sWYu22PuYWoI2BTRknbAZgYl74vWcwsFVKkP0YsgeBS_HbH1IcL74OhnJuPqzmPX6mhaNmjawjKsdXelLTCEpS3cH4XuvWEw4m4edlHYH4OHNB04inNdKtLXOiJQymFL6RNhE_js3KsO-hzTmf3RyDrpokGgk_ilC5gJXmTEbYcJJ_Amnjq4S9Kf6ikswYXUSBgSRq6Xo5UcV9SFEgB1Kuex-OzeHSVG_Y-ZzFn_u3YGO1fOh1YCBygrCqN7-7cXrIyCNcB8rxnAHC_iM3rHRx4s8vrUOqKx4ZlLYFauyBOg8o4H9p8rh6-Tc6dSBMYkZau6qNZ0OaCdFaGx6BOOr2WTKGhgFFqjx656lVxO0NdY2bdnbdqh12HUWyW2Sz9twpLKe4af9F0zVpNqXctFAKspW1-bvQ5Ev5QQvGr2PFyqrbM5qkap-ULrfk6-DFJ_s5B0XIGqXUu2wJO5GuAMfnbLT1p37Td-9ufdtFyUeDElmYyT7x3HaJb5xcWLsbNKM9NFtyYTu29FW1fHzxn-ZN6_IsnV0Y-pV9jNqPy7SzaCaQqFkspCJv13hfe4ZGWYak7DE1ibCg3SHwAobQiy3d4gAym2cawEyVw5EWUTtlYjjQyztaoJ2dNRYTBSOdi9TmrfPWs-E-6SoLda0N1P5hiElRkX8zHmvsGRyAtifuLfmaOtaqbD8FWn4ybbCWncNIrczcGsNZrnInoVR02sBLj_5AQpZLp7iEYVznaSssGNlU_Zv3Jgd60HtlTkm173eeddtj-9nrVmue4IgndkfyjR2hHzwG1DJxxdGdbaSt7zPygashGzL_dNASwas0EdJeOhqRXp05mfCeqfDIGmGw1vi_K2Q5udBC3_Oxx1WBClRP4KbCKVEkcrkQFQ3yjK_PUjab1B5Yu8nkY45WNGlmrKCuBYJHaKl6F_e7P2hSUPpq8dkoAmcGGm756qXyk65uPYL6MBriqidSF21OgssCJHjHmWQMzz7SJSzbkDmAu2v_YS3ePR4PfF4LweYtw9p-EvK_BPqCPUJJvTI6zF5jVt1whz8pBvv9XTsUAQ9WtytfI0XFzd8O4sngBLNpjLLuOyA9m4_fVKmDV0wDz3LGqrHgpQJHFVW--GnL0usBaJRxNsCERTF9OiAVlsYNG1PM9qFvJ_v3uLJ6Qwd4ThLIwT83B_4UGDIsd7mrUjbNcJkPprGiCDzEorGzgifvsNEVk5hFRC_gvEplbkBw6op5svz49GVd4FTRAvzgGxGXJ8duMc_EWi2AxEQZ7EBvTk_uK0S8upDuziIST8t1jWRFy0WT5T0CijtGnhq_Az48reXFw4t4HpNcsIXUl2Z2i7tQsYAmZiGUHH2mZskdfyRS5vyiYfYABC-H9rZZLkYyXbRtsXDnrHhssV8pPoe49WPHUO9LnHDLHlKHKK6bAPh0Kw2gcsOkkca06vpnaJb8URd2pdFSK3q_1WnKB-TNETSmj_q9hOFng2qyXiaddJTlS_Cw99LQg3ez_XY9SE4pWdfAsRPFJEFtAvnWQWXKjjt8JzZ3MJD7Orz10Mg8B-FnO3hKJGkt8s-wvvnfHBtbD4tpKmLBTiNdPdky3DtqFG5Oje3xdkdgggLw_KVYigvLTNLenJ5KdIGY54QjsuwAhNv-8f46kuvRUZPOb_vkRcatkUXc90bxYpNmEBDsF-B3xi7D6NIdBoHF8VrPHTsbXzUDgj9YzyeBRkCE_uZ9RQp9f5crF8XDicpXDzO6tCYBK9AI8WtyEsQfhAGwXGz2grRXG4ayEMzQgvm1YawlNJge8XBHUa00xX1uX6EX1veg6vlFscKrUVVBg",
+      "summary": []
+     },
+     {
+      "id": "msg_0f772ddef11a96f6016ac961796d8c87d28e38b634962b5b6a",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"type\":\"blob\",\"parts\":[{\"name\":\"long curved body\",\"x\":0.435,\"y\":0.497},{\"name\":\"head\",\"x\":0.867,\"y\":0.548},{\"name\":\"eye\",\"x\":0.874,\"y\":0.487},{\"name\":\"forked tongue\",\"x\":0.938,\"y\":0.599}],\"verbs\":[\"scan\"],\"unlocked\":[{\"verb\":\"scan\",\"part\":\"eye\"}]}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "entity",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "type",
+        "parts",
+        "verbs",
+        "unlocked"
+       ],
+       "properties": {
+        "type": {
+         "type": "string",
+         "enum": [
+          "person",
+          "car",
+          "bike",
+          "quadruped",
+          "blob"
+         ]
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "name",
+           "x",
+           "y"
+          ],
+          "properties": {
+           "name": {
+            "type": "string"
+           },
+           "x": {
+            "type": "number"
+           },
+           "y": {
+            "type": "number"
+           }
+          }
+         }
+        },
+        "verbs": {
+         "type": "array",
+         "items": {
+          "type": "string",
+          "enum": [
+           "shoot",
+           "boost",
+           "shield",
+           "dig",
+           "drill",
+           "jump",
+           "scan",
+           "flare",
+           "invisible",
+           "heal",
+           "blast",
+           "teleport"
+          ]
+         }
+        },
+        "unlocked": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "verb",
+           "part"
+          ],
+          "properties": {
+           "verb": {
+            "type": "string",
+            "enum": [
+             "shoot",
+             "boost",
+             "shield",
+             "dig",
+             "drill",
+             "jump",
+             "scan",
+             "flare",
+             "invisible",
+             "heal",
+             "blast",
+             "teleport"
+            ]
+           },
+           "part": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 602,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+     },
+     "output_tokens": 164,
+     "output_tokens_details": {
+      "reasoning_tokens": 60
+     },
+     "total_tokens": 766
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "entity": {
+   "type": "blob",
+   "verbs": [
+    "jump",
+    "scan",
+    "takeoff"
+   ],
+   "unlocked": [
+    {
+     "verb": "scan",
+     "part": "eye"
+    }
+   ],
+   "parts": [
+    {
+     "name": "long curved body",
+     "x": 0.435,
+     "y": 0.497
+    },
+    {
+     "name": "head",
+     "x": 0.867,
+     "y": 0.548
+    },
+    {
+     "name": "eye",
+     "x": 0.874,
+     "y": 0.487
+    },
+    {
+     "name": "forked tongue",
+     "x": 0.938,
+     "y": 0.599
+    }
+   ],
+   "source": "model"
+  }
+ },
+ "pass": true
+}

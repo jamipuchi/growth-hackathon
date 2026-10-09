@@ -1,0 +1,23 @@
+{
+ "id": "E20",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "astronaut + jetpack with flames",
+ "entity": {
+  "types": [
+   "person"
+  ],
+  "must": [
+   "boost"
+  ],
+  "ok": [
+   "fly",
+   "jump"
+  ]
+ },
+ "size": [
+  310,
+  512
+ ],
+ "file": "entity/E20.png"
+}

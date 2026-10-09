@@ -1,0 +1,60 @@
+{
+ "id": "C14",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "icon plus word: flame BOOST, crosshair FIRE, drill DRILL",
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.059,
+    "y": 0.3632,
+    "w": 0.2417,
+    "h": 0.4772
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "icon": "crosshair",
+   "rect": {
+    "x": 0.758,
+    "y": 0.4569,
+    "w": 0.2042,
+    "h": 0.4242
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "BOOST",
+   "icon": "flame",
+   "rect": {
+    "x": 0.519,
+    "y": 0.4977,
+    "w": 0.2011,
+    "h": 0.4265
+   }
+  },
+  {
+   "type": "button",
+   "action": "drill",
+   "label": "DRILL",
+   "icon": "drill",
+   "rect": {
+    "x": 0.6387,
+    "y": 0.0159,
+    "w": 0.2034,
+    "h": 0.4051
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C14.png"
+}

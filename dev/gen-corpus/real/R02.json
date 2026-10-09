@@ -1,0 +1,16 @@
+{
+ "id": "R02",
+ "kind": "button",
+ "source": "draw",
+ "desc": "REAL (owner 23:15): a figure drawn as an added button → 'unreadable button'",
+ "file": "real/jaume-figure-drawn-as-button.png",
+ "region": {
+  "x": 0.4,
+  "y": 0.3,
+  "w": 0.2,
+  "h": 0.3
+ },
+ "wrong": {
+  "looksLike": "entity"
+ }
+}

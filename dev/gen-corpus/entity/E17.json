@@ -1,0 +1,22 @@
+{
+ "id": "E17",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "astronaut + shovel",
+ "entity": {
+  "types": [
+   "person"
+  ],
+  "must": [
+   "dig"
+  ],
+  "ok": [
+   "jump"
+  ]
+ },
+ "size": [
+  335,
+  512
+ ],
+ "file": "entity/E17.png"
+}

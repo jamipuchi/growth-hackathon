@@ -1,0 +1,22 @@
+{
+ "id": "E19",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "astronaut + blaster",
+ "entity": {
+  "types": [
+   "person"
+  ],
+  "must": [
+   "shoot"
+  ],
+  "ok": [
+   "jump"
+  ]
+ },
+ "size": [
+  419,
+  512
+ ],
+ "file": "entity/E19.png"
+}

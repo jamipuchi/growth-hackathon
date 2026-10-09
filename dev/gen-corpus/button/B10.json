@@ -1,0 +1,26 @@
+{
+ "id": "B10",
+ "kind": "button",
+ "source": "draw",
+ "desc": "FIRE in a circle",
+ "region": {
+  "x": 0.7,
+  "y": 0.4,
+  "w": 0.18,
+  "h": 0.34
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "shoot",
+  "type": "button"
+ },
+ "size": [
+  512,
+  483
+ ],
+ "file": "button/B10.png"
+}

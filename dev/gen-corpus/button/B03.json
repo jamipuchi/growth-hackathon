@@ -1,0 +1,26 @@
+{
+ "id": "B03",
+ "kind": "button",
+ "source": "draw",
+ "desc": "DRILL in a rounded box",
+ "region": {
+  "x": 0.4,
+  "y": 0.3,
+  "w": 0.2,
+  "h": 0.3
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "drill",
+  "type": "button"
+ },
+ "size": [
+  512,
+  402
+ ],
+ "file": "button/B03.png"
+}

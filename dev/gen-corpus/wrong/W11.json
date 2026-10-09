@@ -1,0 +1,14 @@
+{
+ "id": "W11",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "a controller (stick, DIG, JUMP) in the explorer step",
+ "wrong": {
+  "looksLike": "controller"
+ },
+ "size": [
+  512,
+  174
+ ],
+ "file": "wrong/W11.png"
+}

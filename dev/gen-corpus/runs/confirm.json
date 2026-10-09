@@ -1,0 +1,1004 @@
+{
+ "label": "confirm",
+ "at": "2026-10-09T21:59:32.191Z",
+ "astra": "astra.js",
+ "env": {
+  "effort": null,
+  "tier": null
+ },
+ "calls": 14,
+ "wallSeconds": 4.6,
+ "summary": {
+  "cases": 14,
+  "passed": 14,
+  "controlsFoundClean": null,
+  "controlsFoundPhoto": 100,
+  "kindsRight": 100,
+  "labelsRight": 100,
+  "labelsRightControllers": 100,
+  "buttonsRight": null,
+  "iou50": 100,
+  "extraControls": 0,
+  "crossedOutReturned": 0,
+  "entityType": null,
+  "unlockedVerbs": null,
+  "gateVerbsMissing": 0,
+  "spuriousUnlocks": 0,
+  "wrongKindCaught": null,
+  "falseAlarms": 0,
+  "fallbacks": 0,
+  "errors": 0,
+  "p50ms": 1498,
+  "p90ms": 1766,
+  "maxMs": 1992
+ },
+ "cases": [
+  {
+   "id": "C21",
+   "ms": 1498,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C21",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.102,
+       "w": 0.27,
+       "h": 0.79
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.482,
+       "y": 0.42,
+       "w": 0.225,
+       "h": 0.466
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.742,
+       "y": 0.193,
+       "w": 0.223,
+       "h": 0.5
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C22",
+   "ms": 1534,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C22",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.295,
+       "w": 0.273,
+       "h": 0.574
+      },
+      {
+       "type": "button",
+       "action": "drill",
+       "label": "DRILL",
+       "x": 0.695,
+       "y": 0.078,
+       "w": 0.234,
+       "h": 0.311
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.463,
+       "y": 0.615,
+       "w": 0.201,
+       "h": 0.307
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "SHOOT",
+       "x": 0.719,
+       "y": 0.578,
+       "w": 0.244,
+       "h": 0.352
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C23",
+   "ms": 1413,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C23",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.586,
+       "w": 0.221,
+       "h": 0.354
+      },
+      {
+       "type": "button",
+       "action": "shield",
+       "label": "SHIELD",
+       "x": 0.59,
+       "y": 0.39,
+       "w": 0.195,
+       "h": 0.189
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.404,
+       "y": 0.748,
+       "w": 0.184,
+       "h": 0.198
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.617,
+       "y": 0.667,
+       "w": 0.186,
+       "h": 0.228
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C24",
+   "ms": 1524,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C24",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.296,
+       "w": 0.276,
+       "h": 0.5
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "",
+       "x": 0.71,
+       "y": 0.071,
+       "w": 0.216,
+       "h": 0.386
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "",
+       "x": 0.48,
+       "y": 0.557,
+       "w": 0.213,
+       "h": 0.375
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "",
+       "x": 0.751,
+       "y": 0.529,
+       "w": 0.216,
+       "h": 0.389
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C25",
+   "ms": 1766,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C25",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.344,
+       "w": 0.266,
+       "h": 0.531
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.486,
+       "y": 0.633,
+       "w": 0.217,
+       "h": 0.297
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.746,
+       "y": 0.562,
+       "w": 0.219,
+       "h": 0.336
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C26",
+   "ms": 1437,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C26",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.031,
+       "y": 0.156,
+       "w": 0.285,
+       "h": 0.755
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.537,
+       "y": 0.25,
+       "w": 0.155,
+       "h": 0.422
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.787,
+       "y": 0.094,
+       "w": 0.178,
+       "h": 0.469
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C27",
+   "ms": 1992,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C27",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 8,
+    "found": 8,
+    "kindRight": 8,
+    "labelRight": 8,
+    "iou50": 8,
+    "labelTotal": 8,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.37,
+       "w": 0.229,
+       "h": 0.444
+      },
+      {
+       "type": "button",
+       "action": "scan",
+       "label": "SCAN",
+       "x": 0.34,
+       "y": 0.074,
+       "w": 0.184,
+       "h": 0.215
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.545,
+       "y": 0.089,
+       "w": 0.189,
+       "h": 0.215
+      },
+      {
+       "type": "button",
+       "action": "drill",
+       "label": "DRILL",
+       "x": 0.758,
+       "y": 0.107,
+       "w": 0.207,
+       "h": 0.215
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.543,
+       "y": 0.359,
+       "w": 0.197,
+       "h": 0.215
+      },
+      {
+       "type": "button",
+       "action": "flare",
+       "label": "FLARE",
+       "x": 0.322,
+       "y": 0.622,
+       "w": 0.195,
+       "h": 0.256
+      },
+      {
+       "type": "button",
+       "action": "shield",
+       "label": "SHIELD",
+       "x": 0.539,
+       "y": 0.63,
+       "w": 0.199,
+       "h": 0.263
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.762,
+       "y": 0.611,
+       "w": 0.199,
+       "h": 0.319
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C28",
+   "ms": 1286,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C28",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.201,
+       "w": 0.277,
+       "h": 0.675
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.465,
+       "y": 0.531,
+       "w": 0.223,
+       "h": 0.378
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.77,
+       "y": 0.392,
+       "w": 0.195,
+       "h": 0.455
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C29",
+   "ms": 1484,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C29",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.203,
+       "w": 0.262,
+       "h": 0.568
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.406,
+       "y": 0.085,
+       "w": 0.215,
+       "h": 0.381
+      },
+      {
+       "type": "stick",
+       "action": "move",
+       "label": "",
+       "x": 0.701,
+       "y": 0.36,
+       "w": 0.264,
+       "h": 0.568
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C30",
+   "ms": 1551,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C30",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.364,
+       "w": 0.268,
+       "h": 0.548
+      },
+      {
+       "type": "button",
+       "action": "drill",
+       "label": "DRILL",
+       "x": 0.729,
+       "y": 0.076,
+       "w": 0.236,
+       "h": 0.292
+      },
+      {
+       "type": "button",
+       "action": "jump",
+       "label": "JUMP",
+       "x": 0.488,
+       "y": 0.632,
+       "w": 0.215,
+       "h": 0.292
+      },
+      {
+       "type": "button",
+       "action": "dig",
+       "label": "DIG",
+       "x": 0.748,
+       "y": 0.568,
+       "w": 0.217,
+       "h": 0.336
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C31",
+   "ms": 1624,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C31",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.44,
+       "w": 0.254,
+       "h": 0.458
+      },
+      {
+       "type": "button",
+       "action": "flare",
+       "label": "FLARE",
+       "x": 0.607,
+       "y": 0.067,
+       "w": 0.221,
+       "h": 0.401
+      },
+      {
+       "type": "button",
+       "action": "scan",
+       "label": "SCAN",
+       "x": 0.494,
+       "y": 0.525,
+       "w": 0.223,
+       "h": 0.412
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.74,
+       "y": 0.461,
+       "w": 0.225,
+       "h": 0.412
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C32",
+   "ms": 1317,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C32",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 2,
+    "found": 2,
+    "kindRight": 2,
+    "labelRight": 2,
+    "iou50": 2,
+    "labelTotal": 2,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.09,
+       "w": 0.33,
+       "h": 0.806
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.709,
+       "y": 0.37,
+       "w": 0.256,
+       "h": 0.54
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C33",
+   "ms": 1379,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C33",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.36,
+       "w": 0.252,
+       "h": 0.537
+      },
+      {
+       "type": "button",
+       "action": "shield",
+       "label": "SHIELD",
+       "x": 0.727,
+       "y": 0.074,
+       "w": 0.232,
+       "h": 0.277
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "NITRO",
+       "x": 0.496,
+       "y": 0.645,
+       "w": 0.211,
+       "h": 0.281
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "PEW PEW",
+       "x": 0.751,
+       "y": 0.554,
+       "w": 0.213,
+       "h": 0.347
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C34",
+   "ms": 1596,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C34",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.319,
+       "w": 0.266,
+       "h": 0.606
+      },
+      {
+       "type": "toggle",
+       "action": "shield",
+       "label": "SHIELD",
+       "x": 0.428,
+       "y": 0.08,
+       "w": 0.191,
+       "h": 0.23
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.443,
+       "y": 0.571,
+       "w": 0.215,
+       "h": 0.327
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.74,
+       "y": 0.389,
+       "w": 0.225,
+       "h": 0.434
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  }
+ ]
+}

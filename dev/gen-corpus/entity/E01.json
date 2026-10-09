@@ -1,0 +1,18 @@
+{
+ "id": "E01",
+ "kind": "ship",
+ "source": "draw",
+ "desc": "plain fighter",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [],
+  "ok": []
+ },
+ "size": [
+  512,
+  345
+ ],
+ "file": "entity/E01.png"
+}

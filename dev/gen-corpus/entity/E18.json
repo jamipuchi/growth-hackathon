@@ -1,0 +1,22 @@
+{
+ "id": "E18",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "astronaut + hand drill",
+ "entity": {
+  "types": [
+   "person"
+  ],
+  "must": [
+   "drill"
+  ],
+  "ok": [
+   "jump"
+  ]
+ },
+ "size": [
+  403,
+  512
+ ],
+ "file": "entity/E18.png"
+}

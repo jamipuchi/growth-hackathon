@@ -1,0 +1,5824 @@
+{
+ "label": "before",
+ "at": "2026-10-09T21:49:47.946Z",
+ "astra": "dev/gen-corpus/baseline/astra-before.js",
+ "env": {
+  "effort": "low",
+  "tier": null
+ },
+ "calls": 86,
+ "wallSeconds": 26.8,
+ "summary": {
+  "cases": 86,
+  "passed": 76,
+  "controlsFoundClean": 100,
+  "controlsFoundPhoto": 98.1,
+  "kindsRight": 100,
+  "labelsRight": 96.5,
+  "labelsRightControllers": 98.4,
+  "buttonsRight": 82.4,
+  "iou50": 100,
+  "extraControls": 2,
+  "crossedOutReturned": 2,
+  "entityType": 100,
+  "unlockedVerbs": 89.7,
+  "gateVerbsMissing": 1,
+  "spuriousUnlocks": 13,
+  "wrongKindCaught": null,
+  "falseAlarms": 0,
+  "fallbacks": 0,
+  "errors": 1,
+  "p50ms": 1665,
+  "p90ms": 2368,
+  "maxMs": 3428
+ },
+ "cases": [
+  {
+   "id": "C01",
+   "ms": 2447,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C01",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.07,
+       "y": 0.359,
+       "w": 0.26,
+       "h": 0.52
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.494,
+       "y": 0.609,
+       "w": 0.213,
+       "h": 0.305
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.746,
+       "y": 0.492,
+       "w": 0.209,
+       "h": 0.32
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C02",
+   "ms": 2352,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C02",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.057,
+       "y": 0.328,
+       "w": 0.268,
+       "h": 0.543
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "TURBO",
+       "x": 0.496,
+       "y": 0.629,
+       "w": 0.221,
+       "h": 0.262
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "PEW",
+       "x": 0.756,
+       "y": 0.441,
+       "w": 0.188,
+       "h": 0.379
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C03",
+   "ms": 2186,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C03",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.074,
+       "y": 0.324,
+       "w": 0.254,
+       "h": 0.512
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.744,
+       "y": 0.109,
+       "w": 0.201,
+       "h": 0.262
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "SHOOT",
+       "x": 0.693,
+       "y": 0.566,
+       "w": 0.244,
+       "h": 0.305
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C04",
+   "ms": 2254,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C04",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.055,
+       "y": 0.352,
+       "w": 0.252,
+       "h": 0.496
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.396,
+       "y": 0.648,
+       "w": 0.209,
+       "h": 0.262
+      },
+      {
+       "type": "stick",
+       "action": "move",
+       "label": "",
+       "x": 0.695,
+       "y": 0.348,
+       "w": 0.25,
+       "h": 0.504
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C05",
+   "ms": 2613,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C05",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "left",
+       "label": "",
+       "x": 0.059,
+       "y": 0.57,
+       "w": 0.131,
+       "h": 0.266
+      },
+      {
+       "type": "button",
+       "action": "right",
+       "label": "",
+       "x": 0.285,
+       "y": 0.566,
+       "w": 0.131,
+       "h": 0.266
+      },
+      {
+       "type": "button",
+       "action": "forward",
+       "label": "GO",
+       "x": 0.521,
+       "y": 0.191,
+       "w": 0.158,
+       "h": 0.242
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.746,
+       "y": 0.477,
+       "w": 0.199,
+       "h": 0.391
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C06",
+   "ms": 2666,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C06",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 7,
+    "found": 7,
+    "kindRight": 7,
+    "labelRight": 7,
+    "iou50": 7,
+    "labelTotal": 7,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.045,
+       "y": 0.395,
+       "w": 0.25,
+       "h": 0.492
+      },
+      {
+       "type": "button",
+       "action": "scan",
+       "label": "SCAN",
+       "x": 0.396,
+       "y": 0.094,
+       "w": 0.178,
+       "h": 0.219
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.605,
+       "y": 0.09,
+       "w": 0.178,
+       "h": 0.219
+      },
+      {
+       "type": "button",
+       "action": "drill",
+       "label": "DRILL",
+       "x": 0.807,
+       "y": 0.09,
+       "w": 0.178,
+       "h": 0.219
+      },
+      {
+       "type": "button",
+       "action": "shield",
+       "label": "SHIELD",
+       "x": 0.395,
+       "y": 0.609,
+       "w": 0.182,
+       "h": 0.262
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.607,
+       "y": 0.613,
+       "w": 0.178,
+       "h": 0.258
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "SHOOT",
+       "x": 0.805,
+       "y": 0.574,
+       "w": 0.182,
+       "h": 0.316
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C07",
+   "ms": 1573,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C07",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.072,
+       "y": 0.344,
+       "w": 0.258,
+       "h": 0.516
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.746,
+       "y": 0.086,
+       "w": 0.209,
+       "h": 0.285
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.744,
+       "y": 0.512,
+       "w": 0.213,
+       "h": 0.32
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.496,
+       "y": 0.613,
+       "w": 0.209,
+       "h": 0.277
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C08",
+   "ms": 1449,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C08",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.061,
+       "y": 0.344,
+       "w": 0.258,
+       "h": 0.512
+      },
+      {
+       "type": "button",
+       "action": "shield",
+       "label": "",
+       "x": 0.697,
+       "y": 0.055,
+       "w": 0.166,
+       "h": 0.34
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "",
+       "x": 0.748,
+       "y": 0.492,
+       "w": 0.195,
+       "h": 0.395
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "",
+       "x": 0.496,
+       "y": 0.574,
+       "w": 0.189,
+       "h": 0.355
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C09",
+   "ms": 1494,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C09",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.061,
+       "y": 0.293,
+       "w": 0.258,
+       "h": 0.52
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.521,
+       "y": 0.453,
+       "w": 0.139,
+       "h": 0.273
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.746,
+       "y": 0.375,
+       "w": 0.158,
+       "h": 0.312
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C10",
+   "ms": 3428,
+   "pass": false,
+   "note": "extra JUMP(jump)",
+   "score": {
+    "id": "C10",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 1,
+    "crossedReturned": 1,
+    "pass": false,
+    "note": "extra JUMP(jump)"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.061,
+       "y": 0.344,
+       "w": 0.262,
+       "h": 0.512
+      },
+      {
+       "type": "button",
+       "action": "jump",
+       "label": "JUMP",
+       "x": 0.584,
+       "y": 0.09,
+       "w": 0.23,
+       "h": 0.309
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.492,
+       "y": 0.609,
+       "w": 0.217,
+       "h": 0.301
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.744,
+       "y": 0.531,
+       "w": 0.213,
+       "h": 0.324
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C11",
+   "ms": 1783,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C11",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.061,
+       "y": 0.34,
+       "w": 0.258,
+       "h": 0.52
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.455,
+       "y": 0.652,
+       "w": 0.201,
+       "h": 0.258
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.756,
+       "y": 0.516,
+       "w": 0.178,
+       "h": 0.352
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C12",
+   "ms": 1605,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C12",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.072,
+       "y": 0.312,
+       "w": 0.275,
+       "h": 0.535
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.486,
+       "y": 0.582,
+       "w": 0.221,
+       "h": 0.328
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.732,
+       "y": 0.496,
+       "w": 0.227,
+       "h": 0.336
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C13",
+   "ms": 1327,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C13",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.061,
+       "y": 0.34,
+       "w": 0.262,
+       "h": 0.52
+      },
+      {
+       "type": "button",
+       "action": "shield",
+       "label": "SHIELD",
+       "x": 0.697,
+       "y": 0.109,
+       "w": 0.236,
+       "h": 0.266
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.494,
+       "y": 0.629,
+       "w": 0.223,
+       "h": 0.285
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.744,
+       "y": 0.527,
+       "w": 0.211,
+       "h": 0.32
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C14",
+   "ms": 1530,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C14",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.055,
+       "y": 0.352,
+       "w": 0.252,
+       "h": 0.5
+      },
+      {
+       "type": "button",
+       "action": "drill",
+       "label": "DRILL",
+       "x": 0.635,
+       "y": 0.008,
+       "w": 0.211,
+       "h": 0.422
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.516,
+       "y": 0.488,
+       "w": 0.209,
+       "h": 0.445
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.754,
+       "y": 0.449,
+       "w": 0.211,
+       "h": 0.441
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C15",
+   "ms": 1682,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C15",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 2,
+    "found": 2,
+    "kindRight": 2,
+    "labelRight": 2,
+    "iou50": 2,
+    "labelTotal": 2,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.072,
+       "y": 0.242,
+       "w": 0.307,
+       "h": 0.613
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.695,
+       "y": 0.391,
+       "w": 0.24,
+       "h": 0.418
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C16",
+   "ms": 1473,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C16",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.055,
+       "y": 0.355,
+       "w": 0.25,
+       "h": 0.492
+      },
+      {
+       "type": "button",
+       "action": "heal",
+       "label": "",
+       "x": 0.498,
+       "y": 0.57,
+       "w": 0.166,
+       "h": 0.344
+      },
+      {
+       "type": "button",
+       "action": "teleport",
+       "label": "WARP",
+       "x": 0.697,
+       "y": 0.094,
+       "w": 0.229,
+       "h": 0.277
+      },
+      {
+       "type": "button",
+       "action": "blast",
+       "label": "BOMB",
+       "x": 0.736,
+       "y": 0.531,
+       "w": 0.219,
+       "h": 0.32
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C17",
+   "ms": 1696,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C17",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "forward",
+       "label": "THRUST",
+       "x": 0.146,
+       "y": 0.152,
+       "w": 0.27,
+       "h": 0.277
+      },
+      {
+       "type": "button",
+       "action": "left",
+       "label": "LEFT",
+       "x": 0.035,
+       "y": 0.59,
+       "w": 0.211,
+       "h": 0.281
+      },
+      {
+       "type": "button",
+       "action": "right",
+       "label": "RIGHT",
+       "x": 0.275,
+       "y": 0.59,
+       "w": 0.227,
+       "h": 0.281
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.746,
+       "y": 0.492,
+       "w": 0.211,
+       "h": 0.355
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C18",
+   "ms": 1534,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C18",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.061,
+       "y": 0.344,
+       "w": 0.262,
+       "h": 0.516
+      },
+      {
+       "type": "toggle",
+       "action": "shield",
+       "label": "SHIELD",
+       "x": 0.457,
+       "y": 0.191,
+       "w": 0.186,
+       "h": 0.184
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.744,
+       "y": 0.508,
+       "w": 0.211,
+       "h": 0.344
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C19",
+   "ms": 1316,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C19",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.031,
+       "y": 0.578,
+       "w": 0.158,
+       "h": 0.32
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.855,
+       "y": 0.09,
+       "w": 0.119,
+       "h": 0.18
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.855,
+       "y": 0.691,
+       "w": 0.119,
+       "h": 0.203
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.445,
+       "y": 0.793,
+       "w": 0.131,
+       "h": 0.156
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C20",
+   "ms": 1498,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C20",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.06,
+       "y": 0.363,
+       "w": 0.256,
+       "h": 0.516
+      },
+      {
+       "type": "button",
+       "action": "takeoff",
+       "label": "TAKE OFF",
+       "x": 0.646,
+       "y": 0.094,
+       "w": 0.309,
+       "h": 0.258
+      },
+      {
+       "type": "button",
+       "action": "jump",
+       "label": "JUMP",
+       "x": 0.496,
+       "y": 0.609,
+       "w": 0.209,
+       "h": 0.281
+      },
+      {
+       "type": "button",
+       "action": "dig",
+       "label": "DIG",
+       "x": 0.746,
+       "y": 0.555,
+       "w": 0.211,
+       "h": 0.312
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C21",
+   "ms": 1617,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C21",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.102,
+       "w": 0.268,
+       "h": 0.795
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.48,
+       "y": 0.415,
+       "w": 0.227,
+       "h": 0.472
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.74,
+       "y": 0.188,
+       "w": 0.225,
+       "h": 0.511
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C22",
+   "ms": 1641,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C22",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.295,
+       "w": 0.271,
+       "h": 0.57
+      },
+      {
+       "type": "button",
+       "action": "drill",
+       "label": "DRILL",
+       "x": 0.695,
+       "y": 0.078,
+       "w": 0.232,
+       "h": 0.307
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.463,
+       "y": 0.619,
+       "w": 0.199,
+       "h": 0.303
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "SHOOT",
+       "x": 0.719,
+       "y": 0.574,
+       "w": 0.244,
+       "h": 0.348
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C23",
+   "ms": 2098,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C23",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.586,
+       "w": 0.221,
+       "h": 0.354
+      },
+      {
+       "type": "button",
+       "action": "shield",
+       "label": "SHIELD",
+       "x": 0.59,
+       "y": 0.39,
+       "w": 0.195,
+       "h": 0.186
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.402,
+       "y": 0.748,
+       "w": 0.188,
+       "h": 0.195
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.615,
+       "y": 0.667,
+       "w": 0.186,
+       "h": 0.225
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C24",
+   "ms": 2074,
+   "pass": false,
+   "note": "action flame: shoot≠boost; missed legs(land)",
+   "score": {
+    "id": "C24",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 2,
+    "iou50": 3,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": false,
+    "note": "action flame: shoot≠boost; missed legs(land)"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.296,
+       "w": 0.277,
+       "h": 0.504
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "",
+       "x": 0.482,
+       "y": 0.557,
+       "w": 0.211,
+       "h": 0.379
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "",
+       "x": 0.752,
+       "y": 0.525,
+       "w": 0.211,
+       "h": 0.393
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C25",
+   "ms": 1505,
+   "pass": false,
+   "note": "extra SCAN(scan)",
+   "score": {
+    "id": "C25",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 1,
+    "crossedReturned": 1,
+    "pass": false,
+    "note": "extra SCAN(scan)"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.34,
+       "w": 0.269,
+       "h": 0.539
+      },
+      {
+       "type": "button",
+       "action": "scan",
+       "label": "SCAN",
+       "x": 0.606,
+       "y": 0.078,
+       "w": 0.232,
+       "h": 0.301
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.486,
+       "y": 0.629,
+       "w": 0.217,
+       "h": 0.297
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.746,
+       "y": 0.562,
+       "w": 0.219,
+       "h": 0.359
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C26",
+   "ms": 2406,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C26",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.156,
+       "w": 0.283,
+       "h": 0.755
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.539,
+       "y": 0.255,
+       "w": 0.158,
+       "h": 0.594
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.789,
+       "y": 0.094,
+       "w": 0.184,
+       "h": 0.688
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C27",
+   "ms": 2267,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C27",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 8,
+    "found": 8,
+    "kindRight": 8,
+    "labelRight": 8,
+    "iou50": 8,
+    "labelTotal": 8,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.367,
+       "w": 0.227,
+       "h": 0.448
+      },
+      {
+       "type": "button",
+       "action": "scan",
+       "label": "SCAN",
+       "x": 0.34,
+       "y": 0.074,
+       "w": 0.184,
+       "h": 0.219
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.547,
+       "y": 0.093,
+       "w": 0.188,
+       "h": 0.211
+      },
+      {
+       "type": "button",
+       "action": "drill",
+       "label": "DRILL",
+       "x": 0.758,
+       "y": 0.107,
+       "w": 0.205,
+       "h": 0.215
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.543,
+       "y": 0.359,
+       "w": 0.197,
+       "h": 0.215
+      },
+      {
+       "type": "button",
+       "action": "flare",
+       "label": "FLARE",
+       "x": 0.322,
+       "y": 0.622,
+       "w": 0.193,
+       "h": 0.256
+      },
+      {
+       "type": "button",
+       "action": "shield",
+       "label": "SHIELD",
+       "x": 0.539,
+       "y": 0.63,
+       "w": 0.199,
+       "h": 0.263
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.762,
+       "y": 0.607,
+       "w": 0.199,
+       "h": 0.322
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C28",
+   "ms": 1874,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C28",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.201,
+       "w": 0.275,
+       "h": 0.67
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.465,
+       "y": 0.536,
+       "w": 0.225,
+       "h": 0.378
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.771,
+       "y": 0.392,
+       "w": 0.193,
+       "h": 0.459
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C29",
+   "ms": 1317,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C29",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.195,
+       "w": 0.264,
+       "h": 0.581
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.406,
+       "y": 0.076,
+       "w": 0.218,
+       "h": 0.394
+      },
+      {
+       "type": "stick",
+       "action": "move",
+       "label": "",
+       "x": 0.699,
+       "y": 0.352,
+       "w": 0.268,
+       "h": 0.576
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C30",
+   "ms": 1754,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C30",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.036,
+       "y": 0.364,
+       "w": 0.27,
+       "h": 0.544
+      },
+      {
+       "type": "button",
+       "action": "drill",
+       "label": "DRILL",
+       "x": 0.738,
+       "y": 0.076,
+       "w": 0.239,
+       "h": 0.292
+      },
+      {
+       "type": "button",
+       "action": "jump",
+       "label": "JUMP",
+       "x": 0.492,
+       "y": 0.632,
+       "w": 0.221,
+       "h": 0.296
+      },
+      {
+       "type": "button",
+       "action": "dig",
+       "label": "DIG",
+       "x": 0.759,
+       "y": 0.568,
+       "w": 0.219,
+       "h": 0.336
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C31",
+   "ms": 1613,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C31",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.437,
+       "w": 0.256,
+       "h": 0.465
+      },
+      {
+       "type": "button",
+       "action": "flare",
+       "label": "FLARE",
+       "x": 0.605,
+       "y": 0.067,
+       "w": 0.221,
+       "h": 0.398
+      },
+      {
+       "type": "button",
+       "action": "scan",
+       "label": "SCAN",
+       "x": 0.494,
+       "y": 0.521,
+       "w": 0.221,
+       "h": 0.412
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.74,
+       "y": 0.458,
+       "w": 0.223,
+       "h": 0.415
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C32",
+   "ms": 1376,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C32",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 2,
+    "found": 2,
+    "kindRight": 2,
+    "labelRight": 2,
+    "iou50": 2,
+    "labelTotal": 2,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.09,
+       "w": 0.33,
+       "h": 0.806
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.709,
+       "y": 0.37,
+       "w": 0.256,
+       "h": 0.54
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C33",
+   "ms": 1682,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C33",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.36,
+       "w": 0.252,
+       "h": 0.537
+      },
+      {
+       "type": "button",
+       "action": "shield",
+       "label": "SHIELD",
+       "x": 0.727,
+       "y": 0.074,
+       "w": 0.232,
+       "h": 0.277
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "NITRO",
+       "x": 0.495,
+       "y": 0.645,
+       "w": 0.212,
+       "h": 0.281
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "PEW PEW",
+       "x": 0.751,
+       "y": 0.554,
+       "w": 0.213,
+       "h": 0.351
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "C34",
+   "ms": 1518,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C34",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.035,
+       "y": 0.323,
+       "w": 0.266,
+       "h": 0.602
+      },
+      {
+       "type": "toggle",
+       "action": "shield",
+       "label": "SHIELD",
+       "x": 0.43,
+       "y": 0.084,
+       "w": 0.188,
+       "h": 0.226
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.445,
+       "y": 0.571,
+       "w": 0.211,
+       "h": 0.327
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.74,
+       "y": 0.394,
+       "w": 0.225,
+       "h": 0.425
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B01",
+   "ms": 1493,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B01",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.62,
+       "y": 0.08,
+       "w": 0.2,
+       "h": 0.28
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B02",
+   "ms": 1618,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B02",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "dig",
+       "label": "DIG",
+       "x": 0.45,
+       "y": 0.1,
+       "w": 0.16,
+       "h": 0.3
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B03",
+   "ms": 1363,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B03",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "drill",
+       "label": "DRILL",
+       "x": 0.4,
+       "y": 0.3,
+       "w": 0.2,
+       "h": 0.3
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B04",
+   "ms": 1649,
+   "pass": false,
+   "note": "action right≠drill (label \"\")",
+   "score": {
+    "id": "B04",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 0,
+    "pass": false,
+    "note": "action right≠drill (label \"\")"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "right",
+       "label": "",
+       "x": 0.5,
+       "y": 0.1,
+       "w": 0.16,
+       "h": 0.3
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B05",
+   "ms": 1424,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B05",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "dig",
+       "label": "",
+       "x": 0.3,
+       "y": 0.08,
+       "w": 0.16,
+       "h": 0.32
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B06",
+   "ms": 2192,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B06",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.55,
+       "y": 0.1,
+       "w": 0.22,
+       "h": 0.26
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B07",
+   "ms": 2034,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B07",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "dig",
+       "label": "SHOVEL",
+       "x": 0.4,
+       "y": 0.12,
+       "w": 0.24,
+       "h": 0.26
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B08",
+   "ms": 1991,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B08",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "land",
+       "label": "",
+       "x": 0.6,
+       "y": 0.05,
+       "w": 0.2,
+       "h": 0.4
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B09",
+   "ms": 1577,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B09",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "scan",
+       "label": "",
+       "x": 0.35,
+       "y": 0.05,
+       "w": 0.2,
+       "h": 0.4
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B10",
+   "ms": 1714,
+   "pass": false,
+   "note": "error: unreadable button",
+   "score": {
+    "id": "B10",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": false,
+    "error": "unreadable button",
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 0,
+    "kindRight": 0,
+    "labelRight": 0,
+    "pass": false,
+    "note": "error: unreadable button"
+   },
+   "result": {
+    "ok": false,
+    "error": "unreadable button"
+   }
+  },
+  {
+   "id": "B11",
+   "ms": 1509,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B11",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.45,
+       "y": 0.55,
+       "w": 0.22,
+       "h": 0.28
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B12",
+   "ms": 1136,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B12",
+    "kind": "button",
+    "source": "photo",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.62,
+       "y": 0.08,
+       "w": 0.2,
+       "h": 0.28
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B13",
+   "ms": 1644,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B13",
+    "kind": "button",
+    "source": "photo",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "dig",
+       "label": "DIG",
+       "x": 0.45,
+       "y": 0.1,
+       "w": 0.16,
+       "h": 0.3
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B14",
+   "ms": 1134,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B14",
+    "kind": "button",
+    "source": "photo",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "drill",
+       "label": "DRILL",
+       "x": 0.5,
+       "y": 0.05,
+       "w": 0.2,
+       "h": 0.4
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B15",
+   "ms": 1645,
+   "pass": false,
+   "note": "action shoot≠land (label \"\")",
+   "score": {
+    "id": "B15",
+    "kind": "button",
+    "source": "photo",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 0,
+    "pass": false,
+    "note": "action shoot≠land (label \"\")"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "",
+       "x": 0.55,
+       "y": 0.05,
+       "w": 0.16,
+       "h": 0.34
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B16",
+   "ms": 1807,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B16",
+    "kind": "button",
+    "source": "photo",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "shield",
+       "label": "SHIELD",
+       "x": 0.4,
+       "y": 0.4,
+       "w": 0.2,
+       "h": 0.36
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "B17",
+   "ms": 1775,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B17",
+    "kind": "button",
+    "source": "photo",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "",
+       "x": 0.7,
+       "y": 0.4,
+       "w": 0.18,
+       "h": 0.34
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E01",
+   "ms": 1897,
+   "pass": true,
+   "note": "[-] parts: pointed ship body, upper rear fin, lower rear fin, upper front fin",
+   "score": {
+    "id": "E01",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 0,
+    "mustHit": 0,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[-] parts: pointed ship body, upper rear fin, lower rear fin, upper front fin"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [],
+     "unlocked": [],
+     "parts": [
+      {
+       "name": "pointed ship body",
+       "x": 0.503,
+       "y": 0.498
+      },
+      {
+       "name": "upper rear fin",
+       "x": 0.275,
+       "y": 0.216
+      },
+      {
+       "name": "lower rear fin",
+       "x": 0.317,
+       "y": 0.762
+      },
+      {
+       "name": "upper front fin",
+       "x": 0.719,
+       "y": 0.348
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E02",
+   "ms": 1826,
+   "pass": true,
+   "note": "[boost] parts: body, upper wing, lower wing, cockpit, exhaust flames",
+   "score": {
+    "id": "E02",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[boost] parts: body, upper wing, lower wing, cockpit, exhaust flames"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "boost"
+     ],
+     "unlocked": [
+      {
+       "verb": "boost",
+       "part": "exhaust flames"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.577,
+       "y": 0.512
+      },
+      {
+       "name": "upper wing",
+       "x": 0.398,
+       "y": 0.232
+      },
+      {
+       "name": "lower wing",
+       "x": 0.43,
+       "y": 0.802
+      },
+      {
+       "name": "cockpit",
+       "x": 0.756,
+       "y": 0.373
+      },
+      {
+       "name": "exhaust flames",
+       "x": 0.119,
+       "y": 0.535
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E03",
+   "ms": 1845,
+   "pass": true,
+   "note": "[shoot] parts: ship body, upper wing, lower wing, cannon, cockpit",
+   "score": {
+    "id": "E03",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[shoot] parts: ship body, upper wing, lower wing, cannon, cockpit"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "shoot"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "cannon"
+      }
+     ],
+     "parts": [
+      {
+       "name": "ship body",
+       "x": 0.5,
+       "y": 0.513
+      },
+      {
+       "name": "upper wing",
+       "x": 0.277,
+       "y": 0.227
+      },
+      {
+       "name": "lower wing",
+       "x": 0.314,
+       "y": 0.805
+      },
+      {
+       "name": "cannon",
+       "x": 0.535,
+       "y": 0.331
+      },
+      {
+       "name": "cockpit",
+       "x": 0.721,
+       "y": 0.371
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E04",
+   "ms": 1814,
+   "pass": true,
+   "note": "[shoot boost] parts: hull, upper wing, lower wing, top cannon, small upper fin, exhaust flames",
+   "score": {
+    "id": "E04",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 2,
+    "mustHit": 2,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[shoot boost] parts: hull, upper wing, lower wing, top cannon, small upper fin, exhaust flames"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "shoot",
+      "boost"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "top cannon"
+      },
+      {
+       "verb": "boost",
+       "part": "exhaust flames"
+      }
+     ],
+     "parts": [
+      {
+       "name": "hull",
+       "x": 0.577,
+       "y": 0.524
+      },
+      {
+       "name": "upper wing",
+       "x": 0.401,
+       "y": 0.229
+      },
+      {
+       "name": "lower wing",
+       "x": 0.421,
+       "y": 0.802
+      },
+      {
+       "name": "top cannon",
+       "x": 0.604,
+       "y": 0.331
+      },
+      {
+       "name": "small upper fin",
+       "x": 0.753,
+       "y": 0.36
+      },
+      {
+       "name": "exhaust flames",
+       "x": 0.115,
+       "y": 0.535
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E05",
+   "ms": 1735,
+   "pass": true,
+   "note": "[land] parts: main body, upper tail fin, lower tail fin, top fin, left landing leg, right landing leg",
+   "score": {
+    "id": "E05",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[land] parts: main body, upper tail fin, lower tail fin, top fin, left landing leg, right landing leg"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "land"
+     ],
+     "unlocked": [
+      {
+       "verb": "land",
+       "part": "left landing leg"
+      }
+     ],
+     "parts": [
+      {
+       "name": "main body",
+       "x": 0.498,
+       "y": 0.502
+      },
+      {
+       "name": "upper tail fin",
+       "x": 0.275,
+       "y": 0.213
+      },
+      {
+       "name": "lower tail fin",
+       "x": 0.313,
+       "y": 0.812
+      },
+      {
+       "name": "top fin",
+       "x": 0.713,
+       "y": 0.364
+      },
+      {
+       "name": "left landing leg",
+       "x": 0.421,
+       "y": 0.797
+      },
+      {
+       "name": "right landing leg",
+       "x": 0.67,
+       "y": 0.792
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E06",
+   "ms": 1656,
+   "pass": false,
+   "note": "missing drill; [shoot] parts: hull, upper fin, lower fin, cockpit, forward laser cannon",
+   "score": {
+    "id": "E06",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 0,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": false,
+    "note": "missing drill; [shoot] parts: hull, upper fin, lower fin, cockpit, forward laser cannon"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "shoot"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "forward laser cannon"
+      }
+     ],
+     "parts": [
+      {
+       "name": "hull",
+       "x": 0.416,
+       "y": 0.514
+      },
+      {
+       "name": "upper fin",
+       "x": 0.236,
+       "y": 0.237
+      },
+      {
+       "name": "lower fin",
+       "x": 0.269,
+       "y": 0.806
+      },
+      {
+       "name": "cockpit",
+       "x": 0.598,
+       "y": 0.369
+      },
+      {
+       "name": "forward laser cannon",
+       "x": 0.883,
+       "y": 0.529
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E07",
+   "ms": 2046,
+   "pass": true,
+   "note": "[shield] parts: body, upper wing, lower wing, top fin, shield bubble",
+   "score": {
+    "id": "E07",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[shield] parts: body, upper wing, lower wing, top fin, shield bubble"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "shield"
+     ],
+     "unlocked": [
+      {
+       "verb": "shield",
+       "part": "shield bubble"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.496,
+       "y": 0.501
+      },
+      {
+       "name": "upper wing",
+       "x": 0.335,
+       "y": 0.323
+      },
+      {
+       "name": "lower wing",
+       "x": 0.367,
+       "y": 0.682
+      },
+      {
+       "name": "top fin",
+       "x": 0.651,
+       "y": 0.411
+      },
+      {
+       "name": "shield bubble",
+       "x": 0.501,
+       "y": 0.5
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E08",
+   "ms": 1605,
+   "pass": false,
+   "note": "missing flare; spurious boost; [boost land] parts: saucer body, cockpit dome, left porthole, middle porthole, right porthole, rear exhaust with flames, left landing leg, right landing leg",
+   "score": {
+    "id": "E08",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 2,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [
+     "boost"
+    ],
+    "pass": false,
+    "note": "missing flare; spurious boost; [boost land] parts: saucer body, cockpit dome, left porthole, middle porthole, right porthole, rear exhaust with flames, left landing leg, right landing leg"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "boost",
+      "land"
+     ],
+     "unlocked": [
+      {
+       "verb": "boost",
+       "part": "rear exhaust with flames"
+      },
+      {
+       "verb": "land",
+       "part": "left landing leg"
+      }
+     ],
+     "parts": [
+      {
+       "name": "saucer body",
+       "x": 0.443,
+       "y": 0.55
+      },
+      {
+       "name": "cockpit dome",
+       "x": 0.444,
+       "y": 0.232
+      },
+      {
+       "name": "left porthole",
+       "x": 0.237,
+       "y": 0.57
+      },
+      {
+       "name": "middle porthole",
+       "x": 0.44,
+       "y": 0.568
+      },
+      {
+       "name": "right porthole",
+       "x": 0.646,
+       "y": 0.566
+      },
+      {
+       "name": "rear exhaust with flames",
+       "x": 0.906,
+       "y": 0.551
+      },
+      {
+       "name": "left landing leg",
+       "x": 0.29,
+       "y": 0.838
+      },
+      {
+       "name": "right landing leg",
+       "x": 0.597,
+       "y": 0.838
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E09",
+   "ms": 1610,
+   "pass": true,
+   "note": "[boost land] parts: pointed hull, round window, left fin, right fin, left landing leg, right landing leg, exhaust flames",
+   "score": {
+    "id": "E09",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 2,
+    "mustHit": 2,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[boost land] parts: pointed hull, round window, left fin, right fin, left landing leg, right landing leg, exhaust flames"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "boost",
+      "land"
+     ],
+     "unlocked": [
+      {
+       "verb": "boost",
+       "part": "exhaust flames"
+      },
+      {
+       "verb": "land",
+       "part": "left landing leg"
+      }
+     ],
+     "parts": [
+      {
+       "name": "pointed hull",
+       "x": 0.5,
+       "y": 0.415
+      },
+      {
+       "name": "round window",
+       "x": 0.504,
+       "y": 0.376
+      },
+      {
+       "name": "left fin",
+       "x": 0.159,
+       "y": 0.675
+      },
+      {
+       "name": "right fin",
+       "x": 0.842,
+       "y": 0.673
+      },
+      {
+       "name": "left landing leg",
+       "x": 0.219,
+       "y": 0.784
+      },
+      {
+       "name": "right landing leg",
+       "x": 0.789,
+       "y": 0.783
+      },
+      {
+       "name": "exhaust flames",
+       "x": 0.504,
+       "y": 0.872
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E10",
+   "ms": 2179,
+   "pass": false,
+   "note": "missing drill; [shoot boost land] parts: main hull, pointed nose, upper fin, cannon, window, exhaust flames, landing legs, projectile",
+   "score": {
+    "id": "E10",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 4,
+    "mustHit": 3,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": false,
+    "note": "missing drill; [shoot boost land] parts: main hull, pointed nose, upper fin, cannon, window, exhaust flames, landing legs, projectile"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "shoot",
+      "boost",
+      "land"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "cannon"
+      },
+      {
+       "verb": "boost",
+       "part": "exhaust flames"
+      },
+      {
+       "verb": "land",
+       "part": "landing legs"
+      }
+     ],
+     "parts": [
+      {
+       "name": "main hull",
+       "x": 0.432,
+       "y": 0.488
+      },
+      {
+       "name": "pointed nose",
+       "x": 0.765,
+       "y": 0.494
+      },
+      {
+       "name": "upper fin",
+       "x": 0.299,
+       "y": 0.152
+      },
+      {
+       "name": "cannon",
+       "x": 0.552,
+       "y": 0.224
+      },
+      {
+       "name": "window",
+       "x": 0.546,
+       "y": 0.385
+      },
+      {
+       "name": "exhaust flames",
+       "x": 0.102,
+       "y": 0.489
+      },
+      {
+       "name": "landing legs",
+       "x": 0.464,
+       "y": 0.831
+      },
+      {
+       "name": "projectile",
+       "x": 0.898,
+       "y": 0.491
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E11",
+   "ms": 1469,
+   "pass": true,
+   "note": "[scan] parts: body, upper fin, lower fin, antenna, small upper fin",
+   "score": {
+    "id": "E11",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[scan] parts: body, upper fin, lower fin, antenna, small upper fin"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "scan"
+     ],
+     "unlocked": [
+      {
+       "verb": "scan",
+       "part": "antenna"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.5,
+       "y": 0.53
+      },
+      {
+       "name": "upper fin",
+       "x": 0.284,
+       "y": 0.249
+      },
+      {
+       "name": "lower fin",
+       "x": 0.312,
+       "y": 0.811
+      },
+      {
+       "name": "antenna",
+       "x": 0.482,
+       "y": 0.22
+      },
+      {
+       "name": "small upper fin",
+       "x": 0.714,
+       "y": 0.387
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E12",
+   "ms": 1480,
+   "pass": true,
+   "note": "[boost heal] parts: hull, upper wing, lower wing, cockpit, exhaust flames, medical cross",
+   "score": {
+    "id": "E12",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 2,
+    "mustHit": 2,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[boost heal] parts: hull, upper wing, lower wing, cockpit, exhaust flames, medical cross"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "boost",
+      "heal"
+     ],
+     "unlocked": [
+      {
+       "verb": "boost",
+       "part": "exhaust flames"
+      },
+      {
+       "verb": "heal",
+       "part": "medical cross"
+      }
+     ],
+     "parts": [
+      {
+       "name": "hull",
+       "x": 0.579,
+       "y": 0.514
+      },
+      {
+       "name": "upper wing",
+       "x": 0.395,
+       "y": 0.233
+      },
+      {
+       "name": "lower wing",
+       "x": 0.435,
+       "y": 0.8
+      },
+      {
+       "name": "cockpit",
+       "x": 0.756,
+       "y": 0.374
+      },
+      {
+       "name": "exhaust flames",
+       "x": 0.117,
+       "y": 0.533
+      },
+      {
+       "name": "medical cross",
+       "x": 0.582,
+       "y": 0.512
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E13",
+   "ms": 1573,
+   "pass": true,
+   "note": "[shoot boost] parts: body, upper wing, lower wing, cannon, cockpit, exhaust flames",
+   "score": {
+    "id": "E13",
+    "kind": "ship",
+    "source": "photo",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 2,
+    "mustHit": 2,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[shoot boost] parts: body, upper wing, lower wing, cannon, cockpit, exhaust flames"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "shoot",
+      "boost"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "cannon"
+      },
+      {
+       "verb": "boost",
+       "part": "exhaust flames"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.58,
+       "y": 0.482
+      },
+      {
+       "name": "upper wing",
+       "x": 0.386,
+       "y": 0.233
+      },
+      {
+       "name": "lower wing",
+       "x": 0.435,
+       "y": 0.788
+      },
+      {
+       "name": "cannon",
+       "x": 0.605,
+       "y": 0.302
+      },
+      {
+       "name": "cockpit",
+       "x": 0.759,
+       "y": 0.328
+      },
+      {
+       "name": "exhaust flames",
+       "x": 0.12,
+       "y": 0.546
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E14",
+   "ms": 1712,
+   "pass": true,
+   "note": "[land] parts: saucer body, cockpit dome, left porthole, middle porthole, right porthole, left landing leg, right landing leg",
+   "score": {
+    "id": "E14",
+    "kind": "ship",
+    "source": "photo",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[land] parts: saucer body, cockpit dome, left porthole, middle porthole, right porthole, left landing leg, right landing leg"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "land"
+     ],
+     "unlocked": [
+      {
+       "verb": "land",
+       "part": "left landing leg"
+      }
+     ],
+     "parts": [
+      {
+       "name": "saucer body",
+       "x": 0.501,
+       "y": 0.551
+      },
+      {
+       "name": "cockpit dome",
+       "x": 0.501,
+       "y": 0.225
+      },
+      {
+       "name": "left porthole",
+       "x": 0.27,
+       "y": 0.563
+      },
+      {
+       "name": "middle porthole",
+       "x": 0.499,
+       "y": 0.565
+      },
+      {
+       "name": "right porthole",
+       "x": 0.73,
+       "y": 0.568
+      },
+      {
+       "name": "left landing leg",
+       "x": 0.326,
+       "y": 0.837
+      },
+      {
+       "name": "right landing leg",
+       "x": 0.669,
+       "y": 0.837
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E15",
+   "ms": 2503,
+   "pass": true,
+   "note": "[drill boost] parts: body, window, upper fin, lower fin, drill, exhaust flames",
+   "score": {
+    "id": "E15",
+    "kind": "ship",
+    "source": "photo",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 2,
+    "mustHit": 2,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[drill boost] parts: body, window, upper fin, lower fin, drill, exhaust flames"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "boost",
+      "drill"
+     ],
+     "unlocked": [
+      {
+       "verb": "drill",
+       "part": "drill"
+      },
+      {
+       "verb": "boost",
+       "part": "exhaust flames"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.502,
+       "y": 0.479
+      },
+      {
+       "name": "window",
+       "x": 0.467,
+       "y": 0.47
+      },
+      {
+       "name": "upper fin",
+       "x": 0.714,
+       "y": 0.171
+      },
+      {
+       "name": "lower fin",
+       "x": 0.695,
+       "y": 0.82
+      },
+      {
+       "name": "drill",
+       "x": 0.124,
+       "y": 0.444
+      },
+      {
+       "name": "exhaust flames",
+       "x": 0.875,
+       "y": 0.507
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E16",
+   "ms": 1994,
+   "pass": true,
+   "note": "[shield blast] parts: body, nose cone, upper fin, window, shield bubble, bomb",
+   "score": {
+    "id": "E16",
+    "kind": "ship",
+    "source": "photo",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 2,
+    "mustHit": 2,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[shield blast] parts: body, nose cone, upper fin, window, shield bubble, bomb"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "shield",
+      "blast"
+     ],
+     "unlocked": [
+      {
+       "verb": "shield",
+       "part": "shield bubble"
+      },
+      {
+       "verb": "blast",
+       "part": "bomb"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.43,
+       "y": 0.453
+      },
+      {
+       "name": "nose cone",
+       "x": 0.725,
+       "y": 0.451
+      },
+      {
+       "name": "upper fin",
+       "x": 0.314,
+       "y": 0.289
+      },
+      {
+       "name": "window",
+       "x": 0.534,
+       "y": 0.403
+      },
+      {
+       "name": "shield bubble",
+       "x": 0.499,
+       "y": 0.501
+      },
+      {
+       "name": "bomb",
+       "x": 0.463,
+       "y": 0.658
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E17",
+   "ms": 1665,
+   "pass": true,
+   "note": "spurious scan; [jump scan dig] parts: helmet, visor, body, left arm, right arm, left leg, right leg, shovel",
+   "score": {
+    "id": "E17",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [
+     "scan"
+    ],
+    "pass": true,
+    "note": "spurious scan; [jump scan dig] parts: helmet, visor, body, left arm, right arm, left leg, right leg, shovel"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "person",
+     "verbs": [
+      "dig",
+      "jump",
+      "scan",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "jump",
+       "part": "left leg"
+      },
+      {
+       "verb": "scan",
+       "part": "visor"
+      },
+      {
+       "verb": "dig",
+       "part": "shovel"
+      }
+     ],
+     "parts": [
+      {
+       "name": "helmet",
+       "x": 0.46,
+       "y": 0.161
+      },
+      {
+       "name": "visor",
+       "x": 0.46,
+       "y": 0.178
+      },
+      {
+       "name": "body",
+       "x": 0.46,
+       "y": 0.457
+      },
+      {
+       "name": "left arm",
+       "x": 0.162,
+       "y": 0.432
+      },
+      {
+       "name": "right arm",
+       "x": 0.758,
+       "y": 0.437
+      },
+      {
+       "name": "left leg",
+       "x": 0.306,
+       "y": 0.796
+      },
+      {
+       "name": "right leg",
+       "x": 0.633,
+       "y": 0.795
+      },
+      {
+       "name": "shovel",
+       "x": 0.885,
+       "y": 0.569
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E18",
+   "ms": 1617,
+   "pass": false,
+   "note": "missing drill; spurious shoot,scan; [shoot jump scan] parts: helmet, visor, body, left arm, right arm, left leg, right leg, gun",
+   "score": {
+    "id": "E18",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 0,
+    "gateMissing": [
+     "drill"
+    ],
+    "spurious": [
+     "shoot",
+     "scan"
+    ],
+    "pass": false,
+    "note": "missing drill; spurious shoot,scan; [shoot jump scan] parts: helmet, visor, body, left arm, right arm, left leg, right leg, gun"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "person",
+     "verbs": [
+      "shoot",
+      "jump",
+      "scan",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "gun"
+      },
+      {
+       "verb": "jump",
+       "part": "left leg"
+      },
+      {
+       "verb": "scan",
+       "part": "visor"
+      }
+     ],
+     "parts": [
+      {
+       "name": "helmet",
+       "x": 0.388,
+       "y": 0.161
+      },
+      {
+       "name": "visor",
+       "x": 0.386,
+       "y": 0.173
+      },
+      {
+       "name": "body",
+       "x": 0.389,
+       "y": 0.453
+      },
+      {
+       "name": "left arm",
+       "x": 0.139,
+       "y": 0.439
+      },
+      {
+       "name": "right arm",
+       "x": 0.635,
+       "y": 0.439
+      },
+      {
+       "name": "left leg",
+       "x": 0.26,
+       "y": 0.793
+      },
+      {
+       "name": "right leg",
+       "x": 0.523,
+       "y": 0.791
+      },
+      {
+       "name": "gun",
+       "x": 0.826,
+       "y": 0.576
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E19",
+   "ms": 2096,
+   "pass": true,
+   "note": "[shoot jump] parts: helmet, visor, body, left arm, right arm, gun, left leg, right leg, left foot, right foot",
+   "score": {
+    "id": "E19",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[shoot jump] parts: helmet, visor, body, left arm, right arm, gun, left leg, right leg, left foot, right foot"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "person",
+     "verbs": [
+      "shoot",
+      "jump",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "gun"
+      },
+      {
+       "verb": "jump",
+       "part": "left leg"
+      }
+     ],
+     "parts": [
+      {
+       "name": "helmet",
+       "x": 0.367,
+       "y": 0.159
+      },
+      {
+       "name": "visor",
+       "x": 0.368,
+       "y": 0.178
+      },
+      {
+       "name": "body",
+       "x": 0.368,
+       "y": 0.455
+      },
+      {
+       "name": "left arm",
+       "x": 0.138,
+       "y": 0.436
+      },
+      {
+       "name": "right arm",
+       "x": 0.607,
+       "y": 0.439
+      },
+      {
+       "name": "gun",
+       "x": 0.815,
+       "y": 0.561
+      },
+      {
+       "name": "left leg",
+       "x": 0.259,
+       "y": 0.787
+      },
+      {
+       "name": "right leg",
+       "x": 0.473,
+       "y": 0.788
+      },
+      {
+       "name": "left foot",
+       "x": 0.241,
+       "y": 0.961
+      },
+      {
+       "name": "right foot",
+       "x": 0.498,
+       "y": 0.962
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E20",
+   "ms": 2204,
+   "pass": true,
+   "note": "spurious scan; [boost jump scan] parts: helmet, visor, body, left arm, right arm, left leg, right leg, jetpack, exhaust flames",
+   "score": {
+    "id": "E20",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [
+     "scan"
+    ],
+    "pass": true,
+    "note": "spurious scan; [boost jump scan] parts: helmet, visor, body, left arm, right arm, left leg, right leg, jetpack, exhaust flames"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "person",
+     "verbs": [
+      "boost",
+      "jump",
+      "scan",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "boost",
+       "part": "exhaust flames"
+      },
+      {
+       "verb": "jump",
+       "part": "left leg"
+      },
+      {
+       "verb": "scan",
+       "part": "visor"
+      }
+     ],
+     "parts": [
+      {
+       "name": "helmet",
+       "x": 0.498,
+       "y": 0.162
+      },
+      {
+       "name": "visor",
+       "x": 0.498,
+       "y": 0.178
+      },
+      {
+       "name": "body",
+       "x": 0.495,
+       "y": 0.459
+      },
+      {
+       "name": "left arm",
+       "x": 0.173,
+       "y": 0.446
+      },
+      {
+       "name": "right arm",
+       "x": 0.817,
+       "y": 0.441
+      },
+      {
+       "name": "left leg",
+       "x": 0.332,
+       "y": 0.797
+      },
+      {
+       "name": "right leg",
+       "x": 0.673,
+       "y": 0.797
+      },
+      {
+       "name": "jetpack",
+       "x": 0.182,
+       "y": 0.434
+      },
+      {
+       "name": "exhaust flames",
+       "x": 0.18,
+       "y": 0.582
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E21",
+   "ms": 1839,
+   "pass": true,
+   "note": "[scan jump dig] parts: head, body, left eye, right eye, antenna, left arm, right arm, left leg, right leg, shovel",
+   "score": {
+    "id": "E21",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[scan jump dig] parts: head, body, left eye, right eye, antenna, left arm, right arm, left leg, right leg, shovel"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "person",
+     "verbs": [
+      "dig",
+      "jump",
+      "scan",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "scan",
+       "part": "antenna"
+      },
+      {
+       "verb": "jump",
+       "part": "left leg"
+      },
+      {
+       "verb": "dig",
+       "part": "shovel"
+      }
+     ],
+     "parts": [
+      {
+       "name": "head",
+       "x": 0.469,
+       "y": 0.217
+      },
+      {
+       "name": "body",
+       "x": 0.469,
+       "y": 0.484
+      },
+      {
+       "name": "left eye",
+       "x": 0.396,
+       "y": 0.208
+      },
+      {
+       "name": "right eye",
+       "x": 0.535,
+       "y": 0.208
+      },
+      {
+       "name": "antenna",
+       "x": 0.466,
+       "y": 0.08
+      },
+      {
+       "name": "left arm",
+       "x": 0.147,
+       "y": 0.469
+      },
+      {
+       "name": "right arm",
+       "x": 0.785,
+       "y": 0.47
+      },
+      {
+       "name": "left leg",
+       "x": 0.352,
+       "y": 0.801
+      },
+      {
+       "name": "right leg",
+       "x": 0.578,
+       "y": 0.799
+      },
+      {
+       "name": "shovel",
+       "x": 0.889,
+       "y": 0.591
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E22",
+   "ms": 1363,
+   "pass": true,
+   "note": "[-] parts: body, cabin, left wheel, right wheel",
+   "score": {
+    "id": "E22",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 0,
+    "mustHit": 0,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[-] parts: body, cabin, left wheel, right wheel"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "car",
+     "verbs": [
+      "drive",
+      "takeoff"
+     ],
+     "unlocked": [],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.5,
+       "y": 0.544
+      },
+      {
+       "name": "cabin",
+       "x": 0.51,
+       "y": 0.23
+      },
+      {
+       "name": "left wheel",
+       "x": 0.242,
+       "y": 0.739
+      },
+      {
+       "name": "right wheel",
+       "x": 0.76,
+       "y": 0.734
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E23",
+   "ms": 1935,
+   "pass": true,
+   "note": "[shoot] parts: body, cabin, left wheel, right wheel, roof-mounted cannon",
+   "score": {
+    "id": "E23",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[shoot] parts: body, cabin, left wheel, right wheel, roof-mounted cannon"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "car",
+     "verbs": [
+      "shoot",
+      "drive",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "roof-mounted cannon"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.5,
+       "y": 0.569
+      },
+      {
+       "name": "cabin",
+       "x": 0.508,
+       "y": 0.266
+      },
+      {
+       "name": "left wheel",
+       "x": 0.243,
+       "y": 0.751
+      },
+      {
+       "name": "right wheel",
+       "x": 0.759,
+       "y": 0.751
+      },
+      {
+       "name": "roof-mounted cannon",
+       "x": 0.559,
+       "y": 0.111
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E24",
+   "ms": 3094,
+   "pass": true,
+   "note": "[drill] parts: body, left window, right window, left wheel, right wheel, drill",
+   "score": {
+    "id": "E24",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[drill] parts: body, left window, right window, left wheel, right wheel, drill"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "car",
+     "verbs": [
+      "drill",
+      "drive",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "drill",
+       "part": "drill"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.433,
+       "y": 0.543
+      },
+      {
+       "name": "left window",
+       "x": 0.316,
+       "y": 0.232
+      },
+      {
+       "name": "right window",
+       "x": 0.554,
+       "y": 0.227
+      },
+      {
+       "name": "left wheel",
+       "x": 0.209,
+       "y": 0.734
+      },
+      {
+       "name": "right wheel",
+       "x": 0.646,
+       "y": 0.736
+      },
+      {
+       "name": "drill",
+       "x": 0.894,
+       "y": 0.517
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E25",
+   "ms": 1662,
+   "pass": true,
+   "note": "[-] parts: rear wheel, front wheel, frame, seat, handlebar, front fork",
+   "score": {
+    "id": "E25",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 0,
+    "mustHit": 0,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[-] parts: rear wheel, front wheel, frame, seat, handlebar, front fork"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "bike",
+     "verbs": [
+      "drive",
+      "takeoff"
+     ],
+     "unlocked": [],
+     "parts": [
+      {
+       "name": "rear wheel",
+       "x": 0.193,
+       "y": 0.549
+      },
+      {
+       "name": "front wheel",
+       "x": 0.808,
+       "y": 0.548
+      },
+      {
+       "name": "frame",
+       "x": 0.42,
+       "y": 0.384
+      },
+      {
+       "name": "seat",
+       "x": 0.388,
+       "y": 0.231
+      },
+      {
+       "name": "handlebar",
+       "x": 0.656,
+       "y": 0.088
+      },
+      {
+       "name": "front fork",
+       "x": 0.726,
+       "y": 0.365
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E26",
+   "ms": 1352,
+   "pass": true,
+   "note": "[flare] parts: rear wheel, front wheel, frame, seat, front fork, handlebars, headlamp",
+   "score": {
+    "id": "E26",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[flare] parts: rear wheel, front wheel, frame, seat, front fork, handlebars, headlamp"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "bike",
+     "verbs": [
+      "flare",
+      "drive",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "flare",
+       "part": "headlamp"
+      }
+     ],
+     "parts": [
+      {
+       "name": "rear wheel",
+       "x": 0.206,
+       "y": 0.714
+      },
+      {
+       "name": "front wheel",
+       "x": 0.797,
+       "y": 0.716
+      },
+      {
+       "name": "frame",
+       "x": 0.427,
+       "y": 0.506
+      },
+      {
+       "name": "seat",
+       "x": 0.39,
+       "y": 0.27
+      },
+      {
+       "name": "front fork",
+       "x": 0.723,
+       "y": 0.412
+      },
+      {
+       "name": "handlebars",
+       "x": 0.701,
+       "y": 0.152
+      },
+      {
+       "name": "headlamp",
+       "x": 0.709,
+       "y": 0.15
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E27",
+   "ms": 1663,
+   "pass": true,
+   "note": "spurious scan; [jump scan] parts: body, head, eye, ear, neck, tail, rear left leg, rear right leg, front left leg, front right leg",
+   "score": {
+    "id": "E27",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 0,
+    "mustHit": 0,
+    "gateMissing": [],
+    "spurious": [
+     "scan"
+    ],
+    "pass": true,
+    "note": "spurious scan; [jump scan] parts: body, head, eye, ear, neck, tail, rear left leg, rear right leg, front left leg, front right leg"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "quadruped",
+     "verbs": [
+      "jump",
+      "scan",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "jump",
+       "part": "front right leg"
+      },
+      {
+       "verb": "scan",
+       "part": "eye"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.45,
+       "y": 0.488
+      },
+      {
+       "name": "head",
+       "x": 0.854,
+       "y": 0.271
+      },
+      {
+       "name": "eye",
+       "x": 0.882,
+       "y": 0.254
+      },
+      {
+       "name": "ear",
+       "x": 0.821,
+       "y": 0.104
+      },
+      {
+       "name": "neck",
+       "x": 0.709,
+       "y": 0.407
+      },
+      {
+       "name": "tail",
+       "x": 0.097,
+       "y": 0.313
+      },
+      {
+       "name": "rear left leg",
+       "x": 0.229,
+       "y": 0.776
+      },
+      {
+       "name": "rear right leg",
+       "x": 0.33,
+       "y": 0.78
+      },
+      {
+       "name": "front left leg",
+       "x": 0.59,
+       "y": 0.78
+      },
+      {
+       "name": "front right leg",
+       "x": 0.692,
+       "y": 0.777
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E28",
+   "ms": 1643,
+   "pass": true,
+   "note": "spurious scan; [jump scan dig] parts: body, head, ear, eye, neck, tail, rear leg one, rear leg two, front leg one, front leg two, front claws one, front claws two",
+   "score": {
+    "id": "E28",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [
+     "scan"
+    ],
+    "pass": true,
+    "note": "spurious scan; [jump scan dig] parts: body, head, ear, eye, neck, tail, rear leg one, rear leg two, front leg one, front leg two, front claws one, front claws two"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "quadruped",
+     "verbs": [
+      "dig",
+      "jump",
+      "scan",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "jump",
+       "part": "rear leg one"
+      },
+      {
+       "verb": "scan",
+       "part": "eye"
+      },
+      {
+       "verb": "dig",
+       "part": "front claws one"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.455,
+       "y": 0.463
+      },
+      {
+       "name": "head",
+       "x": 0.852,
+       "y": 0.261
+      },
+      {
+       "name": "ear",
+       "x": 0.82,
+       "y": 0.104
+      },
+      {
+       "name": "eye",
+       "x": 0.881,
+       "y": 0.242
+      },
+      {
+       "name": "neck",
+       "x": 0.71,
+       "y": 0.393
+      },
+      {
+       "name": "tail",
+       "x": 0.101,
+       "y": 0.299
+      },
+      {
+       "name": "rear leg one",
+       "x": 0.232,
+       "y": 0.742
+      },
+      {
+       "name": "rear leg two",
+       "x": 0.33,
+       "y": 0.742
+      },
+      {
+       "name": "front leg one",
+       "x": 0.592,
+       "y": 0.744
+      },
+      {
+       "name": "front leg two",
+       "x": 0.692,
+       "y": 0.735
+      },
+      {
+       "name": "front claws one",
+       "x": 0.598,
+       "y": 0.922
+      },
+      {
+       "name": "front claws two",
+       "x": 0.718,
+       "y": 0.922
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E29",
+   "ms": 1683,
+   "pass": true,
+   "note": "spurious scan; [scan] parts: body, left eye, right eye, mouth",
+   "score": {
+    "id": "E29",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 0,
+    "mustHit": 0,
+    "gateMissing": [],
+    "spurious": [
+     "scan"
+    ],
+    "pass": true,
+    "note": "spurious scan; [scan] parts: body, left eye, right eye, mouth"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "blob",
+     "verbs": [
+      "jump",
+      "scan",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "scan",
+       "part": "left eye"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.501,
+       "y": 0.503
+      },
+      {
+       "name": "left eye",
+       "x": 0.318,
+       "y": 0.436
+      },
+      {
+       "name": "right eye",
+       "x": 0.57,
+       "y": 0.435
+      },
+      {
+       "name": "mouth",
+       "x": 0.446,
+       "y": 0.64
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E30",
+   "ms": 1487,
+   "pass": true,
+   "note": "spurious scan; [scan] parts: long curved body, head, eye, forked tongue",
+   "score": {
+    "id": "E30",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 0,
+    "mustHit": 0,
+    "gateMissing": [],
+    "spurious": [
+     "scan"
+    ],
+    "pass": true,
+    "note": "spurious scan; [scan] parts: long curved body, head, eye, forked tongue"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "blob",
+     "verbs": [
+      "jump",
+      "scan",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "scan",
+       "part": "eye"
+      }
+     ],
+     "parts": [
+      {
+       "name": "long curved body",
+       "x": 0.435,
+       "y": 0.497
+      },
+      {
+       "name": "head",
+       "x": 0.867,
+       "y": 0.548
+      },
+      {
+       "name": "eye",
+       "x": 0.874,
+       "y": 0.487
+      },
+      {
+       "name": "forked tongue",
+       "x": 0.938,
+       "y": 0.599
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E31",
+   "ms": 1563,
+   "pass": true,
+   "note": "spurious scan; [jump scan flare] parts: helmet, visor, body, left arm, right arm, left leg, right leg, left foot, right foot, torch",
+   "score": {
+    "id": "E31",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [
+     "scan"
+    ],
+    "pass": true,
+    "note": "spurious scan; [jump scan flare] parts: helmet, visor, body, left arm, right arm, left leg, right leg, left foot, right foot, torch"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "person",
+     "verbs": [
+      "jump",
+      "scan",
+      "flare",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "jump",
+       "part": "left leg"
+      },
+      {
+       "verb": "scan",
+       "part": "visor"
+      },
+      {
+       "verb": "flare",
+       "part": "torch"
+      }
+     ],
+     "parts": [
+      {
+       "name": "helmet",
+       "x": 0.456,
+       "y": 0.16
+      },
+      {
+       "name": "visor",
+       "x": 0.455,
+       "y": 0.176
+      },
+      {
+       "name": "body",
+       "x": 0.457,
+       "y": 0.458
+      },
+      {
+       "name": "left arm",
+       "x": 0.164,
+       "y": 0.441
+      },
+      {
+       "name": "right arm",
+       "x": 0.747,
+       "y": 0.446
+      },
+      {
+       "name": "left leg",
+       "x": 0.329,
+       "y": 0.789
+      },
+      {
+       "name": "right leg",
+       "x": 0.587,
+       "y": 0.791
+      },
+      {
+       "name": "left foot",
+       "x": 0.299,
+       "y": 0.961
+      },
+      {
+       "name": "right foot",
+       "x": 0.612,
+       "y": 0.963
+      },
+      {
+       "name": "torch",
+       "x": 0.899,
+       "y": 0.513
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E32",
+   "ms": 2631,
+   "pass": true,
+   "note": "spurious scan; [dig jump scan] parts: head, visor eye, body, upper arm, lower arm, upper leg, lower leg, upper foot, lower foot, shovel",
+   "score": {
+    "id": "E32",
+    "kind": "explorer",
+    "source": "photo",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [
+     "scan"
+    ],
+    "pass": true,
+    "note": "spurious scan; [dig jump scan] parts: head, visor eye, body, upper arm, lower arm, upper leg, lower leg, upper foot, lower foot, shovel"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "person",
+     "verbs": [
+      "dig",
+      "jump",
+      "scan",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "dig",
+       "part": "shovel"
+      },
+      {
+       "verb": "jump",
+       "part": "upper leg"
+      },
+      {
+       "verb": "scan",
+       "part": "visor eye"
+      }
+     ],
+     "parts": [
+      {
+       "name": "head",
+       "x": 0.162,
+       "y": 0.512
+      },
+      {
+       "name": "visor eye",
+       "x": 0.179,
+       "y": 0.513
+      },
+      {
+       "name": "body",
+       "x": 0.455,
+       "y": 0.527
+      },
+      {
+       "name": "upper arm",
+       "x": 0.447,
+       "y": 0.234
+      },
+      {
+       "name": "lower arm",
+       "x": 0.431,
+       "y": 0.826
+      },
+      {
+       "name": "upper leg",
+       "x": 0.789,
+       "y": 0.414
+      },
+      {
+       "name": "lower leg",
+       "x": 0.782,
+       "y": 0.677
+      },
+      {
+       "name": "upper foot",
+       "x": 0.96,
+       "y": 0.396
+      },
+      {
+       "name": "lower foot",
+       "x": 0.958,
+       "y": 0.714
+      },
+      {
+       "name": "shovel",
+       "x": 0.582,
+       "y": 0.122
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E33",
+   "ms": 2051,
+   "pass": true,
+   "note": "[shoot] parts: body, cabin, left wheel, right wheel, cannon",
+   "score": {
+    "id": "E33",
+    "kind": "explorer",
+    "source": "photo",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[shoot] parts: body, cabin, left wheel, right wheel, cannon"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "car",
+     "verbs": [
+      "shoot",
+      "drive",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "cannon"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.501,
+       "y": 0.57
+      },
+      {
+       "name": "cabin",
+       "x": 0.513,
+       "y": 0.277
+      },
+      {
+       "name": "left wheel",
+       "x": 0.251,
+       "y": 0.745
+      },
+      {
+       "name": "right wheel",
+       "x": 0.757,
+       "y": 0.749
+      },
+      {
+       "name": "cannon",
+       "x": 0.558,
+       "y": 0.121
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E34",
+   "ms": 2117,
+   "pass": true,
+   "note": "spurious scan; [jump scan dig] parts: body, head, eye, horn, neck, tail, rear leg left, rear leg right, front leg left, front leg right, left claws, right claws",
+   "score": {
+    "id": "E34",
+    "kind": "explorer",
+    "source": "photo",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [
+     "scan"
+    ],
+    "pass": true,
+    "note": "spurious scan; [jump scan dig] parts: body, head, eye, horn, neck, tail, rear leg left, rear leg right, front leg left, front leg right, left claws, right claws"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "quadruped",
+     "verbs": [
+      "dig",
+      "jump",
+      "scan",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "jump",
+       "part": "front leg left"
+      },
+      {
+       "verb": "scan",
+       "part": "eye"
+      },
+      {
+       "verb": "dig",
+       "part": "left claws"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.453,
+       "y": 0.455
+      },
+      {
+       "name": "head",
+       "x": 0.848,
+       "y": 0.257
+      },
+      {
+       "name": "eye",
+       "x": 0.878,
+       "y": 0.237
+      },
+      {
+       "name": "horn",
+       "x": 0.81,
+       "y": 0.102
+      },
+      {
+       "name": "neck",
+       "x": 0.705,
+       "y": 0.376
+      },
+      {
+       "name": "tail",
+       "x": 0.096,
+       "y": 0.289
+      },
+      {
+       "name": "rear leg left",
+       "x": 0.226,
+       "y": 0.736
+      },
+      {
+       "name": "rear leg right",
+       "x": 0.325,
+       "y": 0.736
+      },
+      {
+       "name": "front leg left",
+       "x": 0.581,
+       "y": 0.738
+      },
+      {
+       "name": "front leg right",
+       "x": 0.685,
+       "y": 0.738
+      },
+      {
+       "name": "left claws",
+       "x": 0.608,
+       "y": 0.918
+      },
+      {
+       "name": "right claws",
+       "x": 0.72,
+       "y": 0.918
+      }
+     ],
+     "source": "model"
+    }
+   }
+  },
+  {
+   "id": "E35",
+   "ms": 2368,
+   "pass": true,
+   "note": "spurious scan; [shield jump scan] parts: head, visor, body, upper arm, lower arm, upper leg, lower leg, cross-marked shield",
+   "score": {
+    "id": "E35",
+    "kind": "explorer",
+    "source": "photo",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": null,
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [
+     "scan"
+    ],
+    "pass": true,
+    "note": "spurious scan; [shield jump scan] parts: head, visor, body, upper arm, lower arm, upper leg, lower leg, cross-marked shield"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "person",
+     "verbs": [
+      "shield",
+      "jump",
+      "scan",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "shield",
+       "part": "cross-marked shield"
+      },
+      {
+       "verb": "jump",
+       "part": "upper leg"
+      },
+      {
+       "verb": "scan",
+       "part": "visor"
+      }
+     ],
+     "parts": [
+      {
+       "name": "head",
+       "x": 0.163,
+       "y": 0.449
+      },
+      {
+       "name": "visor",
+       "x": 0.173,
+       "y": 0.451
+      },
+      {
+       "name": "body",
+       "x": 0.45,
+       "y": 0.437
+      },
+      {
+       "name": "upper arm",
+       "x": 0.435,
+       "y": 0.16
+      },
+      {
+       "name": "lower arm",
+       "x": 0.447,
+       "y": 0.713
+      },
+      {
+       "name": "upper leg",
+       "x": 0.783,
+       "y": 0.266
+      },
+      {
+       "name": "lower leg",
+       "x": 0.787,
+       "y": 0.558
+      },
+      {
+       "name": "cross-marked shield",
+       "x": 0.56,
+       "y": 0.82
+      }
+     ],
+     "source": "model"
+    }
+   }
+  }
+ ]
+}

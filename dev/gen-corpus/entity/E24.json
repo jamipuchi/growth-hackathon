@@ -1,0 +1,23 @@
+{
+ "id": "E24",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "car + drill at the front",
+ "entity": {
+  "types": [
+   "car"
+  ],
+  "must": [
+   "drill"
+  ],
+  "ok": [
+   "boost",
+   "jump"
+  ]
+ },
+ "size": [
+  512,
+  239
+ ],
+ "file": "entity/E24.png"
+}

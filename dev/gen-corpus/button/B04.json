@@ -1,0 +1,26 @@
+{
+ "id": "B04",
+ "kind": "button",
+ "source": "draw",
+ "desc": "drill icon only",
+ "region": {
+  "x": 0.5,
+  "y": 0.1,
+  "w": 0.16,
+  "h": 0.3
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "drill",
+  "type": "button"
+ },
+ "size": [
+  512,
+  485
+ ],
+ "file": "button/B04.png"
+}

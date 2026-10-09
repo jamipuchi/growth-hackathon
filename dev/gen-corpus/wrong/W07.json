@@ -1,0 +1,20 @@
+{
+ "id": "W07",
+ "kind": "button",
+ "source": "draw",
+ "desc": "a little ship drawn as a new button",
+ "region": {
+  "x": 0.5,
+  "y": 0.05,
+  "w": 0.35,
+  "h": 0.4
+ },
+ "wrong": {
+  "looksLike": "entity"
+ },
+ "size": [
+  512,
+  264
+ ],
+ "file": "wrong/W07.png"
+}

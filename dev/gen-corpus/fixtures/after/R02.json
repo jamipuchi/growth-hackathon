@@ -1,0 +1,228 @@
+{
+ "id": "R02",
+ "file": "real/jaume-figure-drawn-as-button.png",
+ "kind": "button",
+ "source": "draw",
+ "region": {
+  "x": 0.4,
+  "y": 0.3,
+  "w": 0.2,
+  "h": 0.3
+ },
+ "imageSha": "3d31ec31c538c0bbb5daede0435a3e4bba12b62b",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 1200,
+    "format": "layout",
+    "detail": "low",
+    "promptSha": "b8d6758de791",
+    "prompt": "You read ONE hand-drawn button that a player just added to their phone game controller.\nThe image is a finger drawing made on the phone screen, dark ink on a light background.\nThe image shows only that ONE new control, cropped to it (a photo may be turned by 90 degrees). It will sit on the pad at x=0.4, y=0.3, w=0.2, h=0.3 (fractions); you do not need to place it.\nlooksLike: \"controller\" if it is a button: a shape with a word or an icon in it, or just a word, an icon or an arrow. \"entity\" if it is instead a picture of a thing: a spaceship, rocket, vehicle, person, stick figure, robot, animal or creature. \"nothing\" if it is blank or unreadable scribbles. thing: what such a picture shows (ship, person, car, bike, animal, creature, object), \"none\" for a button.\nControls:\n- A circle with a smaller circle or knob inside, a D-pad cross, a circle with arrows inside, or four arrows around one point is ONE control of type \"stick\" whose rectangle covers the whole cluster; its action is \"steer\" if it is on the left half of the image, else \"move\".\n- A single arrow on its own (or alone inside its own circle) is a \"button\" with action left, right, up or down.\n- A box, circle or shape with a word or an icon in it is a \"button\" (a drawn on/off switch or slider is a \"toggle\"). A word written just under, over or next to a shape, or joined to it by an arrow, is that shape's label, not a separate control.\n- label: the written word exactly, in UPPERCASE (FIRE, LAND, PEW, DIG...). Use \"\" if no word is written.\n- action: the closest game action, or \"none\" if nothing fits. Verbs with typical labels: shoot (SHOOT, FIRE, PEW, LASER); boost (BOOST, TURBO, NITRO, FAST); shield (SHIELD, BUBBLE, ARMOR, ARMOUR); blast (BLAST, BOMB, WIN, NUKE); invisible (INVISIBLE, CLOAK, GHOST, HIDE); shapeshift (SHAPESHIFT, MASK, DISGUISE, MORPH); teleport (TELEPORT, WARP, BLINK, PORTAL); heal (HEAL, REPAIR, POTION, MEDKIT); jump (JUMP, HOP, SPRING, LEAP); land (LAND, LANDING, TOUCHDOWN, DOCK); takeoff (TAKEOFF, TAKE OFF, LAUNCH, LIFTOFF); scan (SCAN, RADAR, EYE, SONAR); flare (FLARE, LIGHT, TORCH, LAMP); drill (DRILL, SAW, PICK, PICKAXE); dig (DIG, SHOVEL, SPADE, CLAW); drive (DRIVE, CAR, WHEELS, BIKE); fly (FLY, WINGS, JETPACK, HOVER); swim (SWIM, FINS, FLIPPERS, BOAT); grapple (GRAPPLE, HOOK, ROPE, MAGNET). Movement: left, right, up, down, forward, back, strafeleft, straferight, rise, sink. Meta: ready, view.\n- An icon needs no word: crosshair or target → shoot; flame or fire → boost; shield shape → shield; drill bit (a cone or point with ridges or a spiral) → drill; shovel or spade → dig; landing legs, a parachute or an arrow down onto a line → land; antenna, radar dish or a big eye → scan; light bulb, torch, lamp or sun → flare; plus sign or cross → heal; bomb → blast; spiral or portal → teleport.\n- Ignore anything crossed out or scribbled over: it was deleted.\nReturn that one control: looksLike, thing, its type, label and action."
+   },
+   "status": 200,
+   "ms": 988,
+   "error": null,
+   "response": {
+    "id": "resp_0a52b481612d0400016ac962f1f14887d2a90465d3317c8cba",
+    "object": "response",
+    "created_at": 1791582961,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582962,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 1200,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "rs_0a52b481612d0400016ac962f273c087d28b5d7760b6d9520a",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqyWLy3St5dz12dH1Xn2p2riD4z-FprE3h3TRlNHfEEfIdIPaJRPI9fbRt-nzKkO01zgDFjn0WpaORo_fYO0PYgE6Vv6NOaPI58DN_9SChBNbR4nUDJqqg7-3r775vE5wJwO-R0pO737DaK2jkv57qfZw8HSeXUZAAbF0E39UwkbFD5RldsWAJqzdLIfIyMi7qS0ssZu9MlCzzimpE9pzZdsqTZ_W7eZsPgrqKEFr_FanKCWVXltWIpL83M_9dU2sZvCtk7rbLX2AZrBKanHZ9nqH-Y7daL86T4x4RIyV98cIe18GWiPJLO_UMC6YdadFYFEP47p4W48gUx-YkyiGBTNJwBiBmglerxkF2TqL6lvbzv9sANlOTpWJhm_VgryDtz1_tXnRcSms5KycJzSsH9C-fCYB-cl2I_2mym4a_gxeZyNHLXXbCRkXRzXdXwbCz9A0uOh8siSdX0d8E1vQmWQvdzg27fxA2m6qgqcIMo6dyWPVitNMxt9La_yNMjJ-KoITc661QvxNWZqUIGSypGKzidBwtiK3s5dgj30h7-6yBFc_VgQgLX_3a5d7Xbp8WghVP6GZagrg8Fr3V9YrrQqcnTe1RqDCE0M80IftW7w7-LcHxD0YeTmU9OVP15tRshU6tcBCC4HGzEWnAh-4TaCrfWeld6_dLBU-gHJWfVrG_CagSLodhapE2urrMg4rQINAy__EWnmmc2nyjjyZuwJJ8hKSCOgnK4ZxvLQLWXtSsc7mz2C3QaLYQSxf3QoN4q5cuTaZ8IMmy6YlmeKbanlrDCNx4edGs-2arZ7JieP5eiSOtjRqbwwwRmrOVfZ4YidE6b593arfZd_KIL1lOIG7hSq0xRIE7Wpq4o-iXWHXqOClJBFmalNO-N-J6Vpkibuw180VhjwAtObpwUhCtLWRp_KWt0yLB_A9yHSMHvqtlOArzLTrhnMnlr9gis0SA-JQofCpfDhqqOmEXmf2UQ0BTQkFcLMObnpthrkTMJPgU3oUDXpAoMXJwatdjM75v4voB4Tc8S8J5idjq-ruLETBkygvAhAFAz5-fGB6w87bbRUAwhOYQF7LwE9PlDMdmjIsneHiWqCJ-Brk4fuUk5htChr0y5D5BJj-ObIEQHo5CgitnycOCUHzznaMRfJ6R71mx0lmCVE9rJVZyiAcv49JCylICP--q6iTK2J12cfsZVBpa5al2Y87Po_YeFrNtjBmDUWM2xo9sle0fGptatBdBKPhX-HQOxZ0O-Icd2XL5uihnzLSDiTlEuWwcv8J6njH6dPPsD28zy0-78cWW_1Ul3bLYsizK8bNJ3WP53oIraZtmRu8EXglHpFxuHwMN4FmTGqVOBPurJMCXjDYC4pGEnJwvqZGgsc5vMwAct-bISKFiEqCruarZwox922T-mjCR4ZUQ9clCZ4M_z0pJLwlWwtA35Ufee6WihiymCG23M5mGDL8tg6qlV-BzGnZ9974dZh1Ept-Pp5DFO8w09H0b7GA1xtS30yHs8lcAbF8Xi0UKY3rSvGHNvjSlaONHgsuYeCbMTsa-N-PlskmnbTcTvVN8KDIWKer7LlFyYwBXGgUtYu_VTIo-LTSl-yiAnbgAN_OHA8ckqXpGpIyCnq_-2RjsRZQQjMOTXwdUNTgudeL4NG5Qs66mwVsqdMpzTrDWQAXEZ1WV1QUNruLvxd5CVR80J9DlHE77QKJX_-hvs5SWi29rXCPx1FRNU0Ln_z496-u3T16DcA6SKDyF1CjiDA==",
+      "summary": []
+     },
+     {
+      "id": "msg_0a52b481612d0400016ac962f29f7087d291d58a191bc19996",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"looksLike\":\"entity\",\"thing\":\"ship\",\"type\":\"button\",\"label\":\"\",\"action\":\"none\"}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "layout",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "looksLike",
+        "thing",
+        "type",
+        "label",
+        "action"
+       ],
+       "properties": {
+        "looksLike": {
+         "type": "string",
+         "enum": [
+          "controller",
+          "entity",
+          "nothing"
+         ]
+        },
+        "thing": {
+         "type": "string",
+         "enum": [
+          "none",
+          "ship",
+          "person",
+          "car",
+          "bike",
+          "animal",
+          "creature",
+          "object"
+         ]
+        },
+        "type": {
+         "type": "string",
+         "enum": [
+          "button",
+          "stick",
+          "toggle"
+         ]
+        },
+        "label": {
+         "type": "string"
+        },
+        "action": {
+         "type": "string",
+         "enum": [
+          "shoot",
+          "boost",
+          "shield",
+          "blast",
+          "invisible",
+          "shapeshift",
+          "teleport",
+          "heal",
+          "jump",
+          "land",
+          "takeoff",
+          "scan",
+          "flare",
+          "drill",
+          "dig",
+          "drive",
+          "fly",
+          "swim",
+          "grapple",
+          "left",
+          "right",
+          "up",
+          "down",
+          "forward",
+          "back",
+          "strafeleft",
+          "straferight",
+          "rise",
+          "sink",
+          "steer",
+          "move",
+          "ready",
+          "view",
+          "none"
+         ]
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 1174,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 1171
+     },
+     "output_tokens": 55,
+     "output_tokens_details": {
+      "reasoning_tokens": 26
+     },
+     "total_tokens": 1229
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": false,
+  "error": "looks like a ship",
+  "looksLike": "entity",
+  "thing": "ship"
+ },
+ "pass": true
+}

@@ -1,0 +1,20 @@
+{
+ "id": "E29",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "blob with a face",
+ "entity": {
+  "types": [
+   "blob"
+  ],
+  "must": [],
+  "ok": [
+   "jump"
+  ]
+ },
+ "size": [
+  512,
+  437
+ ],
+ "file": "entity/E29.png"
+}

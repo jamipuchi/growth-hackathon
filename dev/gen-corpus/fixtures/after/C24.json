@@ -1,0 +1,65 @@
+{
+ "id": "C24",
+ "file": "controller/C24.png",
+ "kind": "controller",
+ "source": "photo",
+ "region": null,
+ "imageSha": "5240e99ff1f6b733fe6af9e634ff1a6fedf317d3",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 2000,
+    "format": "layout",
+    "detail": "low",
+    "promptSha": "f262abeb6c0f",
+    "prompt": "You read a hand-drawn game controller for a phone held in landscape. Players draw their own buttons and sticks.\nThe image is usually a PHOTO of a notebook page, already cropped by the phone to the drawing. It is greyscale and may show ruled or squared paper lines, shadows, smudges, slight perspective or a thumb at the edge. Ignore paper lines, grids, shadows, fingers and anything that was not deliberately drawn as a control.\nFirst, looksLike: \"controller\" if the drawing is a game controller: sticks, D-pads, arrows, boxes or circles with words or icons, even a single button. \"entity\" if it is instead a picture of a thing: a spaceship, rocket, plane, car, bike, person, astronaut, robot, animal or creature (notes, labels or arrows written around a picture do not make it a controller). \"nothing\" if it is blank or random scribbles. thing: what such a picture shows (ship, person, car, bike, animal, creature, object), \"none\" for a controller.\nThen buttons: every drawn control when looksLike is \"controller\"; [] otherwise.\nControls:\n- A circle with a smaller circle or knob inside, a D-pad cross, a circle with arrows inside, or four arrows around one point is ONE control of type \"stick\" whose rectangle covers the whole cluster; its action is \"steer\" if it is on the left half of the image, else \"move\".\n- A single arrow on its own (or alone inside its own circle) is a \"button\" with action left, right, up or down.\n- A box, circle or shape with a word or an icon in it is a \"button\" (a drawn on/off switch or slider is a \"toggle\"). A word written just under, over or next to a shape, or joined to it by an arrow, is that shape's label, not a separate control.\n- label: the written word exactly, in UPPERCASE (FIRE, LAND, PEW, DIG...). Use \"\" if no word is written.\n- action: the closest game action, or \"none\" if nothing fits. Verbs with typical labels: shoot (SHOOT, FIRE, PEW, LASER); boost (BOOST, TURBO, NITRO, FAST); shield (SHIELD, BUBBLE, ARMOR, ARMOUR); blast (BLAST, BOMB, WIN, NUKE); invisible (INVISIBLE, CLOAK, GHOST, HIDE); shapeshift (SHAPESHIFT, MASK, DISGUISE, MORPH); teleport (TELEPORT, WARP, BLINK, PORTAL); heal (HEAL, REPAIR, POTION, MEDKIT); jump (JUMP, HOP, SPRING, LEAP); land (LAND, LANDING, TOUCHDOWN, DOCK); takeoff (TAKEOFF, TAKE OFF, LAUNCH, LIFTOFF); scan (SCAN, RADAR, EYE, SONAR); flare (FLARE, LIGHT, TORCH, LAMP); drill (DRILL, SAW, PICK, PICKAXE); dig (DIG, SHOVEL, SPADE, CLAW); drive (DRIVE, CAR, WHEELS, BIKE); fly (FLY, WINGS, JETPACK, HOVER); swim (SWIM, FINS, FLIPPERS, BOAT); grapple (GRAPPLE, HOOK, ROPE, MAGNET). Movement: left, right, up, down, forward, back, strafeleft, straferight, rise, sink. Meta: ready, view.\n- An icon needs no word: crosshair or target → shoot; flame or fire → boost; shield shape → shield; drill bit (a cone or point with ridges or a spiral) → drill; shovel or spade → dig; landing legs, a parachute or an arrow down onto a line → land; antenna, radar dish or a big eye → scan; light bulb, torch, lamp or sun → flare; plus sign or cross → heal; bomb → blast; spiral or portal → teleport.\n- Ignore anything crossed out or scribbled over: it was deleted.\nRectangles: x, y are the top-left corner and w, h the size, all as fractions (0 to 1) of the whole image, origin top left. Make each rectangle hug the drawn shape.\nReturn every drawn control, at most 16, no duplicates. Never invent controls that are not drawn."
+   },
+   "status": 0,
+   "ms": 4002,
+   "error": "aborted",
+   "response": null,
+   "text": ""
+  }
+ ],
+ "result": {
+  "ok": true,
+  "layout": {
+   "buttons": [
+    {
+     "type": "stick",
+     "action": "steer",
+     "label": "",
+     "x": 0.04,
+     "y": 0.35,
+     "w": 0.3,
+     "h": 0.55
+    },
+    {
+     "type": "button",
+     "action": "shoot",
+     "label": "SHOOT",
+     "x": 0.74,
+     "y": 0.5,
+     "w": 0.22,
+     "h": 0.36
+    },
+    {
+     "type": "button",
+     "action": "boost",
+     "label": "BOOST",
+     "x": 0.5,
+     "y": 0.6,
+     "w": 0.2,
+     "h": 0.3
+    }
+   ],
+   "source": "default"
+  }
+ },
+ "pass": false
+}

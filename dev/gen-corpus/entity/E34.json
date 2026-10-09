@@ -1,0 +1,31 @@
+{
+ "id": "E34",
+ "kind": "explorer",
+ "source": "photo",
+ "desc": "photo: dog with claws",
+ "entity": {
+  "types": [
+   "quadruped"
+  ],
+  "must": [
+   "dig"
+  ],
+  "ok": [
+   "jump"
+  ]
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "pencil",
+  "rot": 0,
+  "keystone": 0.06,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "size": [
+  512,
+  422
+ ],
+ "file": "entity/E34.png"
+}

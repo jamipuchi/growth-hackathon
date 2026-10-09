@@ -1,0 +1,21 @@
+{
+ "id": "E04",
+ "kind": "ship",
+ "source": "draw",
+ "desc": "fighter + flames + cannon",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "shoot",
+   "boost"
+  ],
+  "ok": []
+ },
+ "size": [
+  512,
+  290
+ ],
+ "file": "entity/E04.png"
+}

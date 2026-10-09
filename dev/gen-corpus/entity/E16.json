@@ -1,0 +1,30 @@
+{
+ "id": "E16",
+ "kind": "ship",
+ "source": "photo",
+ "desc": "photo: chunky ship + bomb + bubble",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "blast",
+   "shield"
+  ],
+  "ok": []
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": 0,
+  "keystone": 0,
+  "shadow": 0.45,
+  "thumb": "bottom"
+ },
+ "turns": 0,
+ "size": [
+  512,
+  450
+ ],
+ "file": "entity/E16.png"
+}

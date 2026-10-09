@@ -1,0 +1,23 @@
+{
+ "id": "E26",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "bike + headlamp",
+ "entity": {
+  "types": [
+   "bike"
+  ],
+  "must": [
+   "flare"
+  ],
+  "ok": [
+   "boost",
+   "jump"
+  ]
+ },
+ "size": [
+  512,
+  288
+ ],
+ "file": "entity/E26.png"
+}

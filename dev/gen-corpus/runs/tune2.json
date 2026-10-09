@@ -1,0 +1,388 @@
+{
+ "label": "tune2",
+ "at": "2026-10-09T21:55:31.182Z",
+ "astra": "astra.js",
+ "env": {
+  "effort": null,
+  "tier": null
+ },
+ "calls": 4,
+ "wallSeconds": 2.5,
+ "summary": {
+  "cases": 4,
+  "passed": 4,
+  "controlsFoundClean": null,
+  "controlsFoundPhoto": null,
+  "kindsRight": null,
+  "labelsRight": null,
+  "labelsRightControllers": null,
+  "buttonsRight": null,
+  "iou50": null,
+  "extraControls": 0,
+  "crossedOutReturned": 0,
+  "entityType": 100,
+  "unlockedVerbs": 100,
+  "gateVerbsMissing": 0,
+  "spuriousUnlocks": 2,
+  "wrongKindCaught": null,
+  "falseAlarms": 0,
+  "fallbacks": 0,
+  "errors": 0,
+  "p50ms": 2055,
+  "p90ms": 2453,
+  "maxMs": 2453
+ },
+ "cases": [
+  {
+   "id": "E08",
+   "ms": 2055,
+   "pass": true,
+   "note": "spurious boost; [boost land flare] parts: body, cockpit dome, left window, middle window, right window, left landing leg, right landing leg, exhaust nozzle, exhaust flames",
+   "score": {
+    "id": "E08",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": "entity",
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 2,
+    "mustHit": 2,
+    "gateMissing": [],
+    "spurious": [
+     "boost"
+    ],
+    "pass": true,
+    "note": "spurious boost; [boost land flare] parts: body, cockpit dome, left window, middle window, right window, left landing leg, right landing leg, exhaust nozzle, exhaust flames"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "boost",
+      "land",
+      "flare"
+     ],
+     "unlocked": [
+      {
+       "verb": "boost",
+       "part": "exhaust flames"
+      },
+      {
+       "verb": "land",
+       "part": "left landing leg"
+      },
+      {
+       "verb": "flare",
+       "part": "exhaust flames"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.444,
+       "y": 0.547
+      },
+      {
+       "name": "cockpit dome",
+       "x": 0.443,
+       "y": 0.23
+      },
+      {
+       "name": "left window",
+       "x": 0.236,
+       "y": 0.57
+      },
+      {
+       "name": "middle window",
+       "x": 0.439,
+       "y": 0.568
+      },
+      {
+       "name": "right window",
+       "x": 0.646,
+       "y": 0.566
+      },
+      {
+       "name": "left landing leg",
+       "x": 0.289,
+       "y": 0.839
+      },
+      {
+       "name": "right landing leg",
+       "x": 0.596,
+       "y": 0.841
+      },
+      {
+       "name": "exhaust nozzle",
+       "x": 0.873,
+       "y": 0.552
+      },
+      {
+       "name": "exhaust flames",
+       "x": 0.928,
+       "y": 0.55
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "entity"
+   }
+  },
+  {
+   "id": "E13",
+   "ms": 2303,
+   "pass": true,
+   "note": "[shoot boost] parts: body, upper wing, lower wing, cannon, cockpit, exhaust flames",
+   "score": {
+    "id": "E13",
+    "kind": "ship",
+    "source": "photo",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": "entity",
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 2,
+    "mustHit": 2,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[shoot boost] parts: body, upper wing, lower wing, cannon, cockpit, exhaust flames"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "shoot",
+      "boost"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "cannon"
+      },
+      {
+       "verb": "boost",
+       "part": "exhaust flames"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.579,
+       "y": 0.485
+      },
+      {
+       "name": "upper wing",
+       "x": 0.385,
+       "y": 0.227
+      },
+      {
+       "name": "lower wing",
+       "x": 0.434,
+       "y": 0.791
+      },
+      {
+       "name": "cannon",
+       "x": 0.605,
+       "y": 0.307
+      },
+      {
+       "name": "cockpit",
+       "x": 0.759,
+       "y": 0.324
+      },
+      {
+       "name": "exhaust flames",
+       "x": 0.12,
+       "y": 0.553
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "entity"
+   }
+  },
+  {
+   "id": "E18",
+   "ms": 1962,
+   "pass": true,
+   "note": "spurious shoot; [shoot drill] parts: helmet, visor, body, left arm, right arm, left leg, right leg, pointed blaster or drill",
+   "score": {
+    "id": "E18",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": "entity",
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [
+     "shoot"
+    ],
+    "pass": true,
+    "note": "spurious shoot; [shoot drill] parts: helmet, visor, body, left arm, right arm, left leg, right leg, pointed blaster or drill"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "person",
+     "verbs": [
+      "shoot",
+      "drill",
+      "jump",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "pointed blaster or drill"
+      },
+      {
+       "verb": "drill",
+       "part": "pointed blaster or drill"
+      }
+     ],
+     "parts": [
+      {
+       "name": "helmet",
+       "x": 0.389,
+       "y": 0.162
+      },
+      {
+       "name": "visor",
+       "x": 0.387,
+       "y": 0.175
+      },
+      {
+       "name": "body",
+       "x": 0.39,
+       "y": 0.452
+      },
+      {
+       "name": "left arm",
+       "x": 0.14,
+       "y": 0.438
+      },
+      {
+       "name": "right arm",
+       "x": 0.632,
+       "y": 0.439
+      },
+      {
+       "name": "left leg",
+       "x": 0.267,
+       "y": 0.793
+      },
+      {
+       "name": "right leg",
+       "x": 0.498,
+       "y": 0.795
+      },
+      {
+       "name": "pointed blaster or drill",
+       "x": 0.83,
+       "y": 0.577
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "entity"
+   }
+  },
+  {
+   "id": "E19",
+   "ms": 2453,
+   "pass": true,
+   "note": "[shoot] parts: helmet, visor, body, left arm, right arm, left leg, right leg, gun",
+   "score": {
+    "id": "E19",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": "entity",
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[shoot] parts: helmet, visor, body, left arm, right arm, left leg, right leg, gun"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "person",
+     "verbs": [
+      "shoot",
+      "jump",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "gun"
+      }
+     ],
+     "parts": [
+      {
+       "name": "helmet",
+       "x": 0.366,
+       "y": 0.159
+      },
+      {
+       "name": "visor",
+       "x": 0.368,
+       "y": 0.177
+      },
+      {
+       "name": "body",
+       "x": 0.367,
+       "y": 0.457
+      },
+      {
+       "name": "left arm",
+       "x": 0.133,
+       "y": 0.44
+      },
+      {
+       "name": "right arm",
+       "x": 0.6,
+       "y": 0.443
+      },
+      {
+       "name": "left leg",
+       "x": 0.246,
+       "y": 0.791
+      },
+      {
+       "name": "right leg",
+       "x": 0.503,
+       "y": 0.792
+      },
+      {
+       "name": "gun",
+       "x": 0.815,
+       "y": 0.561
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "entity"
+   }
+  }
+ ]
+}

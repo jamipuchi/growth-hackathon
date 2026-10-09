@@ -1,0 +1,57 @@
+{
+ "id": "C19",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "small controls far apart",
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.036,
+    "y": 0.5884,
+    "w": 0.1483,
+    "h": 0.3009
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.8587,
+    "y": 0.7,
+    "w": 0.1126,
+    "h": 0.1838
+   }
+  },
+  {
+   "type": "button",
+   "action": "land",
+   "label": "LAND",
+   "rect": {
+    "x": 0.8585,
+    "y": 0.0983,
+    "w": 0.1118,
+    "h": 0.161
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "BOOST",
+   "rect": {
+    "x": 0.4489,
+    "y": 0.8004,
+    "w": 0.1233,
+    "h": 0.1421
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C19.png"
+}

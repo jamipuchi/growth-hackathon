@@ -1,0 +1,35 @@
+{
+ "id": "B16",
+ "kind": "button",
+ "source": "photo",
+ "desc": "photo: Shield in a circle",
+ "region": {
+  "x": 0.4,
+  "y": 0.4,
+  "w": 0.2,
+  "h": 0.36
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "shield",
+  "type": "button"
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": 0,
+  "keystone": 0.06,
+  "shadow": 0.25,
+  "thumb": "bottom"
+ },
+ "turns": 0,
+ "size": [
+  512,
+  479
+ ],
+ "file": "button/B16.png"
+}

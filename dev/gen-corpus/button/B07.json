@@ -1,0 +1,26 @@
+{
+ "id": "B07",
+ "kind": "button",
+ "source": "draw",
+ "desc": "SHOVEL in a box",
+ "region": {
+  "x": 0.4,
+  "y": 0.12,
+  "w": 0.24,
+  "h": 0.26
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "dig",
+  "type": "button"
+ },
+ "size": [
+  512,
+  301
+ ],
+ "file": "button/B07.png"
+}

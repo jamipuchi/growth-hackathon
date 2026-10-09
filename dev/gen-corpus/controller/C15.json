@@ -1,0 +1,35 @@
+{
+ "id": "C15",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "minimal: one stick and one FIRE button",
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0747,
+    "y": 0.2505,
+    "w": 0.3004,
+    "h": 0.5985
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.6993,
+    "y": 0.3996,
+    "w": 0.2305,
+    "h": 0.3991
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C15.png"
+}

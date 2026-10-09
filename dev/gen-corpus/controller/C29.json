@@ -1,0 +1,55 @@
+{
+ "id": "C29",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: two sticks and FIRE (marker, rotated page)",
+ "photo": {
+  "paper": "lined",
+  "pen": "marker",
+  "rot": 6,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0292,
+    "y": 0.1859,
+    "w": 0.276,
+    "h": 0.6001
+   }
+  },
+  {
+   "type": "stick",
+   "action": "move",
+   "label": "",
+   "rect": {
+    "x": 0.6947,
+    "y": 0.3405,
+    "w": 0.2764,
+    "h": 0.5971
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.4124,
+    "y": 0.0889,
+    "w": 0.2055,
+    "h": 0.3636
+   }
+  }
+ ],
+ "size": [
+  512,
+  236
+ ],
+ "file": "controller/C29.png"
+}

@@ -1,0 +1,34 @@
+{
+ "id": "B19",
+ "kind": "button",
+ "source": "photo",
+ "desc": "photo of the whole page: D-pad, SHOOT and the new shovel + DIG box",
+ "region": {
+  "x": 0.45,
+  "y": 0.1,
+  "w": 0.18,
+  "h": 0.3
+ },
+ "pad": [
+  "steer",
+  "shoot"
+ ],
+ "expect": {
+  "action": "dig",
+  "type": "button"
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "pencil",
+  "rot": 3,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "size": [
+  512,
+  251
+ ],
+ "file": "button/B19.png"
+}

@@ -1,0 +1,256 @@
+{
+ "id": "E01",
+ "file": "entity/E01.png",
+ "kind": "ship",
+ "source": "draw",
+ "region": null,
+ "imageSha": "fe79e015143548833ef60f0567e28bd20de5ca8f",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 500,
+    "format": "entity",
+    "detail": "low",
+    "promptSha": "833381ec03ca",
+    "prompt": "You read a hand-drawn SPACESHIP for a party game. type is always \"ship\".\nThe image is a finger drawing made on the phone screen.\nparts: every distinct part that was deliberately drawn on it (cannon, exhaust flames, wheels, shovel, legs...), each with the centre of the part as x, y fractions of the image (origin top left). At most 12.\nSkills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still move). Part → skill: shoot: a gun, cannon or laser; boost: an exhaust with fire; shield: a shield or a bubble; drill: a drill or a saw; land: landing legs or a parachute; scan: an antenna, a radar dish or an eye; flare: a lamp or a torch; invisible: a cape or a ghost; heal: a red cross; blast: a bomb; teleport: a portal or a magic wand.\nBe generous: when a part is unclear or only roughly fits, unlock the closest skill. Never unlock a skill with no part on the drawing that could mean it.\nverbs: the unlocked skills. unlocked: one entry per skill, with the part that unlocks it (its name as in parts)."
+   },
+   "status": 200,
+   "ms": 1896,
+   "error": null,
+   "response": {
+    "id": "resp_0c23df3af6267e46016ac9616fa60487d2b931e207e2355065",
+    "object": "response",
+    "created_at": 1791582575,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582577,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 500,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "rs_0c23df3af6267e46016ac96170415087d2aadd7a321115aea6",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqyWFxJDE3a7kt4mwVEYzpAuo9y_okSBLm43i8yDUDEYXi51__MmVP8zdfcvW3-xdi7afScteKzsQ7P21k16dtEIsKfEvuJPaSwXoX4g-f727T4bDNk3uJg1xtQFjx3boLsgRMtBGLT5y3cWkikmiOLBezD1X6EJRXxABdV5MJK7Cf7pYNDfZzel_G4FRZe3fuuDzVm-b7Q6Zv4Zdh1jYUuVgqd_YAOE0Ops_-xYfj2DI_Zga9wS0nrc86imoALC-YWiOVEnkhgY6czPryMFa1mviVsPxJaccq17X8X-MwIg-z_2_6uNsWwjySVOM0cjiFUhNuh9el9nmU1I5LwCaANd6X-z8NdmUGk5z8WCxAkabE59jOWweJfJk72eYukKMC8QLCUfiLHZpqKcvVEuKnI9XgdpMvHB9LsAbQ6bvxLQEcHVqzyu5lFzlhZJTIZrl5yu7BSgRBvNtnvdsofb-fqGOhlU0J-zxkTglCflj93TKxAL8VF5V2qKnGKyFfTit9OKcr-prtZrQeWSL_EFqb3CyjPO_zhihxTL6Ctr9CPxstQFHsZnGkSf-VzEQf8SNAe1MGUCcBA5UC3OJCRnRo53_P6M7e_mY8ivj1OMfdOMpTvH1P4cPgYdWKU2gIP3MoC68Muwr1VFsclZw_ykt_c2rWYjHzhzaZMIzFK00J_ehg-USBNxbOoVNud_PooLwobDeLFEvheMyFZDvlA1pYc0wtDE6CsNpYo30tPAlYAZbtqa9-8Z4EQ9o8wGJOgRToFNXzf742ov7RVytNjcnRL6pFncDOE-59zQ60Xps3lNyyXd_XVSNYGQPiz8iXU-NVe2YK1_uIqZw6N-ERv8kHUEVICx_LJGn2sCHWJM7hTsHDJK4xugiQwWJFI32ZREmK9kmkWyhoHyDtfkf3xUGZ9uI7cubRE1nNYYfVomyQzLBiRkTb1sDkB--UoCqPetUydDWXT1_-Ni2iOr0PKSaSis_aOsVGf4z8Yl0XdF-dbno6O1Xxsb19Iyw1KaSGVlaFwR4TV0R1kogOarlcnqfhYOISB0vWUQO0r44b-n-ydp0SMdqlfd7td0_-364BrD4VNrKNZsk3O2TemU_06czQwj-27KU4d6Wl6E3cO_bOBViUy-yS1SswwqQHTHAPEMahL9h5JjNN0OTLGj0hZ_zVOTQScgKUj2s55qIOADhvuONzRJr3kcGVqpdyYJTt7jslKPvJoHYH8FO330wdbeqj_S6EpR0oeLyQGocsewfAnMZjCClRWMBBFUCtXJ0cQKGijQJ5moFXNGZgVJko2N1UJdAwDEcBcSE3pViTGdBWWlvbotQF2u2Wq7QE_BrAjwNFUcgpI6lb94A78WB2KmIm2LldntkzS_SEBXjkcsVSqGz5H9sWRSNnV-jsmMYXjEGw6SSVQPipKGrosRU5c6eI_YaL9FIJZ5bFxPaNs9UX9Qxrgwjtp65jDH92MzFrYHn3EYu0JmPM-j3PEPUuwjYYNDKPbdw_duAeWKTLTq4w-AaakE1iP8iQD4qyJOv9Kh8f7BGi6GR4qVrDIsBE-QB4ildbTu8_TVCw0QkgnKP167AWIZLo2D6QIKLI33CTz2MMnzdlDQo4iyMmj_qowVMtPfwzgAkrxHmu215Xfhm4zB38JPN-tn9LauqlTuZuorPmYC1EWL2UXw-Tn8d8Lgyu7BbshQ==",
+      "summary": []
+     },
+     {
+      "id": "msg_0c23df3af6267e46016ac961705a4c87d2aa77b47369a6d25d",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"type\":\"ship\",\"parts\":[{\"name\":\"pointed ship body\",\"x\":0.503,\"y\":0.498},{\"name\":\"upper rear fin\",\"x\":0.275,\"y\":0.216},{\"name\":\"lower rear fin\",\"x\":0.317,\"y\":0.762},{\"name\":\"upper front fin\",\"x\":0.719,\"y\":0.348}],\"verbs\":[],\"unlocked\":[]}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "entity",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "type",
+        "parts",
+        "verbs",
+        "unlocked"
+       ],
+       "properties": {
+        "type": {
+         "type": "string",
+         "enum": [
+          "ship"
+         ]
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "name",
+           "x",
+           "y"
+          ],
+          "properties": {
+           "name": {
+            "type": "string"
+           },
+           "x": {
+            "type": "number"
+           },
+           "y": {
+            "type": "number"
+           }
+          }
+         }
+        },
+        "verbs": {
+         "type": "array",
+         "items": {
+          "type": "string",
+          "enum": [
+           "shoot",
+           "boost",
+           "shield",
+           "drill",
+           "land",
+           "scan",
+           "flare",
+           "invisible",
+           "heal",
+           "blast",
+           "teleport"
+          ]
+         }
+        },
+        "unlocked": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "verb",
+           "part"
+          ],
+          "properties": {
+           "verb": {
+            "type": "string",
+            "enum": [
+             "shoot",
+             "boost",
+             "shield",
+             "drill",
+             "land",
+             "scan",
+             "flare",
+             "invisible",
+             "heal",
+             "blast",
+             "teleport"
+            ]
+           },
+           "part": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 632,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+     },
+     "output_tokens": 120,
+     "output_tokens_details": {
+      "reasoning_tokens": 22
+     },
+     "total_tokens": 752
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "entity": {
+   "type": "ship",
+   "verbs": [],
+   "unlocked": [],
+   "parts": [
+    {
+     "name": "pointed ship body",
+     "x": 0.503,
+     "y": 0.498
+    },
+    {
+     "name": "upper rear fin",
+     "x": 0.275,
+     "y": 0.216
+    },
+    {
+     "name": "lower rear fin",
+     "x": 0.317,
+     "y": 0.762
+    },
+    {
+     "name": "upper front fin",
+     "x": 0.719,
+     "y": 0.348
+    }
+   ],
+   "source": "model"
+  }
+ },
+ "pass": true
+}

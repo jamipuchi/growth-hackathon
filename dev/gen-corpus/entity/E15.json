@@ -1,0 +1,30 @@
+{
+ "id": "E15",
+ "kind": "ship",
+ "source": "photo",
+ "desc": "photo: rocket + nose drill + flames",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "drill",
+   "boost"
+  ],
+  "ok": []
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "marker",
+  "rot": 3,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 3,
+ "size": [
+  512,
+  286
+ ],
+ "file": "entity/E15.png"
+}

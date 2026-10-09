@@ -1,0 +1,14 @@
+{
+ "id": "W09",
+ "kind": "ship",
+ "source": "draw",
+ "desc": "a controller (stick, FIRE, BOOST) drawn in the ship step",
+ "wrong": {
+  "looksLike": "controller"
+ },
+ "size": [
+  512,
+  183
+ ],
+ "file": "wrong/W09.png"
+}

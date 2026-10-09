@@ -1,0 +1,14 @@
+{
+ "id": "W12",
+ "kind": "ship",
+ "source": "draw",
+ "desc": "just a LAND button drawn in the ship step",
+ "wrong": {
+  "looksLike": "controller"
+ },
+ "size": [
+  512,
+  390
+ ],
+ "file": "wrong/W12.png"
+}

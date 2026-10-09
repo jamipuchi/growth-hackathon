@@ -1,0 +1,46 @@
+{
+ "id": "C12",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "very messy stick, FIRE and BOOST",
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0761,
+    "y": 0.3208,
+    "w": 0.2669,
+    "h": 0.5167
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.7362,
+    "y": 0.5027,
+    "w": 0.2186,
+    "h": 0.3231
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "BOOST",
+   "rect": {
+    "x": 0.4887,
+    "y": 0.5892,
+    "w": 0.2108,
+    "h": 0.312
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C12.png"
+}

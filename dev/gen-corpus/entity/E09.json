@@ -1,0 +1,21 @@
+{
+ "id": "E09",
+ "kind": "ship",
+ "source": "draw",
+ "desc": "rocket + flames + legs",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "boost",
+   "land"
+  ],
+  "ok": []
+ },
+ "size": [
+  298,
+  512
+ ],
+ "file": "entity/E09.png"
+}

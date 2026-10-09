@@ -1,0 +1,46 @@
+{
+ "id": "C01",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "knob stick left, FIRE and BOOST boxes",
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0749,
+    "y": 0.3673,
+    "w": 0.2503,
+    "h": 0.4992
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.7493,
+    "y": 0.4985,
+    "w": 0.2017,
+    "h": 0.3058
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "BOOST",
+   "rect": {
+    "x": 0.4987,
+    "y": 0.6174,
+    "w": 0.2024,
+    "h": 0.2846
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C01.png"
+}

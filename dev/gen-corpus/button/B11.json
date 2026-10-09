@@ -1,0 +1,26 @@
+{
+ "id": "B11",
+ "kind": "button",
+ "source": "draw",
+ "desc": "messy BOOST",
+ "region": {
+  "x": 0.45,
+  "y": 0.55,
+  "w": 0.22,
+  "h": 0.28
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "boost",
+  "type": "button"
+ },
+ "size": [
+  512,
+  356
+ ],
+ "file": "button/B11.png"
+}

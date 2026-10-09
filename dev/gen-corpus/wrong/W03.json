@@ -1,0 +1,23 @@
+{
+ "id": "W03",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: saucer with legs in the controller step",
+ "wrong": {
+  "looksLike": "entity"
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": 2,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "size": [
+  512,
+  315
+ ],
+ "file": "wrong/W03.png"
+}

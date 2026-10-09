@@ -1,0 +1,14 @@
+{
+ "id": "W02",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "rocket drawn in the controller step",
+ "wrong": {
+  "looksLike": "entity"
+ },
+ "size": [
+  512,
+  256
+ ],
+ "file": "wrong/W02.png"
+}

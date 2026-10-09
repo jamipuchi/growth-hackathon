@@ -1,0 +1,20 @@
+{
+ "id": "E11",
+ "kind": "ship",
+ "source": "draw",
+ "desc": "fighter + antenna dish",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "scan"
+  ],
+  "ok": []
+ },
+ "size": [
+  512,
+  351
+ ],
+ "file": "entity/E11.png"
+}

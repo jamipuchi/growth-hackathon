@@ -1,0 +1,26 @@
+{
+ "id": "B09",
+ "kind": "button",
+ "source": "draw",
+ "desc": "antenna icon + SCAN",
+ "region": {
+  "x": 0.35,
+  "y": 0.05,
+  "w": 0.2,
+  "h": 0.4
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "scan",
+  "type": "button"
+ },
+ "size": [
+  504,
+  512
+ ],
+ "file": "button/B09.png"
+}

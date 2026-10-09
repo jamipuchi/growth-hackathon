@@ -1,0 +1,57 @@
+{
+ "id": "C20",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "planet controller: stick, DIG, JUMP, TAKE OFF",
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0638,
+    "y": 0.3692,
+    "w": 0.2497,
+    "h": 0.4986
+   }
+  },
+  {
+   "type": "button",
+   "action": "dig",
+   "label": "DIG",
+   "rect": {
+    "x": 0.7478,
+    "y": 0.5594,
+    "w": 0.2047,
+    "h": 0.3019
+   }
+  },
+  {
+   "type": "button",
+   "action": "jump",
+   "label": "JUMP",
+   "rect": {
+    "x": 0.4977,
+    "y": 0.6168,
+    "w": 0.2024,
+    "h": 0.2669
+   }
+  },
+  {
+   "type": "button",
+   "action": "takeoff",
+   "label": "TAKE OFF",
+   "rect": {
+    "x": 0.6489,
+    "y": 0.0987,
+    "w": 0.3032,
+    "h": 0.2443
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C20.png"
+}

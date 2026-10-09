@@ -1,0 +1,26 @@
+{
+ "id": "B06",
+ "kind": "button",
+ "source": "draw",
+ "desc": "the word land, no box",
+ "region": {
+  "x": 0.55,
+  "y": 0.1,
+  "w": 0.22,
+  "h": 0.26
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "land",
+  "type": "button"
+ },
+ "size": [
+  512,
+  233
+ ],
+ "file": "button/B06.png"
+}

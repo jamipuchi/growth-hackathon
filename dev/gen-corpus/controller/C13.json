@@ -1,0 +1,57 @@
+{
+ "id": "C13",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "mixed case: Fire, Boost, Shield",
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0646,
+    "y": 0.3469,
+    "w": 0.2521,
+    "h": 0.5024
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "Fire",
+   "rect": {
+    "x": 0.7487,
+    "y": 0.5372,
+    "w": 0.2008,
+    "h": 0.305
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "Boost",
+   "rect": {
+    "x": 0.4991,
+    "y": 0.6397,
+    "w": 0.2126,
+    "h": 0.26
+   }
+  },
+  {
+   "type": "button",
+   "action": "shield",
+   "label": "Shield",
+   "rect": {
+    "x": 0.7004,
+    "y": 0.1198,
+    "w": 0.2299,
+    "h": 0.2431
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C13.png"
+}

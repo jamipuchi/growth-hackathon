@@ -1,0 +1,66 @@
+{
+ "id": "C22",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: D-pad, SHOOT, LAND, DRILL (pencil, grid, thumb)",
+ "photo": {
+  "paper": "grid",
+  "pen": "pencil",
+  "rot": 2,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": "bottom"
+ },
+ "turns": 0,
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.035,
+    "y": 0.2918,
+    "w": 0.2767,
+    "h": 0.5826
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "SHOOT",
+   "rect": {
+    "x": 0.7179,
+    "y": 0.5749,
+    "w": 0.2437,
+    "h": 0.3477
+   }
+  },
+  {
+   "type": "button",
+   "action": "land",
+   "label": "LAND",
+   "rect": {
+    "x": 0.462,
+    "y": 0.6203,
+    "w": 0.2021,
+    "h": 0.3032
+   }
+  },
+  {
+   "type": "button",
+   "action": "drill",
+   "label": "DRILL",
+   "rect": {
+    "x": 0.696,
+    "y": 0.0811,
+    "w": 0.2323,
+    "h": 0.3029
+   }
+  }
+ ],
+ "size": [
+  512,
+  244
+ ],
+ "file": "controller/C22.png"
+}

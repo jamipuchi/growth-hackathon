@@ -1,0 +1,26 @@
+{
+ "id": "B08",
+ "kind": "button",
+ "source": "draw",
+ "desc": "landing legs icon + LAND",
+ "region": {
+  "x": 0.6,
+  "y": 0.05,
+  "w": 0.2,
+  "h": 0.4
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "land",
+  "type": "button"
+ },
+ "size": [
+  510,
+  512
+ ],
+ "file": "button/B08.png"
+}

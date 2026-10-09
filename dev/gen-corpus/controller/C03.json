@@ -1,0 +1,46 @@
+{
+ "id": "C03",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "four loose arrows cluster, SHOOT box, LAND box top right",
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.08,
+    "y": 0.3394,
+    "w": 0.24,
+    "h": 0.4806
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "SHOOT",
+   "rect": {
+    "x": 0.6984,
+    "y": 0.5752,
+    "w": 0.2343,
+    "h": 0.2868
+   }
+  },
+  {
+   "type": "button",
+   "action": "land",
+   "label": "LAND",
+   "rect": {
+    "x": 0.7479,
+    "y": 0.117,
+    "w": 0.193,
+    "h": 0.2461
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C03.png"
+}

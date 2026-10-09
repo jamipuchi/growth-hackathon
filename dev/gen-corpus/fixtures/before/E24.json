@@ -1,0 +1,281 @@
+{
+ "id": "E24",
+ "file": "entity/E24.png",
+ "kind": "explorer",
+ "source": "draw",
+ "region": null,
+ "imageSha": "f2ffa813dfe51af50125dbd5981cd96cb2371de8",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 500,
+    "format": "entity",
+    "detail": "low",
+    "promptSha": "39d5048277a2",
+    "prompt": "You read a hand-drawn EXPLORER that walks or drives on a planet. type: person (a person, astronaut, robot on legs), car, bike, quadruped (any four-legged animal) or blob (anything else).\nThe image is a finger drawing made on the phone screen.\nparts: every distinct part that was deliberately drawn on it (cannon, exhaust flames, wheels, shovel, legs...), each with the centre of the part as x, y fractions of the image (origin top left). At most 12.\nSkills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still move). Part → skill: shoot: a gun, cannon or laser; boost: an exhaust with fire; shield: a shield or a bubble; dig: a shovel or claws; drill: a drill or a saw; jump: legs or springs; scan: an antenna, a radar dish or an eye; flare: a lamp or a torch; invisible: a cape or a ghost; heal: a red cross; blast: a bomb; teleport: a portal or a magic wand.\nBe generous: when a part is unclear or only roughly fits, unlock the closest skill. Never unlock a skill with no part on the drawing that could mean it.\nverbs: the unlocked skills. unlocked: one entry per skill, with the part that unlocks it (its name as in parts)."
+   },
+   "status": 200,
+   "ms": 3094,
+   "error": null,
+   "response": {
+    "id": "resp_0104ecac3af1e862016ac961764a8487d2b9c029546a95be0b",
+    "object": "response",
+    "created_at": 1791582582,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582584,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 500,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "rs_0104ecac3af1e862016ac96176e90487d28584bb7c2a7f5f24",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqyWF5UsB9w3DdCPFO3O_XEdQBU8sLdbCbCLmTxF3dPgFUQ9AdQmxETT_e5PEXD5MVhzNeNyWyhJq18PxS6bYYQHAkl2h_bSN8ULlBtXfWt8zKFT4nG-14RM84n1oek2aswNWttSNANBeXh3uv-CDyMLTxae91XUn5VBm_36Az6XJ50m0WAaLyOaHN9nrT4S2HcmCbR6URFppXhuqnbwR_xOADL1L6g_4WbJ1fjPDK1oLwUO72BseD-a7WjVxHZGzmzG-EivYWbFksZIwQ0o2AmoJOkDRYoWP_hdLuPRYPyEt7kpMX3MJ21_EQsj7Jaqzw9sVwgtObPIu8Dcc0HCMf7SttsvLbeaa6bdv4h4RF84Tr5ZVeqs-iMwImuPUhpvVQEuTFUpiuTio2H9z9o3_cFq-WW4cDX-ZnhAHGp6ZjtqkeRMCoKDiv7OgIVGPPHCU6Gd28S2p1hsTsQLhORPjnuqxF6mjgN6W7J_yXkYNLHtFrI04CrbIYP0Anke9BO0p8ZrQNsc1_57pGHqAdv-zoB7z1nfW3s40jqMgGap9iWmXL7JL5rqxcDno5wWjbO64JioJfgVYG1sGhAPaHY4SmMQ2SZRLdFsQomw_NA2HX5gi-_GJ_BEox7-lUDloLwksiVafgwpS5yvQkZ2tZn_d1RvdQPIAj6zeIHW0ur_GmRBT7j4FHttTFVwbSZDVN-ku2N337CTXzlZkeIXid44368QX4u04X2MWVIlMFFIFs99JIT5FmsD0BGE2MZr76-9ba1KgPvCGzmtfaVreoDUdlq6HWvdR8GQF6Ud8-pybHn0HmFdkn4CDj31qsjanA67L980locX4TiUwg6WAZT3M2A4x2W5ehW_EDD-tMFt070mFN4fH8DMKiUy53JpGHSQljCj-yFUqQVSI_s25qxC74FvznCQFYvTrSdE9WnT0N6eyCY_LRViKVfrmGC1eyrVLz23ZRfebtWxUCaVpaDYJiRr2J3ktrp4TNSrAN5dVmDQaezk95jt836Nw6rbkPY_SrvXs3PwJNgm1gHl4-q-t7UAHA90L3_A3ijBSdYxs5WddWQFbbb7corxvB5AXyweEgqMVxnBpiUl4TKN8QI9pKcPIbWHLIcMSde3UiYtKhTWb9IBjGlEqaZPj2c3HMuwS4UYY1c3cP4uJYJ3eXow3wGIXwa1-SQ5xFwcmW9IXYHMoL8fDd2yntEgHtwbf7bcdwq4t0Uei0IQ-lyXzcea3Dh78eXKSFhLbGPLjUasIOwnyjQ8tVDwiw_ILzq85_lDZxB0cRahjwrTCtRXDTBATHcZQAnKsLLFMyqLADuCXPIe4Ar2Bwo9ThNKtDdNpCBhUmyMLHYW1WfpDOs7f6JxcsUyz4T_V_HMD0jVR6LH7zA3r5OWeBp7OTCms4JD1imCzzA1uT1PSBl-OSaHJgtFyl7qvhms02kcmoyzhE4tlLSr1_l_SjV4-A3V7c6535DEHMSwBfzctVv8LM-OcRlKDYJEyBySIvS-EKT2aDDDPiZRwpzE6KKGxcRr_sbu6fPKm_OK9MAXui8C8FbyZERk4mx3vRIK-VoxZRmdlXRsUsW1pJMxEjPgCFBC_zWyGgyvskpTsxLy4RWmaesJXMta-PoBBFCOv8HIpRA2jImgM9mdodRbFdP1UfYT5J5NpbYdeS60CSamQCyTwWn7ot5cQdpSVf_UsPz_2QOX9sKf1VJ058saABXXk8X8SQFs9zfQIJaaAEUQnHXB7u3RfjZ8lJbcPDLliP6rL4DPYO6AJ2keeXeHMz5tPSe9MebEvEec-oXwc4710KeB3DpL8w7FW3cEsPLMTR40v-6aeva_IGOLxY0sc_x-HNU4VzQsOhr33S5BqpAu8SBChsNQ_7qJszoNsg-Jl2Xu6SIZ7j5_q5Cj6XWyfuhSHHGSkMEuFCj8l-uswTn3RynrPquKbxCZuchPoEDw==",
+      "summary": []
+     },
+     {
+      "id": "msg_0104ecac3af1e862016ac96177345c87d28172a0b042b4dc93",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"type\":\"car\",\"parts\":[{\"name\":\"body\",\"x\":0.433,\"y\":0.543},{\"name\":\"left window\",\"x\":0.316,\"y\":0.232},{\"name\":\"right window\",\"x\":0.554,\"y\":0.227},{\"name\":\"left wheel\",\"x\":0.209,\"y\":0.734},{\"name\":\"right wheel\",\"x\":0.646,\"y\":0.736},{\"name\":\"drill\",\"x\":0.894,\"y\":0.517}],\"verbs\":[\"drill\"],\"unlocked\":[{\"verb\":\"drill\",\"part\":\"drill\"}]}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "entity",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "type",
+        "parts",
+        "verbs",
+        "unlocked"
+       ],
+       "properties": {
+        "type": {
+         "type": "string",
+         "enum": [
+          "person",
+          "car",
+          "bike",
+          "quadruped",
+          "blob"
+         ]
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "name",
+           "x",
+           "y"
+          ],
+          "properties": {
+           "name": {
+            "type": "string"
+           },
+           "x": {
+            "type": "number"
+           },
+           "y": {
+            "type": "number"
+           }
+          }
+         }
+        },
+        "verbs": {
+         "type": "array",
+         "items": {
+          "type": "string",
+          "enum": [
+           "shoot",
+           "boost",
+           "shield",
+           "dig",
+           "drill",
+           "jump",
+           "scan",
+           "flare",
+           "invisible",
+           "heal",
+           "blast",
+           "teleport"
+          ]
+         }
+        },
+        "unlocked": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "verb",
+           "part"
+          ],
+          "properties": {
+           "verb": {
+            "type": "string",
+            "enum": [
+             "shoot",
+             "boost",
+             "shield",
+             "dig",
+             "drill",
+             "jump",
+             "scan",
+             "flare",
+             "invisible",
+             "heal",
+             "blast",
+             "teleport"
+            ]
+           },
+           "part": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 621,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+     },
+     "output_tokens": 179,
+     "output_tokens_details": {
+      "reasoning_tokens": 39
+     },
+     "total_tokens": 800
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "entity": {
+   "type": "car",
+   "verbs": [
+    "drill",
+    "drive",
+    "takeoff"
+   ],
+   "unlocked": [
+    {
+     "verb": "drill",
+     "part": "drill"
+    }
+   ],
+   "parts": [
+    {
+     "name": "body",
+     "x": 0.433,
+     "y": 0.543
+    },
+    {
+     "name": "left window",
+     "x": 0.316,
+     "y": 0.232
+    },
+    {
+     "name": "right window",
+     "x": 0.554,
+     "y": 0.227
+    },
+    {
+     "name": "left wheel",
+     "x": 0.209,
+     "y": 0.734
+    },
+    {
+     "name": "right wheel",
+     "x": 0.646,
+     "y": 0.736
+    },
+    {
+     "name": "drill",
+     "x": 0.894,
+     "y": 0.517
+    }
+   ],
+   "source": "model"
+  }
+ },
+ "pass": true
+}

@@ -1,0 +1,23 @@
+{
+ "id": "W13",
+ "kind": "explorer",
+ "source": "photo",
+ "desc": "photo: a controller with arrows and FIRE in the explorer step",
+ "wrong": {
+  "looksLike": "controller"
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "pencil",
+  "rot": 0,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "size": [
+  512,
+  244
+ ],
+ "file": "wrong/W13.png"
+}

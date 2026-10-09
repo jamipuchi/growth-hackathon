@@ -1,0 +1,306 @@
+{
+ "id": "E18",
+ "file": "entity/E18.png",
+ "kind": "explorer",
+ "source": "draw",
+ "region": null,
+ "imageSha": "ea574176b552d4577cff85b0056140c866c5eba9",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 1600,
+    "format": "entity",
+    "detail": "low",
+    "promptSha": "54faedc4a16c",
+    "prompt": "You read a hand-drawn EXPLORER that walks or drives on a planet. type: person (a person, astronaut, or robot on two legs), car, bike (bicycle or motorbike), quadruped (any four-legged animal) or blob (anything else: blobs, snakes, birds, fish...).\nThe image is a finger drawing made on the phone screen.\nlooksLike: \"entity\" for any picture of a thing (a ship, rocket, vehicle, person, robot, animal, creature or object), even a rough one. \"controller\" ONLY if the drawing is a game-controller layout instead: joystick circles, D-pads, arrows, or boxes and circles labelled with action words (FIRE, BOOST, LAND, DIG...), with no vehicle or creature drawn. \"nothing\" if it is blank.\nparts: every distinct part that was deliberately drawn on it (cannon, exhaust flames, wheels, shovel, legs...), each with the centre of the part as x, y fractions of the image (origin top left). At most 12.\nSkills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still move). Part → skill: shoot: a gun, cannon or laser; boost: an exhaust with fire; shield: a shield or a bubble; dig: a shovel or claws; drill: a drill or a saw; jump: legs or springs; scan: an antenna, a radar dish or an eye; flare: a lamp or a torch; invisible: a cape or a ghost; heal: a red cross; blast: a bomb; teleport: a portal or a magic wand.\nHow parts look: a shovel, spade or big claws on the feet or hands → dig; a drill: any hand-held tool or front part ending in a cone or point with ridges, zigzag or spiral lines, even with a gun-like grip → drill; a gun or blaster with a straight barrel → shoot; a jetpack or exhaust with flames → boost; a torch or lamp with rays → flare; a shield → shield; an antenna or radar dish → scan; a red cross → heal. The eyes of a face and a helmet visor unlock nothing; wheels and legs are how it moves (no skill).\nBe generous: when a part is unclear or only roughly fits, unlock the closest skill. When a part could be either of two things, unlock BOTH skills: a pointed tool that could be a drill or a gun → drill and shoot; rays that could be a lamp's light or flames → flare and boost. Never unlock a skill with no part on the drawing that could mean it.\nverbs: the unlocked skills. unlocked: one entry per skill, with the part that unlocks it (its name as in parts)."
+   },
+   "status": 200,
+   "ms": 1663,
+   "error": null,
+   "response": {
+    "id": "resp_02440d3aecfc4100016ac962e9ee1087d28ae64066554ee10a",
+    "object": "response",
+    "created_at": 1791582953,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582955,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 1600,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "rs_02440d3aecfc4100016ac962ea6f0087d292072b5acb0d78d2",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqyWLrcXYBYWMRJ9sgdIW09KvEsdhIOWZznx43J9yQr7PFaP87MC9XvPtzGCgfb7XEkpTkMZsKIN-eTWTk0xWdKb77BBRxSWWjIpxICBBeiscWFNXPGUN4VEpisd0V0XkwHecLKZMUwdUXGPblW3Q_aKtbvZcBTSjEXJEEpa2ssvyhbQbds_XCQiD--KYz_Wp5G_VmVHLLYLs8zCWjeZEk_QOYXWjvg5shbWaa_IYSEvvjMF8Kd0eYPh2eAeZapYiQJTnRCMUIBDOrc3UPqaFylHMvuXtRHmQCCJevdv6ZdJFH23IDO-dN5dlRMAJplpDEXjl2nZBylAL-sMovZFthxe8kyDfidyvqwOb0cpFDFRZMWtLeexIebRn2sfHVwXdGC6afXKWrQsQ9fpgCKkmdPl9e1ZLVe3CovW86D6Khg-LaLI5wtRmayuXcluQM9t2inc0Sl4w41XZzahxkxvl5UC0tIm8ScsCuA5jPbIGvTnZWtGQp9UC9tq_CwL2nkfMvOAtzU8l6Zi4LFiAjcJKzrGmnblLZipadUpkFfUbdhds7XuFm8DEDrus2nKgoTDF9QGI6NyZ0pXO_Q2YII3hn2Xuu-8ZGSW65CN29ElUDhRgwL6wO7c1xAzcwa3IOnaz7crN-hsmVgcjgtfwMN9bop_NuLQajm2k9OzCZrmuL96jHeUSnNCRMdF38S1Kect1ZPrOKNkzT_RDrKsxwg3EtVodnZvZTbSQC4FUmPNywTM_ODxUkf_V4BP8vrXL0tXiRmzCXpfCZuER0K7pc7UD5KCI70Lt9ID86g1Pg9tQsG1AfGQR6jdy-hFpqlt_lCLHDCNmmUvYzsc8-GIBxNbrUWtf92eBtm5Pz7g6waF2KNtkclrbxdYT13yriGXmNCMgYTRZua0EWyB_EZF02jNSYN-rea9dZnKI-mO11fYc1O-4_okrZt1Yx2QOPeAKRXhwy9SIuIZu8pSGn3CLg29T_L0po5eXZgMe6tKAVnf-UiTLrV07F6uj-Zhfpfv6TwJ0tc7Mxy1MQc2hZ9TOVgUbsYfo0dA74_BlFZ66i4muAW6FIWhLXb76mXKwhtMrUZMZ7pe9_tOq0vAJ6ESaL3zU1FtqElYds1sZ6Y_283YPuoy_AsxT_9ol0d_-w2RjYFdw4H_p8dkCrrXNemjjxeBxOKWBqfd1EHMdoN-jlrzzk7hK_UZsGozgOwZ_2X9K7pwjNiTwpgUR1UoLujzcgeF4__O2nsCwLaQKxi3IkGS145Bl2uw1Ph9eR7wFJa5ntjIbcgvDN0F7GfLWkpDbS0g2yS2ZukWNZc4nDObwmxOJa47kuaTXH2UtWhAzzc-Z4bRLNXn6q0eVVwC6A4Q7JrzRoWvhqXt2ftcinHQXfKtlnQABpSNbSD_l1sO4kq8sYbDHL4L5nT7n4Yei3DpV9mrAAH9Y6MvOaaKCZAyI519EvgH4hK3PZYM7VMuaAo0lFsuD4OGgSnHaYDA7lWhjgjKbBAk1llqhaO7GMmylzCABfR4v4m17NxYPG23ZuQWHEAvuNY0aCEMSlOk0_NlCbj8vEmCRPq_chlpEmSZNPAfZnIypbLWTd7zmc0UjqBlVKUdCLtuA7ui8e1LjdMC7IFH0rh9Hq8_xjThf0D-5uosrZAxPCi9XXd-jmquEkCD58IgNdsze2tQOdsknLqYvw1fNSmQnyVlL7en8iLMBslXJg_lTNXTCh5Gix29nVF16Fc8_l4vfsghOMCFiTJligIr6ndRIhE6bTcjeja4YqGEiDmdVPxvGXPUxgedmJrhkx1WHEJltH_vqbX-avckuJn_82uXLVhSuq0l-DW1jltd4FdsAY1Jw=",
+      "summary": []
+     },
+     {
+      "id": "msg_02440d3aecfc4100016ac962eab59887d2b64f06d5e357b7d2",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"looksLike\":\"entity\",\"type\":\"person\",\"parts\":[{\"name\":\"helmet\",\"x\":0.386,\"y\":0.161},{\"name\":\"visor\",\"x\":0.386,\"y\":0.173},{\"name\":\"torso\",\"x\":0.39,\"y\":0.453},{\"name\":\"left arm\",\"x\":0.135,\"y\":0.436},{\"name\":\"right arm\",\"x\":0.632,\"y\":0.436},{\"name\":\"left leg\",\"x\":0.25,\"y\":0.794},{\"name\":\"right leg\",\"x\":0.522,\"y\":0.794},{\"name\":\"pointed blaster drill\",\"x\":0.831,\"y\":0.576}],\"verbs\":[\"shoot\",\"drill\"],\"unlocked\":[{\"verb\":\"shoot\",\"part\":\"pointed blaster drill\"},{\"verb\":\"drill\",\"part\":\"pointed blaster drill\"}]}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "entity",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "looksLike",
+        "type",
+        "parts",
+        "verbs",
+        "unlocked"
+       ],
+       "properties": {
+        "looksLike": {
+         "type": "string",
+         "enum": [
+          "controller",
+          "entity",
+          "nothing"
+         ]
+        },
+        "type": {
+         "type": "string",
+         "enum": [
+          "person",
+          "car",
+          "bike",
+          "quadruped",
+          "blob"
+         ]
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "name",
+           "x",
+           "y"
+          ],
+          "properties": {
+           "name": {
+            "type": "string"
+           },
+           "x": {
+            "type": "number"
+           },
+           "y": {
+            "type": "number"
+           }
+          }
+         }
+        },
+        "verbs": {
+         "type": "array",
+         "items": {
+          "type": "string",
+          "enum": [
+           "shoot",
+           "boost",
+           "shield",
+           "dig",
+           "drill",
+           "jump",
+           "scan",
+           "flare",
+           "invisible",
+           "heal",
+           "blast",
+           "teleport"
+          ]
+         }
+        },
+        "unlocked": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "verb",
+           "part"
+          ],
+          "properties": {
+           "verb": {
+            "type": "string",
+            "enum": [
+             "shoot",
+             "boost",
+             "shield",
+             "dig",
+             "drill",
+             "jump",
+             "scan",
+             "flare",
+             "invisible",
+             "heal",
+             "blast",
+             "teleport"
+            ]
+           },
+           "part": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 1014,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+     },
+     "output_tokens": 230,
+     "output_tokens_details": {
+      "reasoning_tokens": 32
+     },
+     "total_tokens": 1244
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "entity": {
+   "type": "person",
+   "verbs": [
+    "shoot",
+    "drill",
+    "jump",
+    "takeoff"
+   ],
+   "unlocked": [
+    {
+     "verb": "shoot",
+     "part": "pointed blaster drill"
+    },
+    {
+     "verb": "drill",
+     "part": "pointed blaster drill"
+    }
+   ],
+   "parts": [
+    {
+     "name": "helmet",
+     "x": 0.386,
+     "y": 0.161
+    },
+    {
+     "name": "visor",
+     "x": 0.386,
+     "y": 0.173
+    },
+    {
+     "name": "torso",
+     "x": 0.39,
+     "y": 0.453
+    },
+    {
+     "name": "left arm",
+     "x": 0.135,
+     "y": 0.436
+    },
+    {
+     "name": "right arm",
+     "x": 0.632,
+     "y": 0.436
+    },
+    {
+     "name": "left leg",
+     "x": 0.25,
+     "y": 0.794
+    },
+    {
+     "name": "right leg",
+     "x": 0.522,
+     "y": 0.794
+    },
+    {
+     "name": "pointed blaster drill",
+     "x": 0.831,
+     "y": 0.576
+    }
+   ],
+   "source": "model"
+  },
+  "looksLike": "entity"
+ },
+ "pass": true
+}

@@ -1,0 +1,298 @@
+{
+ "id": "E19",
+ "file": "entity/E19.png",
+ "kind": "explorer",
+ "source": "draw",
+ "region": null,
+ "imageSha": "aace2561f1196fb2880e6ddee9811234d0e637b3",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 500,
+    "format": "entity",
+    "detail": "low",
+    "promptSha": "39d5048277a2",
+    "prompt": "You read a hand-drawn EXPLORER that walks or drives on a planet. type: person (a person, astronaut, robot on legs), car, bike, quadruped (any four-legged animal) or blob (anything else).\nThe image is a finger drawing made on the phone screen.\nparts: every distinct part that was deliberately drawn on it (cannon, exhaust flames, wheels, shovel, legs...), each with the centre of the part as x, y fractions of the image (origin top left). At most 12.\nSkills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still move). Part → skill: shoot: a gun, cannon or laser; boost: an exhaust with fire; shield: a shield or a bubble; dig: a shovel or claws; drill: a drill or a saw; jump: legs or springs; scan: an antenna, a radar dish or an eye; flare: a lamp or a torch; invisible: a cape or a ghost; heal: a red cross; blast: a bomb; teleport: a portal or a magic wand.\nBe generous: when a part is unclear or only roughly fits, unlock the closest skill. Never unlock a skill with no part on the drawing that could mean it.\nverbs: the unlocked skills. unlocked: one entry per skill, with the part that unlocks it (its name as in parts)."
+   },
+   "status": 200,
+   "ms": 2096,
+   "error": null,
+   "response": {
+    "id": "resp_0fbbd62bd76cfb64016ac96174cdac87d282aa56f6ef70e500",
+    "object": "response",
+    "created_at": 1791582580,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582582,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 500,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "msg_0fbbd62bd76cfb64016ac96175843c87d2925aa5218b35d070",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"type\":\"person\",\"parts\":[{\"name\":\"helmet\",\"x\":0.367,\"y\":0.159},{\"name\":\"visor\",\"x\":0.368,\"y\":0.178},{\"name\":\"body\",\"x\":0.368,\"y\":0.455},{\"name\":\"left arm\",\"x\":0.138,\"y\":0.436},{\"name\":\"right arm\",\"x\":0.607,\"y\":0.439},{\"name\":\"gun\",\"x\":0.815,\"y\":0.561},{\"name\":\"left leg\",\"x\":0.259,\"y\":0.787},{\"name\":\"right leg\",\"x\":0.473,\"y\":0.788},{\"name\":\"left foot\",\"x\":0.241,\"y\":0.961},{\"name\":\"right foot\",\"x\":0.498,\"y\":0.962}],\"verbs\":[\"shoot\",\"jump\"],\"unlocked\":[{\"verb\":\"shoot\",\"part\":\"gun\"},{\"verb\":\"jump\",\"part\":\"left leg\"}]}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "entity",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "type",
+        "parts",
+        "verbs",
+        "unlocked"
+       ],
+       "properties": {
+        "type": {
+         "type": "string",
+         "enum": [
+          "person",
+          "car",
+          "bike",
+          "quadruped",
+          "blob"
+         ]
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "name",
+           "x",
+           "y"
+          ],
+          "properties": {
+           "name": {
+            "type": "string"
+           },
+           "x": {
+            "type": "number"
+           },
+           "y": {
+            "type": "number"
+           }
+          }
+         }
+        },
+        "verbs": {
+         "type": "array",
+         "items": {
+          "type": "string",
+          "enum": [
+           "shoot",
+           "boost",
+           "shield",
+           "dig",
+           "drill",
+           "jump",
+           "scan",
+           "flare",
+           "invisible",
+           "heal",
+           "blast",
+           "teleport"
+          ]
+         }
+        },
+        "unlocked": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "verb",
+           "part"
+          ],
+          "properties": {
+           "verb": {
+            "type": "string",
+            "enum": [
+             "shoot",
+             "boost",
+             "shield",
+             "dig",
+             "drill",
+             "jump",
+             "scan",
+             "flare",
+             "invisible",
+             "heal",
+             "blast",
+             "teleport"
+            ]
+           },
+           "part": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 736,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+     },
+     "output_tokens": 211,
+     "output_tokens_details": {
+      "reasoning_tokens": 0
+     },
+     "total_tokens": 947
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "entity": {
+   "type": "person",
+   "verbs": [
+    "shoot",
+    "jump",
+    "takeoff"
+   ],
+   "unlocked": [
+    {
+     "verb": "shoot",
+     "part": "gun"
+    },
+    {
+     "verb": "jump",
+     "part": "left leg"
+    }
+   ],
+   "parts": [
+    {
+     "name": "helmet",
+     "x": 0.367,
+     "y": 0.159
+    },
+    {
+     "name": "visor",
+     "x": 0.368,
+     "y": 0.178
+    },
+    {
+     "name": "body",
+     "x": 0.368,
+     "y": 0.455
+    },
+    {
+     "name": "left arm",
+     "x": 0.138,
+     "y": 0.436
+    },
+    {
+     "name": "right arm",
+     "x": 0.607,
+     "y": 0.439
+    },
+    {
+     "name": "gun",
+     "x": 0.815,
+     "y": 0.561
+    },
+    {
+     "name": "left leg",
+     "x": 0.259,
+     "y": 0.787
+    },
+    {
+     "name": "right leg",
+     "x": 0.473,
+     "y": 0.788
+    },
+    {
+     "name": "left foot",
+     "x": 0.241,
+     "y": 0.961
+    },
+    {
+     "name": "right foot",
+     "x": 0.498,
+     "y": 0.962
+    }
+   ],
+   "source": "model"
+  }
+ },
+ "pass": true
+}

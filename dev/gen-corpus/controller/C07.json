@@ -1,0 +1,57 @@
+{
+ "id": "C07",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "lowercase labels: fire, boost, land",
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.075,
+    "y": 0.3494,
+    "w": 0.2495,
+    "h": 0.5017
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "fire",
+   "rect": {
+    "x": 0.7476,
+    "y": 0.5169,
+    "w": 0.2049,
+    "h": 0.3036
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "boost",
+   "rect": {
+    "x": 0.4986,
+    "y": 0.6184,
+    "w": 0.2025,
+    "h": 0.2642
+   }
+  },
+  {
+   "type": "button",
+   "action": "land",
+   "label": "land",
+   "rect": {
+    "x": 0.7487,
+    "y": 0.0946,
+    "w": 0.2013,
+    "h": 0.2681
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C07.png"
+}

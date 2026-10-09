@@ -1,0 +1,66 @@
+{
+ "id": "C25",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: crossed-out SCAN, FIRE, BOOST (strong shadow)",
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": 1,
+  "keystone": 0,
+  "shadow": 0.55,
+  "thumb": null
+ },
+ "turns": 0,
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0375,
+    "y": 0.3442,
+    "w": 0.2641,
+    "h": 0.5313
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.7492,
+    "y": 0.5671,
+    "w": 0.2138,
+    "h": 0.3262
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "BOOST",
+   "rect": {
+    "x": 0.4885,
+    "y": 0.638,
+    "w": 0.2117,
+    "h": 0.2865
+   }
+  }
+ ],
+ "excluded": [
+  {
+   "what": "crossed-out SCAN",
+   "rect": {
+    "x": 0.6179,
+    "y": 0.0984,
+    "w": 0.2155,
+    "h": 0.2674
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C25.png"
+}

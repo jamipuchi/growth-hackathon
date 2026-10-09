@@ -1,0 +1,22 @@
+{
+ "id": "E28",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "dog with big digging claws",
+ "entity": {
+  "types": [
+   "quadruped"
+  ],
+  "must": [
+   "dig"
+  ],
+  "ok": [
+   "jump"
+  ]
+ },
+ "size": [
+  512,
+  408
+ ],
+ "file": "entity/E28.png"
+}

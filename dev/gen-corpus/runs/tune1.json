@@ -1,0 +1,1051 @@
+{
+ "label": "tune1",
+ "at": "2026-10-09T21:55:07.528Z",
+ "astra": "astra.js",
+ "env": {
+  "effort": null,
+  "tier": null
+ },
+ "calls": 25,
+ "wallSeconds": 6.9,
+ "summary": {
+  "cases": 25,
+  "passed": 23,
+  "controlsFoundClean": 100,
+  "controlsFoundPhoto": 100,
+  "kindsRight": 100,
+  "labelsRight": 100,
+  "labelsRightControllers": 100,
+  "buttonsRight": 100,
+  "iou50": 100,
+  "extraControls": 0,
+  "crossedOutReturned": 0,
+  "entityType": 100,
+  "unlockedVerbs": 75,
+  "gateVerbsMissing": 1,
+  "spuriousUnlocks": 2,
+  "wrongKindCaught": 100,
+  "falseAlarms": 0,
+  "fallbacks": 0,
+  "errors": 0,
+  "p50ms": 1407,
+  "p90ms": 1984,
+  "maxMs": 2115
+ },
+ "cases": [
+  {
+   "id": "C10",
+   "ms": 1542,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C10",
+    "kind": "controller",
+    "source": "draw",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.061,
+       "y": 0.344,
+       "w": 0.26,
+       "h": 0.512
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.494,
+       "y": 0.609,
+       "w": 0.211,
+       "h": 0.285
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.744,
+       "y": 0.527,
+       "w": 0.211,
+       "h": 0.324
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C24",
+   "ms": 2115,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C24",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 4,
+    "found": 4,
+    "kindRight": 4,
+    "labelRight": 4,
+    "iou50": 4,
+    "labelTotal": 4,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.296,
+       "w": 0.275,
+       "h": 0.507
+      },
+      {
+       "type": "button",
+       "action": "land",
+       "label": "",
+       "x": 0.713,
+       "y": 0.068,
+       "w": 0.217,
+       "h": 0.393
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "",
+       "x": 0.479,
+       "y": 0.557,
+       "w": 0.219,
+       "h": 0.375
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "",
+       "x": 0.752,
+       "y": 0.525,
+       "w": 0.219,
+       "h": 0.4
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "C25",
+   "ms": 1842,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "C25",
+    "kind": "controller",
+    "source": "photo",
+    "group": "controller",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 3,
+    "found": 3,
+    "kindRight": 3,
+    "labelRight": 3,
+    "iou50": 3,
+    "labelTotal": 3,
+    "extras": 0,
+    "crossedReturned": 0,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "stick",
+       "action": "steer",
+       "label": "",
+       "x": 0.037,
+       "y": 0.34,
+       "w": 0.266,
+       "h": 0.535
+      },
+      {
+       "type": "button",
+       "action": "boost",
+       "label": "BOOST",
+       "x": 0.486,
+       "y": 0.629,
+       "w": 0.219,
+       "h": 0.305
+      },
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.746,
+       "y": 0.562,
+       "w": 0.221,
+       "h": 0.375
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "B04",
+   "ms": 1718,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B04",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "drill",
+       "label": "",
+       "x": 0.5,
+       "y": 0.1,
+       "w": 0.16,
+       "h": 0.3
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "B10",
+   "ms": 1701,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B10",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.7,
+       "y": 0.4,
+       "w": 0.18,
+       "h": 0.34
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "B15",
+   "ms": 1519,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B15",
+    "kind": "button",
+    "source": "photo",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "land",
+       "label": "",
+       "x": 0.55,
+       "y": 0.05,
+       "w": 0.16,
+       "h": 0.34
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "E06",
+   "ms": 1702,
+   "pass": true,
+   "note": "[drill] parts: ship body, upper wing, lower wing, dorsal fin, ridged nose drill",
+   "score": {
+    "id": "E06",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": "entity",
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[drill] parts: ship body, upper wing, lower wing, dorsal fin, ridged nose drill"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "drill"
+     ],
+     "unlocked": [
+      {
+       "verb": "drill",
+       "part": "ridged nose drill"
+      }
+     ],
+     "parts": [
+      {
+       "name": "ship body",
+       "x": 0.415,
+       "y": 0.387
+      },
+      {
+       "name": "upper wing",
+       "x": 0.235,
+       "y": 0.23
+      },
+      {
+       "name": "lower wing",
+       "x": 0.266,
+       "y": 0.792
+      },
+      {
+       "name": "dorsal fin",
+       "x": 0.601,
+       "y": 0.365
+      },
+      {
+       "name": "ridged nose drill",
+       "x": 0.881,
+       "y": 0.53
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "entity"
+   }
+  },
+  {
+   "id": "E08",
+   "ms": 1984,
+   "pass": false,
+   "note": "missing flare; spurious boost; [boost land] parts: saucer body, cockpit dome, left window, middle window, right window, left landing leg, right landing leg, exhaust with flames",
+   "score": {
+    "id": "E08",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": "entity",
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 2,
+    "mustHit": 1,
+    "gateMissing": [],
+    "spurious": [
+     "boost"
+    ],
+    "pass": false,
+    "note": "missing flare; spurious boost; [boost land] parts: saucer body, cockpit dome, left window, middle window, right window, left landing leg, right landing leg, exhaust with flames"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "boost",
+      "land"
+     ],
+     "unlocked": [
+      {
+       "verb": "boost",
+       "part": "exhaust with flames"
+      },
+      {
+       "verb": "land",
+       "part": "left landing leg"
+      }
+     ],
+     "parts": [
+      {
+       "name": "saucer body",
+       "x": 0.443,
+       "y": 0.552
+      },
+      {
+       "name": "cockpit dome",
+       "x": 0.442,
+       "y": 0.23
+      },
+      {
+       "name": "left window",
+       "x": 0.236,
+       "y": 0.569
+      },
+      {
+       "name": "middle window",
+       "x": 0.44,
+       "y": 0.567
+      },
+      {
+       "name": "right window",
+       "x": 0.645,
+       "y": 0.566
+      },
+      {
+       "name": "left landing leg",
+       "x": 0.29,
+       "y": 0.837
+      },
+      {
+       "name": "right landing leg",
+       "x": 0.595,
+       "y": 0.84
+      },
+      {
+       "name": "exhaust with flames",
+       "x": 0.903,
+       "y": 0.552
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "entity"
+   }
+  },
+  {
+   "id": "E10",
+   "ms": 2066,
+   "pass": true,
+   "note": "[shoot boost drill land] parts: body, pointed nose, cockpit window, upper fin, cannon, exhaust flames, landing legs, ridged drill",
+   "score": {
+    "id": "E10",
+    "kind": "ship",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": "entity",
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 4,
+    "mustHit": 4,
+    "gateMissing": [],
+    "spurious": [],
+    "pass": true,
+    "note": "[shoot boost drill land] parts: body, pointed nose, cockpit window, upper fin, cannon, exhaust flames, landing legs, ridged drill"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "ship",
+     "verbs": [
+      "shoot",
+      "boost",
+      "drill",
+      "land"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "cannon"
+      },
+      {
+       "verb": "boost",
+       "part": "exhaust flames"
+      },
+      {
+       "verb": "drill",
+       "part": "ridged drill"
+      },
+      {
+       "verb": "land",
+       "part": "landing legs"
+      }
+     ],
+     "parts": [
+      {
+       "name": "body",
+       "x": 0.434,
+       "y": 0.252
+      },
+      {
+       "name": "pointed nose",
+       "x": 0.766,
+       "y": 0.489
+      },
+      {
+       "name": "cockpit window",
+       "x": 0.547,
+       "y": 0.389
+      },
+      {
+       "name": "upper fin",
+       "x": 0.286,
+       "y": 0.152
+      },
+      {
+       "name": "cannon",
+       "x": 0.553,
+       "y": 0.218
+      },
+      {
+       "name": "exhaust flames",
+       "x": 0.1,
+       "y": 0.491
+      },
+      {
+       "name": "landing legs",
+       "x": 0.466,
+       "y": 0.83
+      },
+      {
+       "name": "ridged drill",
+       "x": 0.897,
+       "y": 0.489
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "entity"
+   }
+  },
+  {
+   "id": "E18",
+   "ms": 1407,
+   "pass": false,
+   "note": "missing drill; spurious shoot; [shoot] parts: helmet, visor, body, left arm, right arm, left leg, right leg, gun",
+   "score": {
+    "id": "E18",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "entity",
+    "ok": true,
+    "error": null,
+    "looksLike": "entity",
+    "falseAlarm": false,
+    "typeRight": true,
+    "must": 1,
+    "mustHit": 0,
+    "gateMissing": [
+     "drill"
+    ],
+    "spurious": [
+     "shoot"
+    ],
+    "pass": false,
+    "note": "missing drill; spurious shoot; [shoot] parts: helmet, visor, body, left arm, right arm, left leg, right leg, gun"
+   },
+   "result": {
+    "ok": true,
+    "entity": {
+     "type": "person",
+     "verbs": [
+      "shoot",
+      "jump",
+      "takeoff"
+     ],
+     "unlocked": [
+      {
+       "verb": "shoot",
+       "part": "gun"
+      }
+     ],
+     "parts": [
+      {
+       "name": "helmet",
+       "x": 0.388,
+       "y": 0.161
+      },
+      {
+       "name": "visor",
+       "x": 0.386,
+       "y": 0.175
+      },
+      {
+       "name": "body",
+       "x": 0.391,
+       "y": 0.456
+      },
+      {
+       "name": "left arm",
+       "x": 0.139,
+       "y": 0.438
+      },
+      {
+       "name": "right arm",
+       "x": 0.632,
+       "y": 0.437
+      },
+      {
+       "name": "left leg",
+       "x": 0.252,
+       "y": 0.793
+      },
+      {
+       "name": "right leg",
+       "x": 0.519,
+       "y": 0.792
+      },
+      {
+       "name": "gun",
+       "x": 0.829,
+       "y": 0.577
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "entity"
+   }
+  },
+  {
+   "id": "W01",
+   "ms": 1047,
+   "pass": true,
+   "note": "caught: looks like a ship",
+   "score": {
+    "id": "W01",
+    "kind": "controller",
+    "source": "draw",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a ship"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "thing": "ship"
+   }
+  },
+  {
+   "id": "W02",
+   "ms": 1142,
+   "pass": true,
+   "note": "caught: looks like a ship",
+   "score": {
+    "id": "W02",
+    "kind": "controller",
+    "source": "draw",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a ship"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "thing": "ship"
+   }
+  },
+  {
+   "id": "W03",
+   "ms": 1065,
+   "pass": true,
+   "note": "caught: looks like a ship",
+   "score": {
+    "id": "W03",
+    "kind": "controller",
+    "source": "photo",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a ship"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "thing": "ship"
+   }
+  },
+  {
+   "id": "W04",
+   "ms": 1878,
+   "pass": true,
+   "note": "caught: looks like a person",
+   "score": {
+    "id": "W04",
+    "kind": "controller",
+    "source": "draw",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a person",
+    "looksLike": "entity",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a person"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a person",
+    "looksLike": "entity",
+    "thing": "person"
+   }
+  },
+  {
+   "id": "W05",
+   "ms": 1827,
+   "pass": true,
+   "note": "caught: looks like a car",
+   "score": {
+    "id": "W05",
+    "kind": "controller",
+    "source": "photo",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a car",
+    "looksLike": "entity",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a car"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a car",
+    "looksLike": "entity",
+    "thing": "car"
+   }
+  },
+  {
+   "id": "W06",
+   "ms": 1136,
+   "pass": true,
+   "note": "caught: looks like a ship",
+   "score": {
+    "id": "W06",
+    "kind": "controller",
+    "source": "draw",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a ship"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "thing": "ship"
+   }
+  },
+  {
+   "id": "W07",
+   "ms": 1185,
+   "pass": true,
+   "note": "caught: looks like a ship",
+   "score": {
+    "id": "W07",
+    "kind": "button",
+    "source": "draw",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a ship"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "thing": "ship"
+   }
+  },
+  {
+   "id": "W08",
+   "ms": 1219,
+   "pass": true,
+   "note": "caught: looks like an animal",
+   "score": {
+    "id": "W08",
+    "kind": "button",
+    "source": "photo",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like an animal",
+    "looksLike": "entity",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like an animal"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like an animal",
+    "looksLike": "entity",
+    "thing": "animal"
+   }
+  },
+  {
+   "id": "W09",
+   "ms": 1396,
+   "pass": true,
+   "note": "caught: looks like a controller",
+   "score": {
+    "id": "W09",
+    "kind": "ship",
+    "source": "draw",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a controller",
+    "looksLike": "controller",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a controller"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a controller",
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "W10",
+   "ms": 1164,
+   "pass": true,
+   "note": "caught: looks like a controller",
+   "score": {
+    "id": "W10",
+    "kind": "ship",
+    "source": "photo",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a controller",
+    "looksLike": "controller",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a controller"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a controller",
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "W11",
+   "ms": 1369,
+   "pass": true,
+   "note": "caught: looks like a controller",
+   "score": {
+    "id": "W11",
+    "kind": "explorer",
+    "source": "draw",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a controller",
+    "looksLike": "controller",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a controller"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a controller",
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "W12",
+   "ms": 1119,
+   "pass": true,
+   "note": "caught: looks like a controller",
+   "score": {
+    "id": "W12",
+    "kind": "ship",
+    "source": "draw",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a controller",
+    "looksLike": "controller",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a controller"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a controller",
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "W13",
+   "ms": 1926,
+   "pass": true,
+   "note": "caught: looks like a controller",
+   "score": {
+    "id": "W13",
+    "kind": "explorer",
+    "source": "photo",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a controller",
+    "looksLike": "controller",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a controller"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a controller",
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "R01",
+   "ms": 1223,
+   "pass": true,
+   "note": "caught: looks like a ship",
+   "score": {
+    "id": "R01",
+    "kind": "controller",
+    "source": "draw",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a ship"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "thing": "ship"
+   }
+  },
+  {
+   "id": "R02",
+   "ms": 1344,
+   "pass": true,
+   "note": "caught: looks like a ship",
+   "score": {
+    "id": "R02",
+    "kind": "button",
+    "source": "draw",
+    "group": "wrong",
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "caught": true,
+    "pass": true,
+    "note": "caught: looks like a ship"
+   },
+   "result": {
+    "ok": false,
+    "error": "looks like a ship",
+    "looksLike": "entity",
+    "thing": "ship"
+   }
+  }
+ ]
+}

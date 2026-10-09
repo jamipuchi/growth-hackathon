@@ -1,0 +1,30 @@
+{
+ "id": "E13",
+ "kind": "ship",
+ "source": "photo",
+ "desc": "photo: fighter + cannon + flames",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "shoot",
+   "boost"
+  ],
+  "ok": []
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": -3,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "size": [
+  512,
+  293
+ ],
+ "file": "entity/E13.png"
+}

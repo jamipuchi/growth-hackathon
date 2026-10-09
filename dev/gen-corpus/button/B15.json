@@ -1,0 +1,35 @@
+{
+ "id": "B15",
+ "kind": "button",
+ "source": "photo",
+ "desc": "photo: parachute icon only",
+ "region": {
+  "x": 0.55,
+  "y": 0.05,
+  "w": 0.16,
+  "h": 0.34
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "land",
+  "type": "button"
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": 0,
+  "keystone": 0,
+  "shadow": 0.4,
+  "thumb": null
+ },
+ "turns": 3,
+ "size": [
+  512,
+  484
+ ],
+ "file": "button/B15.png"
+}

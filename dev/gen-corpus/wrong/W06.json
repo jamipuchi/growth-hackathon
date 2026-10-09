@@ -1,0 +1,14 @@
+{
+ "id": "W06",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "ship with handwritten notes LASER and FLAMES pointing at parts",
+ "wrong": {
+  "looksLike": "entity"
+ },
+ "size": [
+  512,
+  256
+ ],
+ "file": "wrong/W06.png"
+}

@@ -1,0 +1,22 @@
+{
+ "id": "E31",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "astronaut + torch",
+ "entity": {
+  "types": [
+   "person"
+  ],
+  "must": [
+   "flare"
+  ],
+  "ok": [
+   "jump"
+  ]
+ },
+ "size": [
+  341,
+  512
+ ],
+ "file": "entity/E31.png"
+}

@@ -1,0 +1,55 @@
+{
+ "id": "C26",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: words under circles, four arrows (pencil, lined)",
+ "photo": {
+  "paper": "lined",
+  "pen": "pencil",
+  "rot": -4,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0296,
+    "y": 0.1475,
+    "w": 0.2911,
+    "h": 0.7769
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.7875,
+    "y": 0.0893,
+    "w": 0.1803,
+    "h": 0.4756
+   }
+  },
+  {
+   "type": "button",
+   "action": "land",
+   "label": "LAND",
+   "rect": {
+    "x": 0.5373,
+    "y": 0.2539,
+    "w": 0.1549,
+    "h": 0.419
+   }
+  }
+ ],
+ "size": [
+  512,
+  192
+ ],
+ "file": "controller/C26.png"
+}

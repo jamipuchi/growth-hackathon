@@ -1,0 +1,23 @@
+{
+ "id": "E23",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "car + cannon on the roof",
+ "entity": {
+  "types": [
+   "car"
+  ],
+  "must": [
+   "shoot"
+  ],
+  "ok": [
+   "boost",
+   "jump"
+  ]
+ },
+ "size": [
+  512,
+  266
+ ],
+ "file": "entity/E23.png"
+}

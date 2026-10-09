@@ -1,0 +1,23 @@
+{
+ "id": "E08",
+ "kind": "ship",
+ "source": "draw",
+ "desc": "saucer + legs + lamp",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "land",
+   "flare"
+  ],
+  "ok": [
+   "scan"
+  ]
+ },
+ "size": [
+  512,
+  308
+ ],
+ "file": "entity/E08.png"
+}

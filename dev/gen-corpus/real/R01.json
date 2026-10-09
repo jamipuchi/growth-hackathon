@@ -1,0 +1,10 @@
+{
+ "id": "R01",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "REAL (owner 23:15): a spaceship drawn in the controller step; the model returned one giant 'fly' button",
+ "file": "real/jaume-ship-drawn-in-controller-step.png",
+ "wrong": {
+  "looksLike": "entity"
+ }
+}

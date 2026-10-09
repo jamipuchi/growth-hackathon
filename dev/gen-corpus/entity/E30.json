@@ -1,0 +1,20 @@
+{
+ "id": "E30",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "snake",
+ "entity": {
+  "types": [
+   "blob"
+  ],
+  "must": [],
+  "ok": [
+   "jump"
+  ]
+ },
+ "size": [
+  512,
+  197
+ ],
+ "file": "entity/E30.png"
+}

@@ -1,0 +1,20 @@
+{
+ "id": "E27",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "dog",
+ "entity": {
+  "types": [
+   "quadruped"
+  ],
+  "must": [],
+  "ok": [
+   "jump"
+  ]
+ },
+ "size": [
+  512,
+  391
+ ],
+ "file": "entity/E27.png"
+}

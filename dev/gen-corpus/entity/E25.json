@@ -1,0 +1,21 @@
+{
+ "id": "E25",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "plain bike",
+ "entity": {
+  "types": [
+   "bike"
+  ],
+  "must": [],
+  "ok": [
+   "boost",
+   "jump"
+  ]
+ },
+ "size": [
+  512,
+  267
+ ],
+ "file": "entity/E25.png"
+}

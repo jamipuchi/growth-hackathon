@@ -1,0 +1,35 @@
+{
+ "id": "B17",
+ "kind": "button",
+ "source": "photo",
+ "desc": "photo: crosshair icon only",
+ "region": {
+  "x": 0.7,
+  "y": 0.4,
+  "w": 0.18,
+  "h": 0.34
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "shoot",
+  "type": "button"
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": 2,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "size": [
+  512,
+  499
+ ],
+ "file": "button/B17.png"
+}

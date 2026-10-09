@@ -1,0 +1,20 @@
+{
+ "id": "E03",
+ "kind": "ship",
+ "source": "draw",
+ "desc": "fighter + cannon on top",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "shoot"
+  ],
+  "ok": []
+ },
+ "size": [
+  512,
+  341
+ ],
+ "file": "entity/E03.png"
+}

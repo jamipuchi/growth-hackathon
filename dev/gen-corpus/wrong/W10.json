@@ -1,0 +1,23 @@
+{
+ "id": "W10",
+ "kind": "ship",
+ "source": "photo",
+ "desc": "photo: a controller (D-pad, SHOOT, LAND) in the ship step",
+ "wrong": {
+  "looksLike": "controller"
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": 3,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "size": [
+  512,
+  197
+ ],
+ "file": "wrong/W10.png"
+}

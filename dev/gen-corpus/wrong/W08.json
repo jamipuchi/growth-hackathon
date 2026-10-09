@@ -1,0 +1,29 @@
+{
+ "id": "W08",
+ "kind": "button",
+ "source": "photo",
+ "desc": "photo: a dog drawn as a new button",
+ "region": {
+  "x": 0.3,
+  "y": 0.05,
+  "w": 0.4,
+  "h": 0.5
+ },
+ "wrong": {
+  "looksLike": "entity"
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": -2,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "size": [
+  512,
+  356
+ ],
+ "file": "wrong/W08.png"
+}

@@ -1,0 +1,275 @@
+{
+ "id": "E30",
+ "file": "entity/E30.png",
+ "kind": "explorer",
+ "source": "draw",
+ "region": null,
+ "imageSha": "a9de4febb53c293f465dd68dc11080887048e65c",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 1600,
+    "format": "entity",
+    "detail": "low",
+    "promptSha": "54faedc4a16c",
+    "prompt": "You read a hand-drawn EXPLORER that walks or drives on a planet. type: person (a person, astronaut, or robot on two legs), car, bike (bicycle or motorbike), quadruped (any four-legged animal) or blob (anything else: blobs, snakes, birds, fish...).\nThe image is a finger drawing made on the phone screen.\nlooksLike: \"entity\" for any picture of a thing (a ship, rocket, vehicle, person, robot, animal, creature or object), even a rough one. \"controller\" ONLY if the drawing is a game-controller layout instead: joystick circles, D-pads, arrows, or boxes and circles labelled with action words (FIRE, BOOST, LAND, DIG...), with no vehicle or creature drawn. \"nothing\" if it is blank.\nparts: every distinct part that was deliberately drawn on it (cannon, exhaust flames, wheels, shovel, legs...), each with the centre of the part as x, y fractions of the image (origin top left). At most 12.\nSkills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still move). Part → skill: shoot: a gun, cannon or laser; boost: an exhaust with fire; shield: a shield or a bubble; dig: a shovel or claws; drill: a drill or a saw; jump: legs or springs; scan: an antenna, a radar dish or an eye; flare: a lamp or a torch; invisible: a cape or a ghost; heal: a red cross; blast: a bomb; teleport: a portal or a magic wand.\nHow parts look: a shovel, spade or big claws on the feet or hands → dig; a drill: any hand-held tool or front part ending in a cone or point with ridges, zigzag or spiral lines, even with a gun-like grip → drill; a gun or blaster with a straight barrel → shoot; a jetpack or exhaust with flames → boost; a torch or lamp with rays → flare; a shield → shield; an antenna or radar dish → scan; a red cross → heal. The eyes of a face and a helmet visor unlock nothing; wheels and legs are how it moves (no skill).\nBe generous: when a part is unclear or only roughly fits, unlock the closest skill. When a part could be either of two things, unlock BOTH skills: a pointed tool that could be a drill or a gun → drill and shoot; rays that could be a lamp's light or flames → flare and boost. Never unlock a skill with no part on the drawing that could mean it.\nverbs: the unlocked skills. unlocked: one entry per skill, with the part that unlocks it (its name as in parts)."
+   },
+   "status": 200,
+   "ms": 1979,
+   "error": null,
+   "response": {
+    "id": "resp_0f852c637ca0eb0c016ac962ed393c87d2809dce9dcb663694",
+    "object": "response",
+    "created_at": 1791582957,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582958,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 1600,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "rs_0f852c637ca0eb0c016ac962ee2cb487d2823e662ae2d1e890",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqyWLuPClY-jKICdYY4jlKKeSvbX0ba6Yj41wKqMSCA_lSUaVi993JInLo4dfb-vz5lqjdzJGVYs_qXQAzaCjp5sNOy9UzUGwN4yXT3eROFrVbrM9UipdBb7Cpf_-WWcCvAg_PV-Nb_tseKteJN42YWitAmCgA6BjZ_IMCuWb-L9cnYSOgwJhij_DX9VztAdSdy0umyMZSDoquiY77p0rOPGiggjU2rDMGKnjP0e3_vDw9oxT4BuNVCdPWBTPzK06fxVkzPSc8-_RPq8KtUrmAd8IEog3KNwzgW2Ak7H9Hs-n1v3QeFTQpmJSJenKEldW1mvRvNqH_0FPHfJTPVb-Xoucd2p9WcxiOj-O6CWWAWWsL2_RbJnIi5ypLDZAyDRk7AUvSFZoXP-tQ5EcQZ_7AtbEOKchKDEVnrr2QT2n3_WKuzK1hlp8XP1QqYyqq6uoaRQbc-Cgc7La1NEflddZt1dHKTg4IdD9iVpauaxp1_OoZp7_O7JVbMuidh4ft3k0GQW_E8Yqt50xw-h89CDNE-1No0FKioZd_A4c5k_9cnXxg_Vib9-2atA-rgVAukXUdy6exAyrK95HDsqrmdvE1ENKxAaRlQjN9b4_U8X52ZK2D2N5n7v7g_EQt7e8XlMrE6H7I9WKyj17_wHHVCDUBK5fjFlXFl4J6yn_LZXmimU8r_BM2GofXG7UaTcsOsRILeuaxZCqbaJYNwvf0FcmVMQBost9M-NGBRvN2SzXPWCp6-avtIdgwq9btp6xNVu_OEhGRsdaglOFzAlob_xstecQKoqLfuJk4715V0efRMWbnMtlMIkxWTGZJx0jBGCGnYzkQ3EoRJophYdAJL3n_9qn-kIPeKvLULnw8UFNWaxjbxaIzQQQDodpwqEnfPVzui2RHVbwZv3HxNmAb0hG_zZgc-IsvqvkNQKKPc_Ub2hgdauMiRsxpV8klDGbxe6tvzRlzGcFRmATPJl1grHD2C4kAxgRd-DM2j_iMwSzGGHoFQJGdH5ZIIIDA_jIpKIBXOy_58kET2sneZM2IH38KJDwoVc96vZJFLyP8IwUS0MWqzukr6MdAHPzFL9_EA_27NiG6H5_pRtdYPWF-6wMwbPrkXcXVMGQwjx2gE6sCQatGf-A9dEimH8CWs6ciGwj9IZ46CHmPBi3VUk6cywE4yF_g6jnC4JAOxuiwy1bGp9xoIF4E-GBvm0CxSVyL5Mpd2eKqbPi7gCBLmfoTFQ_sxxWpLMcGDz3-uHQ7bhiM1cFzdYeWqpb05FDK3d9VUQ64-zhT_afuCuL_3zLs1Sj65VB1sFUdgop08IrzS3yKw92mVof2gTISlDrekQCuzyMJrGhg3YQeQWvEdclyO9p5xbv6ZXaJ05BSnm3TUF6mCsBqBWtqjXH8J54G_Nq9ILSuXmdg57Px8V5ABTM6vbTknAH45PPp52rlsVmKy1VYfs6bcwseU41iGROuWhR1r50lamCIjyPQVx46MrX3AvcdRhed3sZq2_nRamyantI9yro_qeJxXJPCVqLJuxxFNj7RRH-N-SvUpJnwa0PTjMOB603SUF9ZLYRSZvGJEtRFVjyHDh-U0W9yYfdZUsx9ndhsT16odVnqoZkrpxIRCS7NLu40k1vplooyZrK1clIOyiFphnwH4jharndEugB24gAYb5sruGCslFsn3sNT5PBhIh0OLGMdnmZ8HCBHOB-cLD0YiMpBy1yUq7m1JJXomSBs4zOXPcrOQysOsCF2MCDepvQ4c28zaW6b2Ld9dXvj9OTy8xjNsSYbfK44Se6de5R5iD2CnaWU2W4jaFN4h-3fRhfZy7fL9btylIm-W8M6m-Je5QZfykxhzMjJxjLzmLphFK-TTeb4uoSx1EuQRowJ6ZAnfdr18DQfRRB0Q6Rm9ERsfOE8Qv6Iqy9L4bmODQcx5DyzcN8Zt6yseO6kDN0OGyNaDpudOC3P8LKdE_wPx32zfP3iKqrEyvbPpruU7Bo71AIvAVFkdhYHWu1x3LTftnZi9hBGkWXuyL8Bw3dnOdcFDb_bxki8-vNM-ftzTeyIIDSRYVoGe0YGSHHTAafPalmMsXtwWv1ohsf3jlfylVRyq3sK2zKMdwowhkRs1zza-zsSdrenO3HSaU-PCEmJ0gUE9ZYpswePN5byJWADVDCrdzuHeUgOQLtns2Aevct1elUOVMOgrqqY7rdSk-Q1tjVcV6TDgWJ3VmNjS0XpVcR2MmJzuI7iYmXkdnjrkWrpVgctm1xKdLOAgkZ4bYpEZXUAkQYiGWwWRvdBTxNJTvAIDR1RzHvKiz_a52HKN-UwV836PeuFAfK8VzQZGw3fLSlHRA==",
+      "summary": []
+     },
+     {
+      "id": "msg_0f852c637ca0eb0c016ac962ee9c0087d2a5ee7d8f613614fc",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"looksLike\":\"entity\",\"type\":\"blob\",\"parts\":[{\"name\":\"long wavy body\",\"x\":0.439,\"y\":0.497},{\"name\":\"head\",\"x\":0.869,\"y\":0.551},{\"name\":\"eye\",\"x\":0.875,\"y\":0.487},{\"name\":\"beak\",\"x\":0.936,\"y\":0.599}],\"verbs\":[],\"unlocked\":[]}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "entity",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "looksLike",
+        "type",
+        "parts",
+        "verbs",
+        "unlocked"
+       ],
+       "properties": {
+        "looksLike": {
+         "type": "string",
+         "enum": [
+          "controller",
+          "entity",
+          "nothing"
+         ]
+        },
+        "type": {
+         "type": "string",
+         "enum": [
+          "person",
+          "car",
+          "bike",
+          "quadruped",
+          "blob"
+         ]
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "name",
+           "x",
+           "y"
+          ],
+          "properties": {
+           "name": {
+            "type": "string"
+           },
+           "x": {
+            "type": "number"
+           },
+           "y": {
+            "type": "number"
+           }
+          }
+         }
+        },
+        "verbs": {
+         "type": "array",
+         "items": {
+          "type": "string",
+          "enum": [
+           "shoot",
+           "boost",
+           "shield",
+           "dig",
+           "drill",
+           "jump",
+           "scan",
+           "flare",
+           "invisible",
+           "heal",
+           "blast",
+           "teleport"
+          ]
+         }
+        },
+        "unlocked": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "verb",
+           "part"
+          ],
+          "properties": {
+           "verb": {
+            "type": "string",
+            "enum": [
+             "shoot",
+             "boost",
+             "shield",
+             "dig",
+             "drill",
+             "jump",
+             "scan",
+             "flare",
+             "invisible",
+             "heal",
+             "blast",
+             "teleport"
+            ]
+           },
+           "part": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 899,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+     },
+     "output_tokens": 178,
+     "output_tokens_details": {
+      "reasoning_tokens": 80
+     },
+     "total_tokens": 1077
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "entity": {
+   "type": "blob",
+   "verbs": [
+    "jump",
+    "takeoff"
+   ],
+   "unlocked": [],
+   "parts": [
+    {
+     "name": "long wavy body",
+     "x": 0.439,
+     "y": 0.497
+    },
+    {
+     "name": "head",
+     "x": 0.869,
+     "y": 0.551
+    },
+    {
+     "name": "eye",
+     "x": 0.875,
+     "y": 0.487
+    },
+    {
+     "name": "beak",
+     "x": 0.936,
+     "y": 0.599
+    }
+   ],
+   "source": "model"
+  },
+  "looksLike": "entity"
+ },
+ "pass": true
+}

@@ -1,0 +1,55 @@
+{
+ "id": "C21",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: knob stick, FIRE, BOOST (pen, lined, shadow)",
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": -3,
+  "keystone": 0,
+  "shadow": 0.35,
+  "thumb": null
+ },
+ "turns": 0,
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0326,
+    "y": 0.0969,
+    "w": 0.2741,
+    "h": 0.8104
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.7432,
+    "y": 0.19,
+    "w": 0.2202,
+    "h": 0.5014
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "BOOST",
+   "rect": {
+    "x": 0.4833,
+    "y": 0.4189,
+    "w": 0.2214,
+    "h": 0.4685
+   }
+  }
+ ],
+ "size": [
+  512,
+  176
+ ],
+ "file": "controller/C21.png"
+}

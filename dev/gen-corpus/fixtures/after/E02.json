@@ -1,0 +1,278 @@
+{
+ "id": "E02",
+ "file": "entity/E02.png",
+ "kind": "ship",
+ "source": "draw",
+ "region": null,
+ "imageSha": "ed70a4f18abeacfc46d1fc7bc718ab685571679d",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 1600,
+    "format": "entity",
+    "detail": "low",
+    "promptSha": "3b5f5643e2fc",
+    "prompt": "You read a hand-drawn SPACESHIP for a party game. type is always \"ship\".\nThe image is a finger drawing made on the phone screen.\nlooksLike: \"entity\" for any picture of a thing (a ship, rocket, vehicle, person, robot, animal, creature or object), even a rough one. \"controller\" ONLY if the drawing is a game-controller layout instead: joystick circles, D-pads, arrows, or boxes and circles labelled with action words (FIRE, BOOST, LAND, DIG...), with no vehicle or creature drawn. \"nothing\" if it is blank.\nparts: every distinct part that was deliberately drawn on it (cannon, exhaust flames, wheels, shovel, legs...), each with the centre of the part as x, y fractions of the image (origin top left). At most 12.\nSkills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still move). Part → skill: shoot: a gun, cannon or laser; boost: an exhaust with fire; shield: a shield or a bubble; drill: a drill or a saw; land: landing legs or a parachute; scan: an antenna, a radar dish or an eye; flare: a lamp or a torch; invisible: a cape or a ghost; heal: a red cross; blast: a bomb; teleport: a portal or a magic wand.\nHow parts look: wavy tongues of fire behind the ship or under a rocket = exhaust flames → boost; a tube or barrel = cannon → shoot; a cone or triangle with ridges, zigzag or spiral lines on the nose = drill → drill; struts with feet under the ship = landing legs → land; a big circle or bubble around the whole ship = shield → shield; a small circle or bulb with straight rays fanning out = lamp → flare; a stick with a dish or ball = antenna → scan; a plus sign or cross = red cross → heal; a ball with a fuse = bomb → blast. Windows, a cockpit, fins and wings unlock nothing.\nBe generous: when a part is unclear or only roughly fits, unlock the closest skill. When a part could be either of two things, unlock BOTH skills: a pointed tool that could be a drill or a gun → drill and shoot; rays that could be a lamp's light or flames → flare and boost. Never unlock a skill with no part on the drawing that could mean it.\nverbs: the unlocked skills. unlocked: one entry per skill, with the part that unlocks it (its name as in parts)."
+   },
+   "status": 200,
+   "ms": 1688,
+   "error": null,
+   "response": {
+    "id": "resp_0dff801b83f0c561016ac962e57b1487d29db03d839c3ea84e",
+    "object": "response",
+    "created_at": 1791582949,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582950,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 1600,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "rs_0dff801b83f0c561016ac962e6038487d298fef01263c860f7",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqyWLmhftIYk2Wwz7oYQ4K2XLM33ZlJ-9AKoz4ZgZS4z1PU5FRUQrniCG0PJncR4AfK-d6ENLa6JlkeE6C2jIbM29eIBTd3hypLaGuaLcraRueFoy1RXlpuWg3fqUj99EH1ExAgZYz6lclk4zuIQzD7uj_Gdmb9p5EOc2KI3MYQPjQmnGeyeNZ5lBOJVKKRX8Hfyo6m5lsAZ2MKu0pNlFL-hDeAq8y3FnN0hOqCsivVKQFcWTPuZhGIBHG4EWPMs5EbhgonHroILNBKUkNGxpEpyj8m02w9dHsyVWBMkXscJTtUIB3GqybabqYLNhCt5Zc3al_FFDnyVCRHZK2oTdeIGewTDGkK8Q_dcD7oELw6A-0LvP9zgdeefoHAVmk_XGWkwU2njTVLrWjuE-v1d0e8bCdDNhWLCX1p_T4jV_QCMgRyO9FZepWoSk10dS6x-qJahtkD1Tv6aclBryG0hDxTHnJI0lI7BLVaXSTT4q0_L5rDykuwM-s47l64qYJZSsCMaw-WWglD5O4paEvoLCqYeCRQ7Yai1187ZdtmQurafBn27rtWXYTFCTi13Y61PRuXRdcEkTZaTJqRc2CyqY0_9OXUoJjPdDq49FzgimY75P1h2ve-j5CRAl1JO70xflazVecyuDnEmD8VDB5Sk7Sc0rIzCJGfeGEsIZJ47AAJ_80ZbEYNOh7v_HUHiJ6-TB_AbjsiZWPf2aRwQH7WiGH2LRXzqobtssEZEnhP2h2FVZIFz0DHbLbvrPAbygI719guw1JZ1f0TdkmqH4wgDU6Zq7AccMilvjBWCIOKMNvIpVuIlzJlhu0RNrN745RNIK4nvYru_I_3kIe4YfyMHdMDQgrfPYvoFZrqwlms2oq8y0SuYp7vprAnDcexrkbKX4FMcHk4reQ0sk3cjraR2u9G9vednWkSocUwl3YLnOPV8IY2qJvkG53CTGL5RVqM03lVxIOcJ7ZXZeN7-QpvFcC4OU2f-u12J0oVggX7NX6ZjQ9MkpPLOxa1Yk0YicvThKpuwDxq6hOEm5hRlClc0uolC3_Gzi9yC9DSAZAuAVFX7hLFAeujz0tkcroWQ1un_aCspbxZSDXV4GaYtBvzSBCCRLJKbdQBYphPAcfr-9LZRrcbZIuU2aR4DzWnqp-jy0kzvEIV_xfi4vgmeaFgfENBAt7DWHtwAt_oTD9SyQq0Tjuam9UE4rHWBkJs0ovjDbnTKrUtr2kzz89YJWZ4WkyX4T4cDlCYJsb2BYB6sXIbPL4TyEmkJcR42EK0aHkROW8z3fb8aHs6iw04aJ8x_wV9QyRRjZqlbo4CydQFL3l3W8yXnSuMusu7ulBxp0yBqAJ7s_8DuOlxg8TUI_Tg3m2Zaar2RESbRn3fijmSG0RX5PgxYS-8Xxy9Cey882KQY2BcoCOEGV2-noSCk_EIPlH2fL3mdq8a0QH6LtbMnl9moB9YOeAVIHtNo01C3MNo-ygPj-A-SFSUN3XcXj1JpjLDQB6aCr_4k872U9e5W4DHiSKqElJnEkVcDYxZaFE4Hw3aVDYQJDxo7a65VTNk8aho9OlL8kvsCYnRdZbUCaxkA3FEzIQm9C7JRFpaEPVtPzQ12PGaDv6h2f6LKqVRJtqJSp5pKk5Le6mXgS5I5GbIM1H4TdZ0ICkyf8EALYLJF_9FFjOaRF9akgehsN3saf_0YQQ3T1iwh7UPVx2zbmrVLgnF5jqYapxU71WQPzdSfXM8gmV-G03EpGfE6Q0GRZ9s42wMt-QYqD43zyiwMXNyDByLVpmUrwy-kKbHQ_sY2SgG3aK",
+      "summary": []
+     },
+     {
+      "id": "msg_0dff801b83f0c561016ac962e6392487d2aa8f966b1cff98d3",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"looksLike\":\"entity\",\"type\":\"ship\",\"parts\":[{\"name\":\"ship body\",\"x\":0.582,\"y\":0.514},{\"name\":\"upper wing\",\"x\":0.396,\"y\":0.235},{\"name\":\"lower wing\",\"x\":0.431,\"y\":0.801},{\"name\":\"cockpit\",\"x\":0.756,\"y\":0.366},{\"name\":\"exhaust flames\",\"x\":0.115,\"y\":0.526}],\"verbs\":[\"boost\"],\"unlocked\":[{\"verb\":\"boost\",\"part\":\"exhaust flames\"}]}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "entity",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "looksLike",
+        "type",
+        "parts",
+        "verbs",
+        "unlocked"
+       ],
+       "properties": {
+        "looksLike": {
+         "type": "string",
+         "enum": [
+          "controller",
+          "entity",
+          "nothing"
+         ]
+        },
+        "type": {
+         "type": "string",
+         "enum": [
+          "ship"
+         ]
+        },
+        "parts": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "name",
+           "x",
+           "y"
+          ],
+          "properties": {
+           "name": {
+            "type": "string"
+           },
+           "x": {
+            "type": "number"
+           },
+           "y": {
+            "type": "number"
+           }
+          }
+         }
+        },
+        "verbs": {
+         "type": "array",
+         "items": {
+          "type": "string",
+          "enum": [
+           "shoot",
+           "boost",
+           "shield",
+           "drill",
+           "land",
+           "scan",
+           "flare",
+           "invisible",
+           "heal",
+           "blast",
+           "teleport"
+          ]
+         }
+        },
+        "unlocked": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "verb",
+           "part"
+          ],
+          "properties": {
+           "verb": {
+            "type": "string",
+            "enum": [
+             "shoot",
+             "boost",
+             "shield",
+             "drill",
+             "land",
+             "scan",
+             "flare",
+             "invisible",
+             "heal",
+             "blast",
+             "teleport"
+            ]
+           },
+           "part": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 904,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+     },
+     "output_tokens": 158,
+     "output_tokens_details": {
+      "reasoning_tokens": 29
+     },
+     "total_tokens": 1062
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "entity": {
+   "type": "ship",
+   "verbs": [
+    "boost"
+   ],
+   "unlocked": [
+    {
+     "verb": "boost",
+     "part": "exhaust flames"
+    }
+   ],
+   "parts": [
+    {
+     "name": "ship body",
+     "x": 0.582,
+     "y": 0.514
+    },
+    {
+     "name": "upper wing",
+     "x": 0.396,
+     "y": 0.235
+    },
+    {
+     "name": "lower wing",
+     "x": 0.431,
+     "y": 0.801
+    },
+    {
+     "name": "cockpit",
+     "x": 0.756,
+     "y": 0.366
+    },
+    {
+     "name": "exhaust flames",
+     "x": 0.115,
+     "y": 0.526
+    }
+   ],
+   "source": "model"
+  },
+  "looksLike": "entity"
+ },
+ "pass": true
+}

@@ -1,0 +1,66 @@
+{
+ "id": "C34",
+ "kind": "controller",
+ "source": "photo",
+ "desc": "photo: toggle switch for SHIELD, stick, FIRE, LAND",
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": -5,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0284,
+    "y": 0.3029,
+    "w": 0.2787,
+    "h": 0.6352
+   }
+  },
+  {
+   "type": "toggle",
+   "action": "shield",
+   "label": "SHIELD",
+   "rect": {
+    "x": 0.4277,
+    "y": 0.0841,
+    "w": 0.1925,
+    "h": 0.23
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.7411,
+    "y": 0.3949,
+    "w": 0.2219,
+    "h": 0.4193
+   }
+  },
+  {
+   "type": "button",
+   "action": "land",
+   "label": "LAND",
+   "rect": {
+    "x": 0.4462,
+    "y": 0.5742,
+    "w": 0.2097,
+    "h": 0.3249
+   }
+  }
+ ],
+ "size": [
+  512,
+  226
+ ],
+ "file": "controller/C34.png"
+}

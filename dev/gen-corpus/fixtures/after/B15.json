@@ -1,0 +1,240 @@
+{
+ "id": "B15",
+ "file": "button/B15.png",
+ "kind": "button",
+ "source": "photo",
+ "region": {
+  "x": 0.55,
+  "y": 0.05,
+  "w": 0.16,
+  "h": 0.34
+ },
+ "imageSha": "21f4c254aa6ac0510ad0a7602cc83d105feac0a7",
+ "calls": [
+  {
+   "request": {
+    "model": "gpt-6.1-sol",
+    "service_tier": "ultrafast",
+    "reasoning": {
+     "effort": "low"
+    },
+    "max_output_tokens": 1200,
+    "format": "layout",
+    "detail": "low",
+    "promptSha": "e3a044641e23",
+    "prompt": "You read ONE hand-drawn button that a player just added to their phone game controller.\nThe image is usually a PHOTO of a notebook page, already cropped by the phone to the drawing. It is greyscale and may show ruled or squared paper lines, shadows, smudges, slight perspective or a thumb at the edge. Ignore paper lines, grids, shadows, fingers and anything that was not deliberately drawn as a control.\nThe image shows only that ONE new control, cropped to it (a photo may be turned by 90 degrees). It will sit on the pad at x=0.55, y=0.05, w=0.16, h=0.34 (fractions); you do not need to place it.\nlooksLike: \"controller\" if it is a button: a shape with a word or an icon in it, or just a word, an icon or an arrow. \"entity\" if it is instead a picture of a thing: a spaceship, rocket, vehicle, person, stick figure, robot, animal or creature. \"nothing\" if it is blank or unreadable scribbles. thing: what such a picture shows (ship, person, car, bike, animal, creature, object), \"none\" for a button.\nControls:\n- A circle with a smaller circle or knob inside, a D-pad cross, a circle with arrows inside, or four arrows around one point is ONE control of type \"stick\" whose rectangle covers the whole cluster; its action is \"steer\" if it is on the left half of the image, else \"move\".\n- A single arrow on its own (or alone inside its own circle) is a \"button\" with action left, right, up or down.\n- A box, circle or shape with a word or an icon in it is a \"button\" (a drawn on/off switch or slider is a \"toggle\"). A word written just under, over or next to a shape, or joined to it by an arrow, is that shape's label, not a separate control.\n- label: the written word exactly, in UPPERCASE (FIRE, LAND, PEW, DIG...). Use \"\" if no word is written.\n- action: the closest game action, or \"none\" if nothing fits. Verbs with typical labels: shoot (SHOOT, FIRE, PEW, LASER); boost (BOOST, TURBO, NITRO, FAST); shield (SHIELD, BUBBLE, ARMOR, ARMOUR); blast (BLAST, BOMB, WIN, NUKE); invisible (INVISIBLE, CLOAK, GHOST, HIDE); shapeshift (SHAPESHIFT, MASK, DISGUISE, MORPH); teleport (TELEPORT, WARP, BLINK, PORTAL); heal (HEAL, REPAIR, POTION, MEDKIT); jump (JUMP, HOP, SPRING, LEAP); land (LAND, LANDING, TOUCHDOWN, DOCK); takeoff (TAKEOFF, TAKE OFF, LAUNCH, LIFTOFF); scan (SCAN, RADAR, EYE, SONAR); flare (FLARE, LIGHT, TORCH, LAMP); drill (DRILL, SAW, PICK, PICKAXE); dig (DIG, SHOVEL, SPADE, CLAW); drive (DRIVE, CAR, WHEELS, BIKE); fly (FLY, WINGS, JETPACK, HOVER); swim (SWIM, FINS, FLIPPERS, BOAT); grapple (GRAPPLE, HOOK, ROPE, MAGNET). Movement: left, right, up, down, forward, back, strafeleft, straferight, rise, sink. Meta: ready, view.\n- An icon needs no word: crosshair or target → shoot; flame or fire → boost; shield shape → shield; drill bit (a cone or point with ridges or a spiral) → drill; shovel or spade → dig; landing legs, a parachute or an arrow down onto a line → land; antenna, radar dish or a big eye → scan; light bulb, torch, lamp or sun → flare; plus sign or cross → heal; bomb → blast; spiral or portal → teleport.\n- Ignore anything crossed out or scribbled over: it was deleted.\nReturn that one control: looksLike, thing, its type, label and action."
+   },
+   "status": 200,
+   "ms": 1032,
+   "error": null,
+   "response": {
+    "id": "resp_09092bbfa0236e81016ac962e4bc4c87d293efe80729268edd",
+    "object": "response",
+    "created_at": 1791582948,
+    "status": "completed",
+    "access_programs": null,
+    "background": false,
+    "billing": {
+     "payer": "developer"
+    },
+    "completed_at": 1791582949,
+    "error": null,
+    "frequency_penalty": 0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": 1200,
+    "max_tool_calls": null,
+    "model": "gpt-6.1-sol",
+    "moderation": null,
+    "output": [
+     {
+      "id": "rs_09092bbfa0236e81016ac962e5390487d2983a6dcda07e4697",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqyWLldl3kK5Do5H_MeXLhU0qsmW1QedGN0SgXxk8h-Ctl6znEpVKEIAFa_5Xwdv2Y0hKQljkvPV4b5a6pbsiGfbMsWS2148OMcIhZLJB1veHDCTFNZaFf6kqwby53qMvWm3TUey5CHRplIsbBCgAHw55J-ZQDGDEPjPLHZs7oHGSVFlPCYMjWAcUSt6_HNS1jW6dYMQeUYeTaLimpV1avHM8b-QWrJoqEQblGLkcglGDJgutljHcQpiDHkVV0XfxjFN5Th79tmXWZyeTTzz6nktC73fVda4hqFdDLv9EPoQRyd5zzok7L8Rcnc6zUvs1fiKfOwXsx62dbyF-EvU6cvmgZ0SZzBpnfn0USqL2uyVxEZCbu_gI6fTw3Z-3VhCjKgFlo7tPuzvmtxqmqHfvSTPNXL2aah3bhl2-YUkJY8K6uDsp_idrtd4_B9wcrvHYCs7NoCTZ57iq-BvF-ld_ur23tDxCIFW4a4FrrctoptsV1Pc-h_8nQDupOpJP0r9epqyBUTmI7U17A-ymfQJ_9-2nqSh6BuVQ06KLSvr-buHKtcEx_RKD1vlYdtzaWqkawsKhORGePmQsS6GXNlfbXtvnhlLLdecjHhb3T2MYg8IXyMqv2H2tN3WXAcUULGUfF6Cyk9zEJsjjuWY0EfHd6QuUqmgG81LgEDW-qCwNGpzYyf3D_6lZJDzqJ32EE6DWEaLWisbcU_lKVtAE1LVkvEASL-ueduLF5Wqq6T6UInt2LSAc136ZFhzb99JAJis3Oewg5FIoV89Yq2UpwTDQrqgNHyg_46tJTd1yu9XbYU1L4n3OZ4lauw5iDzeSDZbBL1i0VpTXbgBKjDyyfMW1twDG_I3cezCREc-ofPHIzp8GfM7nwDyu5wNQBa0d_cxHQiPkwVTBVgE-Ghe1Xmz4TFDIIEctZm9MC0so8M1Uqq-lWPnVnfz76lfIPvjyq81FJbEzYi3qKJA3074fCoIZxynV_yb6ZZDGS5TYmIyqqWhqZJnBmW3uv4Zr00nzBMQqkrpfV86Pewbr0ZapcRSJLmbmXqZ12gFQM7SqdLy57Gqd7PBgmbM_7K1HESoyCe3qrjwL0fxP5X275xwi63M9pdaUily1zifmrQgHFvVfY0TNzs7FcIM-j-9MXbh55ELZ2rRWdKQ8rR4SS39Vle_70s59uDMoO6XHyumHasSY23hYrZNgEFH7RsiRYrieJZBUfKkp4RRkWFnPp61ixkInldUhcO6O1BPivDuptrWZhYVTaI_g3I_8EERnzasC-FchOOVLBLCTGIewMYg5XJag6rGXflK0jrhVhukFSwccgcskXS5kljusyBxZDu12XIS5scnV6ArkExNyIg5ig0aC2ngViPykKYqNCSfIi298ZjJV0DrSKvMnXUazQZq-7uWeYnefMP7A6O0mgmnW4kUNgsy4ja9MCJYK_ZLqYcA-Z6_aZQdwPbVd5zVGA8a2LwrtbSuJmyFXWSE6uoSWw2Z1v8V-wQFhpz9ud4jKycCELgNJeWVjNBdfwnn58RJrWAiXc5QMSYHnSIJLf6kRw6AwwR9uU-pADySwj3OU_hUtLKHj8yeeFS8U9xB0M1qHwnxi9r_-9-JktuEJ7PiHmUhCwr8vbicnDRBhDwmA37SV4tCXzSSpc0okRbtyyMaVNeAdrzcrf",
+      "summary": []
+     },
+     {
+      "id": "msg_09092bbfa0236e81016ac962e5627c87d28d9772c672b8834e",
+      "type": "message",
+      "status": "completed",
+      "content": [
+       {
+        "type": "output_text",
+        "annotations": [],
+        "logprobs": [],
+        "text": "{\"looksLike\":\"controller\",\"thing\":\"none\",\"type\":\"button\",\"label\":\"\",\"action\":\"land\"}"
+       }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+     }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": "24h",
+    "reasoning": {
+     "context": "all_turns",
+     "effort": "low",
+     "mode": "standard",
+     "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "ultrafast",
+    "store": false,
+    "temperature": 1,
+    "text": {
+     "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "layout",
+      "schema": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "looksLike",
+        "thing",
+        "type",
+        "label",
+        "action"
+       ],
+       "properties": {
+        "looksLike": {
+         "type": "string",
+         "enum": [
+          "controller",
+          "entity",
+          "nothing"
+         ]
+        },
+        "thing": {
+         "type": "string",
+         "enum": [
+          "none",
+          "ship",
+          "person",
+          "car",
+          "bike",
+          "animal",
+          "creature",
+          "object"
+         ]
+        },
+        "type": {
+         "type": "string",
+         "enum": [
+          "button",
+          "stick",
+          "toggle"
+         ]
+        },
+        "label": {
+         "type": "string"
+        },
+        "action": {
+         "type": "string",
+         "enum": [
+          "shoot",
+          "boost",
+          "shield",
+          "blast",
+          "invisible",
+          "shapeshift",
+          "teleport",
+          "heal",
+          "jump",
+          "land",
+          "takeoff",
+          "scan",
+          "flare",
+          "drill",
+          "dig",
+          "drive",
+          "fly",
+          "swim",
+          "grapple",
+          "left",
+          "right",
+          "up",
+          "down",
+          "forward",
+          "back",
+          "strafeleft",
+          "straferight",
+          "rise",
+          "sink",
+          "steer",
+          "move",
+          "ready",
+          "view",
+          "none"
+         ]
+        }
+       }
+      },
+      "strict": true
+     },
+     "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tool_usage": {
+     "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+       "image_tokens": 0,
+       "text_tokens": 0
+      },
+      "total_tokens": 0
+     },
+     "web_search": {
+      "num_requests": 0
+     }
+    },
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+     "input_tokens": 1397,
+     "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 1394
+     },
+     "output_tokens": 48,
+     "output_tokens_details": {
+      "reasoning_tokens": 19
+     },
+     "total_tokens": 1445
+    },
+    "user": null,
+    "metadata": {}
+   }
+  }
+ ],
+ "result": {
+  "ok": true,
+  "layout": {
+   "buttons": [
+    {
+     "type": "button",
+     "action": "land",
+     "label": "",
+     "x": 0.55,
+     "y": 0.05,
+     "w": 0.16,
+     "h": 0.34
+    }
+   ],
+   "source": "model"
+  },
+  "looksLike": "controller"
+ },
+ "pass": true
+}

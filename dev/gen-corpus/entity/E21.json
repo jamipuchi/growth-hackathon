@@ -1,0 +1,24 @@
+{
+ "id": "E21",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "robot with a shovel",
+ "entity": {
+  "types": [
+   "person",
+   "blob"
+  ],
+  "must": [
+   "dig"
+  ],
+  "ok": [
+   "scan",
+   "jump"
+  ]
+ },
+ "size": [
+  341,
+  512
+ ],
+ "file": "entity/E21.png"
+}

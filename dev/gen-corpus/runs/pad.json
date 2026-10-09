@@ -1,0 +1,365 @@
+{
+ "label": "pad",
+ "at": "2026-10-09T22:02:51.458Z",
+ "astra": "astra.js",
+ "env": {
+  "effort": null,
+  "tier": null
+ },
+ "calls": 8,
+ "wallSeconds": 2.7,
+ "summary": {
+  "cases": 8,
+  "passed": 8,
+  "controlsFoundClean": null,
+  "controlsFoundPhoto": null,
+  "kindsRight": 100,
+  "labelsRight": 100,
+  "labelsRightControllers": null,
+  "buttonsRight": 100,
+  "iou50": null,
+  "extraControls": 0,
+  "crossedOutReturned": 0,
+  "entityType": null,
+  "unlockedVerbs": null,
+  "gateVerbsMissing": 0,
+  "spuriousUnlocks": 0,
+  "wrongKindCaught": null,
+  "falseAlarms": 0,
+  "fallbacks": 0,
+  "errors": 0,
+  "p50ms": 1421,
+  "p90ms": 1511,
+  "maxMs": 1511
+ },
+ "cases": [
+  {
+   "id": "B01",
+   "ms": 1472,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B01",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.62,
+       "y": 0.08,
+       "w": 0.2,
+       "h": 0.28
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "B04",
+   "ms": 1445,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B04",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "drill",
+       "label": "",
+       "x": 0.5,
+       "y": 0.1,
+       "w": 0.16,
+       "h": 0.3
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "B06",
+   "ms": 1421,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B06",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.55,
+       "y": 0.1,
+       "w": 0.22,
+       "h": 0.26
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "B10",
+   "ms": 1223,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B10",
+    "kind": "button",
+    "source": "draw",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "shoot",
+       "label": "FIRE",
+       "x": 0.7,
+       "y": 0.4,
+       "w": 0.18,
+       "h": 0.34
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "B13",
+   "ms": 1145,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B13",
+    "kind": "button",
+    "source": "photo",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "dig",
+       "label": "DIG",
+       "x": 0.45,
+       "y": 0.1,
+       "w": 0.16,
+       "h": 0.3
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "B15",
+   "ms": 1462,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B15",
+    "kind": "button",
+    "source": "photo",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "land",
+       "label": "",
+       "x": 0.55,
+       "y": 0.05,
+       "w": 0.16,
+       "h": 0.34
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "B18",
+   "ms": 1511,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B18",
+    "kind": "button",
+    "source": "photo",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "land",
+       "label": "LAND",
+       "x": 0.62,
+       "y": 0.08,
+       "w": 0.2,
+       "h": 0.28
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  },
+  {
+   "id": "B19",
+   "ms": 1021,
+   "pass": true,
+   "note": "ok",
+   "score": {
+    "id": "B19",
+    "kind": "button",
+    "source": "photo",
+    "group": "button",
+    "ok": true,
+    "error": null,
+    "looksLike": "controller",
+    "falseAlarm": false,
+    "total": 1,
+    "labelTotal": 1,
+    "found": 1,
+    "kindRight": 1,
+    "labelRight": 1,
+    "pass": true,
+    "note": "ok"
+   },
+   "result": {
+    "ok": true,
+    "layout": {
+     "buttons": [
+      {
+       "type": "button",
+       "action": "dig",
+       "label": "DIG",
+       "x": 0.45,
+       "y": 0.1,
+       "w": 0.18,
+       "h": 0.3
+      }
+     ],
+     "source": "model"
+    },
+    "looksLike": "controller"
+   }
+  }
+ ]
+}

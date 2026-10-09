@@ -1,0 +1,31 @@
+{
+ "id": "E35",
+ "kind": "explorer",
+ "source": "photo",
+ "desc": "photo: astronaut + round shield",
+ "entity": {
+  "types": [
+   "person"
+  ],
+  "must": [
+   "shield"
+  ],
+  "ok": [
+   "jump"
+  ]
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "pen",
+  "rot": -2,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": "right"
+ },
+ "turns": 3,
+ "size": [
+  512,
+  362
+ ],
+ "file": "entity/E35.png"
+}

@@ -1,0 +1,21 @@
+{
+ "id": "E22",
+ "kind": "explorer",
+ "source": "draw",
+ "desc": "plain car",
+ "entity": {
+  "types": [
+   "car"
+  ],
+  "must": [],
+  "ok": [
+   "boost",
+   "jump"
+  ]
+ },
+ "size": [
+  512,
+  251
+ ],
+ "file": "entity/E22.png"
+}

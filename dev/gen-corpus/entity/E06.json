@@ -1,0 +1,22 @@
+{
+ "id": "E06",
+ "kind": "ship",
+ "source": "draw",
+ "desc": "fighter + drill on the nose",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "drill"
+  ],
+  "ok": [
+   "shoot"
+  ]
+ },
+ "size": [
+  512,
+  290
+ ],
+ "file": "entity/E06.png"
+}

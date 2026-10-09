@@ -1,0 +1,29 @@
+{
+ "id": "E14",
+ "kind": "ship",
+ "source": "photo",
+ "desc": "photo: saucer + landing legs",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "land"
+  ],
+  "ok": []
+ },
+ "photo": {
+  "paper": "grid",
+  "pen": "pencil",
+  "rot": 0,
+  "keystone": 0,
+  "shadow": 0.25,
+  "thumb": null
+ },
+ "turns": 0,
+ "size": [
+  512,
+  347
+ ],
+ "file": "entity/E14.png"
+}

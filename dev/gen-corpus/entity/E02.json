@@ -1,0 +1,20 @@
+{
+ "id": "E02",
+ "kind": "ship",
+ "source": "draw",
+ "desc": "fighter + exhaust flames",
+ "entity": {
+  "types": [
+   "ship"
+  ],
+  "must": [
+   "boost"
+  ],
+  "ok": []
+ },
+ "size": [
+  512,
+  290
+ ],
+ "file": "entity/E02.png"
+}

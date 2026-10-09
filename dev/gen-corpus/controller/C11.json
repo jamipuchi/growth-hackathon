@@ -1,0 +1,46 @@
+{
+ "id": "C11",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "FIRE written off to the side with an arrow to a circle",
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0637,
+    "y": 0.3469,
+    "w": 0.2511,
+    "h": 0.5037
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.7595,
+    "y": 0.5228,
+    "w": 0.1702,
+    "h": 0.3345
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "BOOST",
+   "rect": {
+    "x": 0.4577,
+    "y": 0.6579,
+    "w": 0.1932,
+    "h": 0.2433
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C11.png"
+}

@@ -1,0 +1,32 @@
+{
+ "id": "E33",
+ "kind": "explorer",
+ "source": "photo",
+ "desc": "photo: car + roof cannon",
+ "entity": {
+  "types": [
+   "car"
+  ],
+  "must": [
+   "shoot"
+  ],
+  "ok": [
+   "boost",
+   "jump"
+  ]
+ },
+ "photo": {
+  "paper": "lined",
+  "pen": "marker",
+  "rot": 0,
+  "keystone": 0,
+  "shadow": 0.4,
+  "thumb": null
+ },
+ "turns": 0,
+ "size": [
+  512,
+  269
+ ],
+ "file": "entity/E33.png"
+}

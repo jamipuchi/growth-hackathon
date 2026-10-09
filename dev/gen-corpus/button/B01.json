@@ -1,0 +1,26 @@
+{
+ "id": "B01",
+ "kind": "button",
+ "source": "draw",
+ "desc": "LAND in a box",
+ "region": {
+  "x": 0.62,
+  "y": 0.08,
+  "w": 0.2,
+  "h": 0.28
+ },
+ "pad": [
+  "steer",
+  "shoot",
+  "boost"
+ ],
+ "expect": {
+  "action": "land",
+  "type": "button"
+ },
+ "size": [
+  512,
+  370
+ ],
+ "file": "button/B01.png"
+}

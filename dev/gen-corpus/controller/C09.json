@@ -1,0 +1,46 @@
+{
+ "id": "C09",
+ "kind": "controller",
+ "source": "draw",
+ "desc": "circles with the word written under each, D-pad",
+ "controls": [
+  {
+   "type": "stick",
+   "action": "steer",
+   "label": "",
+   "rect": {
+    "x": 0.0646,
+    "y": 0.3001,
+    "w": 0.2494,
+    "h": 0.5026
+   }
+  },
+  {
+   "type": "button",
+   "action": "shoot",
+   "label": "FIRE",
+   "rect": {
+    "x": 0.75,
+    "y": 0.381,
+    "w": 0.1496,
+    "h": 0.2972
+   }
+  },
+  {
+   "type": "button",
+   "action": "boost",
+   "label": "BOOST",
+   "rect": {
+    "x": 0.5253,
+    "y": 0.4599,
+    "w": 0.131,
+    "h": 0.2576
+   }
+  }
+ ],
+ "size": [
+  512,
+  256
+ ],
+ "file": "controller/C09.png"
+}
