@@ -1,0 +1,66 @@
+{
+  "three": "160",
+  "states": {
+    "boss_armour_intact": {
+      "triangles": 1440,
+      "drawCalls": 2,
+      "materials": [
+        "basalt_armour",
+        "weathered_alloy"
+      ]
+    },
+    "boss_armour_cracked": {
+      "triangles": 1236,
+      "drawCalls": 2,
+      "materials": [
+        "basalt_armour",
+        "weathered_alloy"
+      ]
+    },
+    "boss_armour_broken": {
+      "triangles": 1620,
+      "drawCalls": 4,
+      "materials": [
+        "basalt_armour",
+        "weathered_alloy",
+        "core_crust",
+        "core_light"
+      ]
+    },
+    "decoy_armour_intact": {
+      "triangles": 1440,
+      "drawCalls": 2,
+      "materials": [
+        "basalt_armour",
+        "weathered_alloy"
+      ]
+    },
+    "decoy_armour_cracked": {
+      "triangles": 1236,
+      "drawCalls": 2,
+      "materials": [
+        "basalt_armour",
+        "weathered_alloy"
+      ]
+    },
+    "decoy_armour_broken": {
+      "triangles": 654,
+      "drawCalls": 2,
+      "materials": [
+        "basalt_armour",
+        "weathered_alloy"
+      ]
+    }
+  },
+  "decoys": 4,
+  "checks": {
+    "identicalShells": true,
+    "noDecoyCore": true,
+    "socket": true,
+    "materialsStandard": true,
+    "budget": true,
+    "initialState": true,
+    "independentDecoyStates": true,
+    "coreEmissive": true
+  }
+}

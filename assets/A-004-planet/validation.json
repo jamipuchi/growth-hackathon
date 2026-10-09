@@ -1,0 +1,61 @@
+{
+  "checks": {
+    "dimensions_and_rgb": true,
+    "longitudinal_seams": true,
+    "manifest_hashes": true,
+    "night_lights_on_land": true,
+    "cloud_detail": true,
+    "land_and_ocean_present": true
+  },
+  "textures": {
+    "planet_color.png": {
+      "bytes": 591434,
+      "size": [
+        2048,
+        1024
+      ],
+      "sha256": "3266ed75e88d272c8633fd2be3f9bfa1f88b1b0b35267dd24c7172798190914e",
+      "channel_ranges": [
+        [
+          7,
+          221
+        ],
+        [
+          31,
+          232
+        ],
+        [
+          37,
+          232
+        ]
+      ]
+    },
+    "planet_data.png": {
+      "bytes": 792191,
+      "size": [
+        2048,
+        1024
+      ],
+      "sha256": "4cdc30782d2397aa13f0cf8630809946e374cd383088b03421597dbcba73fd09",
+      "channel_ranges": [
+        [
+          0,
+          242
+        ],
+        [
+          0,
+          251
+        ],
+        [
+          0,
+          255
+        ]
+      ]
+    }
+  },
+  "coverage": {
+    "land_fraction_equirectangular": 0.35732507705688477,
+    "bright_city_pixels": 9158,
+    "cloud_pixels_above_80": 410473
+  }
+}

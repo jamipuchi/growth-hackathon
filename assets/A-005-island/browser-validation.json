@@ -1,0 +1,134 @@
+{
+  "three": "160",
+  "checks": {
+    "scale": true,
+    "budget": true,
+    "noShadows": true,
+    "waterSky": true,
+    "heightSamplesMatch": true,
+    "clearings": true,
+    "placementHeight": true,
+    "deterministic": true,
+    "disposal": true,
+    "palmBudgets": true,
+    "noReflectionRender": true,
+    "actualBudget": true,
+    "shaders": true,
+    "highBudgetCap": true,
+    "lodSwitch": true,
+    "finiteTerrain": true
+  },
+  "creationMs": 33.70000000298023,
+  "seed": 73,
+  "islandSize": 840,
+  "horizontalScale": 2,
+  "initial": {
+    "triangles": 117774,
+    "calls": 14,
+    "triangleBudget": 150000,
+    "maxHighPalms": 94,
+    "counts": {
+      "palm": 300,
+      "bush": 160,
+      "beach_rock": 80,
+      "cliff": 20
+    },
+    "reflectionPasses": 0
+  },
+  "maxVertexHeightError": 9.533493710023322e-7,
+  "props": {
+    "beach_rock_1": {
+      "triangles": 80,
+      "calls": 1
+    },
+    "beach_rock_2": {
+      "triangles": 80,
+      "calls": 1
+    },
+    "beach_rock_3": {
+      "triangles": 80,
+      "calls": 1
+    },
+    "bush_1": {
+      "triangles": 100,
+      "calls": 1
+    },
+    "bush_2": {
+      "triangles": 100,
+      "calls": 1
+    },
+    "cliff_1": {
+      "triangles": 52,
+      "calls": 1
+    },
+    "cliff_2": {
+      "triangles": 52,
+      "calls": 1
+    },
+    "palm_1": {
+      "triangles": 482,
+      "calls": 1
+    },
+    "palm_1_lod": {
+      "triangles": 140,
+      "calls": 1
+    },
+    "palm_2": {
+      "triangles": 482,
+      "calls": 1
+    },
+    "palm_2_lod": {
+      "triangles": 140,
+      "calls": 1
+    },
+    "palm_3": {
+      "triangles": 482,
+      "calls": 1
+    },
+    "palm_3_lod": {
+      "triangles": 140,
+      "calls": 1
+    }
+  },
+  "renderInvocations": 1,
+  "actualRenderer": {
+    "calls": 14,
+    "triangles": 117774
+  },
+  "shaderErrors": [],
+  "high": {
+    "triangles": 149922,
+    "calls": 17,
+    "triangleBudget": 150000,
+    "maxHighPalms": 94,
+    "counts": {
+      "palm": 300,
+      "bush": 160,
+      "beach_rock": 80,
+      "cliff": 20
+    },
+    "reflectionPasses": 0
+  },
+  "highRenderer": {
+    "calls": 17,
+    "triangles": 149922
+  },
+  "low": {
+    "triangles": 117774,
+    "calls": 14,
+    "triangleBudget": 150000,
+    "maxHighPalms": 94,
+    "counts": {
+      "palm": 300,
+      "bush": 160,
+      "beach_rock": 80,
+      "cliff": 20
+    },
+    "reflectionPasses": 0
+  },
+  "heightInterpolation": {
+    "samples": 961,
+    "maxError": 0.3665151329088516,
+    "meanError": 0.04583188650302345
+  }
+}

@@ -1,0 +1,43 @@
+/Users/jaumepuig/Documents/growth-hackathon/assets/A-005-island/generate.py:7: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat=bpy.data.materials.new('island_palette');mat.use_nodes=True
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+22:53:20 | INFO: Starting glTF 2.0 export
+22:53:20 | INFO: Extracting primitive: beach_rock_1_geometry
+22:53:20 | INFO: Primitives created: 1
+22:53:20 | INFO: Extracting primitive: beach_rock_2_geometry
+22:53:20 | INFO: Primitives created: 1
+22:53:20 | INFO: Extracting primitive: beach_rock_3_geometry
+22:53:20 | INFO: Primitives created: 1
+22:53:20 | INFO: Extracting primitive: bush_1_geometry
+22:53:20 | INFO: Primitives created: 1
+22:53:20 | INFO: Extracting primitive: bush_2_geometry
+22:53:20 | INFO: Primitives created: 1
+22:53:20 | INFO: Extracting primitive: cliff_1_geometry
+22:53:20 | INFO: Primitives created: 1
+22:53:20 | INFO: Extracting primitive: cliff_2_geometry
+22:53:20 | INFO: Primitives created: 1
+22:53:20 | INFO: Extracting primitive: palm_1_geometry
+22:53:20 | INFO: Primitives created: 1
+22:53:20 | INFO: Extracting primitive: palm_1_lod_geometry
+22:53:20 | INFO: Primitives created: 1
+22:53:20 | INFO: Extracting primitive: palm_2_geometry
+22:53:20 | INFO: Primitives created: 1
+22:53:20 | INFO: Extracting primitive: palm_2_lod_geometry
+22:53:20 | INFO: Primitives created: 1
+22:53:20 | INFO: Extracting primitive: palm_3_geometry
+22:53:20 | INFO: Primitives created: 1
+22:53:20 | INFO: Extracting primitive: palm_3_lod_geometry
+22:53:20 | INFO: Primitives created: 1
+22:53:20 | INFO: Finished glTF 2.0 export in 0.014783143997192383 s
+
+Info: Saved as "island_source.blend"
+ISLAND_PROPS_EXPORTED [('palm_1', 482), ('palm_1_lod', 140), ('palm_2', 482), ('palm_2_lod', 140), ('palm_3', 482), ('palm_3_lod', 140), ('bush_1', 100), ('bush_2', 100), ('beach_rock_1', 80), ('beach_rock_2', 80), ('beach_rock_3', 80), ('cliff_1', 52), ('cliff_2', 52)]
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A-001 • Boss rock review</title>
+<link rel="icon" href="data:,">
+<style>
+  *{box-sizing:border-box} body{margin:0;color:#e8e6de;background:#07090f;font:14px/1.4 system-ui,sans-serif;overflow:hidden}
+  header{position:absolute;top:24px;left:32px;right:32px;z-index:1;display:flex;justify-content:space-between;gap:24px;align-items:start}
+  .eyebrow{font:11px monospace;letter-spacing:2px;color:#ac9875} h1{margin:6px 0;font-size:25px;font-weight:500;letter-spacing:-.5px}
+  p{margin:5px 0;color:#a3a6af;font-size:12px}button{background:#1b202b;border:1px solid #3a4150;border-radius:5px;color:inherit;padding:8px 13px;cursor:pointer}
+  .labels{position:absolute;inset:112px 22px 42px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr;pointer-events:none}
+  .label{display:flex;flex-direction:column;justify-content:end;align-items:center;padding:10px;color:#d9dbdf;font-size:12px;letter-spacing:1px}
+  .label small{font:11px monospace;letter-spacing:0;color:#8a8f9e;margin-top:4px}
+  footer{position:absolute;bottom:15px;left:32px;right:32px;color:#838b99;font:11px monospace}
+  canvas{display:block;width:100%;height:100%}body.phone .labels{display:none}
+  @media(max-width:600px){header{left:18px;right:18px;top:15px;display:block}h1{font-size:21px}.labels{inset:150px 4px 55px}.label{font-size:9px;padding:0 2px}.label small{font-size:8px}footer{left:18px;font-size:9px}button{margin-top:8px}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<header><div><div class="eyebrow">SPACE PARTY / ASSET A-001</div><h1>Armoured in the dark.</h1><p id="subtitle">Boss above · empty decoy below · front faces camera</p></div><div><button id="spin">Rotate</button> <button id="view">100 m view</button> <button id="next" hidden>Next state</button></div></header>
+<div class="labels" id="labels"></div><footer id="status">Loading the actual GLB exports…</footer>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { createBossEncounter, setArmourState, ARMOUR_STATES } from './boss.js';
+
+const renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.15;
+document.body.prepend(renderer.domElement);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color('#07090f');
+const pmrem=new THREE.PMREMGenerator(renderer);
+const environment=new RoomEnvironment();
+const environmentTarget=pmrem.fromScene(environment,.04);
+scene.environment=environmentTarget.texture;
+environment.dispose();pmrem.dispose();
+const key=new THREE.DirectionalLight(0xffe5c2,2.4);key.position.set(-60,70,100);scene.add(key);
+const rim=new THREE.DirectionalLight(0x7192c8,5);rim.position.set(70,40,-30);scene.add(rim);
+scene.add(new THREE.HemisphereLight(0xa9bacf,0x111320,.6));
+const camera=new THREE.PerspectiveCamera(44,1,.1,1000);
+const composer=new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene,camera));
+const bloom=new UnrealBloomPass(new THREE.Vector2(1,1),.48,.4,1.0);composer.addPass(bloom);composer.addPass(new OutputPass());
+
+function inventory(object){
+  let triangles=0,drawCalls=0;const materials=new Set();
+  object.traverseVisible(o=>{if(!o.isMesh)return;
+    triangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3;
+    drawCalls+=Array.isArray(o.material)?o.geometry.groups.length:1;
+    (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>materials.add(m.name));
+  });
+  return {triangles,drawCalls,materials:[...materials]};
+}
+function shellSignature(object,state){
+  const out=[];object.getObjectByName(state).traverse(o=>{if(!o.isMesh)return;
+    out.push({positions:Array.from(o.geometry.attributes.position.array),indices:Array.from(o.geometry.index?.array??[]),material:o.material.name});
+  });return JSON.stringify(out);
+}
+const {boss,decoys}=await createBossEncounter();
+for(const asset of [boss,...decoys])asset.traverse(o=>{if(o.isMesh)o.material.envMapIntensity=.35;});
+const objects=[];const report={three:THREE.REVISION,states:{},decoys:decoys.length,checks:{}};
+for(let row=0;row<2;row++)for(let col=0;col<3;col++){
+  const state=ARMOUR_STATES[col];const object=setArmourState((row?decoys[0]:boss).clone(true),state);
+  object.position.set((col-1)*40,row?-22:22,0);object.rotation.y=Math.PI;scene.add(object);objects.push(object);
+  const stats=inventory(object);report.states[`${row?'decoy':'boss'}_${state}`]=stats;
+  const label=document.createElement('div');label.className='label';label.innerHTML=`${row?'DECOY':'BOSS'} / ${state.replace('armour_','').toUpperCase()}<small>${stats.triangles.toLocaleString()} triangles · ${stats.drawCalls} calls</small>`;document.querySelector('#labels').append(label);
+}
+report.checks.identicalShells=ARMOUR_STATES.every(s=>shellSignature(boss,s)===shellSignature(decoys[0],s));
+report.checks.noDecoyCore=decoys.every(d=>!d.getObjectByName('core'));
+report.checks.socket=Boolean(boss.getObjectByName('socket_core'))&&decoys.every(d=>d.getObjectByName('socket_core'));
+report.checks.materialsStandard=true;boss.traverse(o=>{if(o.isMesh&&!o.material.isMeshStandardMaterial)report.checks.materialsStandard=false;});
+report.checks.budget=Object.values(report.states).every(s=>s.triangles<=15000&&s.drawCalls<=4);
+report.checks.initialState=boss.getObjectByName('armour_intact').visible&&!boss.getObjectByName('armour_cracked').visible&&!boss.getObjectByName('core').visible;
+report.checks.independentDecoyStates=true;
+setArmourState(decoys[0],'armour_broken');
+report.checks.independentDecoyStates=decoys.slice(1).every(d=>d.getObjectByName('armour_intact').visible);
+setArmourState(decoys[0]);
+report.checks.coreEmissive=false;boss.getObjectByName('core').traverse(o=>{if(o.isMesh&&o.material.emissiveIntensity>1)report.checks.coreEmissive=true;});
+window.assetReport=report;console.log('ASSET_REPORT',JSON.stringify(report));
+const passed=Object.values(report.checks).every(Boolean);
+document.querySelector('#status').textContent=`${passed?'PASS':'FAIL'} · three.js r${THREE.REVISION} · ${Object.keys(report.checks).length} load/contract checks · no textures · original CC0`;
+
+let rotating=false,phone=false,selection=0;
+document.querySelector('#spin').onclick=()=>{rotating=!rotating;document.querySelector('#spin').textContent=rotating?'Stop':'Rotate';};
+function selectPhone(){objects.forEach((o,i)=>{o.visible=!phone||i===selection;});document.querySelector('#subtitle').textContent=phone?`${selection<3?'Boss':'Decoy'} · ${ARMOUR_STATES[selection%3]} · camera 100 m away`:'Boss above · empty decoy below · front faces camera';}
+document.querySelector('#view').onclick=()=>{phone=!phone;document.body.classList.toggle('phone',phone);document.querySelector('#view').textContent=phone?'All states':'100 m view';document.querySelector('#next').hidden=!phone;selectPhone();resize();};
+document.querySelector('#next').onclick=()=>{selection=(selection+1)%6;selectPhone();resize();};
+function resize(){
+  const w=innerWidth,h=innerHeight;renderer.setSize(w,h);composer.setSize(w,h);camera.aspect=w/h;
+  if(phone){const p=objects[selection].position;camera.position.set(p.x,p.y,p.z+100);camera.lookAt(p);}
+  else {camera.position.set(0,3,Math.max(132,153/camera.aspect));camera.lookAt(0,3,0);}
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize',resize);resize();
+let prev=performance.now();function frame(now){const dt=Math.min((now-prev)/1000,.1);prev=now;if(rotating)objects.forEach(o=>o.rotation.y+=dt*.23);composer.render();requestAnimationFrame(frame);}requestAnimationFrame(frame);
+</script>
+</html>

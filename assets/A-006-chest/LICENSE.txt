@@ -1,0 +1,9 @@
+Original Space Party A-006 treasure chest meshes, animation, generated textures,
+preview and helper/source code: CC0 1.0 Universal.
+
+To the extent possible under law, the authors have waived all copyright and
+related or neighboring rights to this original contribution.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+No external meshes, textures or images were used. Blender and three.js/add-ons
+are separate tools/dependencies and retain their respective upstream licenses.

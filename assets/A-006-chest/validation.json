@@ -1,0 +1,201 @@
+{
+  "chest": {
+    "bytes": 299044,
+    "sha256": "30b3f475c4bb99e7dd29b11dbc75704fc1609a6cd344e5557b708e6e6dc3c58a",
+    "triangles": 2964,
+    "draw_calls": 2,
+    "materials": 1,
+    "embedded_images": {
+      "chest_emission": {
+        "size": [
+          128,
+          128
+        ],
+        "palette": [
+          [
+            0,
+            0,
+            0,
+            255
+          ],
+          [
+            0,
+            0,
+            0,
+            255
+          ],
+          [
+            255,
+            122,
+            17,
+            255
+          ],
+          [
+            0,
+            0,
+            0,
+            255
+          ]
+        ]
+      },
+      "chest_surface": {
+        "size": [
+          128,
+          128
+        ],
+        "palette": [
+          [
+            255,
+            204,
+            0,
+            255
+          ],
+          [
+            255,
+            94,
+            173,
+            255
+          ],
+          [
+            255,
+            71,
+            179,
+            255
+          ],
+          [
+            255,
+            242,
+            0,
+            255
+          ]
+        ]
+      }
+    },
+    "nodes": [
+      "chest_body",
+      "socket_lid",
+      "chest_lid",
+      "socket_treasure",
+      "treasure_chest"
+    ],
+    "animation": {
+      "name": "open",
+      "seconds": 1,
+      "samples": 31,
+      "fps": 30,
+      "channel": "chest_lid.rotation",
+      "final_degrees": 100.00001221859173
+    },
+    "checks": {
+      "budget": true,
+      "legal_names": true,
+      "embedded_pbr_maps": true,
+      "emission_only_gold": true,
+      "finite_geometry": true,
+      "palette_uvs": true
+    }
+  },
+  "buried": {
+    "bytes": 33884,
+    "sha256": "a2633775e6f7db7cd839b550f7076c6c4a269bc537ffb0ed8604e3ce06a0c6dd",
+    "triangles": 252,
+    "draw_calls": 1,
+    "materials": 1,
+    "embedded_images": {
+      "chest_emission": {
+        "size": [
+          128,
+          128
+        ],
+        "palette": [
+          [
+            0,
+            0,
+            0,
+            255
+          ],
+          [
+            0,
+            0,
+            0,
+            255
+          ],
+          [
+            255,
+            122,
+            17,
+            255
+          ],
+          [
+            0,
+            0,
+            0,
+            255
+          ]
+        ]
+      },
+      "chest_surface": {
+        "size": [
+          128,
+          128
+        ],
+        "palette": [
+          [
+            255,
+            204,
+            0,
+            255
+          ],
+          [
+            255,
+            94,
+            173,
+            255
+          ],
+          [
+            255,
+            71,
+            179,
+            255
+          ],
+          [
+            255,
+            242,
+            0,
+            255
+          ]
+        ]
+      }
+    },
+    "nodes": [
+      "buried_mesh",
+      "socket_glint",
+      "buried_treasure"
+    ],
+    "checks": {
+      "budget": true,
+      "legal_names": true,
+      "embedded_pbr_maps": true,
+      "emission_only_gold": true,
+      "finite_geometry": true,
+      "palette_uvs": true
+    }
+  },
+  "decal": {
+    "size": [
+      512,
+      512
+    ],
+    "bytes": 282112,
+    "sha256": "6f51b91fa18a5c342ab7e21173b540409567be8885228e3f9de35d305e5e4b42",
+    "alpha_range": [
+      0,
+      245
+    ],
+    "checks": {
+      "transparent_edges": true,
+      "opaque_center": true,
+      "soft_alpha": true
+    }
+  }
+}

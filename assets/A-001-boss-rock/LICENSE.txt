@@ -1,0 +1,12 @@
+SPDX-License-Identifier: CC0-1.0
+
+All original geometry and custom source in this asset directory are dedicated
+to the public domain under the Creative Commons CC0 1.0 Universal dedication:
+https://creativecommons.org/publicdomain/zero/1.0/
+
+To the extent legally possible, the author waives copyright and related rights
+in this original work. The work is provided without warranty.
+
+This dedication does not relicense third-party tools or libraries. Three.js
+and its add-ons retain their upstream MIT license; they are loaded from a CDN
+and are not bundled in this delivery.

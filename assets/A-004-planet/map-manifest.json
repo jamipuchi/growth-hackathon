@@ -1,0 +1,23 @@
+{
+  "size": [
+    2048,
+    1024
+  ],
+  "seed": 7304,
+  "data_channels": {
+    "R": "night light intensity",
+    "G": "cloud opacity",
+    "B": "land mask"
+  },
+  "sources": "Original hand-authored continent outlines and procedural noise; no external images",
+  "files": {
+    "planet_color.png": {
+      "bytes": 591434,
+      "sha256": "3266ed75e88d272c8633fd2be3f9bfa1f88b1b0b35267dd24c7172798190914e"
+    },
+    "planet_data.png": {
+      "bytes": 792191,
+      "sha256": "4cdc30782d2397aa13f0cf8630809946e374cd383088b03421597dbcba73fd09"
+    }
+  }
+}

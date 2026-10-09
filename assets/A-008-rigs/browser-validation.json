@@ -1,0 +1,854 @@
+{
+  "three": "160",
+  "checks": {
+    "names": true,
+    "sockets": true,
+    "referenceHeight": true,
+    "clipCount": true,
+    "rotationOnly": true,
+    "proportionSamples": true,
+    "limbLengths": true,
+    "asymmetricLengths": true,
+    "independentSkeletons": true,
+    "rootOrientationIndependent": true,
+    "oneShotReplay": true,
+    "explorerCompatibility": true,
+    "rendererBudget": true
+  },
+  "proportions": {
+    "1": {
+      "restSize": [
+        1.6640001728534581,
+        1.8000001153998544,
+        0.4199999811984586
+      ],
+      "clips": {
+        "idle": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.009102771651409,
+          "samples": 73
+        },
+        "walk": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.190237546217492,
+          "samples": 37
+        },
+        "run": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.235414668363512,
+          "samples": 25
+        },
+        "sprint": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.196492665506211,
+          "samples": 19
+        },
+        "jump": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.087628989319346,
+          "samples": 28
+        },
+        "fall": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.278052948458891,
+          "samples": 37
+        },
+        "land": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.005044106652248,
+          "samples": 13
+        },
+        "crouch": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.8470981300396787,
+          "samples": 49
+        },
+        "roll": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.003630629617387,
+          "samples": 31
+        },
+        "aim": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.160993503615915,
+          "samples": 49
+        },
+        "shoot": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.1607145426380177,
+          "samples": 13
+        },
+        "swing": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.2353439314553114,
+          "samples": 25
+        },
+        "throw": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.2564348761731754,
+          "samples": 31
+        },
+        "block": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.0260008817978754,
+          "samples": 37
+        },
+        "dig": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.0438055362290233,
+          "samples": 43
+        },
+        "climb": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.2509469931036294,
+          "samples": 49
+        },
+        "swim": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.148104341798246,
+          "samples": 49
+        },
+        "glide": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.5156400142825173,
+          "samples": 61
+        },
+        "sit": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.8054020569903488,
+          "samples": 61
+        },
+        "push": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.092665103900469,
+          "samples": 37
+        },
+        "pick_up": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.999097196481572,
+          "samples": 43
+        },
+        "kneel": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.971074006901333,
+          "samples": 61
+        },
+        "drink": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.056655374201891,
+          "samples": 61
+        },
+        "cast": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.253824794864618,
+          "samples": 37
+        },
+        "look": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.0054698898078507,
+          "samples": 73
+        },
+        "read": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.0116469475082126,
+          "samples": 73
+        },
+        "flip": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.24060580468892,
+          "samples": 37
+        },
+        "hit": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.104644301044555,
+          "samples": 16
+        },
+        "die": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.2832530553863495,
+          "samples": 43
+        },
+        "celebrate": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.2663351394851547,
+          "samples": 61
+        },
+        "wave": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.0729253949640283,
+          "samples": 61
+        },
+        "step_out": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.1124524967647806,
+          "samples": 49
+        },
+        "climb_in": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.1124524967647806,
+          "samples": 49
+        }
+      }
+    },
+    "0.7": {
+      "restSize": [
+        1.3999999761581419,
+        1.5870000720024109,
+        0.4200000017881393
+      ],
+      "clips": {
+        "idle": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.8006277393373655,
+          "samples": 73
+        },
+        "walk": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.910520133521395,
+          "samples": 37
+        },
+        "run": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.9289771656685855,
+          "samples": 25
+        },
+        "sprint": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.8982414719263279,
+          "samples": 19
+        },
+        "jump": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.84734430950898,
+          "samples": 28
+        },
+        "fall": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.9972948554039263,
+          "samples": 37
+        },
+        "land": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.795640102670691,
+          "samples": 13
+        },
+        "crouch": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.6949904765640778,
+          "samples": 49
+        },
+        "roll": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.796110774146013,
+          "samples": 31
+        },
+        "aim": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.904584468738011,
+          "samples": 49
+        },
+        "shoot": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.906442799655583,
+          "samples": 13
+        },
+        "swing": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.9504355037400443,
+          "samples": 25
+        },
+        "throw": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.9674283692861483,
+          "samples": 31
+        },
+        "block": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.8005253929554192,
+          "samples": 37
+        },
+        "dig": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.812927130308342,
+          "samples": 43
+        },
+        "climb": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.9770216211703857,
+          "samples": 49
+        },
+        "swim": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.8870033834955,
+          "samples": 49
+        },
+        "glide": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.1989384828814824,
+          "samples": 61
+        },
+        "sit": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.6584056549444386,
+          "samples": 61
+        },
+        "push": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.839834447275995,
+          "samples": 37
+        },
+        "pick_up": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.7923723067353141,
+          "samples": 43
+        },
+        "kneel": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.7616714612304878,
+          "samples": 61
+        },
+        "drink": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.8263639566120464,
+          "samples": 61
+        },
+        "cast": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.9679692852227977,
+          "samples": 37
+        },
+        "look": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.7982847255450154,
+          "samples": 73
+        },
+        "read": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.790220759189263,
+          "samples": 73
+        },
+        "flip": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.9715589279547714,
+          "samples": 37
+        },
+        "hit": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.8760076089319095,
+          "samples": 16
+        },
+        "die": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.0259904555105446,
+          "samples": 43
+        },
+        "celebrate": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.9930757692141712,
+          "samples": 61
+        },
+        "wave": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.8485343351906394,
+          "samples": 61
+        },
+        "step_out": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.868062629659543,
+          "samples": 49
+        },
+        "climb_in": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.868062629659543,
+          "samples": 49
+        }
+      }
+    },
+    "1.4": {
+      "restSize": [
+        2.0160000324249268,
+        2.0840000808238983,
+        0.4200000017881393
+      ],
+      "clips": {
+        "idle": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.289870515053388,
+          "samples": 73
+        },
+        "walk": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.573516872063395,
+          "samples": 37
+        },
+        "run": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.661165225350722,
+          "samples": 25
+        },
+        "sprint": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.6235928025825013,
+          "samples": 19
+        },
+        "jump": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.409786514486406,
+          "samples": 28
+        },
+        "fall": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.663281808420798,
+          "samples": 37
+        },
+        "land": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.2962224916999396,
+          "samples": 13
+        },
+        "crouch": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.077112300304222,
+          "samples": 49
+        },
+        "roll": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.2832044810557606,
+          "samples": 31
+        },
+        "aim": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.5162112684349602,
+          "samples": 49
+        },
+        "shoot": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.515947582362016,
+          "samples": 13
+        },
+        "swing": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.618241743485103,
+          "samples": 25
+        },
+        "throw": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.6441939647211856,
+          "samples": 31
+        },
+        "block": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.3280402090585945,
+          "samples": 37
+        },
+        "dig": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.362050266285446,
+          "samples": 43
+        },
+        "climb": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.625299425605138,
+          "samples": 49
+        },
+        "swim": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.544072084261246,
+          "samples": 49
+        },
+        "glide": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.9438980518217095,
+          "samples": 61
+        },
+        "sit": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.003704616182398,
+          "samples": 61
+        },
+        "push": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.43350898812768,
+          "samples": 37
+        },
+        "pick_up": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.2787337859748313,
+          "samples": 43
+        },
+        "kneel": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.256772862723294,
+          "samples": 61
+        },
+        "drink": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.3649989186797122,
+          "samples": 61
+        },
+        "cast": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.6369169901558873,
+          "samples": 37
+        },
+        "look": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.28467965695691,
+          "samples": 73
+        },
+        "read": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.3090805774418723,
+          "samples": 73
+        },
+        "flip": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.6018333096717994,
+          "samples": 37
+        },
+        "hit": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.4162703632471416,
+          "samples": 16
+        },
+        "die": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.626583796569345,
+          "samples": 43
+        },
+        "celebrate": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.6376503974720196,
+          "samples": 61
+        },
+        "wave": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.4463125702454622,
+          "samples": 61
+        },
+        "step_out": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.4392225712629902,
+          "samples": 49
+        },
+        "climb_in": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.4392225712629902,
+          "samples": 49
+        }
+      }
+    },
+    "asymmetric": {
+      "restSize": [
+        1.7080000042915344,
+        1.8460000716149807,
+        0.4200000017881393
+      ],
+      "clips": {
+        "idle": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.0560414868737795,
+          "samples": 73
+        },
+        "walk": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.276623365479426,
+          "samples": 37
+        },
+        "run": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.3112357527914758,
+          "samples": 25
+        },
+        "sprint": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.2575831978876724,
+          "samples": 19
+        },
+        "jump": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.1397494828001755,
+          "samples": 28
+        },
+        "fall": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.349370858283973,
+          "samples": 37
+        },
+        "land": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.0568008508688798,
+          "samples": 13
+        },
+        "crouch": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.9326315819878974,
+          "samples": 49
+        },
+        "roll": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.0505777109761625,
+          "samples": 31
+        },
+        "aim": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.2001435812375347,
+          "samples": 49
+        },
+        "shoot": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.202295682121014,
+          "samples": 13
+        },
+        "swing": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.286603669993134,
+          "samples": 25
+        },
+        "throw": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.3080260568715167,
+          "samples": 31
+        },
+        "block": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.076467762848937,
+          "samples": 37
+        },
+        "dig": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.0954685588078044,
+          "samples": 43
+        },
+        "climb": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.34428875934815,
+          "samples": 49
+        },
+        "swim": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.2046773597338216,
+          "samples": 49
+        },
+        "glide": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.5944847707949332,
+          "samples": 61
+        },
+        "sit": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 1.9836256986217147,
+          "samples": 61
+        },
+        "push": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.1270508636123817,
+          "samples": 37
+        },
+        "pick_up": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.0459449830699943,
+          "samples": 43
+        },
+        "kneel": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.022217226788706,
+          "samples": 61
+        },
+        "drink": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.103905661519241,
+          "samples": 61
+        },
+        "cast": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.295849687794382,
+          "samples": 37
+        },
+        "look": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.0535597083000345,
+          "samples": 73
+        },
+        "read": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.065153309056529,
+          "samples": 73
+        },
+        "flip": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.3086744611793564,
+          "samples": 37
+        },
+        "hit": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.1527606457064072,
+          "samples": 16
+        },
+        "die": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.3429392714227073,
+          "samples": 43
+        },
+        "celebrate": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.32426394916689,
+          "samples": 61
+        },
+        "wave": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.126043041678562,
+          "samples": 61
+        },
+        "step_out": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.112824042384145,
+          "samples": 49
+        },
+        "climb_in": {
+          "matricesFinite": true,
+          "maxBoundingDiagonal": 2.112824042384145,
+          "samples": 49
+        }
+      }
+    }
+  },
+  "explorer": {
+    "idle": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.0753822461068028
+    },
+    "walk": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.239431320880369
+    },
+    "run": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.283489565721585
+    },
+    "sprint": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.2455527510379105
+    },
+    "jump": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.1432576455128793
+    },
+    "fall": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.3303887950800255
+    },
+    "land": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.080716797316425
+    },
+    "crouch": {
+      "finite": true,
+      "maxBoundingDiagonal": 1.936563068563634
+    },
+    "roll": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.0722149072218703
+    },
+    "aim": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.230896711866621
+    },
+    "shoot": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.2308610182718427
+    },
+    "swing": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.267932479980282
+    },
+    "throw": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.287556658272782
+    },
+    "block": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.113907039612963
+    },
+    "dig": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.1212311219483313
+    },
+    "climb": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.309518375827128
+    },
+    "swim": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.2262317180297435
+    },
+    "glide": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.567229084244573
+    },
+    "sit": {
+      "finite": true,
+      "maxBoundingDiagonal": 1.8976436419145062
+    },
+    "push": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.155840744380233
+    },
+    "pick_up": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.0689795367410113
+    },
+    "kneel": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.0017753901646262
+    },
+    "drink": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.1245505127440625
+    },
+    "cast": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.2863269751315882
+    },
+    "look": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.0730643267980526
+    },
+    "read": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.0926524390826566
+    },
+    "flip": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.0900909641460985
+    },
+    "hit": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.1434923270885617
+    },
+    "die": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.3581233798309578
+    },
+    "celebrate": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.2459022273833282
+    },
+    "wave": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.1387949749796786
+    },
+    "step_out": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.1904499733790335
+    },
+    "climb_in": {
+      "finite": true,
+      "maxBoundingDiagonal": 2.1904499734493537
+    }
+  },
+  "renderer": {
+    "calls": 1,
+    "triangles": 4068
+  }
+}

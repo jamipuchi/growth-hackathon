@@ -1,0 +1,77 @@
+{
+  "three": "160",
+  "checks": {
+    "budgets": true,
+    "shipSockets": true,
+    "explorerSockets": true,
+    "exactBones": true,
+    "clips": true,
+    "visor": true,
+    "standardMaterials": true,
+    "independentSkeletons": true,
+    "independentMaterials": true,
+    "restHeight": true,
+    "noExplodedPoses": true,
+    "retainedSocketParents": true,
+    "replayOneShot": true,
+    "selfieReplacement": true,
+    "selfieColorSpace": true
+  },
+  "poses": {
+    "idle": {
+      "duration": 2,
+      "finite": true,
+      "maxBoundingDiagonal": 2.1671424712131526
+    },
+    "walk": {
+      "duration": 1.2000000476837158,
+      "finite": true,
+      "maxBoundingDiagonal": 2.3269998701180725
+    },
+    "run": {
+      "duration": 0.800000011920929,
+      "finite": true,
+      "maxBoundingDiagonal": 2.5038855192516545
+    },
+    "jump": {
+      "duration": 0.8999999761581421,
+      "finite": true,
+      "maxBoundingDiagonal": 2.493500302724676
+    },
+    "fall": {
+      "duration": 1,
+      "finite": true,
+      "maxBoundingDiagonal": 2.424851428603126
+    },
+    "land": {
+      "duration": 0.30000001192092896,
+      "finite": true,
+      "maxBoundingDiagonal": 2.1590229948578927
+    },
+    "dig": {
+      "duration": 1.2000000476837158,
+      "finite": true,
+      "maxBoundingDiagonal": 2.127236471789074
+    },
+    "celebrate": {
+      "duration": 2,
+      "finite": true,
+      "maxBoundingDiagonal": 2.3051905570167124
+    }
+  },
+  "ship": {
+    "triangles": 1328,
+    "calls": 3,
+    "skinnedPrimitives": 0
+  },
+  "explorer": {
+    "triangles": 4552,
+    "calls": 3,
+    "skinnedPrimitives": 3
+  },
+  "restBounds": [
+    1.6500001138448563,
+    1.8000000131384206,
+    0.6009999811649323
+  ]
+}

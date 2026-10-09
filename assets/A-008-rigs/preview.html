@@ -1,0 +1,75 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>A-008 · Motion studio</title><link rel="icon" href="data:,">
+<style>*{box-sizing:border-box}body{margin:0;background:#121e25;color:#e7e3d6;font:13px system-ui;overflow:hidden}canvas{display:block}header{position:absolute;inset:20px 24px auto;z-index:2;display:flex;gap:16px;justify-content:space-between}small{font:11px monospace;letter-spacing:2px;color:#a7cbd0}h1{font-size:25px;font-weight:500;margin:7px 0}p{margin:0;color:#a2afb7;font-size:12px}.controls{display:flex;align-items:start;flex-wrap:wrap;gap:6px;max-width:680px}button,select{background:#233943;border:1px solid #506873;border-radius:5px;padding:8px;color:#eee6d0;cursor:pointer}input{width:130px}footer{position:absolute;bottom:17px;left:24px;right:24px;font:11px monospace;color:#9cbdc3}#labels{position:absolute;inset:145px 3% 70px;display:none;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;pointer-events:none}#labels div{display:flex;align-items:end;justify-content:center;font:12px monospace;color:#c2d9dc}#scales{position:absolute;bottom:21%;left:15%;right:15%;display:flex;justify-content:space-around;color:#a7cbd0;font:12px monospace}@media(max-width:700px){header{display:block;left:18px;right:18px}h1{font-size:22px}.controls{margin-top:14px}footer{left:18px;font-size:10px}#scales{display:none}}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<header><div><small>SPACE PARTY / ASSET A-008</small><h1>Thirty-three ways to move.</h1><p>19 bones · rotation-only clips · 0.7× / 1.0× / 1.4× limbs</p></div><div class="controls"><select id="clip" aria-label="Animation"></select><select id="scale" aria-label="Proportions"><option value="all">All proportions</option><option value="0.7">0.7× limbs</option><option value="1">1.0× limbs</option><option value="1.4">1.4× limbs</option></select><button id="play">Pause</button><input id="phase" type="range" min="0" max="1" step=".01" value="0" aria-label="Animation phase"><button id="sheet">Pose sheets</button><button id="next">Next sheet</button><button id="angle">Side view</button></div></header>
+<div id="labels"></div><div id="scales"><span>0.7×</span><span>1.0×</span><span>1.4×</span></div><footer id="status">Loading clips and validating proportions…</footer>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {createPerson,createPersonAnimator,retargetPersonClips} from './person.js';
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.toneMapping=THREE.ACESFilmicToneMapping;document.body.prepend(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#121e25');scene.add(new THREE.HemisphereLight(0xd9edee,0x343449,2));
+const key=new THREE.DirectionalLight(0xffe3ba,3);key.position.set(-4,7,-4);scene.add(key);const rim=new THREE.DirectionalLight(0x75bbd7,2);rim.position.set(4,4,4);scene.add(rim);
+const camera=new THREE.PerspectiveCamera(36,1,.05,100),report={three:THREE.REVISION,checks:{},proportions:{},explorer:{}};
+const meta=await (await fetch('./person-clips.json')).json(),names=Object.keys(meta.clips),scales=[.7,1,1.4];
+document.querySelector('#clip').innerHTML=names.map(n=>`<option>${n}</option>`).join('');
+const live=await Promise.all(scales.map(limbScale=>createPerson({limbScale,animation:null})));live.forEach(a=>scene.add(a.object3d));
+function sample(asset){
+ asset.object3d.updateMatrixWorld(true);const box=new THREE.Box3(),point=new THREE.Vector3();let calls=0,tris=0;
+ asset.object3d.traverse(o=>{if(!o.isMesh)return;if(o.isSkinnedMesh)o.skeleton.update();calls++;tris+=o.geometry.index.count/3;
+ for(let i=0;i<o.geometry.attributes.position.count;i++){o.getVertexPosition(i,point).applyMatrix4(o.matrixWorld);if(!Number.isFinite(point.x+point.y+point.z))throw new Error('Invalid posed vertex');box.expandByPoint(point);}});return {box,calls,tris};
+}
+const basis=live[1];report.checks.names=basis.bones.size===19&&meta.bones.every(n=>basis.bones.has(n));report.checks.sockets=['head','hand_l','hand_r','back','feet'].every(n=>basis.sockets[n]);
+report.checks.referenceHeight=Math.abs(sample(basis).box.getSize(new THREE.Vector3()).y-1.8)<.005;
+report.checks.clipCount=basis.clips.length===33;report.checks.rotationOnly=basis.clips.every(c=>c.tracks.length===19&&c.tracks.every(t=>t.name.endsWith('.quaternion')));
+const asymmetric=await createPerson({animation:null,limbScales:{upper_arm_l:.7,fore_arm_l:1.4,upper_arm_r:1.4,fore_arm_r:.7,thigh_l:.7,shin_l:1.4,thigh_r:1.4,shin_r:.7}});
+for(const asset of [...live,asymmetric]){
+ const id=asset===asymmetric?'asymmetric':asset.limbScale;
+ const rest=sample(asset);report.proportions[id]={restSize:rest.box.getSize(new THREE.Vector3()).toArray(),clips:{}};
+ for(const name of names){
+  const clip=asset.clips.find(c=>c.name===name);let maxSize=0;
+  // Every authored frame updates all joints; full vertex bounds at nine phases.
+  let matricesFinite=true;
+  asset.play(name,{fade:0,loop:false,restart:true});
+  for(let f=0;f<=Math.round(clip.duration*30);f++){
+   asset.action.reset().setLoop(THREE.LoopOnce,1).play();asset.mixer.setTime(f/30);asset.object3d.updateMatrixWorld(true);
+   for(const bone of asset.bones.values())matricesFinite&&=bone.matrixWorld.elements.every(Number.isFinite);
+  }
+  for(const phase of [0,.125,.25,.375,.5,.625,.75,.875,1]){asset.action.reset().play();asset.mixer.setTime(clip.duration*phase);const posed=sample(asset);maxSize=Math.max(maxSize,posed.box.getSize(new THREE.Vector3()).length());}
+  report.proportions[id].clips[name]={matricesFinite,maxBoundingDiagonal:maxSize,samples:Math.round(clip.duration*30)+1};
+ }
+ asset.mixer.stopAllAction();
+}
+report.checks.proportionSamples=Object.values(report.proportions).every(p=>Object.values(p.clips).every(c=>c.matricesFinite&&c.maxBoundingDiagonal<4.5));
+report.checks.limbLengths=live.every(a=>Math.abs(a.bones.get('fore_arm_l').position.length()/.240000039-a.limbScale)<.0001&&Math.abs(a.bones.get('shin_l').position.length()/.370000005-a.limbScale)<.0001);
+report.checks.asymmetricLengths=Math.abs(asymmetric.bones.get('fore_arm_l').position.length()/.240000039-.7)<.0001&&Math.abs(asymmetric.bones.get('hand_l').position.length()/.199999988-1.4)<.0001;asymmetric.dispose();
+report.checks.independentSkeletons=live[0].bones.get('head')!==live[1].bones.get('head');
+const standalone=await createPerson({animation:null});standalone.object3d.rotation.y=.8;const rotated=await retargetPersonClips(standalone.object3d);
+report.checks.rootOrientationIndependent=rotated.every((c,i)=>c.tracks.every((t,j)=>t.values.every((v,k)=>Math.abs(v-standalone.clips[i].tracks[j].values[k])<1e-5)));
+standalone.play('land',{fade:0});standalone.update(.7);standalone.play('land',{fade:0});standalone.update(.1);report.checks.oneShotReplay=standalone.action.isRunning()&&standalone.action.time<.11;standalone.dispose();
+const source=await new GLTFLoader().loadAsync('../A-009-defaults/explorer.glb');const explorerRoot=source.scene;const explorerAnimation=await createPersonAnimator(explorerRoot,{animation:null});
+for(const name of names){explorerAnimation.play(name,{fade:0,loop:false,restart:true});let largest=0;for(const phase of [0,.25,.5,.75,1]){explorerAnimation.action.reset().play();explorerAnimation.mixer.setTime(meta.clips[name].duration*phase);largest=Math.max(largest,sample({object3d:explorerRoot}).box.getSize(new THREE.Vector3()).length());}report.explorer[name]={finite:true,maxBoundingDiagonal:largest};}
+report.checks.explorerCompatibility=Object.values(report.explorer).every(c=>c.finite&&c.maxBoundingDiagonal<4.5);explorerAnimation.dispose();
+const explorerDisplay=await createPersonAnimator(explorerRoot,{animation:null});scene.add(explorerRoot);explorerRoot.traverse(o=>{if(o.isSkinnedMesh)o.frustumCulled=false;});
+const meshButton=document.createElement('button');meshButton.textContent='Explorer preview';document.querySelector('.controls').append(meshButton);
+const probeScene=new THREE.Scene();probeScene.add(basis.object3d);camera.position.set(0,1,-5);camera.lookAt(0,1,0);basis.play('idle',{fade:0});renderer.render(probeScene,camera);report.renderer={calls:renderer.info.render.calls,triangles:renderer.info.render.triangles};report.checks.rendererBudget=report.renderer.calls===1&&report.renderer.triangles===4068;scene.add(basis.object3d);
+const sheet=[];for(let i=0;i<12;i++){const a=await createPerson({limbScale:scales[i%3],animation:null});scene.add(a.object3d);sheet.push(a);}
+let mode='motion',page=0,clipName='idle',playing=true,side=false,last=null,phase=0,showExplorer=false;
+function seek(asset,name,t){asset.play(name,{fade:0,loop:false,restart:true});asset.mixer.setTime(meta.clips[name].duration*t);}
+function arrange(){
+ const selected=document.querySelector('#scale').value;const one=selected!=='all';live.forEach((a,i)=>{a.object3d.visible=mode==='motion'&&!showExplorer&&(!one||String(a.limbScale)===selected);a.object3d.position.set(one?0:(1-i)*1.9,0,0);a.play(clipName,{fade:0,loop:true,restart:true});});explorerRoot.visible=showExplorer&&mode==='motion';explorerDisplay.play(clipName,{fade:0,loop:true,restart:true});
+ sheet.forEach((a,i)=>{const group=Math.floor(i/3),name=names[page*4+group];a.object3d.visible=mode==='sheet'&&!!name;if(!name)return;a.object3d.position.set((group%2===0?2.65:-2.65)+(1-i%3)*1.35,group<2?2.85:0,0);const t=['die','step_out','climb_in'].includes(name)?.8:['jump','land','dig','swing','throw','cast'].includes(name)?.55:.28;seek(a,name,t);});
+ document.querySelector('#labels').style.display=mode==='sheet'?'grid':'none';document.querySelector('#labels').innerHTML=names.slice(page*4,page*4+4).map(n=>`<div>${n.toUpperCase()} · 0.7 / 1.0 / 1.4</div>`).join('');document.querySelector('#scales').style.visibility=mode==='motion'&&!one&&!showExplorer?'visible':'hidden';resize();
+}
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;const one=document.querySelector('#scale').value!=='all'||showExplorer;const d=mode==='sheet'?Math.max(11.5,15/camera.aspect):Math.max(one?3.7:6.3,(one?2.3:7.7)/camera.aspect);const y=mode==='sheet'?2.5:1.02;camera.position.set(side?d:.25,y+.2,side?-.25:-d);camera.lookAt(0,y,0);camera.updateProjectionMatrix();}
+document.querySelector('#clip').onchange=e=>{clipName=e.target.value;mode='motion';phase=0;arrange();};
+document.querySelector('#scale').onchange=arrange;
+document.querySelector('#play').onclick=e=>{playing=!playing;e.target.textContent=playing?'Pause':'Play';};
+document.querySelector('#phase').oninput=e=>{playing=false;document.querySelector('#play').textContent='Play';phase=Number(e.target.value);live.forEach(a=>seek(a,clipName,phase));seek(explorerDisplay,clipName,phase);};
+meshButton.onclick=()=>{showExplorer=!showExplorer;mode='motion';meshButton.textContent=showExplorer?'Reference preview':'Explorer preview';arrange();};
+document.querySelector('#sheet').onclick=()=>{mode=mode==='sheet'?'motion':'sheet';arrange();};
+document.querySelector('#next').onclick=()=>{mode='sheet';page=(page+1)%Math.ceil(names.length/4);arrange();};
+document.querySelector('#angle').onclick=e=>{side=!side;e.target.textContent=side?'Front view':'Side view';resize();};
+if(innerWidth<700)document.querySelector('#scale').value='1';addEventListener('resize',resize);window.assetReport=report;arrange();
+function frame(now){const dt=last===null?0:Math.max(0,Math.min(.1,(now-last)/1000));last=now;if(mode==='motion'&&playing){live.forEach(a=>a.update(dt));explorerDisplay.update(dt);phase=(phase+dt/meta.clips[clipName].duration)%1;document.querySelector('#phase').value=phase;}renderer.render(scene,camera);document.querySelector('#status').textContent=`${Object.values(report.checks).every(Boolean)?'PASS':'FAIL'} · r160 · 33 clips × 3 proportions + asymmetric test · ${showExplorer&&mode==='motion'?'4,552 triangles / 3 calls':'4,068 triangles / 1 call per person'} · ${mode==='sheet'?`sheet ${page+1}/9`:clipName} · CC0`;requestAnimationFrame(frame);}requestAnimationFrame(frame);
+</script></html>

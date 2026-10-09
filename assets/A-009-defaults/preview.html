@@ -1,0 +1,70 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>A-009 • Default crew review</title><link rel="icon" href="data:,">
+<style>
+*{box-sizing:border-box}body{margin:0;color:#e7e7de;background:#090e16;font:14px system-ui;overflow:hidden}canvas{display:block}header{position:absolute;left:28px;right:28px;top:22px;display:flex;justify-content:space-between;gap:16px;z-index:2}small{color:#84afb5;letter-spacing:2px;font:11px monospace}h1{font-size:25px;font-weight:500;margin:7px 0}p{color:#939ca9;font-size:12px;margin:0}button,select{padding:8px 10px;background:#1b2833;color:inherit;border:1px solid #344c5b;border-radius:5px;cursor:pointer}footer{position:absolute;bottom:18px;left:28px;right:28px;font:11px monospace;color:#9ca9b7}#pose-labels{position:absolute;inset:145px 3% 45px;display:none;grid-template-columns:repeat(4,1fr);grid-template-rows:1fr 1fr;pointer-events:none}#pose-labels div{display:flex;align-items:end;justify-content:center;font:12px monospace}body.poses #pose-labels{display:grid}@media(max-width:600px){header{left:18px;right:18px;display:block}h1{font-size:22px}.buttons{margin-top:12px;display:flex;flex-wrap:wrap;gap:5px}footer{left:18px;font-size:10px}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<header><div><small>SPACE PARTY / ASSET A-009</small><h1>Your fallback flight crew.</h1><p id="subtitle">3 m scout · 1.8 m explorer · eight starter clips</p></div><div class="buttons"><select id="clip" aria-label="Animation"></select> <button id="mode">All poses</button> <button id="rear">Rear view</button> <button id="selfie">Test selfie</button> <button id="single">Explorer close-up</button></div></header>
+<div id="pose-labels"></div><footer id="status">Loading the exported GLBs…</footer>
+<script type="module">
+import * as THREE from 'three';
+import {createDefaultShip,createDefaultExplorer} from './defaults.js';
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;document.body.prepend(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#090e16');
+const key=new THREE.DirectionalLight(0xffe8c9,3);key.position.set(-5,8,-5);scene.add(key);
+const rim=new THREE.DirectionalLight(0x5ba7cf,4);rim.position.set(5,3,5);scene.add(rim);scene.add(new THREE.HemisphereLight(0xc8d8df,0x33303b,1.25));
+const camera=new THREE.PerspectiveCamera(39,1,.05,100);
+const [ship,explorer]=await Promise.all([createDefaultShip(),createDefaultExplorer()]);scene.add(ship.object3d,explorer.object3d);
+ship.object3d.position.set(-1.5,1.25,0);ship.object3d.rotation.z=.10;explorer.object3d.position.set(1.2,0,0);
+const names=['idle','walk','run','jump','fall','land','dig','celebrate'];
+document.querySelector('#clip').innerHTML=names.map(n=>`<option>${n}</option>`).join('');
+document.querySelector('#clip').onchange=e=>{explorer.play(e.target.value,{fade:.12,loop:true});};
+const report={three:THREE.REVISION,checks:{},poses:{}};
+function info(root){let triangles=0,calls=0,skins=0;root.traverse(o=>{if(o.isMesh){triangles+=o.geometry.index.count/3;calls++;if(o.isSkinnedMesh)skins++;}});return{triangles,calls,skinnedPrimitives:skins};}
+report.ship=info(ship.object3d);report.explorer=info(explorer.object3d);
+report.checks.budgets=[report.ship,report.explorer].every(a=>a.triangles<=5000&&a.calls<=3);
+report.checks.shipSockets=['nose','wing_l','wing_r','back','belly','seat','engine_l','engine_r'].every(n=>ship.sockets[n]);
+report.checks.explorerSockets=['head','hand_l','hand_r','back','feet'].every(n=>explorer.sockets[n]);
+report.checks.exactBones=new Set(explorer.object3d.getObjectsByProperty('isBone',true).map(b=>b.name)).size===19;
+report.checks.clips=names.every(n=>explorer.clips.some(c=>c.name===n));
+report.checks.visor=explorer.materials.some(m=>m.name==='visor'&&m.map&&m.color.getHex()===0xffffff);
+const originalVisorMap=explorer.materials.find(m=>m.name==='visor').map;
+report.checks.standardMaterials=[...ship.materials,...explorer.materials].every(m=>m.isMeshStandardMaterial);
+const independent=await createDefaultExplorer({animation:null});
+const otherArm=independent.object3d.getObjectByName('upper_arm_l'),before=otherArm.quaternion.clone();
+explorer.play('run',{fade:0});explorer.update(.2);
+report.checks.independentSkeletons=otherArm.quaternion.equals(before)&&explorer.object3d.getObjectByName('upper_arm_l')!==otherArm;
+report.checks.independentMaterials=independent.materials.every(m=>!explorer.materials.includes(m));
+function bounds(asset){
+ const box=new THREE.Box3(),v=new THREE.Vector3();asset.object3d.updateMatrixWorld(true);
+ asset.object3d.traverse(o=>{if(!o.isMesh)return;if(o.isSkinnedMesh)o.skeleton.update();for(let i=0;i<o.geometry.attributes.position.count;i++){o.getVertexPosition(i,v).applyMatrix4(o.matrixWorld);if(!Number.isFinite(v.x+v.y+v.z))throw new Error('Nonfinite skinned position');box.expandByPoint(v);}});return box;
+}
+report.restBounds=bounds(independent).getSize(new THREE.Vector3()).toArray();report.checks.restHeight=Math.abs(report.restBounds[1]-1.8)<.015;
+const poses=[];
+for(let i=0;i<names.length;i++){
+ const name=names[i],asset=await createDefaultExplorer({animation:name});const clip=asset.clips.find(c=>c.name===name);
+ let largest=0;
+ for(const phase of [0,.25,.5,.75,1]){asset.mixer.setTime(clip.duration*phase);const box=bounds(asset);largest=Math.max(largest,box.getSize(new THREE.Vector3()).length());}
+ report.poses[name]={duration:clip.duration,finite:true,maxBoundingDiagonal:largest};
+ const phase=name==='celebrate'?.25:name==='jump'?.5:name==='dig'?.5:.25;asset.play(name,{fade:0,restart:true});asset.mixer.setTime(clip.duration*phase);
+ asset.object3d.position.set((1.5-i%4)*1.55,i<4?2.25:0,0);asset.object3d.visible=false;scene.add(asset.object3d);poses.push(asset);
+}
+report.checks.noExplodedPoses=Object.values(report.poses).every(p=>p.finite&&p.maxBoundingDiagonal<3.6);
+report.checks.retainedSocketParents=independent.sockets.hand_l.parent.name==='hand_l'&&independent.sockets.hand_r.parent.name==='hand_r';
+independent.play('jump',{fade:0});independent.update(1.1);const replay=independent.play('jump',{fade:0});independent.update(.15);report.checks.replayOneShot=replay.isRunning()&&replay.time<.2;
+independent.dispose();explorer.play('idle',{fade:0});
+document.querySelector('#pose-labels').innerHTML=names.map(n=>`<div>${n.toUpperCase()}</div>`).join('');
+let mode='crew',rear=false,selfie=false,last=null;
+const card=document.createElement('canvas');card.width=card.height=512;const ctx=card.getContext('2d');ctx.fillStyle='#ecdfbe';ctx.fillRect(0,0,512,512);ctx.fillStyle='#075a61';ctx.fillRect(0,0,256,512);ctx.fillStyle='#ffbc70';ctx.fillRect(256,0,256,512);ctx.font='bold 190px sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText('L',128,330);ctx.fillStyle='#30251b';ctx.fillText('R',384,330);ctx.font='bold 48px sans-serif';ctx.fillStyle='#fff';ctx.fillText('SELFIE TOP',256,70);const selfieTexture=new THREE.CanvasTexture(card);
+document.querySelector('#selfie').onclick=()=>{selfie=!selfie;if(selfie)explorer.setVisorTexture(selfieTexture);else explorer.resetVisor();report.checks.selfieReplacement=explorer.materials.find(m=>m.name==='visor').map===(selfie?selfieTexture:originalVisorMap);report.checks.selfieColorSpace=selfieTexture.colorSpace===THREE.SRGBColorSpace&&selfieTexture.flipY===false;};
+document.querySelector('#mode').onclick=()=>{mode=mode==='poses'?'crew':'poses';arrange();};
+document.querySelector('#rear').onclick=()=>{rear=!rear;resize();};
+document.querySelector('#single').onclick=()=>{mode=mode==='single'?'crew':'single';arrange();};
+function arrange(){ship.object3d.visible=mode==='crew';explorer.object3d.visible=mode!=='poses';explorer.object3d.position.x=mode==='single'?0:1.2;poses.forEach(p=>p.object3d.visible=mode==='poses');document.body.classList.toggle('poses',mode==='poses');document.querySelector('#mode').textContent=mode==='poses'?'Flight crew':'All poses';document.querySelector('#single').textContent=mode==='single'?'Flight crew':'Explorer close-up';resize();}
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;
+ if(mode==='poses'){camera.position.set(0,2.2,(rear?1:-1)*Math.max(8.6,9.8/camera.aspect));camera.lookAt(0,2.2,0);}
+ else if(mode==='single'){camera.position.set(.45,1.35,(rear?1:-1)*Math.max(2.8,1.75/camera.aspect));camera.lookAt(0,.96,0);}
+ else {camera.position.set(3.6,2.8,(rear?1:-1)*Math.max(6.4,7.4/camera.aspect));camera.lookAt(-.1,1.1,0);}
+ camera.updateProjectionMatrix();}
+addEventListener('resize',resize);arrange();window.assetReport=report;
+function frame(now){explorer.update(last===null?0:Math.max(0,Math.min((now-last)/1000,.1)));last=now;renderer.render(scene,camera);document.querySelector('#status').textContent=`${Object.values(report.checks).every(Boolean)?'PASS':'FAIL'} · r160 · ${renderer.info.render.calls} scene calls · 1,328 ship / 4,552 explorer triangles · original CC0`;requestAnimationFrame(frame);}requestAnimationFrame(frame);
+</script></html>

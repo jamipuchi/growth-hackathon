@@ -1,0 +1,9 @@
+Original Space Party A-008 person reference mesh, animation clips, colours,
+preview, helper and generation/validation source: CC0 1.0 Universal.
+
+To the extent possible under law, the authors have waived all copyright and
+related or neighboring rights to this original contribution.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+No external meshes, textures, images or motion-capture data were used.
+Blender and three.js/add-ons retain their respective upstream licenses.

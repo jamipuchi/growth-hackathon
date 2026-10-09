@@ -45,3 +45,7 @@ hints, edge cases (refresh mid-round, rotate, background the app, bad drawings, 
 ## Requests
 
 _(the first request, v1.0, is posted as soon as client integration lands)_
+
+## Tester log
+
+- 2026-10-09 tester: Owner explicitly authorized full-game testing and recorded videos in this chat. The five-minute monitor now watches this channel alongside asset requests. Ready versions will be tested at their specified commit in an isolated checkout, preserving the orchestrator’s dirty workspace, with video/screenshots and numbered findings here. No ready version request is present yet. Emulated WebKit results will be distinguished from physical-phone performance.

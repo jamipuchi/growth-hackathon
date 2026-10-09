@@ -1,0 +1,19 @@
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+22:18:56 | INFO: Starting glTF 2.0 export
+22:18:56 | INFO: Extracting primitive: ship_mesh_geometry
+22:18:56 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+22:18:56 | INFO: Primitives created: 3
+22:18:56 | INFO: Finished glTF 2.0 export in 0.010432958602905273 s
+
+22:18:56 | INFO: Starting glTF 2.0 export
+22:18:56 | INFO: Extracting primitive: explorer_mesh_geometry
+22:18:56 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+22:18:56 | INFO: Primitives created: 3
+22:18:56 | INFO: Finished glTF 2.0 export in 0.07115602493286133 s
+
+Info: Saved as "defaults_source.blend"
+DEFAULTS_EXPORTED {'ship_triangles': 1328, 'explorer_triangles': 4552, 'bones': 19, 'clips': ['idle', 'walk', 'run', 'jump', 'fall', 'land', 'dig', 'celebrate']}
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

@@ -1,0 +1,137 @@
+{
+  "three": "160",
+  "variants": {
+    "stone": [
+      {
+        "name": "stone_1",
+        "triangles": 80,
+        "radius": 0.9655367648084303
+      },
+      {
+        "name": "stone_2",
+        "triangles": 80,
+        "radius": 1.0159552605197015
+      },
+      {
+        "name": "stone_3",
+        "triangles": 80,
+        "radius": 1.01293380100648
+      }
+    ],
+    "iron": [
+      {
+        "name": "iron_1",
+        "triangles": 80,
+        "radius": 1.0292089561783815
+      },
+      {
+        "name": "iron_2",
+        "triangles": 80,
+        "radius": 1.0156442593326653
+      },
+      {
+        "name": "iron_3",
+        "triangles": 80,
+        "radius": 0.9927515750087841
+      }
+    ],
+    "volatile": [
+      {
+        "name": "volatile_1",
+        "triangles": 80,
+        "radius": 1.0157411990510217
+      },
+      {
+        "name": "volatile_2",
+        "triangles": 80,
+        "radius": 0.9900288322596031
+      },
+      {
+        "name": "volatile_3",
+        "triangles": 80,
+        "radius": 1.0233477017424932
+      }
+    ],
+    "crystal": [
+      {
+        "name": "crystal_1",
+        "triangles": 72,
+        "radius": 0.960978580341684
+      },
+      {
+        "name": "crystal_2",
+        "triangles": 72,
+        "radius": 0.9235011440804581
+      },
+      {
+        "name": "crystal_3",
+        "triangles": 72,
+        "radius": 0.9087360420713162
+      }
+    ],
+    "magnet": [
+      {
+        "name": "magnet_1",
+        "triangles": 80,
+        "radius": 0.9842993650155077
+      },
+      {
+        "name": "magnet_2",
+        "triangles": 80,
+        "radius": 0.9832917244465692
+      },
+      {
+        "name": "magnet_3",
+        "triangles": 80,
+        "radius": 1.0253075078887102
+      }
+    ],
+    "splitter": [
+      {
+        "name": "splitter_1",
+        "triangles": 44,
+        "radius": 0.9845209794761355
+      },
+      {
+        "name": "splitter_2",
+        "triangles": 44,
+        "radius": 0.9974462976188169
+      },
+      {
+        "name": "splitter_3",
+        "triangles": 44,
+        "radius": 0.9954104827318713
+      }
+    ]
+  },
+  "checks": {
+    "names": true,
+    "singleMaterialPerType": true,
+    "standardMaterials": true,
+    "meshBudget": true,
+    "batchedBudget": true,
+    "sixBatches": true,
+    "embeddedAtlas": true,
+    "crystalAlpha": true,
+    "volatileEmissive": true,
+    "deterministic": true,
+    "hide": true,
+    "actualSixDrawCalls": true
+  },
+  "field": {
+    "count": 200,
+    "drawCalls": 6,
+    "submittedTriangles": 43644,
+    "desktopFrameTiming": {
+      "samples": 180,
+      "medianMs": 8.30000000000291,
+      "p90Ms": 8.5,
+      "viewport": [
+        1440,
+        960
+      ],
+      "devicePixelRatio": 1,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    }
+  }
+}

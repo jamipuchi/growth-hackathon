@@ -1,0 +1,47 @@
+{
+  "boss": {
+    "bytes": 313516,
+    "sha256": "95109ed9163e4a7fac2330f3474789385f512d158fec0bcfbd48497f8d86ed19",
+    "textures": 0,
+    "states": {
+      "armour_intact": {
+        "triangles": 1440,
+        "draw_calls": 2
+      },
+      "armour_cracked": {
+        "triangles": 1236,
+        "draw_calls": 2
+      },
+      "armour_broken": {
+        "triangles": 1620,
+        "draw_calls": 4
+      }
+    }
+  },
+  "decoy": {
+    "bytes": 238100,
+    "sha256": "603de7f5577c8c58375492c570e153bae5901755aaaa1bff411ffaa52920ab54",
+    "textures": 0,
+    "states": {
+      "armour_intact": {
+        "triangles": 1440,
+        "draw_calls": 2
+      },
+      "armour_cracked": {
+        "triangles": 1236,
+        "draw_calls": 2
+      },
+      "armour_broken": {
+        "triangles": 654,
+        "draw_calls": 2
+      }
+    }
+  },
+  "checks": {
+    "shells_identical": true,
+    "embedded_buffers": true,
+    "no_decoders": true,
+    "names_and_sockets": true,
+    "within_budget": true
+  }
+}

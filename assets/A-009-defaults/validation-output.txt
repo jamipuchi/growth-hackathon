@@ -1,0 +1,93 @@
+{
+  "ship": {
+    "bytes": 142856,
+    "sha256": "1ddcb301aed073387135359fcf95b58ee2c95a4b984bbb25fa7e1ac12d3cdcbc",
+    "triangles": 1328,
+    "draw_calls": 3,
+    "materials": 3,
+    "textures": 0,
+    "sockets": [
+      "nose",
+      "wing_l",
+      "wing_r",
+      "back",
+      "belly",
+      "seat",
+      "engine_l",
+      "engine_r"
+    ],
+    "checks": {
+      "budgets": true,
+      "names": true,
+      "sockets": true,
+      "embedded_resources": true,
+      "vertex_paint": true
+    }
+  },
+  "explorer": {
+    "bytes": 813868,
+    "sha256": "fd380c1450b6e7eb0be0ca143e4cc63052652b9d67cd4437c24b0ef131b357ec",
+    "triangles": 4552,
+    "draw_calls": 3,
+    "materials": 3,
+    "textures": 1,
+    "sockets": [
+      "head",
+      "hand_l",
+      "hand_r",
+      "back",
+      "feet"
+    ],
+    "bones": 19,
+    "max_influences": 2,
+    "animations": {
+      "celebrate": {
+        "duration": 2.0,
+        "channels": 20,
+        "loop": true
+      },
+      "dig": {
+        "duration": 1.2,
+        "channels": 20,
+        "loop": true
+      },
+      "fall": {
+        "duration": 1.0,
+        "channels": 20,
+        "loop": true
+      },
+      "idle": {
+        "duration": 2.0,
+        "channels": 20,
+        "loop": true
+      },
+      "jump": {
+        "duration": 0.9,
+        "channels": 20,
+        "loop": false
+      },
+      "land": {
+        "duration": 0.3,
+        "channels": 20,
+        "loop": false
+      },
+      "run": {
+        "duration": 0.8,
+        "channels": 20,
+        "loop": true
+      },
+      "walk": {
+        "duration": 1.2,
+        "channels": 20,
+        "loop": true
+      }
+    },
+    "checks": {
+      "budgets": true,
+      "names": true,
+      "sockets": true,
+      "embedded_resources": true,
+      "vertex_paint": true
+    }
+  }
+}

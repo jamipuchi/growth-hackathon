@@ -1,0 +1,87 @@
+{
+  "three": "160",
+  "seed": 73,
+  "creationMs": 15.900000005960464,
+  "checks": {
+    "maps": true,
+    "pbr": true,
+    "radius": true,
+    "names": true,
+    "noShadows": true,
+    "noReflection": true,
+    "budget": true,
+    "locked": true,
+    "shaders": true,
+    "deterministic": true,
+    "disposal": true,
+    "landingSocket": true,
+    "socketTransforms": true,
+    "finiteGeometry": true,
+    "nightMask": true,
+    "cloudMotion": true,
+    "landAtSocket": true
+  },
+  "shaderErrors": [],
+  "maps": {
+    "color": {
+      "width": 2048,
+      "height": 1024,
+      "colorSpace": "srgb"
+    },
+    "data": {
+      "width": 2048,
+      "height": 1024,
+      "colorSpace": ""
+    }
+  },
+  "renderInvocations": 1,
+  "unlocked": {
+    "stats": {
+      "triangles": 13760,
+      "calls": 3,
+      "radius": 200,
+      "unlocked": true,
+      "textures": 3,
+      "reflectionPasses": 0
+    },
+    "actual": {
+      "triangles": 13760,
+      "calls": 3
+    }
+  },
+  "locked": {
+    "stats": {
+      "triangles": 12992,
+      "calls": 2,
+      "radius": 200,
+      "unlocked": false,
+      "textures": 3,
+      "reflectionPasses": 0
+    },
+    "actual": {
+      "triangles": 12992,
+      "calls": 2
+    }
+  },
+  "landing": {
+    "position": [
+      55.51902096844748,
+      -28.30780873527729,
+      -193.61783563327023
+    ],
+    "direction": [
+      0.27295487201793256,
+      -0.13917310096006535,
+      -0.9519067631920858
+    ],
+    "distance": 203.4
+  },
+  "cityMask": {
+    "dayWarmPixels": 0,
+    "nightWarmPixels": 1339
+  },
+  "cloudMotion": {
+    "elapsedSeconds": 120,
+    "changedPixels": 17050
+  }
+}

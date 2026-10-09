@@ -1,0 +1,286 @@
+{
+  "bytes": 1179940,
+  "sha256": "f4b4f58c8a0433019eade256dd99d710e9f2d88920fbc7cf120983772bc84827",
+  "triangles": 4068,
+  "draw_calls": 1,
+  "textures": 0,
+  "bones": 19,
+  "max_influences": 1,
+  "clips": {
+    "aim": {
+      "duration": 1.6,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 49,
+      "channels": 19
+    },
+    "block": {
+      "duration": 1.2,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 37,
+      "channels": 19
+    },
+    "cast": {
+      "duration": 1.2,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 37,
+      "channels": 19
+    },
+    "celebrate": {
+      "duration": 2.0,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 61,
+      "channels": 19
+    },
+    "climb": {
+      "duration": 1.6,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 49,
+      "channels": 19
+    },
+    "climb_in": {
+      "duration": 1.6,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 49,
+      "channels": 19
+    },
+    "crouch": {
+      "duration": 1.6,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 49,
+      "channels": 19
+    },
+    "die": {
+      "duration": 1.4,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 43,
+      "channels": 19
+    },
+    "dig": {
+      "duration": 1.4,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 43,
+      "channels": 19
+    },
+    "drink": {
+      "duration": 2.0,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 61,
+      "channels": 19
+    },
+    "fall": {
+      "duration": 1.2,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 37,
+      "channels": 19
+    },
+    "flip": {
+      "duration": 1.2,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 37,
+      "channels": 19
+    },
+    "glide": {
+      "duration": 2.0,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 61,
+      "channels": 19
+    },
+    "hit": {
+      "duration": 0.5,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 16,
+      "channels": 19
+    },
+    "idle": {
+      "duration": 2.4,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 73,
+      "channels": 19
+    },
+    "jump": {
+      "duration": 0.9,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 28,
+      "channels": 19
+    },
+    "kneel": {
+      "duration": 2.0,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 61,
+      "channels": 19
+    },
+    "land": {
+      "duration": 0.4,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 13,
+      "channels": 19
+    },
+    "look": {
+      "duration": 2.4,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 73,
+      "channels": 19
+    },
+    "pick_up": {
+      "duration": 1.4,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 43,
+      "channels": 19
+    },
+    "push": {
+      "duration": 1.2,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 37,
+      "channels": 19
+    },
+    "read": {
+      "duration": 2.4,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 73,
+      "channels": 19
+    },
+    "roll": {
+      "duration": 1.0,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 31,
+      "channels": 19
+    },
+    "run": {
+      "duration": 0.8,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 25,
+      "channels": 19
+    },
+    "shoot": {
+      "duration": 0.4,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 13,
+      "channels": 19
+    },
+    "sit": {
+      "duration": 2.0,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 61,
+      "channels": 19
+    },
+    "sprint": {
+      "duration": 0.6,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 19,
+      "channels": 19
+    },
+    "step_out": {
+      "duration": 1.6,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 49,
+      "channels": 19
+    },
+    "swim": {
+      "duration": 1.6,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 49,
+      "channels": 19
+    },
+    "swing": {
+      "duration": 0.8,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 25,
+      "channels": 19
+    },
+    "throw": {
+      "duration": 1.0,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 31,
+      "channels": 19
+    },
+    "walk": {
+      "duration": 1.2,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 37,
+      "channels": 19
+    },
+    "wave": {
+      "duration": 2.0,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only",
+      "samples": 61,
+      "channels": 19
+    }
+  },
+  "checks": {
+    "bone_hierarchy": true,
+    "sockets": true,
+    "rotation_only": true,
+    "all_33_clips": true,
+    "thirty_fps": true,
+    "loop_endpoints": true,
+    "budget": true,
+    "self_contained": true,
+    "finite_normalized_weights": true
+  }
+}

@@ -1,0 +1,66 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A-002 • Rock field review</title><link rel="icon" href="data:,">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#090b12;color:#ece4d5;font:14px system-ui;overflow:hidden}canvas{display:block}header{position:absolute;top:22px;left:28px;right:28px;display:flex;justify-content:space-between;gap:20px;z-index:1}h1{font-size:25px;font-weight:500;margin:8px 0}small{color:#b19976;letter-spacing:2px;font:11px monospace}p{color:#8f96a5;font-size:12px;margin:0}button{padding:8px 12px;background:#202632;border:1px solid #414857;color:inherit;border-radius:5px;cursor:pointer}#names{position:absolute;inset:150px 1.5% auto;display:grid;grid-template-columns:repeat(6,1fr);text-align:center;letter-spacing:1px;font:12px monospace;pointer-events:none}footer{position:absolute;left:28px;right:28px;bottom:20px;font:11px monospace;color:#a4a9b4}body.single #names{display:none}@media(max-width:600px){header{left:18px;right:18px;display:block}h1{font-size:22px}header button{margin-top:12px;padding:8px}footer{left:18px;font-size:10px}#names{font-size:8px}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<header><div><small>SPACE PARTY / ASSET A-002</small><h1>Six kinds of trouble.</h1><p id="subtitle">Three variants each · shared atlases · six draw calls</p></div><div><button id="field">200 rocks</button> <button id="phone">50 m view</button> <button id="next" hidden>Next type</button> <button id="variant" hidden>Next variant</button></div></header>
+<div id="names"></div><footer id="status">Loading rocks.glb…</footer>
+<script type="module">
+import * as THREE from 'three';
+import { loadRocks, createRockField, ROCK_TYPES } from './rocks.js';
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.4;document.body.prepend(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#090b12');
+const key=new THREE.DirectionalLight(0xffe0b3,4);key.position.set(-20,45,50);scene.add(key);
+const rim=new THREE.DirectionalLight(0x8cadff,3);rim.position.set(30,10,-25);scene.add(rim);
+scene.add(new THREE.HemisphereLight(0xb8c4df,0x3b2b1b,2));
+const camera=new THREE.PerspectiveCamera(44,1,.1,1000);
+const templates=await loadRocks();
+const galleryRecords=[];
+for(let i=0;i<6;i++)for(let v=1;v<=3;v++)galleryRecords.push({id:galleryRecords.length,type:ROCK_TYPES[i],variant:v,position:[(i-2.5)*15,(2-v)*16,0],radius:5});
+const gallery=createRockField({templates,rocks:galleryRecords});scene.add(gallery.object3d);
+const fieldRecords=Array.from({length:200},(_,i)=>({id:i,type:ROCK_TYPES[i%6],position:[((i%20)-9.5)*4.6,(Math.floor(i/20)-4.5)*4.6,-((i*7)%11)],radius:1.1+((i*17)%9)/12}));
+const field=createRockField({templates,rocks:fieldRecords,seed:2026});field.object3d.visible=false;scene.add(field.object3d);
+const report={three:THREE.REVISION,variants:{},checks:{},field:{count:200}};
+for(const t of ROCK_TYPES){report.variants[t]=templates[t].map(v=>({name:v.name,triangles:v.geometry.index.count/3,radius:v.geometry.boundingSphere.radius}));}
+report.checks.names=ROCK_TYPES.every(t=>templates[t].every((v,i)=>v.name===`${t}_${i+1}`));
+report.checks.singleMaterialPerType=ROCK_TYPES.every(t=>templates[t].every(v=>v.material===templates[t][0].material));
+report.checks.standardMaterials=ROCK_TYPES.every(t=>templates[t][0].material.isMeshStandardMaterial);
+report.checks.meshBudget=Object.values(report.variants).flat().every(v=>v.triangles<=300);
+report.checks.batchedBudget=Object.values(field.batches).every(b=>b.geometry.index.count/3<=300);
+report.checks.sixBatches=Object.keys(field.batches).length===6;
+report.checks.embeddedAtlas=ROCK_TYPES.every(t=>templates[t][0].material.map.image.width===512&&templates[t][0].material.map.image.height===512);
+report.checks.crystalAlpha=templates.crystal[0].material.transparent&&templates.crystal[0].material.opacity<1;
+report.checks.volatileEmissive=Boolean(templates.volatile[0].material.emissiveMap)&&templates.volatile[0].material.emissiveIntensity>1;
+const repeat=createRockField({templates,rocks:fieldRecords,seed:2026});
+report.checks.deterministic=ROCK_TYPES.every(t=>Array.from(repeat.batches[t].geometry.attributes.instance_variant.array).join()===Array.from(field.batches[t].geometry.attributes.instance_variant.array).join());repeat.dispose();
+const remove=createRockField({templates,rocks:[fieldRecords[0]],seed:1});remove.hide(0);const hiddenMatrix=new THREE.Matrix4();remove.batches.stone.getMatrixAt(0,hiddenMatrix);report.checks.hide=hiddenMatrix.elements[0]===0&&hiddenMatrix.elements[5]===0&&hiddenMatrix.elements[10]===0;remove.dispose();
+window.assetReport=report;
+document.querySelector('#names').innerHTML=ROCK_TYPES.map(t=>`<div>${t.toUpperCase()}</div>`).join('');
+let mode='gallery',type=0,variant=1,hero=null,samples=[],last=0,frames=0;
+function arrange(){
+  if(hero){scene.remove(hero.object3d);hero.dispose();hero=null;}
+  gallery.object3d.visible=mode==='gallery';field.object3d.visible=mode==='field';document.body.classList.toggle('single',mode!=='gallery');
+  document.querySelector('#field').textContent=mode==='field'?'All variants':'200 rocks';document.querySelector('#phone').textContent=mode==='phone'?'All variants':'50 m view';document.querySelector('#next').hidden=mode!=='phone';document.querySelector('#variant').hidden=mode!=='phone';
+  if(mode==='phone'){hero=createRockField({templates,rocks:[{id:0,type:ROCK_TYPES[type],variant,position:[0,0,0],radius:5}]});scene.add(hero.object3d);}
+  document.querySelector('#subtitle').textContent=mode==='phone'?`${ROCK_TYPES[type]}_${variant} · diameter up to 10 m · camera 50 m away`:mode==='field'?'200 instances · three variants per type · no shadows or reflection passes':'Three variants each · shared atlases · six draw calls';
+  samples=[];last=0;frames=0;resize();
+}
+document.querySelector('#field').onclick=()=>{mode=mode==='field'?'gallery':'field';arrange();};
+document.querySelector('#phone').onclick=()=>{mode=mode==='phone'?'gallery':'phone';arrange();};
+document.querySelector('#next').onclick=()=>{type=(type+1)%6;arrange();};
+document.querySelector('#variant').onclick=()=>{variant=variant%3+1;arrange();};
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.position.set(0,mode==='phone'?0:3,mode==='phone'?50:Math.max(94,135/camera.aspect));camera.lookAt(0,mode==='phone'?0:3,0);camera.updateProjectionMatrix();}
+addEventListener('resize',resize);arrange();
+function frame(now){
+  if(last&&frames>30&&samples.length<180)samples.push(now-last);last=now;frames++;
+  renderer.render(scene,camera);
+  const calls=renderer.info.render.calls,tris=renderer.info.render.triangles;
+  if(mode==='field'){report.field.drawCalls=calls;report.field.submittedTriangles=tris;report.checks.actualSixDrawCalls=calls===6;
+    if(samples.length===180){const sorted=[...samples].sort((a,b)=>a-b);report.field.desktopFrameTiming={samples:180,medianMs:sorted[90],p90Ms:sorted[162],viewport:[innerWidth,innerHeight],devicePixelRatio:renderer.getPixelRatio(),userAgent:navigator.userAgent};}
+  }
+  const passed=Object.values(report.checks).every(Boolean);
+  document.querySelector('#status').textContent=`${passed?'PASS':'FAIL'} · r${THREE.REVISION} · ${calls} calls · ${tris.toLocaleString()} submitted triangles · ${samples.length===180?'timing captured; not physical-iPhone evidence':'original CC0'}`;
+  requestAnimationFrame(frame);
+}requestAnimationFrame(frame);
+</script></html>

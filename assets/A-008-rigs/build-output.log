@@ -1,0 +1,14 @@
+/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/generate.py:30: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat=bpy.data.materials.new('neutral_paper');mat.use_nodes=True
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+22:46:07 | INFO: Starting glTF 2.0 export
+22:46:07 | INFO: Extracting primitive: Sphere
+22:46:07 | INFO: Primitives created: 1
+22:46:08 | INFO: Finished glTF 2.0 export in 0.49907779693603516 s
+
+Info: Saved as "person_source.blend"
+PERSON_EXPORTED 4068 triangles 33 clips
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

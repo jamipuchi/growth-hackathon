@@ -1,0 +1,12 @@
+CC0 1.0 Universal
+
+All original geometry, textures, custom code, authoring source and preview images
+in this A-005-island directory are dedicated to the public domain under CC0 1.0.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+No external meshes, photographs, texture artwork or generated-image services
+were used. Procedural meshes and water normals were authored for Space Party.
+
+three.js and its Water, Sky and GLTFLoader add-ons are external dependencies
+and retain their upstream MIT license:
+https://github.com/mrdoob/three.js/blob/r160/LICENSE

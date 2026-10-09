@@ -1,0 +1,12 @@
+CC0 1.0 Universal
+
+All original textures, continent outlines, custom code, geometry composition,
+shaders, authoring scripts and preview images in A-004-planet are dedicated to
+the public domain under CC0 1.0:
+https://creativecommons.org/publicdomain/zero/1.0/
+
+No external maps, photographs, meshes or texture artwork were used.
+The geography and city clusters are stylized, fictionalized original work.
+
+three.js is an external dependency and retains its upstream MIT license:
+https://github.com/mrdoob/three.js/blob/r160/LICENSE

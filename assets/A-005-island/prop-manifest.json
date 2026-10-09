@@ -1,0 +1,67 @@
+{
+  "palm_1": {
+    "triangles": 482,
+    "height": 9.107525825500488,
+    "materials": 1
+  },
+  "palm_1_lod": {
+    "triangles": 140,
+    "height": 9.107525825500488,
+    "materials": 1
+  },
+  "palm_2": {
+    "triangles": 482,
+    "height": 10.907525062561035,
+    "materials": 1
+  },
+  "palm_2_lod": {
+    "triangles": 140,
+    "height": 10.907525062561035,
+    "materials": 1
+  },
+  "palm_3": {
+    "triangles": 482,
+    "height": 7.407525539398193,
+    "materials": 1
+  },
+  "palm_3_lod": {
+    "triangles": 140,
+    "height": 7.407525539398193,
+    "materials": 1
+  },
+  "bush_1": {
+    "triangles": 100,
+    "height": 1.438053846359253,
+    "materials": 1
+  },
+  "bush_2": {
+    "triangles": 100,
+    "height": 1.4635426998138428,
+    "materials": 1
+  },
+  "beach_rock_1": {
+    "triangles": 80,
+    "height": 1.5999999046325684,
+    "materials": 1
+  },
+  "beach_rock_2": {
+    "triangles": 80,
+    "height": 1.5999999046325684,
+    "materials": 1
+  },
+  "beach_rock_3": {
+    "triangles": 80,
+    "height": 1.5999999046325684,
+    "materials": 1
+  },
+  "cliff_1": {
+    "triangles": 52,
+    "height": 5.235899448394775,
+    "materials": 1
+  },
+  "cliff_2": {
+    "triangles": 52,
+    "height": 5.186273574829102,
+    "materials": 1
+  }
+}

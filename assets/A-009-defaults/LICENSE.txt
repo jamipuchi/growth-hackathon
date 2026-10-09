@@ -1,0 +1,11 @@
+SPDX-License-Identifier: CC0-1.0
+
+All original meshes, textures, animations and custom source in this directory
+are dedicated to the public domain under Creative Commons CC0 1.0 Universal:
+https://creativecommons.org/publicdomain/zero/1.0/
+
+To the extent legally possible, the author waives copyright and related rights
+in this original work. The work is provided without warranty.
+
+Third-party tools and libraries retain their own licenses. Three.js and its
+add-ons are referenced through the existing CDN under their upstream MIT license.

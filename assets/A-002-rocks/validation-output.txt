@@ -1,0 +1,160 @@
+{
+  "bytes": 175020,
+  "sha256": "b27753fc5e263cc565276e490a0acfa99371f3b15f780ef2efacdb467608273d",
+  "materials": 6,
+  "textures": [
+    {
+      "name": "rocks_color",
+      "width": 512,
+      "height": 512,
+      "embedded": true,
+      "nonblack_pixels": 262144
+    },
+    {
+      "name": "rocks_emissive",
+      "width": 512,
+      "height": 512,
+      "embedded": true,
+      "nonblack_pixels": 14400
+    }
+  ],
+  "types": {
+    "stone": {
+      "variants": [
+        {
+          "name": "stone_1",
+          "triangles": 80,
+          "max_radius": 1.0
+        },
+        {
+          "name": "stone_2",
+          "triangles": 80,
+          "max_radius": 1.0
+        },
+        {
+          "name": "stone_3",
+          "triangles": 80,
+          "max_radius": 1.0
+        }
+      ],
+      "batched_triangles_per_instance": 240,
+      "material": 4
+    },
+    "iron": {
+      "variants": [
+        {
+          "name": "iron_1",
+          "triangles": 80,
+          "max_radius": 1.0
+        },
+        {
+          "name": "iron_2",
+          "triangles": 80,
+          "max_radius": 1.0
+        },
+        {
+          "name": "iron_3",
+          "triangles": 80,
+          "max_radius": 1.0
+        }
+      ],
+      "batched_triangles_per_instance": 240,
+      "material": 1
+    },
+    "volatile": {
+      "variants": [
+        {
+          "name": "volatile_1",
+          "triangles": 80,
+          "max_radius": 1.0
+        },
+        {
+          "name": "volatile_2",
+          "triangles": 80,
+          "max_radius": 1.0
+        },
+        {
+          "name": "volatile_3",
+          "triangles": 80,
+          "max_radius": 1.0
+        }
+      ],
+      "batched_triangles_per_instance": 240,
+      "material": 5
+    },
+    "crystal": {
+      "variants": [
+        {
+          "name": "crystal_1",
+          "triangles": 72,
+          "max_radius": 1.0
+        },
+        {
+          "name": "crystal_2",
+          "triangles": 72,
+          "max_radius": 1.0
+        },
+        {
+          "name": "crystal_3",
+          "triangles": 72,
+          "max_radius": 1.0
+        }
+      ],
+      "batched_triangles_per_instance": 216,
+      "material": 0
+    },
+    "magnet": {
+      "variants": [
+        {
+          "name": "magnet_1",
+          "triangles": 80,
+          "max_radius": 1.0
+        },
+        {
+          "name": "magnet_2",
+          "triangles": 80,
+          "max_radius": 1.0
+        },
+        {
+          "name": "magnet_3",
+          "triangles": 80,
+          "max_radius": 1.0
+        }
+      ],
+      "batched_triangles_per_instance": 240,
+      "material": 2
+    },
+    "splitter": {
+      "variants": [
+        {
+          "name": "splitter_1",
+          "triangles": 44,
+          "max_radius": 1.0
+        },
+        {
+          "name": "splitter_2",
+          "triangles": 44,
+          "max_radius": 1.0
+        },
+        {
+          "name": "splitter_3",
+          "triangles": 44,
+          "max_radius": 1.0
+        }
+      ],
+      "batched_triangles_per_instance": 132,
+      "material": 3
+    }
+  },
+  "checks": {
+    "18_named_nodes": true,
+    "one_primitive_each": true,
+    "six_shared_materials": true,
+    "two_embedded_512_textures": true,
+    "texture_pixels_present": true,
+    "type_palette_uvs": true,
+    "unit_radius": true,
+    "batched_budget": true,
+    "no_decoders": true
+  }
+}
