@@ -5,7 +5,8 @@
 //   generate({ player, kind, image, speculative, requestId, region?, source? })
 //     → Promise<{ ok: true, layout } | { ok: false, error }>
 //   kind "controller": the whole pad. kind "button": one new control inside `region` ({x, y, w, h}, fractions).
-//   kind "ship" | "explorer": not in v1.
+//   kind "ship" | "explorer": no model call in v1. Answers at once { ok: true, entity: { type: "ship"|"person", verbs,
+//   anims } } with that world's default verbs, and keeps the drawing at controllers/<player>-<kind>.png (finished only).
 //
 // Env: OPENAI_API_KEY (else a .env next to this file), OPENAI_MODEL, OPENAI_SERVICE_TIER ("" or "none" omits it),
 // OPENAI_REASONING_EFFORT, ASTRA_MOCK=1 (no network, deterministic layouts after 300 ms).
@@ -296,6 +297,22 @@ function save(player, kind, image, result) {
     .catch((err) => console.log(`astra: could not save ${player}-${kind}: ${err.message}`));
 }
 
+// Drawn ship / explorer (PLAN.md section 6): the look is the drawing itself, inflated on every screen (inflate.js), so
+// v1 needs no model call: the default rig for the world, its default verbs, and the animations wired for them.
+// A parts/verbs model call is a later step.
+const ENTITY_KINDS = { ship: { type: "ship", world: "space" }, explorer: { type: "person", world: "planet" } };
+const V1_VERBS = ["shoot", "boost", "shield", "drill", "dig", "blast", "flare", "scan", "land", "takeoff", "jump", "invisible", "teleport", "heal"];
+const defaultVerbs = (world) => V1_VERBS.filter((v) => Verbs.VERBS[v] && Verbs.VERBS[v].modes.includes(world));
+
+function drawnEntity(player, kind, image, speculative) {
+  const { type, world } = ENTITY_KINDS[kind];
+  const verbs = defaultVerbs(world);
+  const entity = { type, verbs, anims: wireAnimations(type, verbs) };
+  log(kind, player, "-", 0, `ok ${type}, ${verbs.length} verbs`, speculative);
+  if (!speculative) save(player, kind, image, { ok: true, layout: entity });
+  return { ok: true, entity };
+}
+
 const log = (kind, player, hit, ms, outcome, speculative) =>
   console.log(`astra ${kind} ${player} ${hit} model=${ms == null ? "-" : ms + "ms"}${speculative ? " speculative" : ""} ${outcome}`);
 
@@ -303,15 +320,12 @@ async function generate(body) {
   body = body || {};
   const kind = body.kind;
   const player = Contract.cleanName(body.player);
-  if (kind === "ship" || kind === "explorer") {
-    log(kind, player || "?", "-", null, "not in v1");
-    return { ok: false, error: "entity generation is step 9" };
-  }
-  if (kind !== "controller" && kind !== "button") return { ok: false, error: "kind is controller, button, ship or explorer" };
+  if (kind !== "controller" && kind !== "button" && !ENTITY_KINDS[kind]) return { ok: false, error: "kind is controller, button, ship or explorer" };
   if (!player) return { ok: false, error: "player required" };
   const image = body.image;
   if (typeof image !== "string" || !/^data:image\/(png|jpe?g|webp);base64,/.test(image)) return { ok: false, error: "image must be an image data URL" };
   if (image.length > MAX_IMAGE_CHARS) return { ok: false, error: "image too large" };
+  if (ENTITY_KINDS[kind]) return drawnEntity(player, kind, image, body.speculative);
 
   const region = kind === "button" ? cleanRegion(body.region) : null;
   const source = body.source === "draw" ? "draw" : "photo";
@@ -403,7 +417,7 @@ const _internals = {
     timeoutMs = TIMEOUT_MS;
   },
   state: () => ({ cache: cache.size, inflight: inflight.size, slots: slots.size, defaultTierOnly }),
-  TIMEOUT_MS, MOCK_MS, SCHEMAS, ACTIONS,
+  TIMEOUT_MS, MOCK_MS, SCHEMAS, ACTIONS, ENTITY_KINDS, defaultVerbs,
   buildRequest, promptFor, extractText, parseJson, cleanControl, layoutFromModel, mockLayout, cleanRegion, sha1,
 };
 

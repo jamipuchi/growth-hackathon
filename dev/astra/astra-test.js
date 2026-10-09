@@ -292,11 +292,13 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     }
   });
 
-  await test("ship and explorer: not in v1, answered at once", async () => {
+  await test("ship and explorer: an entity with default verbs, answered without the network", async () => {
     _internals.setFetch(() => { throw new Error("network used"); });
-    for (const kind of ["ship", "explorer"]) {
+    for (const [kind, type] of [["ship", "ship"], ["explorer", "person"]]) {
       const r = await Astra.generate({ player: "ana", kind, image: image(kind) });
-      assert.deepStrictEqual(r, { ok: false, error: "entity generation is step 9" });
+      assert.strictEqual(r.ok, true);
+      assert.strictEqual(r.entity.type, type);
+      assert.ok(Array.isArray(r.entity.verbs));
     }
   });
 

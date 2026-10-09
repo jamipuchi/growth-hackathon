@@ -2,6 +2,7 @@
 // through Astra (within each player's drawing budget), and perf samples. The game itself runs in world.js.
 // HTTPS (https.js, self-signed for the LAN) runs next to HTTP with the same handler so phones get tilt and camera.
 // Usage: PORT=8000 HTTPS_PORT=8443 node server.js [--bots N]      (HTTPS_PORT=0 turns HTTPS off)
+const crypto = require("crypto");
 const http = require("http");
 const fs = require("fs");
 const os = require("os");
@@ -39,7 +40,7 @@ function writeAll(line) {
   for (const res of streams) res.write(line);
 }
 const sse = (m) => `data: ${JSON.stringify(m)}\n\n`;
-const broadcast = (m) => writeAll(sse(m));
+const broadcast = (m) => writeAll(sse(withDrawings(m)));
 
 // Astra is loaded lazily and guarded: another lane may be mid-edit, and wireAnimations may not exist yet.
 let astra = null;
@@ -51,6 +52,56 @@ function wireAnimations(type, verbs) {
   return a && typeof a.wireAnimations === "function" ? a.wireAnimations(type, verbs) : undefined;
 }
 
+// ---- Drawn ships and explorers -----------------------------------------------------------------------------------
+// A finished ship / explorer drawing is kept (in memory, and by Astra at controllers/<player>-<kind>.png) and served
+// read-only at /drawings/<player>-<kind>.png; every entity message for that player and type carries its URL as
+// `image` (with ?v=<hash>), so every screen, late joiners included, inflates the same drawing (inflate.js).
+const CONTROLLERS = path.join(ROOT, "controllers");
+const DRAWING_KINDS = { ship: "ship", explorer: "person" };   // drawing kind → entity type
+const DRAWING_PATH = /^\/drawings\/([a-z0-9]{1,20})-(ship|explorer)\.png$/;
+const drawingFiles = new Map();   // "<player>-<kind>" → PNG buffer
+const drawnImages = {};           // player → { [entity type]: "/drawings/<player>-<kind>.png?v=<hash>" }
+
+function keepDrawing(player, kind, dataUrl) {
+  const m = /^data:image\/png;base64,(.+)$/.exec(String(dataUrl || ""));
+  if (!m || !DRAWING_KINDS[kind]) return null;
+  const buf = Buffer.from(m[1], "base64");
+  if (buf.length < 8 || buf.readUInt32BE(0) !== 0x89504e47) return null;   // PNG signature
+  drawingFiles.set(`${player}-${kind}`, buf);
+  const url = `/drawings/${player}-${kind}.png?v=${crypto.createHash("sha1").update(buf).digest("hex").slice(0, 10)}`;
+  (drawnImages[player] || (drawnImages[player] = {}))[DRAWING_KINDS[kind]] = url;
+  return url;
+}
+
+// Adds the drawing URL to an entity (mutating the world's own entity, so the next connect's world message has it).
+function drawnEntity(player, entity) {
+  const url = entity && drawnImages[player] && drawnImages[player][entity.type];
+  if (!url || entity.image === url) return entity;
+  const p = world.players[player];
+  if (p && p.entity === entity) { entity.image = url; return entity; }
+  return { ...entity, image: url };
+}
+function withDrawings(m) {
+  if (m && m.type === "entity") {
+    const entity = drawnEntity(m.player, m.entity);
+    return entity === m.entity ? m : { ...m, entity };
+  }
+  if (m && m.type === "world" && m.entities) {
+    for (const name of Object.keys(m.entities)) m.entities[name] = drawnEntity(name, m.entities[name]);
+  }
+  return m;
+}
+
+function serveDrawing(req, res, url) {
+  const m = DRAWING_PATH.exec(url.pathname);
+  const name = m && `${m[1]}-${m[2]}`;
+  let buf = name && drawingFiles.get(name);
+  if (name && !buf) { try { buf = fs.readFileSync(path.join(CONTROLLERS, `${name}.png`)); } catch {} }
+  if (!buf || buf.length < 8 || buf.readUInt32BE(0) !== 0x89504e47) return res.writeHead(404, { "Content-Type": "text/plain" }).end("not found");
+  res.writeHead(200, { "Content-Type": "image/png", "Content-Length": buf.length, "Cache-Control": url.searchParams.has("v") ? "public, max-age=86400" : "no-cache" });
+  res.end(req.method === "HEAD" ? undefined : buf);
+}
+
 const world = createWorld({ broadcast, autoStart: true, wireAnimations });
 for (let i = 1; i <= BOTS; i++) world.addBot(`bot${i}`);
 
@@ -60,7 +111,7 @@ setInterval(() => writeAll(": keepalive\n\n"), KEEPALIVE_MS);
 function openStream(req, res) {
   res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store", Connection: "keep-alive", "X-Accel-Buffering": "no" });
   res.write("retry: 1000\n\n");
-  res.write(sse(world.worldMessage()));
+  res.write(sse(withDrawings(world.worldMessage())));
   res.write(sse(world.tickMessage()));
   streams.add(res);
   req.on("close", () => streams.delete(res));
@@ -170,6 +221,16 @@ async function handlePost(req, res, url) {
       world.setLayout(player, result.layout, body.kind);
       broadcast({ type: "generated", player, kind: body.kind, layout: result.layout });
     }
+    if (result && result.ok && finished && player && DRAWING_KINDS[body.kind] && result.entity) {
+      // The drawn look applies to the world's entity of that type: now if the player drives one, else at the next
+      // mode switch (an explorer drawn in space shows up on landing).
+      const image = keepDrawing(player, body.kind, body.image);
+      if (image) {
+        result = { ...result, entity: { ...result.entity, image } };
+        const p = world.players[player];
+        if (p && p.entity && p.entity.type === result.entity.type) broadcast({ type: "entity", player, entity: p.entity });
+      }
+    }
     return json(res, status, player && result ? { ...result, drawingsLeft: world.drawingsLeft(player) } : result);
   }
   if (url.pathname === "/perf") {
@@ -184,6 +245,7 @@ async function handler(req, res) {
   const url = new URL(req.url, "http://localhost");
   try {
     if (req.method === "GET" && url.pathname === "/events") openStream(req, res);
+    else if ((req.method === "GET" || req.method === "HEAD") && url.pathname.startsWith("/drawings/")) serveDrawing(req, res, url);
     else if (req.method === "POST") await handlePost(req, res, url);
     else if (req.method === "GET" || req.method === "HEAD") serveStatic(req, res, url);
     else res.writeHead(405).end();

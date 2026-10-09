@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:,">
+<title>inflate.js demo: drawings become 3D</title>
+<style>
+  html, body { margin: 0; background: #0b0820; color: #e9f6ff; font: 12px/1.3 system-ui, sans-serif; }
+  #gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #grid { position: relative; display: grid; grid-template-columns: repeat(var(--cols, 2), 1fr); gap: 6px; padding: 6px; }
+  .cell { position: relative; aspect-ratio: 1 / 1; border: 1px solid #2c2458; border-radius: 10px; overflow: hidden; }
+  .cell img { position: absolute; left: 4px; top: 4px; width: 26%; max-height: 30%; object-fit: contain; background: #1c1640; border-radius: 6px; }
+  .cell .lab { position: absolute; left: 6px; bottom: 4px; right: 6px; text-shadow: 0 1px 3px #000; }
+  .cell .lab b { color: #5ee7ff; }
+  #info { position: relative; padding: 4px 8px; opacity: 0.75; }
+</style>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="info">inflate.js: drawing → plush 3D. <span id="sum"></span></div>
+<div id="grid"></div>
+<script type="module">
+import * as THREE from "three";
+import { inflateDrawing } from "/inflate.js";
+
+const q = new URLSearchParams(location.search);
+const QUALITY = q.get("quality") || (matchMedia("(pointer: coarse)").matches ? "phone" : "big");
+const STILL = q.has("still");
+const ONLY = q.get("only");
+const ANGLE = Number(q.get("angle") || 35) * Math.PI / 180;
+const COLORS = [0x22d3ee, 0xf472b6, 0xa3e635, 0xfacc15, 0xfb923c, 0xc084fc, 0x60a5fa, 0xf87171];
+
+// ---------- synthetic finger drawings (white ink on transparent, cropped, like controller.html strokesPNG) ----------
+let seed = 7;
+const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const wob = (a) => (rnd() - 0.5) * a;
+function path(pts, close = false) { const p = pts.map(([x, y]) => [x + wob(4), y + wob(4)]); if (close) p.push([p[0][0] + wob(6), p[0][1] + wob(6)]); return p; }
+function arc(cx, cy, rx, ry, a0 = 0, a1 = Math.PI * 2, n = 28) { const o = []; for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; o.push([cx + Math.cos(a) * rx + wob(3), cy + Math.sin(a) * ry + wob(3)]); } return o; }
+function strokesCanvas(strokes, { color = "#fff", bg = null, lw = 6, px = 512 } = {}) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const s of strokes) for (const [x, y] of s) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  const m = 0.04 * Math.max(x1 - x0, y1 - y0); x0 -= m; y0 -= m; x1 += m; y1 += m;
+  const k = px / Math.max(x1 - x0, y1 - y0);
+  const c = document.createElement("canvas"); c.width = Math.round((x1 - x0) * k); c.height = Math.round((y1 - y0) * k);
+  const g = c.getContext("2d");
+  if (bg) { g.fillStyle = bg; g.fillRect(0, 0, c.width, c.height); }
+  g.strokeStyle = color; g.lineWidth = lw * k * 1.6; g.lineCap = g.lineJoin = "round";
+  for (const s of strokes) { g.beginPath(); g.moveTo((s[0][0] - x0) * k, (s[0][1] - y0) * k); for (const [x, y] of s.slice(1)) g.lineTo((x - x0) * k, (y - y0) * k); g.stroke(); }
+  return c;
+}
+const DRAWINGS = {
+  rocket: () => [
+    path([[40, 120], [60, 90], [200, 85], [260, 100], [300, 120], [260, 140], [200, 155], [60, 150], [40, 120]]),
+    path([[70, 90], [40, 40], [110, 40], [140, 87]]), path([[70, 150], [40, 200], [110, 200], [140, 153]]),
+    arc(210, 120, 16, 16), path([[40, 105], [10, 112], [40, 120], [5, 128], [40, 135]]),
+    path([[150, 95], [150, 145]]),
+  ],
+  ufo: () => [
+    arc(150, 120, 140, 34), arc(150, 92, 60, 50, Math.PI, Math.PI * 2, 18), path([[90, 92], [210, 92]]),
+    arc(70, 122, 9, 9, 0, 6.3, 10), arc(150, 128, 9, 9, 0, 6.3, 10), arc(230, 122, 9, 9, 0, 6.3, 10),
+    path([[110, 152], [95, 185]]), path([[190, 152], [205, 185]]),
+  ],
+  bird: () => [
+    path([[30, 140], [80, 115], [200, 110], [255, 125], [300, 135], [255, 148], [200, 160], [80, 160], [30, 140]]),
+    path([[110, 115], [170, 20], [200, 25], [175, 112]]), path([[110, 160], [170, 255], [200, 250], [175, 158]]),
+    path([[30, 140], [0, 105], [10, 140], [0, 175], [30, 140]]), arc(245, 130, 7, 7, 0, 6.3, 10), path([[270, 133], [292, 136]]),
+  ],
+  stick: () => [
+    arc(150, 50, 32, 34), path([[150, 84], [150, 200]]), path([[150, 115], [90, 165]]), path([[150, 115], [215, 155]]),
+    path([[150, 200], [110, 290]]), path([[150, 200], [195, 290]]), path([[100, 290], [125, 290]]), path([[185, 290], [210, 290]]),
+    arc(138, 45, 4, 4, 0, 6.3, 6), arc(162, 45, 4, 4, 0, 6.3, 6), arc(150, 60, 12, 6, 0.2, Math.PI - 0.2, 8),
+  ],
+  // A sketchy outline that never quite closes: the closing step has to fill it.
+  sketchy: () => [
+    path([[40, 120], [60, 92], [140, 86]]), path([[152, 86], [230, 88], [300, 118]]),
+    path([[296, 126], [230, 150], [150, 154]]), path([[138, 154], [60, 150], [44, 128]]),
+    path([[80, 92], [50, 50], [120, 60]]), path([[80, 150], [50, 190], [120, 182]]), arc(230, 120, 14, 14),
+  ],
+};
+
+// ---------- the phone's photo pipeline (controller.html analysePhoto + renderPhoto), from an image element ----------
+function analysePhoto(bmp) {
+  const t0 = performance.now();
+  const bw = bmp.width || bmp.naturalWidth, bh = bmp.height || bmp.naturalHeight;
+  const s = Math.min(1, 1024 / Math.max(bw, bh));
+  const W = Math.max(1, Math.round(bw * s)), H = Math.max(1, Math.round(bh * s));
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(bmp, 0, 0, W, H);
+  const px = ctx.getImageData(0, 0, W, H).data;
+  const N = W * H;
+  const V = new Uint8Array(N), L = new Uint8Array(N);
+  for (let i = 0, j = 0; i < N; i++, j += 4) {
+    const r = px[j], g = px[j + 1], b = px[j + 2];
+    V[i] = r > g ? (r > b ? r : b) : (g > b ? g : b);
+    L[i] = (r * 77 + g * 150 + b * 29) >> 8;
+  }
+  const IW = W + 1, I = new Float64Array(IW * (H + 1));
+  for (let y = 0; y < H; y++) { let row = 0; for (let x = 0; x < W; x++) { row += V[y * W + x]; I[(y + 1) * IW + x + 1] = I[y * IW + x + 1] + row; } }
+  const R = Math.max(8, Math.round(Math.max(W, H) / 24));
+  const mean = new Uint8Array(N), alpha = new Uint8Array(N), ink = new Uint8Array(N);
+  for (let y = 0; y < H; y++) {
+    const y0 = Math.max(0, y - R), y1 = Math.min(H, y + R + 1);
+    for (let x = 0; x < W; x++) {
+      const x0 = Math.max(0, x - R), x1 = Math.min(W, x + R + 1);
+      const sum = I[y1 * IW + x1] - I[y0 * IW + x1] - I[y1 * IW + x0] + I[y0 * IW + x0];
+      const m = sum / ((y1 - y0) * (x1 - x0));
+      const i = y * W + x;
+      mean[i] = m;
+      const t = m * 0.66;
+      if (m > 50 && V[i] < t) { ink[i] = 1; alpha[i] = Math.min(255, 90 + ((t - V[i]) / (t * 0.3)) * 165); }
+    }
+  }
+  const stack = new Int32Array(N); let sp = 0;
+  const seedF = (i) => { if (ink[i]) { ink[i] = 0; alpha[i] = 0; stack[sp++] = i; } };
+  for (let x = 0; x < W; x++) { seedF(x); seedF((H - 1) * W + x); }
+  for (let y = 0; y < H; y++) { seedF(y * W); seedF(y * W + W - 1); }
+  while (sp) { const i = stack[--sp], x = i % W; if (x > 0) seedF(i - 1); if (x < W - 1) seedF(i + 1); if (i >= W) seedF(i - W); if (i < N - W) seedF(i + W); }
+  const cols = new Uint16Array(W), rows = new Uint16Array(H);
+  let count = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (ink[y * W + x]) { cols[x]++; rows[y]++; count++; }
+  const first = (a) => a.findIndex((v) => v >= 2), last = (a) => a.length - 1 - [...a].reverse().findIndex((v) => v >= 2);
+  const x0 = first(cols), y0 = first(rows);
+  if (x0 < 0 || y0 < 0 || count < 40) throw new Error("No drawing found");
+  const box = { x: x0, y: y0, w: last(cols) - x0 + 1, h: last(rows) - y0 + 1 };
+  const inkImg = new ImageData(W, H);
+  for (let i = 0, j = 0; i < N; i++, j += 4) { inkImg.data[j] = inkImg.data[j + 1] = inkImg.data[j + 2] = 255; inkImg.data[j + 3] = alpha[i]; }
+  const ic = document.createElement("canvas"); ic.width = W; ic.height = H; ic.getContext("2d").putImageData(inkImg, 0, 0);
+  return { W, H, box, ink: ic, turns: box.h > box.w ? 3 : 0, ms: Math.round(performance.now() - t0) };
+}
+function renderInk(a, turns = a.turns) {
+  const m = Math.round(0.04 * Math.max(a.box.w, a.box.h));
+  const x = Math.max(0, a.box.x - m), y = Math.max(0, a.box.y - m);
+  const w = Math.min(a.W, a.box.x + a.box.w + m) - x, h = Math.min(a.H, a.box.y + a.box.h + m) - y;
+  const odd = turns % 2 === 1, rw = odd ? h : w, rh = odd ? w : h, k = 512 / Math.max(rw, rh);
+  const c = document.createElement("canvas"); c.width = Math.round(rw * k); c.height = Math.round(rh * k);
+  const ctx = c.getContext("2d");
+  ctx.translate(c.width / 2, c.height / 2); ctx.rotate((turns * Math.PI) / 2); ctx.scale(k, k);
+  ctx.drawImage(a.ink, x, y, w, h, -w / 2, -h / 2, w, h);
+  return c;
+}
+// A synthetic notebook photo: lined paper, a shadow gradient, a pencil ship drawn a bit shaky.
+function notebookPhoto(strokes) {
+  const c = document.createElement("canvas"); c.width = 1600; c.height = 1200;
+  const g = c.getContext("2d");
+  g.fillStyle = "#b9a888"; g.fillRect(0, 0, 1600, 1200);
+  const grad = g.createLinearGradient(60, 60, 1540, 1140); grad.addColorStop(0, "#a8a6a0"); grad.addColorStop(1, "#f4f2ec");
+  g.fillStyle = grad; g.fillRect(70, 60, 1460, 1080);
+  g.strokeStyle = "rgba(90,130,210,0.55)"; g.lineWidth = 2;
+  for (let y = 120; y < 1140; y += 38) { g.beginPath(); g.moveTo(70, y); g.lineTo(1530, y); g.stroke(); }
+  g.strokeStyle = "rgba(220,80,80,0.6)"; g.beginPath(); g.moveTo(180, 60); g.lineTo(180, 1140); g.stroke();
+  g.strokeStyle = "#2a2a33"; g.lineWidth = 9; g.lineCap = g.lineJoin = "round";
+  for (const s of strokes) { g.beginPath(); g.moveTo(400 + s[0][0] * 2.6, 300 + s[0][1] * 2.6); for (const [x, y] of s.slice(1)) g.lineTo(400 + x * 2.6, 300 + y * 2.6); g.stroke(); }
+  // a few specks of noise
+  g.fillStyle = "#333"; for (let i = 0; i < 12; i++) g.fillRect(250 + rnd() * 1200, 150 + rnd() * 900, 3, 3);
+  return c;
+}
+async function loadImg(src) { const i = new Image(); i.src = src; await i.decode(); return i; }
+
+// ---------- build the cases ----------
+const cases = [];
+for (const [name, fn] of Object.entries(DRAWINGS)) cases.push({ name, kind: name === "stick" ? "person" : "ship", ink: strokesCanvas(fn()), src: "finger" });
+seed = 99;
+const photoA = analysePhoto(notebookPhoto(DRAWINGS.rocket()));
+cases.push({ name: "photo-rocket", kind: "ship", ink: renderInk(photoA, 0), src: `notebook photo (${photoA.ms} ms find)` });
+const photoS = analysePhoto(notebookPhoto(DRAWINGS.stick()));
+cases.push({ name: "photo-stick", kind: "person", ink: renderInk(photoS, 0), src: `notebook photo (${photoS.ms} ms find)` });
+for (const f of ["sample-notebook", "sample-button"]) {
+  const a = analysePhoto(await loadImg(`/dev/phone/${f}.jpg`));
+  cases.push({ name: f, kind: "ship", ink: renderInk(a, 0), src: `real sample photo (${a.ms} ms find)` });
+}
+// opaque input (dark ink on white): also supported
+cases.push({ name: "opaque-ufo", kind: "ship", ink: strokesCanvas(DRAWINGS.ufo(), { color: "#222", bg: "#fff" }), src: "opaque PNG" });
+const shown = ONLY ? cases.filter((c) => ONLY.split(",").includes(c.name)) : cases;
+
+// ---------- inflate (median of 5 runs) ----------
+const results = [];
+for (const [i, c] of shown.entries()) {
+  const times = [];
+  let out;
+  for (let r = 0; r < 5; r++) { if (out) out.dispose(); out = inflateDrawing(c.ink, { kind: c.kind, quality: QUALITY, color: COLORS[i % COLORS.length] }); times.push(out.ms); }
+  times.sort((a, b) => a - b);
+  c.out = out;
+  results.push({ name: c.name, kind: c.kind, quality: QUALITY, ms: times[2], msFirst: times[0], triangles: out.triangles, vertices: out.vertices, texture: out.texture, radius: +out.radius.toFixed(2), size: Object.fromEntries(Object.entries(out.size).map(([k, v]) => [k, +v.toFixed(2)])), sockets: Object.keys(out.sockets), noseUp: out.noseUp });
+}
+
+// ---------- the game's space lighting, one renderer, a scissor viewport per cell ----------
+const grid = document.getElementById("grid");
+grid.style.setProperty("--cols", ONLY ? 1 : innerWidth > innerHeight ? 4 : 2);
+for (const c of shown) {
+  const el = document.createElement("div"); el.className = "cell";
+  const thumb = document.createElement("img"); thumb.src = c.ink.toDataURL();
+  const r = results.find((x) => x.name === c.name);
+  el.innerHTML = `<div class="lab"><b>${c.name}</b> ${c.kind} · ${r.triangles} tris · ${r.ms} ms<br><span style="opacity:.7">${c.src}</span></div>`;
+  el.prepend(thumb);
+  grid.append(el);
+  c.el = el;
+}
+const canvas = document.getElementById("gl");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight, false);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.setScissorTest(true);
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xa78bfa, 0x1e1b4b, 0.9));
+const key = new THREE.DirectionalLight(0xfff1dc, 2.0); key.position.set(1, 0.8, 0.5);
+const rim = new THREE.DirectionalLight(0xff4fd8, 1.4); rim.position.set(-1, -0.3, -0.8);
+scene.add(key, rim);
+const cam = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+const holders = shown.map((c) => { const g = new THREE.Group(); g.add(c.out.object3d); g.visible = false; scene.add(g); return g; });
+const bg = new THREE.Color(0x160c36);
+const sockMat = new THREE.MeshBasicMaterial({ color: 0xffff00, depthTest: false });
+if (q.has("sockets")) for (const c of shown) for (const s of Object.values(c.out.sockets)) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), sockMat); m.renderOrder = 9; s.add(m); }
+
+let frames = 0, t0 = performance.now();
+function frame(now) {
+  const t = STILL ? 0 : now / 1000;
+  canvas.style.transform = `translateY(${-scrollY}px)`;
+  renderer.setScissor(0, 0, innerWidth, innerHeight); renderer.setViewport(0, 0, innerWidth, innerHeight);
+  renderer.setClearColor(0x0b0820); renderer.clear();
+  shown.forEach((c, i) => {
+    const r = c.el.getBoundingClientRect();
+    const y = innerHeight - r.bottom + scrollY;
+    holders.forEach((h, j) => (h.visible = j === i));
+    const person = c.kind === "person";
+    holders[i].rotation.y = (person ? 0.5 : -0.6) + t * 0.6;
+    const R = c.out.radius;
+    const d = R * 3.4;
+    if (person) { cam.position.set(0, c.out.size.y * 0.55 + d * 0.15, -d); cam.lookAt(0, c.out.size.y * 0.5, 0); }
+    else { cam.position.set(0, Math.sin(ANGLE) * d, Math.cos(ANGLE) * d); cam.lookAt(0, 0, 0); }
+    cam.aspect = r.width / r.height; cam.updateProjectionMatrix();
+    renderer.setViewport(r.left, y, r.width, r.height); renderer.setScissor(r.left, y, r.width, r.height);
+    renderer.setClearColor(bg); renderer.clear();
+    renderer.render(scene, cam);
+  });
+  frames++;
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.getElementById("sum").textContent = `${QUALITY}: median ${results.map((r) => r.ms).sort((a, b) => a - b)[results.length >> 1]} ms, max ${Math.max(...results.map((r) => r.triangles))} tris`;
+window.__results = results;
+window.__fps = () => { const f = frames / ((performance.now() - t0) / 1000); frames = 0; t0 = performance.now(); return f; };
+window.__ready = true;
+</script>
+</body>
+</html>
