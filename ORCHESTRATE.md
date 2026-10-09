@@ -106,8 +106,10 @@ Drawn entities are rigged in code with these skeletons, and play your clips. Cli
 
 ## 5. Requests
 
+**v1 queue, in this order** (v1 = one full round on an iPhone; players use the default ship and explorer). **The owner simplified the world (2026-10-09 22:15): three gates only (DRILL the boss, LAND on the planet, DIG up the chest), one boss and no decoys, no dark-nebula mechanic, two rock types in play (stone, crystal).** Queue: **A-009 (ship and explorer only; car later) → A-006 → A-005 → A-004 → A-001 change 1 (now boss only: it is the centrepiece and must read as the big red enemy from far away, like the mothership in the reference) → A-010 → A-011 → A-003 (now only a decorative violet/magenta nebula cloud around the boss, no darkness) → A-007.** A-008 (rigs and clips) starts after v1. Decoys and the other four rock types are not used in v1; nothing to redo. Deliver each one as soon as it is done; integration happens in parallel.
+
 ### A-001 Boss rock and 4 decoys
-`Status: in progress (asset model, 2026-10-09)` · P0 · build step 7 · lane: World & render
+`Status: delivered` · P0 · build step 7 · lane: World & render
 
 - **What:** the "super final boss", an armoured asteroid about 30 across that hides in the dark nebula, plus 4 decoys that look identical from outside.
 - **States:** `armour_intact`, `armour_cracked`, `armour_broken` (separate child nodes, the code toggles visibility), and a glowing `core` that shows once broken. Decoys share the shell; when cracked they are hollow and empty.
@@ -115,13 +117,44 @@ Drawn entities are rigged in code with these skeletons, and play your clips. Cli
 - **Accept when:** on a phone at 100 away it reads as armoured next to normal rocks; each armour state is clearly different; the core blooms.
 - **Deliver:** `assets/A-001-boss-rock/boss.glb`, `assets/A-001-boss-rock/decoy.glb`.
 
+#### Delivery (asset model, 2026-10-09)
+
+- **Files:** `assets/A-001-boss-rock/boss.glb` (313,516 bytes), `decoy.glb` (238,100 bytes), `boss.js` loader/state helper, editable `boss_source.blend`, reproducible `generate.py`, `validate.py`, `validation.json`, `browser-validation.json`, `README.md`, `LICENSE.txt`, `preview.html`, `preview-desktop.png`, and `preview-phone-{intact,cracked,broken}.png`, all in the same request directory.
+- **Design:** irregular segmented basalt armour with weathered alloy bevels; intact, cracked, and broken group nodes; glowing geode core on the boss only. The intact body is approximately 27.6 × 27.4 × 29.7 m, Y up, with the exposed cavity facing -Z. Both GLBs contain `socket_core` at the centre. Four decoys can clone the one decoy file; the helper does this with independent states and shared geometry/materials.
+- **Load:** `import { createBossEncounter, setArmourState } from './assets/A-001-boss-rock/boss.js'; const { boss, decoys } = await createBossEncounter(); scene.add(boss, ...decoys);` Assign gameplay positions after loading. `setArmourState(boss, 'armour_broken')` reveals the core; the same function changes decoys without adding a core. **When using GLTFLoader directly, call `setArmourState(gltf.scene)` before adding it:** glTF has no standard visibility field and otherwise all states render together. Keep the helper's default intact state.
+- **Visible cost:** boss intact 1,440 triangles / 2 calls; cracked 1,236 / 2; broken including core 1,620 / 4. Decoy intact 1,440 / 2; cracked 1,236 / 2; broken 654 / 2. Zero textures. All geometry is embedded; no decoders. Four PBR materials in the boss, two in the decoy. `KHR_materials_emissive_strength` loads successfully in r160 and drives the existing bloom pass. All stored states together: boss 4,296 triangles; decoy 3,330.
+- **Verification:** structural validation passes with SHA-256 hashes in `validation.json`. Real GLTFLoader/three.js 0.160.0 browser checks pass for identical shell geometry/materials across both files, four independent decoys, no decoy core, sockets, MeshStandardMaterial, initial visibility, emissive strength and draw/triangle budgets. No browser console errors/warnings. Visually checked all six combinations at 1440 × 1000 and the three boss states at 390 × 844 with the camera 100 m away; screenshots attached in the directory. Core bloom is visible, and cracked/broken cavities are clearly distinct.
+- **License and sources:** original procedural work, CC0-1.0; no external meshes, textures or images. Blender 5.2.2 authoring/export, three.js/add-ons retain upstream MIT. No game integration files were changed.
+- **Known gaps:** desktop browser at phone dimensions is not physical-phone FPS measurement. Final nebula visibility, comparison beside A-002 normal rocks, and full game integration need orchestrator verification. Orient -Z toward the approach if the cavity reveal must be seen immediately. Preview is available at `http://127.0.0.1:8766/assets/A-001-boss-rock/preview.html` while the local preview server is running; README includes restart instructions.
+
+
+#### Review (orchestrator, 2026-10-09)
+`Status: accepted for v1 · changes requested (P1, after your P0 queue)`
+
+Good work: inside budget (1,440 triangles, 2 calls), states read clearly at phone size, the `boss.js` helper is exactly the integration shape we want. Use that pattern (a small `create…()` helper next to the files) for every delivery.
+
+1. Add the hostile cue from the art direction (`assets/reference/ui-inspiration.png`): thin red emissive seams between the armour plates, and red emissive rims on the cracked edges, so the boss reads as an enemy at 100 m in the dark nebula. Decoys must get the identical seams (they must stay indistinguishable until SCAN).
+2. Keep the same node names, `socket_core`, files and helper API, so integration does not change.
+3. No action needed: `.playwright-cli/` folders are git-ignored now.
+
 ### A-002 Rock set, 6 types
-`Status: open` · P0 · step 7 · World & render
+`Status: delivered` · P0 · step 7 · World & render
 
 - **Types, each recognisable at 50 away on a phone:** stone (plain grey), iron (dark and metallic, with veins), volatile (cracked, glowing orange seams), crystal (violet-white, translucent), magnet (banded dark red and grey), splitter (a visible seam down the middle).
 - **3 shape variants per type**, built for `InstancedMesh`: one material per type, no per-instance materials.
 - **Accept when:** 200 mixed instances hold 30 fps on a mid-range phone.
 - **Deliver:** `assets/A-002-rocks/rocks.glb` with nodes `<type>_<1..3>`.
+
+#### Delivery (asset model, 2026-10-09)
+
+- **Files:** `assets/A-002-rocks/rocks.glb` (175,020 bytes); `rocks.js` with `loadRocks()` and `createRockField()`; editable `rocks_source.blend`, deterministic `generate.py`, two atlas PNGs, `validate.py`, `validation.json`, `browser-validation.json`, `README.md`, `LICENSE.txt`, `preview.html`, desktop/200-instance screenshots and six phone-size screenshots, all in this request directory.
+- **Design:** 18 named meshes (`stone_1..3`, `iron_1..3`, `volatile_1..3`, `crystal_1..3`, `magnet_1..3`, `splitter_1..3`), each with one primitive. Warm grey stone, veined dark iron, orange emissive volatile seams, translucent violet-white crystal clusters, dark red/grey magnetic bands, and a physically open seam between the splitter's two closed halves. Y up; meshes normalised to maximum radius 1 m from their centre-of-mass origin. Scale by gameplay radius, not diameter.
+- **Load:** `import { loadRocks, createRockField } from './assets/A-002-rocks/rocks.js'; const templates = await loadRocks(); const field = createRockField({ templates, seed: 2026, rocks: [{ id: 1, type: 'stone', variant: 2, position: [0,0,-30], radius: 3 }] }); scene.add(field.object3d);`. `variant` is 1–3; omit for seeded selection. Optional quaternion is `[x,y,z,w]`. `field.hide(id)` removes destroyed rocks without reallocating. The helper exposes `batches`, `handles` and `dispose()`; resource ownership and the wire-format mapping boundary are documented in README.
+- **Instancing:** six shared materials, one draw call per populated type including all three variants. The helper merges the three shapes per type and selects the active one via instance attributes in the standard material's vertex shader; unused variants collapse to degenerate triangles. All submitted vertices are included in the budget. Direct instancing of separate GLB nodes also works but would use up to 18 calls. Keep the helper's shader hook for the six-call path; use game collision spheres rather than exact raycasts against the merged geometry. No shadow maps or reflection passes.
+- **Budgets:** stone/iron/volatile/magnet = 80 triangles per shape, 240 submitted per batched instance; crystal = 72 / 216; splitter = 44 / 132. Six materials and two shared embedded 512 × 512 maps (sRGB colour and emission). No normal maps, external buffers or decoders. The actual 200-instance r160 preview renders **6 calls and 43,644 submitted triangles**.
+- **Validation:** nine structural checks and twelve browser checks pass. This includes final texture pixel content and correct type-specific UV palettes, shared materials, names, radius, budgets, deterministic variant selection, alpha, emission and hiding. No browser console errors or warnings. Visually checked all eighteen shapes at 1440 × 960 and all six first variants at 390 × 844 with a camera 50 m away. Desktop frame-interval sample (180 frames, Chrome on Mac, DPR 1): median 8.3 ms, p90 8.5 ms. This is **not GPU timing or physical iPhone Safari FPS proof**; target-device `perf.log` testing remains for integration.
+- **Known gaps:** crystal uses single-pass front-face alpha blending (0.82 opacity), with no per-instance transparent sorting; check overlapping crystals in the game. Final nebula lighting and iPhone 12/XR performance remain unverified. Templates are at the origin; instantiate them with the helper rather than adding the entire loaded GLB scene. Preview: `http://127.0.0.1:8766/assets/A-002-rocks/preview.html` while the local preview server runs.
+- **License and sources:** all geometry, textures and custom source are original CC0-1.0; no external artwork. Blender 5.2.2 authoring/export; three.js and add-ons retain upstream MIT. No game code changed.
 
 ### A-003 Dark nebula (code)
 `Status: open` · P0 · step 7 · World & render
@@ -168,7 +201,7 @@ Drawn entities are rigged in code with these skeletons, and play your clips. Cli
 - **Deliver:** `assets/A-008-rigs/person.glb`, then `quadruped.glb`, `flyer.glb`, `swimmer.glb`, `crawler.glb`, `serpent.glb`.
 
 ### A-009 Default stand-in entities
-`Status: open` · P1 · step 9 · Astra
+`Status: in progress (asset model, 2026-10-09; ship and explorer for v1)` · **P0 for v1 (ship and explorer)**, car P1 · step 9 · Astra
 
 Used when a player skips drawing or generation times out. A hand-drawn look is welcome, because they stand in for drawings.
 
@@ -203,3 +236,9 @@ _(none yet)_
 
 - 2026-10-09 orchestrator: file created; A-001 to A-011 open.
 - 2026-10-09 asset model: Connected to this channel. Claimed A-001 first; will deliver the boss and shared decoy shell with named damage states and reproducible source. Future requests and feedback will be checked every five minutes. Files will stay within their request asset directories; integration remains with the orchestrator.
+- 2026-10-09 asset model: A-001 delivered with GLBs, source, loader, contract checks and desktop/phone-size previews. Awaiting integration review; the active monitor will handle feedback and continue the P0 queue.
+- 2026-10-09 asset model: Claimed A-002. Noted the updated iPhone Safari budget and art direction. Will deliver 18 named variants with six shared materials and a six-draw-call instancing path. Physical iPhone verification remains with the orchestrator. A-001's delivered core is gold; noted the new hostile-red direction for a future revision if requested.
+- 2026-10-09 orchestrator: A-001 accepted for v1 with one P1 change. v1 queue set at the top of section 5: A-009 (ship, explorer) first. Code lanes for v1 start now; integration reads `assets/` as deliveries land.
+- 2026-10-09 asset model: A-002 delivered after finishing the already-claimed work; 18 shapes, six calls for 200 instances, structural and browser checks passed. Acknowledged A-001 acceptance and deferred red-seam revision. The updated v1 queue is authoritative: A-009 ship/explorer next, then A-006; full A-008 clip library waits until after v1.
+- 2026-10-09 asset model: Claimed A-009 ship/explorer for v1. Explorer will use the exact person bone hierarchy now, with a small v1 animation set; the complete A-008 clip library and A-009 car remain deferred according to the queue. Will provide create helpers and a replaceable UV-mapped visor.
+- 2026-10-09 orchestrator: A-002 received, thanks. The world is simplified (see the v1 queue note in section 5): one boss, no decoys, no dark nebula, stone and crystal only. Queue reordered: A-009 → A-006 → A-005 → A-004 → A-001 change 1 (boss only) → A-010 → A-011 → A-003 (decorative) → A-007.

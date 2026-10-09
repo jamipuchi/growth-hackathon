@@ -1,6 +1,6 @@
 # Space Party: multiplayer game plan
 
-**Goal:** a multiplayer 3D game where every player **draws their own phone controller**, their own ship and their own explorer. Drawings turn into real gameplay. Everyone plays together on a big screen and on their own phone. **A round is winnable in about 2 minutes and never lasts more than 3.**
+**Goal:** a multiplayer 3D game where every player **draws their own phone controller**, their own ship and their own explorer. Drawings turn into real gameplay. Everyone plays together on a big screen and on their own phone. **A player who knows the route and boosts wins a round alone in about 2 minutes; a weak player still finishes in 4 to 5. There is no time cap.**
 
 **How to use this doc:** it is the spec for **four lanes, each one person plus one agent**, building the game from this repo. Steps 0 and 1 are done together; after that the lanes work in parallel against the contract. Follow the build order in section 9. Each step ends with a check that must pass before you go on.
 
@@ -21,7 +21,7 @@ Everything runs from one Node server, `node server.js`, on port 8000. Phones joi
 | `terrain.js` | The island heightmap, shared by the server (physics) and the browser (rendering) |
 | `astra.js` | OpenAI calls plus wiring: drawing or photo in, checked and wired controller or entity JSON out |
 | `render.js` | Shared three.js renderer used by the phone and the big screen, including the drawing inflater and the rig builder |
-| `controller.html` | Phone: join, draw or photograph a controller or entity, play with your own 3D view |
+| `controller.html` | Phone: join, photograph a drawing on paper (default) or draw on the phone, play with your own 3D view |
 | `space.html` | Big screen: spectator view, HUD, round clock, minimap, scoreboard |
 | `controllers/<player>-<kind>.png/.json` | Each player's drawings and their generated layouts and entities. Never served |
 | `perf.log` | Performance samples posted by every screen (section 4, Performance). Never served |
@@ -35,12 +35,15 @@ Everything runs from one Node server, `node server.js`, on port 8000. Phones joi
 
 - three.js for all 3D rendering. Plain Node 20+, no dependencies; three.js comes from a CDN.
 - **Generation uses the OpenAI API** through Astra: a fast vision model, called in parallel, with JSON-only output checked against `verbs.js` and `rigs.js`.
-- The game goal is a treasure chain: **nebula boss rock → planet landing → island treasure**, inside a **2 to 3 minute round** (section 4).
+- **A simple world, a capable player.** Three gates, each passed by drawing a button: DRILL the boss rock, LAND on the planet, DIG up the treasure (section 4). Players keep many abilities on top (shoot, boost, shield, blast, invisible, teleport, heal, flare, scan, jump). In a few minutes nobody discovers everything, so the world stays small.
 - **Entities look like the drawing:** the drawing itself is inflated into 3D on the device. No model call for looks (section 6).
 - **Rigs are generic:** 10 entity types, one template each. Verbs say what they require, never which entity owns them.
 - **Controllers are generic:** binding a drawn control to a verb is code, and re-runs on every entity switch.
 - **Phone view:** third-person chase by default, cockpit as a toggle.
-- **Rounds** end when the first chest is collected, or at 3:00.
+- **Rounds** end only when the first chest is collected. No time cap; assists switch on at 3:00 so everyone finishes.
+- **Island:** full 3D.
+- **Generation model:** always OpenAI `gpt-6.1-sol` on the Responses API with `service_tier: "ultrafast"` (up to ~300 tokens/s). Never `gpt-6-astra` or any other model. If ultrafast rejects image input or strict JSON output, the only fallback is `gpt-6.1-sol` on its default tier.
+- **Drawing input:** the default is a **photo of a drawing on a notebook page**; drawing on the phone is the backup. In draw mode a toggle switches between Camera and Draw.
 
 ---
 
@@ -67,17 +70,17 @@ Phone to server, `POST /input`:
 - `{type:"axis", player, axis:"steer"|"move", x, y}`: analog sticks and tilt, each from -1 to 1, sent at most 20 times a second.
 
 Server to every screen, over the event stream:
-- `world`: rocks (id, position, size, type, health), nebula, boss and decoys, planet, island seed, chests. Sent on connect and whenever any of it changes.
-- `tick`: 15 times a second. Round `phase` (`lobby`, `playing`, `sudden`, `scoreboard`) and `clock` (seconds left). Players (position, yaw, pitch, roll, health, mode `space`/`planet`, status flags, score, current `action` + `slot` + `startedAt` for animation), bullets, boss shots, flares.
+- `world`: rocks (id, position, size, type, health), the decorative nebula, the boss, planet, island seed, chests. Sent on connect and whenever any of it changes.
+- `tick`: 15 times a second. Round `phase` (`lobby`, `playing`, `assists`, `scoreboard`) and `clock` (seconds left in lobby and scoreboard, seconds since the start while playing). Players (position, yaw, pitch, roll, health, mode `space`/`planet`, status flags, score, current `action` + `slot` + `startedAt` for animation), bullets, boss shots, flares.
 - `fx`: explosions, sparks, blasts. `announce`: kill feed, treasure found, win. `toast`: a message to one player ("Draw a LAND button"), with an optional `ghost: {action, x, y, w, h}` for the trace-it hint (section 4, Hints).
 - `generated`: `{player, kind}` once a layout or entity is ready. `entity`: a player's wired entity (type, rig joints, parts on sockets, verbs, bindings).
 
 ### Generation (`POST /generate`, handled by Astra)
-- The phone sends `{player, kind: "controller"|"ship"|"explorer"|"button", image, speculative?}`. The image is a drawing or a photo, scaled to 512 px.
+- The phone sends `{player, kind: "controller"|"ship"|"explorer"|"button", image, source: "photo"|"draw", speculative?}`. **A photo of a notebook page is the default**: the phone fixes its orientation, drops paper lines and shadows with an adaptive threshold, crops to the ink, turns it landscape and scales it to 512 px, and keeps an ink-only transparent copy for the on-screen overlay. A drawing on the phone is the backup. Button rectangles are fractions of the cropped drawing and map onto the full play area.
 - **Speculative:** the phone posts 1.2 s after the last stroke with `speculative: true`. If drawing resumes, Astra aborts that call (`AbortController`). Most of the time the answer is ready before the player taps **Done**.
 - **Three calls in parallel:** entity (type, joints, parts with sockets, verbs), controller (controls), flavour (name, palette, taunt). Low-detail images, one warm keep-alive connection, a 4 s timeout that falls back to defaults.
 - **Cache by drawing hash:** the same drawing, or a rejoin, is instant.
-- **Add a button:** `kind:"button"` sends only the new strokes. Astra reads just that region and adds one control, so drawing LAND, FLARE, SCAN, DRILL or DIG mid-round costs seconds, not a full redraw.
+- **Add a button:** `kind:"button"` sends only the new strokes. Astra reads just that region and adds one control, so drawing DRILL, LAND or DIG mid-round costs seconds, not a full redraw.
 - Only verbs from `verbs.js` and types from `rigs.js` are accepted, values are clamped to their ranges, and the number of parts is capped.
 - Astra then wires the result in code (under 5 ms), writes `controllers/<player>-<kind>.json` and broadcasts `generated` and `entity`.
 - If generation fails, the phone keeps its old layout and shows "try again".
@@ -99,7 +102,7 @@ Server to every screen, over the event stream:
 ### World
 - **Open world, with no fixed direction of travel.**
 - The space sphere is about 700 units across, with about 200 rocks.
-- Every rock has a **random type with its own health and ability**:
+- **v1 uses two rock types: stone and crystal.** The others are defined for later rounds of development (`TUNING.rockTypesInPlay`):
 
 | Type | Health | Ability |
 | --- | --- | --- |
@@ -110,28 +113,23 @@ Server to every screen, over the event stream:
 | Magnet | 3 | pulls ships in |
 | Splitter | 2 | breaks into 2 stones |
 
-### Treasure chain
-1. **Dark nebula.** It hides the **boss rock** among 4 identical decoys. Inside, you can barely see and the radar is jammed.
-   - Draw **FLARE** to light it up.
-   - Draw **SCAN** to reveal which rock is the real boss.
-2. **Boss rock** (the "super final boss"). It is armoured, and lasers bounce off.
-   - Draw **DRILL** and hold it close to crack the armour. Several players can drill at once.
-   - Then shoot it down. The boss fires back at the nearest ship.
-   - Decoys also need drilling, but they turn out empty, which wastes your time.
-3. **Planet appears.** Fly close and press **LAND**, which you must have drawn.
-   - On landing, the phone asks you to **draw your explorer**, the second entity.
-4. **Island.** A hyper-realistic island: sky, ocean and terrain.
-   - Chests sit on the surface, and some are buried, which needs **DIG**.
+### Treasure chain: three gates
+1. **The boss rock** (the "super final boss") floats in a colourful nebula about 300 m from spawn, big, glowing red and visible from far away; the radar points at it. It is armoured, and lasers bounce off.
+   - Draw **DRILL** and hold it close to crack the armour. One player can do it alone; several drill faster.
+   - Then shoot it down. It fires back at the nearest ship.
+2. **The planet appears** next to it. Fly close and press **LAND**, which you must have drawn.
+   - On landing, the phone asks you to **draw your explorer**, the second entity (default if you skip).
+3. **The island**, in full 3D: sky, ocean and terrain. Three chests are buried near the landing spot, each marked with an X; **DIG** one up.
    - **The first chest collected wins the round.**
 
+FLARE and SCAN stay as abilities (a bright flare others can see; a scan that adds extras to your radar), but no gate needs them.
+
 ### Hints: nobody gets stuck
-Every chain obstacle has a three-step hint ladder. Each hint is a `toast` to that player only, shown on the phone above the drawing pad. Hints never fire in the lobby, and sudden death skips straight to step 3.
+Every gate (DRILL, LAND, DIG) has a three-step hint ladder. Each hint is a `toast` to that player only, shown on the phone above the drawing pad. Hints never fire in the lobby, and once assists are on (3:00) they skip straight to step 3.
 
 | Obstacle | 1. Nudge (when it starts) | 2. Name the button (8 s later) | 3. Trace it (8 s after that) |
 | --- | --- | --- | --- |
 | **LAND** | Entering landing range of the planet without a LAND control: "Get closer and land. How do you land?" The planet's landing ring pulses | "Draw a LAND button" | A dashed ghost box with the word LAND appears on the pad where a button fits; trace it and tap Done |
-| FLARE | Entering the nebula: "It's too dark to see. Light it up?" | "Draw a FLARE button" | Ghost FLARE box on the pad |
-| SCAN | 10 s inside the nebula: "Five identical rocks. Which one is real?" | "Draw a SCAN button" | Ghost SCAN box on the pad |
 | DRILL | Your first laser bounces off the boss: "Lasers bounce off the armour." | "Draw a DRILL button" | Ghost DRILL box on the pad |
 | DIG | Standing on a buried chest: "Something is buried here." | "Draw a DIG button" | Ghost DIG box on the pad |
 
@@ -139,22 +137,21 @@ Every chain obstacle has a three-step hint ladder. Each hint is a `toast` to tha
 - A hint stops as soon as the player has a control bound to that verb.
 - The server owns the ladder (it knows positions and bindings); the phone only shows the toast and the ghost box (`toast` carries an optional `ghost: { action, x, y, w, h }`).
 
-### Round clock: winnable in 2:00, over by 3:00
+### Round clock: about 2:00 for a player who knows the route, 4 to 5 minutes for anyone
 Before the clock: a **20 s lobby** to draw your ship and controller (defaults if you skip).
 
 | Clock | Stage | Budget |
 | --- | --- | --- |
-| 0:00–0:25 | Fly to the nebula | 25 s |
-| 0:25–0:45 | Find the boss with FLARE and SCAN | 20 s |
-| 0:45–1:10 | Crack it with DRILL, then shoot it down | 25 s |
-| 1:10–1:25 | Reach the planet and LAND | 15 s |
-| 1:25–1:40 | Draw your explorer (15 s timer, default explorer if skipped) | 15 s |
-| 1:40–2:00 | Dig up a chest | 20 s |
-| 2:30 | **Sudden death:** decoys reveal themselves, the boss loses its armour, buried chests glow | |
-| 3:00 | Hard cap: the top score wins | |
+| 0:00–0:15 | Boost to the boss | 15 s |
+| 0:15–0:45 | Lasers bounce: add a DRILL button, crack the armour, shoot it down | 30 s |
+| 0:45–1:10 | Fly to the planet, add LAND, land | 25 s |
+| 1:10–1:25 | Draw your explorer (15 s timer, default if skipped) | 15 s |
+| 1:25–1:50 | Walk to an X, add DIG, dig up the chest | 25 s |
+| 3:00 | **Assists on** (phase `assists`): the boss loses its armour, the buried chests come up and glow, hints jump to step 3 | |
+| No cap | The round ends only when someone collects a chest; a weak player finishes in 4 to 5 minutes | |
 
-- After a win or the cap: an 8 s scoreboard, then a new round. Everyone keeps their drawings.
-- **Tuning targets, to verify in playtests:** nebula about 350 units from spawn; the planet appears within about 150 units of the boss; the landing spot is within 40 units of the nearest chest; each round twist (section 8) is solvable in 20 s or less.
+- After a win: an 8 s scoreboard, then a new round. Everyone keeps their drawings.
+- **Tuning targets, to verify in playtests:** the boss about 300 m from spawn; one player cracks its armour in about 5 s of drilling; the planet appears within about 150 m of the boss; the landing spot is within 40 m of the nearest chest.
 
 ### Scoring
 | Event | Points |
@@ -174,14 +171,14 @@ Before the clock: a **20 s lobby** to draw your ship and controller (defaults if
 
 ### Look and HUD (reference: `assets/reference/ui-inspiration.png`)
 - **Style:** stylized and saturated, not photoreal. Deep blue to violet and magenta nebula clouds, chunky flat-shaded low-poly rocks in warm grey-brown, bloom on everything that glows.
-- **Colour meaning:** red glow means hostile (boss, boss shots, decoy traps); cyan means yours (shield, meters, your arrow on the radar); each player keeps their own colour on their ship, trail and bullets.
+- **Colour meaning:** red glow means hostile (the boss and its shots); cyan means yours (shield, meters, your arrow on the radar); each player keeps their own colour on their ship, trail and bullets.
 - **Effects:** long additive engine trails, a translucent cyan hex shield bubble, thin bright laser streaks, a planet with clouds and night-side city lights.
-- **Big screen HUD:** objective title top centre in spaced capitals ("FIND THE BOSS", "LAND ON THE PLANET", "DIG UP A CHEST") with a red-to-orange bar under it (boss health, or progress) and a small status line under that; the round clock next to it; a ring radar bottom left (red = boss and hostiles, blue = other players, cyan arrow = you, a red diamond = the objective); SHIELD and BOOST meters bottom right with icons; scoreboard top left.
+- **Big screen HUD:** objective title top centre in spaced capitals ("REACH THE BOSS", "LAND ON THE PLANET", "DIG UP A CHEST") with a red-to-orange bar under it (boss health, or progress) and a small status line under that; the round clock next to it; a ring radar bottom left (red = boss and hostiles, blue = other players, cyan arrow = you, a red diamond = the objective); SHIELD and BOOST meters bottom right with icons; scoreboard top left.
 - **Phone HUD:** the bottom of the screen belongs to the drawn controller, so the phone keeps its HUD at the top: objective and clock top centre, a small radar top right, SHIELD and BOOST as thin bars top left. Thin lines and glow, no heavy panels.
 
 ### Graphics target
 - Bloom and film-style tone mapping, image-based lighting for reflections.
-- Rocks with displaced shapes, a planet with an atmosphere, nebula volumes.
+- Rocks with displaced shapes, a planet with an atmosphere, colourful nebula clouds.
 - Island: three.js Sky and Water add-ons, shadows, height-coloured terrain, many trees.
 - Drawn entities stay hand-drawn: the contrast with the realistic world is the look.
 
@@ -324,9 +321,9 @@ Binding a drawn control to a verb is code, not a model call.
 
 ## 8. Obstacles you solve by drawing
 
-**Always in, every round (the chain):** LAND, FLARE, SCAN, DRILL, DIG.
+**v1, every round:** the three gates DRILL, LAND, DIG. Nothing else.
 
-**Plus one random twist per round**, each solvable in 20 s or less:
+**After v1, once rounds feel good:** at most one random twist per round, each solvable in 20 s or less, picked from:
 
 | # | Twist | Draw |
 | --- | --- | --- |
@@ -371,30 +368,35 @@ Steps 0 and 1 are done by everyone together. After that each lane works on its s
 | **0. Setup** | All | `.gitignore` covering `.env`, `node_modules` and `controllers/`. `serveStatic` serves only an allowlist of public files (html, js, assets) | repo root, `server.js` | `node server.js` serves a page on port 8000 to a phone on the LAN, and `/.env`, `/controllers/…` and `/server.js` return 404 |
 | **1. Contract** | All | Message formats (section 3), controller layout v2, the extended `verbs.js` format (section 5), the `rigs.js` template shape (section 6), as code and sample JSON files | `verbs.js`, `rigs.js`, `samples/*.json` | Every sample file passes the same checks the server will run |
 | **2. Server and live stream** | Netcode & sim | Static files, `GET /events`, `POST /input`. Broadcast to every connected screen | `server.js` | Two browser tabs: input from one appears on the other within 100 ms |
-| **3. Core simulation** | Netcode & sim | `world.js` at 30 Hz: players, flight physics (turn, pitch, thrust, strafe), rocks, bullets, collisions, shoot, boost and shield. The round clock: lobby, playing, sudden death, scoreboard. Ticks 15 times a second | `world.js` | A scripted player moves, shoots a rock and gets points; a scripted round goes lobby → playing → 3:00 cap → scoreboard → new round |
+| **3. Core simulation** | Netcode & sim | `world.js` at 30 Hz: players, flight physics (turn, pitch, thrust, strafe), rocks, bullets, collisions, shoot, boost and shield. The round clock: lobby, playing, assists at 3:00, scoreboard. Ticks 15 times a second | `world.js` | A scripted player moves, shoots a rock and gets points; a scripted round goes lobby → playing → assists at 3:00 → chest → scoreboard → new round |
 | **4. Renderer and big screen** | World & render | Shared three.js scene: ships, rocks, bullets, effects, bloom. Spectator camera, scoreboard, minimap, round clock. Movement between ticks is smoothed | `render.js`, `space.html` | The big screen shows a keyboard-controlled ship flying and shooting smoothly, with the clock counting down. With `--bots 8`, `perf.log` shows the big screen at 60 fps |
 | **5. Phone controller** | Phone | Join with a name, draw on a canvas, **Done** → upload. Dashed tap areas, real analog sticks, a tilt toggle. The phone renders its own ship (chase by default, cockpit toggle), with the drawing semi-transparent on top and the HUD along the top (section 4, Look and HUD) | `controller.html` | Using a hand-written layout JSON, a phone flies its ship and sees its own view. With `--bots 8`, an iPhone's samples in `perf.log` average 55 fps or more with a 1% low of 30 or more |
 | **6. Astra: controllers** | Astra | `POST /generate` for controllers: speculative calls, abort, cache by hash, add-a-button mode, checks, "generating…" and "try again" states | `astra.js`, `server.js` | Draw arrows plus FIRE, and working buttons appear in under 3 s. Adding a LAND button mid-round takes under 5 s. Bad model output is rejected cleanly |
-| **7. Open world and boss** | Netcode & sim, World & render | Rock types, PvP with health and respawn, the scoring table. Nebula with FLARE and SCAN, decoys, the armoured boss with DRILL, boss attacks | `world.js`, `render.js` | Four players find the boss, crack it and destroy it by about 1:10; points match the scoring table |
-| **8. Planet and island** | Netcode & sim, World & render, Phone | Planet with LAND, a 15 s prompt to draw your explorer (default if skipped), the island scene, chests and DIG, takeoff, sudden death | `terrain.js`, `world.js`, `render.js`, `controller.html` | A player lands, digs up a chest and the round ends. 4 players finish a round in 1:45–2:30. The 3:00 cap and sudden death fire |
-| **9. Drawn entities** | Astra, Phone, World & render | Entity call (type, joints, parts on sockets, verbs). Inflate or extrude on the device. Rigs for ship and person first, then car and quadruped. Generic binding with re-bind on every switch. Photo upload. Selfie on the head socket | `astra.js`, `rigs.js`, `render.js`, `controller.html` | A drawn ship with wings and a drill gets `fly` and `drill` and looks like the drawing. Landing re-binds the same controller in under 5 ms, with greyed controls and hints |
-| **10. Polish** | All | The other 6 rig types, the graphics pass (section 4) within the iPhone budget, round twists from section 8, sound, HTTPS for tilt and camera | all | Runs smoothly with 8 players: 60 fps on the big screen and on an iPhone 12, 30 fps or better on an iPhone XR, all read from `perf.log`. Median round 2:00, none over 3:00 |
+| **7. Open world and boss** | Netcode & sim, World & render | Stone and crystal rocks, PvP with health and respawn, the scoring table, the armoured boss with DRILL, boss attacks, FLARE and SCAN as abilities | `world.js`, `render.js` | One player alone reaches, cracks and destroys the boss by about 0:45; points match the scoring table |
+| **8. Planet and island** | Netcode & sim, World & render, Phone | Planet with LAND, a 15 s prompt to draw your explorer (default if skipped), the island scene, chests and DIG, takeoff, assists | `terrain.js`, `world.js`, `render.js`, `controller.html` | A player lands, digs up a chest and the round ends. A scripted solo player who boosts and knows the route finishes in about 2:00; a scripted weak player (no boost, wrong decoys first, hints needed) finishes in 4 to 5 minutes. Assists fire at 3:00 |
+| **9. Drawn entities** | Astra, Phone, World & render | Entity call (type, joints, parts on sockets, verbs). Inflate or extrude on the device. Rigs for ship and person first, then car and quadruped. Generic binding with re-bind on every switch. Photo of the drawing by default. Selfie on the head socket | `astra.js`, `rigs.js`, `render.js`, `controller.html` | A drawn ship with wings and a drill gets `fly` and `drill` and looks like the drawing. Landing re-binds the same controller in under 5 ms, with greyed controls and hints |
+| **10. Polish** | All | The other 6 rig types, the graphics pass (section 4) within the iPhone budget, sound, and round twists only if rounds still feel short, HTTPS for tilt and camera | all | Runs smoothly with 8 players: 60 fps on the big screen and on an iPhone 12, 30 fps or better on an iPhone XR, all read from `perf.log`. Expert solo round about 2:00, weak player 4 to 5 minutes |
 
 **Rule:** get one player through a whole round end to end before adding more verbs, types or twists.
 
 ---
 
-## 10. Open decisions
+## 10. Decisions made (9 October)
 
-- **Island:** full 3D (assumed), or a simpler 2D top-down version?
-- **Which OpenAI model:** pick the fastest vision model that still reads hand-drawn labels reliably. Measure latency in step 6.
-- **Boss tuning:** can one player crack the boss inside its 25 s budget, or is it tuned for two or more drillers?
+- **Island:** full 3D.
+- **OpenAI model:** always `gpt-6.1-sol`, Responses API, `service_tier: "ultrafast"`; never `gpt-6-astra` or another model. The only fallback is `gpt-6.1-sol` on its default tier, if ultrafast rejects image input or strict JSON output. Measure latency in step 6.
+- **World size:** three gates (DRILL, LAND, DIG), two rock types, no decoys, no dark nebula, no twists in v1; players keep many abilities.
+- **Boss tuning:** one player alone can do the whole round: about 2:00 when they boost and know the route, 4 to 5 minutes for a weak player. No time cap; assists at 3:00.
+- **Drawing input:** a photo of the drawing on a notebook page by default; drawing on the phone as the backup, with a toggle in draw mode.
+
+No open decisions right now.
 
 ## 11. Risks and notes
 
 - **API key:** read `OPENAI_API_KEY` from the environment or from `.env`, which is git-ignored. Never hard-code it, log it or send it to the browser. Any key that has been pasted into a chat or channel must be rotated.
 - **Static files:** today `serveStatic` serves the whole folder, so a `.env` next to `server.js` would be downloadable by anyone on the Wi-Fi. Step 0 replaces it with an allowlist; never serve `.env` or `controllers/`.
-- **Round length:** if playtests run long, tighten the distances first, then move sudden death earlier. The 3:00 cap is fixed.
+- **Round length:** if playtests run long, tighten the distances first, then move the assists earlier. There is no time cap.
+- **Photos of paper:** lighting, lined paper and perspective vary; the phone crops and thresholds before sending, and "Retake" or the Draw toggle is always one tap away.
 - Tilt and camera on phones need **HTTPS**, using a self-signed certificate that players accept once. Fallback: a tunnel with an HTTPS URL, and sticks instead of tilt.
 - **Bad joints from the model:** snap to the ink, sanity-check limb lengths, fall back to proportional joints or the blob type.
 - **iPhone performance** is the main technical risk: every render step is checked against `perf.log` from a real iPhone, not a desktop browser (section 4, Performance).

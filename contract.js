@@ -6,9 +6,10 @@
   const TICK_HZ = 15;
   const PERF_POST_SECONDS = 5;
 
-  const PHASES = ["lobby", "playing", "sudden", "scoreboard"];
-  // A round is winnable in about 2:00 and never runs past 3:00 (PLAN.md section 4, Round clock).
-  const ROUND = { lobbySeconds: 20, playSeconds: 180, suddenAt: 150, scoreboardSeconds: 8 };
+  const PHASES = ["lobby", "playing", "assists", "scoreboard"];
+  // No time cap: a round ends when someone collects a chest. About 2:00 for a player who knows the route,
+  // 4 to 5 minutes for anyone; assists switch on at 3:00 (PLAN.md section 4, Round clock).
+  const ROUND = { lobbySeconds: 20, assistsAt: 180, scoreboardSeconds: 8 };
 
   // 1 unit = 1 m. Distances are the tuning targets from PLAN.md; playtests adjust them here only.
   const TUNING = {
@@ -30,10 +31,13 @@
     stunSeconds: 1.5,
     shield: { drainPerSecond: 0.35, rechargePerSecond: 0.15 },
     boost: { drainPerSecond: 0.25, rechargePerSecond: 0.2 },
-    nebula: { distance: 380, radius: 60, visibility: 25, flareVisibility: 120, flareSeconds: 14 },
+    // The boss floats in a colourful (decorative) nebula about 300 m from spawn, visible from far away.
+    nebula: { distance: 300, radius: 80 },
+    flare: { seconds: 14, radius: 120 },
     boss: { radius: 9, armour: 100, hp: 300, drillRange: 14, drillPerSecond: 20, shotEverySeconds: 1.5, shotSpeed: 60, shotDamage: 15, shotLife: 3 },
-    decoys: 4,
     scan: { range: 250, seconds: 8 },
+    // v1 keeps the world simple: plain rocks plus bonus crystals. The other types stay defined for later.
+    rockTypesInPlay: ["stone", "crystal"],
     planet: { offset: 150, radius: 40, landRange: 25 },
     island: { chests: 4, buried: 2, chestSpread: 40, walkSpeed: 8, runMultiplier: 2, jumpSpeed: 9, gravity: 24, digSeconds: 1.5, pickupRange: 3, explorerDrawSeconds: 15 },
   };
@@ -60,8 +64,7 @@
   const ALIASES = { fire: "shoot", win: "blast", light: "flare", cloak: "invisible", warp: "teleport" };
 
   const OBJECTIVES = {
-    nebula: "FLY TO THE NEBULA",
-    findBoss: "FIND THE BOSS",
+    boss: "REACH THE BOSS",
     crackBoss: "CRACK THE BOSS",
     destroyBoss: "DESTROY THE BOSS",
     planet: "LAND ON THE PLANET",
@@ -75,14 +78,14 @@
    * world      { type, round, seed, radius,
    *              rocks: [[id, x, y, z, size, typeIndex, health]],        // typeIndex into ROCK_TYPE_NAMES
    *              nebula: { x, y, z, radius },
-   *              targets: [{ id, kind: "boss"|"decoy", x, y, z, radius, armour, hp, maxHp, cracked, dead }],
-   *              revealedTo: [playerName],                               // who has scanned the boss; everyone in "sudden"
+   *              targets: [{ id, kind: "boss", x, y, z, radius, armour, hp, maxHp, cracked, dead }],  // v1: one boss, no decoys
+   *              revealedTo: [playerName],                               // who has used SCAN (radar extras); everyone in "assists"
    *              planet: null | { x, y, z, radius, landRange },          // appears when the boss dies
    *              island: { seed, size },
    *              chests: [{ id, x, z, buried, dug, open }] }             // island coordinates; dug 0..1
    *            Sent on connect and whenever any of it changes.
    *
-   * tick       { type, t, round, phase, clock,                           // clock = seconds left in this phase
+   * tick       { type, t, round, phase, clock,                           // lobby/scoreboard: seconds left; playing/assists: seconds since the start
    *              players: [{ name, color, mode: "space"|"planet", x, y, z, yaw, pitch, roll, hp, score,
    *                          shieldEnergy, boostEnergy,                  // 0..1, drive the HUD meters
    *                          flags: { boost, shield, stun, dead, invisible, drilling, digging, ready, bot },
