@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Transition demo</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;font:600 14px system-ui,sans-serif;color:#fff}
+  canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #white{position:fixed;inset:0;background:radial-gradient(circle at 50% 55%,#fff 0,#f4fbff 60%,#dff2ff 100%);opacity:0;pointer-events:none}
+  #pad{position:fixed;left:0;right:0;bottom:0;height:34%;background:rgba(20,30,60,.75);border-top:2px solid #4cf;display:flex;align-items:center;justify-content:center;pointer-events:none;letter-spacing:.2em}
+  #ui{position:fixed;top:10px;left:10px;display:flex;gap:8px;z-index:5}
+  button{font:inherit;padding:10px 16px;border-radius:10px;border:0;background:#fff;color:#123}
+  #hud{position:fixed;top:56px;left:10px;font:12px ui-monospace,monospace;opacity:.8;white-space:pre}
+</style>
+</head>
+<body>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+<canvas id="c"></canvas>
+<div id="pad">SPACE CONTROLLER</div>
+<div id="white"></div>
+<div id="ui"><button id="land">Land</button><button id="take">Take off</button></div>
+<div id="hud"></div>
+<script type="module">
+import * as THREE from "three";
+import { playLanding, playTakeoff } from "../../transition.js";
+
+const q = new URLSearchParams(location.search);
+const manual = q.has("manual");
+const canvas = document.getElementById("c");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 3));
+renderer.setSize(innerWidth, innerHeight, false);
+
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 5000);
+addEventListener("resize", () => {
+  renderer.setSize(innerWidth, innerHeight, false);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+// space: stars + planet + pulsing landing ring
+const spaceScene = new THREE.Scene();
+spaceScene.background = new THREE.Color(0x070a1c);
+{
+  const n = 1500, p = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const v = new THREE.Vector3().randomDirection().multiplyScalar(800 + Math.random() * 200);
+    p.set([v.x, v.y, v.z], i * 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(p, 3));
+  spaceScene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 2.2, sizeAttenuation: false })));
+}
+const RING = new THREE.Vector3(0, 0, -150);
+const planet = new THREE.Mesh(new THREE.SphereGeometry(40, 40, 24), new THREE.MeshBasicMaterial({ color: 0x2f7fd0 }));
+planet.position.set(0, -35, -190);
+spaceScene.add(planet);
+const ringMesh = new THREE.Mesh(new THREE.TorusGeometry(9, 0.35, 8, 48), new THREE.MeshBasicMaterial({ color: 0x66ffcc }));
+ringMesh.position.copy(RING);
+ringMesh.rotation.x = Math.PI / 2;
+spaceScene.add(ringMesh);
+const lamb = new THREE.DirectionalLight(0xffffff, 2); lamb.position.set(3, 5, 4); spaceScene.add(lamb, new THREE.AmbientLight(0x6070a0, 1.2));
+
+// island
+const islandScene = new THREE.Scene();
+islandScene.background = new THREE.Color(0x8fd0ff);
+islandScene.fog = new THREE.Fog(0x8fd0ff, 120, 600);
+islandScene.add(new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: 0x1f8fcf })));
+const isle = new THREE.Mesh(new THREE.CylinderGeometry(70, 85, 3, 40), new THREE.MeshLambertMaterial({ color: 0xe7d29a }));
+isle.position.y = -0.5;
+islandScene.add(isle);
+const PAD = new THREE.Vector3(0, 1, 0);
+const padMesh = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 0.3, 32), new THREE.MeshLambertMaterial({ color: 0x778899 }));
+padMesh.position.set(0, 1.05, 0);
+islandScene.add(padMesh);
+for (let i = 0; i < 14; i++) {
+  const a = i * 1.7, d = 18 + (i % 5) * 7;
+  const tree = new THREE.Mesh(new THREE.ConeGeometry(2.2, 8, 7), new THREE.MeshLambertMaterial({ color: 0x2f9b4d }));
+  tree.position.set(Math.cos(a) * d, 5, Math.sin(a) * d);
+  islandScene.add(tree);
+}
+const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(30, 60, 20);
+islandScene.add(new THREE.AmbientLight(0xffffff, 1.4), sun);
+
+// placeholder ship (2.9 m, nose -Z)
+const ship = new THREE.Group();
+const body = new THREE.Mesh(new THREE.ConeGeometry(0.55, 2.9, 8).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: 0xdfe8f5 }));
+const wings = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.08, 0.9), new THREE.MeshLambertMaterial({ color: 0x23c6e6 }));
+wings.position.z = 0.7;
+ship.add(body, wings);
+spaceScene.add(ship);
+
+function resetSpace() {
+  ship.removeFromParent();
+  spaceScene.add(ship);
+  ship.position.set(10, 4, -10);
+  ship.rotation.set(0, 0.12, 0, "YXZ");
+  camera.position.set(10, 8, 8);
+  camera.lookAt(ship.position.x, ship.position.y, ship.position.z - 10);
+  camera.fov = 60;
+  camera.updateProjectionMatrix();
+}
+function parkOnPad() {
+  ship.removeFromParent();
+  islandScene.add(ship);
+  ship.position.set(0, 1.4, 0);
+  ship.rotation.set(0, 0, 0, "YXZ");
+  camera.position.set(5, 3.6, 8.5);
+  camera.lookAt(0, 1.6, 0);
+}
+
+const whiteEl = document.getElementById("white");
+const padEl = document.getElementById("pad");
+const hud = document.getElementById("hud");
+let ctl = null;
+let currentScene = spaceScene;
+const log = [];
+const opts = () => ({
+  renderer, camera, spaceScene, islandScene, ship,
+  ringPosition: RING, padPosition: PAD,
+  onSwitchScene: (s) => log.push(["switch", s === islandScene ? "island" : "space"]),
+  onDone: () => log.push(["done"]),
+});
+function land() { if (ctl) ctl.cancel(); resetSpaceIfNeeded(); ctl = playLanding(opts()); currentScene = ctl.scene; }
+function take() { if (ctl) ctl.cancel(); ctl = playTakeoff(opts()); currentScene = ctl.scene; }
+function resetSpaceIfNeeded() { if (ship.parent !== spaceScene) resetSpace(); }
+document.getElementById("land").onclick = land;
+document.getElementById("take").onclick = take;
+
+function draw() {
+  if (ctl) { currentScene = ctl.scene; whiteEl.style.opacity = ctl.whiteout; padEl.style.opacity = ctl.overlayAlpha; }
+  renderer.render(currentScene, camera);
+}
+let last = performance.now();
+function frame(now) {
+  const dt = (now - last) / 1000; last = now;
+  if (!manual && ctl) { if (!ctl.update(dt)) ctl = null; }
+  if (!manual) draw();
+  hud.textContent = ctl ? `scene ${ctl.scene === islandScene ? "island" : "space"}  p ${ctl.progress.toFixed(2)}  white ${ctl.whiteout.toFixed(2)}  ui ${ctl.overlayAlpha.toFixed(2)}` : "idle";
+  requestAnimationFrame(frame);
+}
+resetSpace();
+requestAnimationFrame(frame);
+
+window.__demo = {
+  log,
+  reset() { if (ctl) { ctl.cancel(); ctl = null; } resetSpace(); },
+  start(kind) { kind === "land" ? land() : take(); draw(); },
+  step(dt) { if (ctl && !ctl.update(dt)) ctl = null; draw(); },
+  bench(n = 3000) {
+    const mk = () => playLanding(opts());
+    const run = (kind) => {
+      resetSpace();
+      const c = kind === "land" ? playLanding(opts()) : (parkOnPad(), playTakeoff(opts()));
+      const mem0 = performance.memory ? performance.memory.usedJSHeapSize : 0;
+      const t0 = performance.now();
+      let frames = 0;
+      while (c.update(1 / 60)) frames++;
+      const ms = performance.now() - t0;
+      return { frames, msPerFrame: ms / Math.max(1, frames), heapDelta: performance.memory ? performance.memory.usedJSHeapSize - mem0 : null };
+    };
+    const out = [];
+    for (let i = 0; i < 20; i++) out.push(run("land"), run("take"));
+    return out;
+  },
+  parkOnPad,
+};
+</script>
+</body>
+</html>
