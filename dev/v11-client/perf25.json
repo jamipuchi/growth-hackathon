@@ -1,0 +1,133 @@
+{
+  "tool": "dev/v11-client/perf25.mjs",
+  "measuredAt": "2026-10-09T22:52:45.562Z",
+  "vitalsAtStart": "00:52:10 pressure=1 load=12.93 disk=113GB swapfree=1708.38MB therm=100% power=AC Power 100% orphans=2 workers=2 hold=off",
+  "browsers": {
+    "webkit": "/Users/jaumepuig/Library/Caches/ms-playwright/webkit-2311/pw_run.sh"
+  },
+  "config": {
+    "bots": 24,
+    "seededDevKit": 6,
+    "seededPlain": 6,
+    "ships": 37,
+    "measureSeconds": 30,
+    "afterSeconds": 26,
+    "assistsAtSeconds": 44,
+    "burstAtSeconds": 36,
+    "burstRounds": 2,
+    "phone": "WebKit, iPhone UA, 844x390 @3x, touch"
+  },
+  "windowA": {
+    "label": "space, 30 s before the burst",
+    "frames": 1783,
+    "fps": 59.5,
+    "low1": 52.6,
+    "p90ms": 18,
+    "p99ms": 19,
+    "worstMs": 284,
+    "framesOver50ms": 1,
+    "framesOver100ms": 1,
+    "posted": {
+      "samples": 6,
+      "fps": 60,
+      "fpsMin": 60,
+      "low1": 52.6,
+      "low1Min": 52.6,
+      "p90ms": 18.2,
+      "calls": 29.2,
+      "callsMax": 32,
+      "tris": 67471,
+      "trisMax": 68634,
+      "textures": 23,
+      "tier": 5,
+      "size": "844x390@1",
+      "dpr": 1
+    },
+    "entityMessagesOnEvents": 0
+  },
+  "burst": {
+    "sameImagePosts": 24,
+    "newImagePosts": 6,
+    "failedPosts": 0,
+    "note": "failedPosts are drawings refused (5 final drawings per player per world)"
+  },
+  "windowC": {
+    "label": "burst at 36 s, assists at 44 s, arrival at the boss",
+    "frames": 1559,
+    "fps": 60,
+    "low1": 52.6,
+    "p90ms": 18,
+    "p99ms": 19,
+    "worstMs": 19,
+    "framesOver50ms": 0,
+    "framesOver100ms": 0,
+    "posted": {
+      "samples": 5,
+      "fps": 60,
+      "fpsMin": 60,
+      "low1": 52.6,
+      "low1Min": 52.6,
+      "p90ms": 18,
+      "calls": 30,
+      "callsMax": 38,
+      "tris": 63687,
+      "trisMax": 65176,
+      "textures": 23,
+      "tier": 5,
+      "size": "844x390@1",
+      "dpr": 1
+    },
+    "entityMessagesOnEvents": 37
+  },
+  "assists": {
+    "seenOnEvents": true,
+    "atSecondsOfPlay": 45.3,
+    "phases": [
+      {
+        "phase": "lobby",
+        "clock": 0
+      },
+      {
+        "phase": "playing",
+        "clock": 0.03
+      },
+      {
+        "phase": "assists",
+        "clock": 44
+      }
+    ]
+  },
+  "crashed": false,
+  "aliveAfter": true,
+  "pageState": {
+    "screen": "play",
+    "step": "play"
+  },
+  "pageProblems": {
+    "errors": [],
+    "http": [],
+    "failed": [],
+    "abortedRequests": {},
+    "warnings": 0,
+    "crashed": false
+  },
+  "budget": {
+    "callsMax": 38,
+    "trisMax": 68634,
+    "dpr": 1,
+    "rule": "calls <= 80, tris <= 120000, pixel ratio <= 2 (PLAN.md section 4)"
+  },
+  "gates": {
+    "survivedWithoutCrash": true,
+    "callsLe80": true,
+    "trisLe120k": true,
+    "pixelRatioLe2": true,
+    "fpsGe55": true,
+    "low1Ge30": true,
+    "noConsoleErrors": true
+  },
+  "pass": true,
+  "passStrict": true,
+  "note": "WebKit on a desktop Mac emulating an iPhone: a proxy only (no touch GPU limits); confirm fps and 1% low on a real phone. posted = the page's own POST /perf samples (renderer.info of the last frame).",
+  "wallSeconds": 67.2
+}

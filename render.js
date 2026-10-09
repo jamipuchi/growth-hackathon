@@ -1,14 +1,16 @@
 // Shared three.js renderer for the big screen (space.html) and the phones (controller.html).
 // API (contract.js): startGame({ canvas, screen: "big"|"phone", view: "spectator"|"chase"|"cockpit", player }) → game
 //   game.setView(view)  game.setPlayer(name)  game.dispose()  game.on(event, cb) → off()  game.hud()
+//   game.entityOf(name) → the player's latest entity message or null   game.projectPlayers() → name-tag positions, nearest first
+//   createEntityPreview({ canvas, quality }) → { show({ image, kind, color }), clear(), setVisible(bool), dispose() } (exported)
 // It owns the /events connection, interpolation (~100 ms behind the newest tick), the two scenes (space and island),
 // adaptive quality, the ?perf overlay and POST /perf. contract.js and terrain.js must be loaded first (globals).
+// Drawn ships and explorers come from inflate.js through the cache above `// Space scene.` (one mesh built per frame at most).
 import * as THREE from "three";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-import { Sky } from "three/addons/objects/Sky.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 
 const Contract = globalThis.Contract;
@@ -16,6 +18,30 @@ const Terrain = globalThis.Terrain;
 const { TUNING, ROCK_TYPE_NAMES, OBJECTIVES, PERF_POST_SECONDS } = Contract;
 const INTERP_DELAY_MS = 100;
 const CUT_SECONDS = 8;
+
+// Every player-facing string render.js produces (game.hud() statuses), in one place for review. {m} = metres,
+// {pct} = a percentage. Plain words, what to do next; the objective titles come from Contract.OBJECTIVES.
+const HUD_COPY = {
+  getReady: "GET READY",
+  waitStart: "WAITING FOR THE HOST TO PRESS START",
+  roundOver: "ROUND OVER",
+  timeUp: "TIME'S UP",
+  allChests: "EVERY CHEST IS OPEN",
+  assists: "ALL POWERS ON",
+  noWeapon: "REDRAW YOUR SHIP WITH A CANNON TO HURT THE BOSS",
+  bossAway: "BOSS {m} M AWAY · FLY TO IT",
+  bossHp: "BOSS HEALTH {pct} · SHOOT IT",
+  planetAway: "PLANET {m} M AWAY · FLY TO IT",
+  landNow: "CLOSE ENOUGH · PRESS LAND",
+  planetOpen: "THE PLANET IS OPEN",
+  buriedChest: "BURIED CHEST {m} M · DIG IT UP",
+  rockChest: "ROCK CHEST {m} M · DRILL IT OPEN",
+  digging: "DIGGING {pct}",
+  drilling: "DRILLING {pct}",
+  allOpen: "EVERY CHEST IS OPEN",
+  // Used only if contract.js has no title for an objective.
+  objectives: { boss: "REACH THE BOSS", destroyBoss: "DESTROY THE BOSS", planet: "LAND ON THE PLANET", openChests: "OPEN THE CHESTS", weapon: "DRAW A WEAPON" },
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Asset loader: every delivery from assets/ goes through this table. Swapping a placeholder for a delivery is one
@@ -48,7 +74,23 @@ const ASSETS = {
     }
   },
   chest: async (state) => (await import(assetUrl("A-006-chest/chest.js"))).createChest({ state }),
-  planet: null, // A-004 still in progress: procedural shader planet below.
+  // A-004 Earth-like planet (World look: PlanetLook): built per round from the seed and the scene's sun, shown locked from the
+  // start. On the phone its two 2048 x 1024 maps are shrunk to 1024 x 512 first (texture budget). Null on failure: the
+  // caller draws the procedural planet instead.
+  planet: async ({ seed, radius, unlocked, sun, phone }) => {
+    const m = await import(assetUrl("A-004-planet/planet.js"));
+    if (phone) await shrinkPlanetMaps(m);
+    const planet = await m.createPlanet({ seed, radius, unlocked, sunDirection: sun });
+    planet.surface.material.fog = false; // a far planet must not dissolve into the fog
+    return planet;
+  },
+  // A-011 blue / violet / magenta nebula panorama + diffuse light probe (World look). On the phone its 2048 x 1024 jpg is
+  // shrunk to 1024 x 512. Null on failure: the procedural backdrop stays.
+  spaceEnv: async ({ phone }) => {
+    const m = await import(assetUrl("A-011-space-env/environment.js"));
+    const loader = phone ? { loadAsync: (url) => loadShrunkTexture(url, 1024, 512) } : undefined;
+    return m.createSpaceEnvironment({ variant: "space", intensity: 1, lightingIntensity: 0.4, ...(loader ? { loader } : {}) });
+  },
   // A-005 island kit: its terrain and instanced props (palms with LOD and breeze, bushes, rocks, cliffs). The game
   // keeps its own cheap water, sky and lights (the Water add-on stays off the phone, PLAN.md section 4). Phones get
   // fewer props and a triangle cap that leaves room for players, chests and effects.
@@ -299,40 +341,1010 @@ class RingPool {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// Drawn entities (inflate.js). The server sends every entity again on each mode switch, redraw and unlock (and for
+// every player at once), so a drawing is inflated ONCE per (URL, kind, quality, colour): a queue builds at most one mesh
+// per frame (DRAWN.pump, called from the world updates), views get cheap instances (shared geometry and texture, their
+// own material) and a small LRU frees what no view uses any more. If inflate.js cannot be loaded (the server does not
+// serve it yet) every view keeps its default mesh and nothing is logged.
+let entInflate = null, entInflateState = 0, entInflatePromise = null; // state: 0 not asked yet, 1 loading, 2 ready, -1 missing
+function entLoadInflate() {
+  if (entInflateState === 0) {
+    entInflateState = 1;
+    entInflatePromise = import("./inflate.js").then((m) => { entInflate = m; entInflateState = 2; return m; }).catch(() => { entInflateState = -1; return null; });
+  }
+  return entInflateState;
+}
+
+class DrawnCache {
+  constructor() {
+    this.map = new Map(); // key → entry { key, url, kind, color, state, users, last, prio, wanted, img, result, tries, retryAt, dead }
+    this.cap = 16;
+    this.quality = "phone";
+    this.tick = 0;
+    this.cool = 0; // frames to wait before the next build: a slow one lets the frame rate recover
+    this.loading = 0;
+    this.built = 0;
+  }
+  configure(phone) { this.cap = phone ? 16 : 40; this.quality = phone ? "phone" : "big"; }
+  usable() { return entInflateState >= 0; }
+  // A view's claim on a drawing. Entry states: queued → loading → loaded → ready | failed.
+  acquire(url, kind, color) {
+    entLoadInflate();
+    const key = `${url}|${kind}|${this.quality}|${color}`;
+    let e = this.map.get(key);
+    if (!e) {
+      e = { key, url, kind, color, state: "queued", users: 0, last: this.tick, prio: 1e9, wanted: -1, img: null, result: null, tries: 0, retryAt: 0, dead: false };
+      this.map.set(key, e);
+    }
+    e.users++;
+    return e;
+  }
+  retain(e) { e.users++; }
+  release(e) { if (e && --e.users <= 0) { e.users = 0; e.last = this.tick; } }
+  // Views say how much they want an entry each frame (a distance: nearest first).
+  want(e, prio) {
+    if (e.wanted !== this.tick) { e.wanted = this.tick; e.prio = prio; } else if (prio < e.prio) e.prio = prio;
+  }
+  // Once per frame: start a load, and inflate at most ONE loaded drawing.
+  pump() {
+    this.tick++;
+    if (!this.map.size) return;
+    if (entInflateState < 0) { for (const e of this.map.values()) if (e.state !== "ready") e.state = "failed"; return; }
+    if (entInflateState !== 2) return;
+    const now = performance.now();
+    let load = null, build = null;
+    for (const e of this.map.values()) {
+      if (e.users <= 0 || e.dead) continue;
+      if (e.state === "loaded") { if (!build || e.prio < build.prio) build = e; }
+      else if (e.state === "queued" && e.retryAt <= now && (!load || e.prio < load.prio)) load = e;
+    }
+    if (load && this.loading < 3) this.fetch(load);
+    if (this.cool > 0) this.cool--;
+    else if (build) this.build(build);
+    if (this.map.size > this.cap) this.trim();
+  }
+  fetch(e) {
+    e.state = "loading";
+    this.loading++;
+    entInflate.loadDrawing(e.url, { fresh: true }).then((img) => {
+      this.loading--;
+      if (e.dead) { try { img.close?.(); } catch { /* already closed */ } return; }
+      e.img = img;
+      e.state = "loaded";
+    }, () => {
+      this.loading--;
+      if (e.dead) return;
+      if (++e.tries >= 3) e.state = "failed";
+      else { e.state = "queued"; e.retryAt = performance.now() + 2000 * e.tries; }
+    });
+  }
+  build(e) {
+    const t0 = performance.now();
+    try {
+      e.result = entInflate.inflateDrawing(e.img, { kind: e.kind, quality: this.quality, color: e.color });
+      e.state = "ready";
+    } catch (err) {
+      e.state = "failed";
+    }
+    try { e.img.close?.(); } catch { /* an HTMLImageElement has no close */ }
+    e.img = null;
+    const ms = performance.now() - t0;
+    this.cool = ms > 45 ? 2 : ms > 25 ? 1 : 0;
+    this.built++;
+  }
+  // Over the cap: the least recently released entries that no view uses go (geometry, texture and material freed).
+  trim() {
+    while (this.map.size > this.cap) {
+      let victim = null;
+      for (const e of this.map.values()) if (e.users <= 0 && (!victim || e.last < victim.last)) victim = e;
+      if (!victim) return;
+      this.map.delete(victim.key);
+      this.free(victim);
+    }
+  }
+  free(e) {
+    e.dead = true;
+    if (e.img) { try { e.img.close?.(); } catch { /* ignore */ } e.img = null; }
+    if (e.result) { try { e.result.dispose(); } catch { /* ignore */ } e.result = null; }
+  }
+  clear() {
+    for (const e of this.map.values()) this.free(e);
+    this.map.clear();
+  }
+  // For tests and the ?perf overlay: how the cache stands.
+  stats() {
+    const states = {};
+    let users = 0;
+    for (const e of this.map.values()) { states[e.state] = (states[e.state] || 0) + 1; users += e.users; }
+    return { entries: this.map.size, cap: this.cap, quality: this.quality, built: this.built, loading: this.loading, users, states, inflate: entInflateState };
+  }
+}
+const DRAWN = new DrawnCache();
+// A bug in one view must not stop the frame (an exception before renderer.render freezes the screen): the loops below
+// catch per view and warn once per distinct message.
+const entWarned = new Set();
+function entWarn(where, e) {
+  const key = where + (e && e.message);
+  if (entWarned.has(key) || entWarned.size > 40) return;
+  entWarned.add(key);
+  console.warn(`[render] ${where}:`, (e && e.stack) || e);
+}
+
+// One view's ask for a drawing: goes to the cache only when the URL, kind or colour changed.
+class DrawnClaim {
+  constructor() { this.e = null; this.url = ""; this.kind = ""; this.color = 0; }
+  set(url, kind, color) {
+    if (url !== this.url || (url && (kind !== this.kind || color !== this.color))) {
+      if (this.e) DRAWN.release(this.e);
+      this.e = url ? DRAWN.acquire(url, kind, color) : null;
+      this.url = url;
+      this.kind = kind;
+      this.color = color;
+    }
+    return this.e;
+  }
+  clear() { this.set("", "", 0); }
+}
+
+// Entities by player: `entities` (above) holds the latest of any type; a landed player's latest is the explorer, but the
+// parked ship still needs the ship drawing, so each family is remembered too.
+const entShips = new Map(), entPlanet = new Map();
+const entPlanetTypes = new Set(["person", "car", "bike", "quadruped", "blob"]);
+function entNote(player, entity) {
+  entities.set(player, entity);
+  (entity.type === "ship" ? entShips : entPlanet).set(player, entity);
+}
+// The connect message: every player's current entity. `entities` is replaced; the per-family memories are only added to (a
+// landed player's current entity is the explorer, their parked ship still wants the ship drawing seen earlier).
+function entReset(map) {
+  entities.clear();
+  for (const [k, v] of Object.entries(map)) if (v) entNote(k, v);
+}
+const entRig = { person: "person", car: "car", bike: "car", quadruped: "quadruped", blob: "blob" };
+const entSize = { person: 1.8, car: 2.8, bike: 1.9, quadruped: 2.0, blob: 1.4 };
+// Shield bubble [centre height, scale x, y, z] and the marker height above the head, per planet type.
+const entShield = { person: [0.95, 1, 1.15, 1], car: [0.75, 1.0, 0.85, 1.45], bike: [0.75, 0.7, 0.95, 1.1], quadruped: [0.85, 0.85, 0.9, 1.3], blob: [0.7, 0.75, 0.75, 0.75] };
+const entMarkY = { person: 2.3, car: 1.9, bike: 1.9, quadruped: 1.7, blob: 1.4 };
+const ENT_TAU = Math.PI * 2;
+function entHash(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return ((h >>> 0) % 10007) / 10007;
+}
+// Pop-in scale: 0 → 1.15 → 1 in half a second.
+function entPop(k) {
+  if (k >= 1) return 1;
+  return Math.max(0.02, k < 0.62 ? 1.15 * (1 - Math.pow(1 - k / 0.62, 3)) : 1.15 - 0.15 * ((k - 0.62) / 0.38));
+}
+
+// Which views get a full mesh this frame. items: views with { lodDist, forced, wantMesh }. `forced` ones (mine, the one the
+// camera follows, one in a landing / take-off shot) always do. The big screen gives a mesh to everything within `near`
+// metres (`far` for a view that already has one: hysteresis); the phone keeps at most `cap`, the nearest, where a view
+// that already has a mesh counts as 25 % closer, so two ships swapping places do not flicker between mesh and impostor.
+function entPlanLod(items, phone, cap, near, far, order, t) {
+  let forced = 0;
+  order.length = 0;
+  for (let i = 0; i < items.length; i++) {
+    const s = items[i];
+    s.hadMesh = s.wantMesh;
+    if (s.forced) { s.wantMesh = true; forced++; continue; }
+    if (s.lodDist > (s.hadMesh ? far : near)) { s.wantMesh = false; continue; }
+    if (!phone) { s.wantMesh = true; continue; }
+    // A view that has a mesh counts as 25 % closer, and as 60 % closer for its first `dwell` seconds (a heavy model is
+    // not worth building again and again as the nearest set shuffles).
+    s.lodScore = s.lodDist * (s.hadMesh ? (t < s.keepUntil ? 0.4 : 0.75) : 1);
+    order.push(s);
+  }
+  if (phone) {
+    for (let i = 1; i < order.length; i++) {
+      const x = order[i];
+      let j = i - 1;
+      while (j >= 0 && order[j].lodScore > x.lodScore) { order[j + 1] = order[j]; j--; }
+      order[j + 1] = x;
+    }
+    const room = Math.max(0, cap - forced);
+    for (let i = 0; i < order.length; i++) order[i].wantMesh = i < room;
+  }
+  for (let i = 0; i < items.length; i++) { const s = items[i]; if (s.wantMesh && !s.hadMesh) s.keepUntil = t + (s.dwell || 0); }
+}
+
+// ---- Procedural toys: the placeholder of a car, bike, quadruped or blob without a drawing (player colour, low-poly) ----
+const _entM = new THREE.Matrix4();
+function entPart(geo, hex, x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1) {
+  const g = geo.index ? geo.toNonIndexed() : geo;
+  if (g !== geo) geo.dispose();
+  g.applyMatrix4(_entM.makeScale(sx, sy, sz).setPosition(x, y, z));
+  const c = new THREE.Color(hex), n = g.attributes.position.count, col = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+  g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  g.deleteAttribute("uv");
+  return g;
+}
+const entBox = (w, h, d) => new THREE.BoxGeometry(w, h, d);
+const entBall = (r, ws = 10, hs = 8) => new THREE.SphereGeometry(r, ws, hs);
+const entCyl = (rt, rb, h, s = 8) => new THREE.CylinderGeometry(rt, rb, h, s);
+// A wheel pivot with a tyre and a hub on each side (xs) around the X axis.
+function entToyWheel(R, w, xs, tyre, hub) {
+  const parts = [];
+  for (const x of xs) {
+    parts.push(entPart(entCyl(R, R, w, 12).rotateZ(Math.PI / 2), tyre, x, 0, 0));
+    parts.push(entPart(entCyl(R * 0.55, R * 0.55, w + 0.03, 10).rotateZ(Math.PI / 2), hub, x, 0, 0));
+  }
+  const geo = mergeGeometries(parts);
+  parts.forEach((p) => p.dispose());
+  return geo;
+}
+function entToy(type, colorHex) {
+  const body = new THREE.Color(colorHex);
+  const hex = body.getHex();
+  const light = new THREE.Color(colorHex).lerp(new THREE.Color(0xffffff), 0.7).getHex();
+  const dark = new THREE.Color(colorHex).lerp(new THREE.Color(0x101828), 0.55).getHex();
+  const parts = [], wheels = [], geos = [];
+  const sock = {};
+  const S = (name, x, y, z) => { const o = new THREE.Object3D(); o.name = `socket_${name}`; o.position.set(x, y, z); sock[name] = o; return o; };
+  let socketList = [];
+  const root = new THREE.Group();
+  root.name = `toy_${type}`;
+  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0.05, flatShading: true });
+  if (type === "car") {
+    parts.push(entPart(entBox(1.3, 0.5, 2.5), hex, 0, 0.6, 0));
+    parts.push(entPart(entBox(1.12, 0.46, 1.25), light, 0, 1.08, 0.18));
+    parts.push(entPart(entBox(0.96, 0.3, 0.06), 0x8bd3ff, 0, 1.1, -0.46));
+    parts.push(entPart(entBox(1.34, 0.16, 0.14), 0x1f2937, 0, 0.45, -1.27));
+    parts.push(entPart(entBox(1.34, 0.16, 0.14), 0x1f2937, 0, 0.45, 1.27));
+    for (const sx of [-1, 1]) {
+      parts.push(entPart(entBox(0.22, 0.14, 0.08), 0xfde047, sx * 0.45, 0.68, -1.27));
+      parts.push(entPart(entBox(0.22, 0.14, 0.08), 0xef4444, sx * 0.45, 0.68, 1.27));
+    }
+    socketList = [S("front", 0, 0.62, -1.3), S("back", 0, 0.62, 1.3), S("roof", 0, 1.34, 0.18), S("top", 0, 1.34, 0.18), S("seat", 0, 1.0, 0.1), S("mouth", 0, 0.62, -1.3), S("tail", 0, 0.62, 1.3), S("centre", 0, 0.7, 0)];
+    for (const z of [-0.82, 0.82]) wheels.push({ z, R: 0.36, geo: entToyWheel(0.36, 0.26, [-0.72, 0.72], 0x111827, 0xe5e7eb), y: 0.36 });
+  } else if (type === "bike") {
+    parts.push(entPart(entBox(0.12, 0.12, 1.2), hex, 0, 0.62, 0));
+    parts.push(entPart(entBox(0.12, 0.5, 0.12), hex, 0, 0.82, -0.62));
+    parts.push(entPart(entBox(0.12, 0.45, 0.12), hex, 0, 0.78, 0.45));
+    parts.push(entPart(entBox(0.2, 0.09, 0.4), 0x1f2937, 0, 1.02, 0.4));
+    parts.push(entPart(entBox(0.8, 0.07, 0.07), 0x1f2937, 0, 1.12, -0.66));
+    parts.push(entPart(entBall(0.09, 8, 6), 0xfde047, 0, 0.98, -0.8));
+    socketList = [S("front", 0, 0.7, -1.0), S("back", 0, 0.7, 1.0), S("roof", 0, 1.1, 0), S("top", 0, 1.1, 0), S("seat", 0, 1.05, 0.4), S("mouth", 0, 0.7, -1.0), S("tail", 0, 0.7, 1.0), S("centre", 0, 0.7, 0)];
+    for (const z of [-0.7, 0.7]) wheels.push({ z, R: 0.4, geo: entToyWheel(0.4, 0.14, [0], 0x111827, light), y: 0.4 });
+  } else if (type === "quadruped") {
+    parts.push(entPart(entBall(1, 12, 9), hex, 0, 0.74, 0.05, 0.34, 0.32, 0.62));
+    parts.push(entPart(entBall(0.27, 10, 8), hex, 0, 1.0, -0.64));
+    parts.push(entPart(entBall(1, 8, 6), light, 0, 0.92, -0.9, 0.14, 0.12, 0.17));
+    parts.push(entPart(entBall(0.05, 6, 5), 0x111827, 0, 0.95, -1.05));
+    for (const sx of [-1, 1]) {
+      parts.push(entPart(new THREE.ConeGeometry(0.09, 0.22, 5), dark, sx * 0.15, 1.27, -0.6));
+      parts.push(entPart(entBall(0.05, 6, 5), 0x111827, sx * 0.11, 1.05, -0.85));
+      for (const z of [-0.36, 0.4]) parts.push(entPart(entCyl(0.09, 0.075, 0.5, 6), dark, sx * 0.2, 0.25, z));
+    }
+    parts.push(entPart(entCyl(0.035, 0.07, 0.5, 6).rotateX(0.9), hex, 0, 0.98, 0.76));
+    socketList = [S("mouth", 0, 0.93, -1.0), S("front", 0, 0.93, -1.0), S("seat", 0, 1.08, 0.1), S("back", 0, 1.08, 0.1), S("roof", 0, 1.08, 0.1), S("top", 0, 1.3, -0.6), S("tail", 0, 1.1, 0.98), S("centre", 0, 0.75, 0)];
+  } else { // blob
+    parts.push(entPart(entBall(1, 14, 10), hex, 0, 0.6, 0, 0.62, 0.56, 0.62));
+    for (const sx of [-1, 1]) {
+      parts.push(entPart(entBall(0.14, 8, 6), 0xffffff, sx * 0.21, 0.8, -0.5));
+      parts.push(entPart(entBall(0.07, 6, 5), 0x111827, sx * 0.21, 0.8, -0.62));
+    }
+    parts.push(entPart(entBox(0.26, 0.04, 0.05), 0x111827, 0, 0.52, -0.6));
+    socketList = [S("centre", 0, 0.6, 0), S("top", 0, 1.15, 0), S("front", 0, 0.6, -0.62), S("back", 0, 0.6, 0.62), S("roof", 0, 1.15, 0), S("seat", 0, 1.1, 0), S("mouth", 0, 0.52, -0.6), S("tail", 0, 0.5, 0.6)];
+  }
+  const geo = mergeGeometries(parts);
+  parts.forEach((p) => p.dispose());
+  geos.push(geo);
+  root.add(new THREE.Mesh(geo, mat));
+  for (const o of socketList) root.add(o);
+  const out = [];
+  for (const w of wheels) {
+    const pivot = new THREE.Group();
+    pivot.name = "wheel";
+    pivot.position.set(0, w.y, w.z);
+    pivot.add(new THREE.Mesh(w.geo, mat));
+    root.add(pivot);
+    geos.push(w.geo);
+    out.push({ pivot, radius: w.R, drawn: false });
+  }
+  return { object3d: root, sockets: sock, materials: [mat], wheels: out, toy: true, dispose() { root.removeFromParent(); mat.dispose(); for (const g of geos) g.dispose(); } };
+}
+
+// Local engine positions (in the group's space) of a ship model: its engine sockets, else the default pair at the tail.
+const ENT_ENGINES = [v3(-0.35, 0, 1.5), v3(0.35, 0, 1.5)];
+function entEngines(model, group) {
+  if (model.engines) return model.engines;
+  const out = [];
+  group.updateMatrixWorld(true);
+  for (const k of ["engine_l", "engine_r"]) {
+    const o = model.sockets && model.sockets[k];
+    if (!o) continue;
+    const p = v3();
+    o.getWorldPosition(p);
+    group.worldToLocal(p);
+    out.push(p);
+  }
+  return out.length ? out : ENT_ENGINES;
+}
+
+// The model of one ship on screen: its drawing once that is built, else the A-009 default ship (a plain dart if even that
+// fails). The flying ShipView and the parked ship on the island both use it. Subclasses hook beforeSwap / afterSwap.
+class ShipModel {
+  constructor(root, name, colorHex) {
+    this.root = root; // the group the model hangs under
+    this.name = name;
+    this.colorHex = colorHex;
+    this.model = null; // { object3d, sockets, materials, wheels?, engines?, setEnginePower?, dispose }
+    this.kind = ""; // "drawn" | "default" | "placeholder" | ""
+    this.claim = new DrawnClaim();
+    this.shown = null; // the cache entry of the drawn model on show
+    this.loadingDefault = false;
+    this.defaultFailed = false;
+    this.waitSince = -1;
+    this.swapped = false; // the last model replaced another one (a reveal burst)
+    this.popPending = false;
+    this.disposed = false;
+    this.wantMesh = false;
+    this.hadMesh = false;
+    this.forced = false;
+    this.lodDist = 0;
+    this.lodScore = 0;
+    this.keepUntil = 0;
+    this.dwell = 1.5; // seconds a fresh mesh is protected from being swapped out by a nearer one (see entPlanLod)
+  }
+  beforeSwap() {}
+  afterSwap() {}
+  use(model, kind) {
+    this.beforeSwap();
+    const old = this.model;
+    if (old) { this.root.remove(old.object3d); old.dispose?.(); }
+    this.model = model;
+    this.kind = kind;
+    if (model) this.root.add(model.object3d);
+    this.swapped = !!old;
+    this.popPending = !!model;
+    this.afterSwap();
+  }
+  // No mesh wanted (an impostor, hidden, gone): free the model and its claims. Cheap to get back: the cache keeps the mesh.
+  drop() {
+    if (this.model || this.shown) {
+      this.beforeSwap();
+      if (this.model) { this.root.remove(this.model.object3d); this.model.dispose?.(); }
+      this.model = null;
+      this.kind = "";
+      if (this.shown) { DRAWN.release(this.shown); this.shown = null; }
+      this.afterSwap();
+    }
+    this.claim.clear();
+    this.waitSince = -1;
+  }
+  // The drawing (when the entity has one) beats the default; while it is on its way the default waits, 3 s at most.
+  sync(t, prio, entity) {
+    const url = entity && entity.type === "ship" && entity.image ? entity.image : "";
+    const e = this.claim.set(url && DRAWN.usable() ? url : "", "ship", this.colorHex);
+    if (e) {
+      DRAWN.want(e, this.forced ? 0 : prio); // mine and the followed one first, then nearest first
+      if (e.state === "ready") {
+        if (!this.shown || this.shown.key !== e.key) this.adopt(e);
+        return;
+      }
+      if (e.state !== "failed" && !this.model) {
+        if (this.waitSince < 0) this.waitSince = t;
+        if (t - this.waitSince < 3) return;
+      }
+    } else if (this.kind === "drawn") this.drop();
+    if (!this.model || this.kind === "placeholder") {
+      if (this.defaultFailed) { if (!this.model) this.use(placeholderShip(this.colorHex), "placeholder"); }
+      else if (!this.loadingDefault) this.loadDefault();
+    }
+  }
+  adopt(e) {
+    let inst;
+    try { inst = e.result.instance({ color: this.colorHex }); } catch (err) { e.state = "failed"; return; }
+    DRAWN.retain(e);
+    if (this.shown) DRAWN.release(this.shown);
+    this.shown = e;
+    this.use({ object3d: inst.object3d, sockets: inst.sockets, materials: inst.materials, wheels: inst.wheels, dispose: inst.dispose, drawn: true }, "drawn");
+  }
+  loadDefault() {
+    this.loadingDefault = true;
+    loadAsset("ship", this.colorHex).then((asset) => {
+      this.loadingDefault = false;
+      if (!asset) { this.defaultFailed = true; return; }
+      if (this.disposed || !this.wantMesh || (this.model && this.kind !== "placeholder")) { asset.dispose?.(); return; }
+      // Normalise to about 3.2 m long so every ship reads the same.
+      const box = new THREE.Box3().setFromObject(asset.object3d);
+      const len = Math.max(box.max.z - box.min.z, box.max.x - box.min.x, 0.01);
+      asset.object3d.scale.setScalar(3.2 / len);
+      this.use(asset, "default");
+    });
+  }
+  // A shot (landing, take-off) needs something to show at once.
+  ensureModel() {
+    if (!this.model) this.use(placeholderShip(this.colorHex), "placeholder");
+  }
+  dispose() {
+    this.disposed = true;
+    this.drop();
+  }
+}
+
+// A ship parked on the landing pad (world.island.parked): its drawing, charred and smoking when wrecked.
+class ParkedShip extends ShipModel {
+  constructor(island, player, colorHex) {
+    const group = new THREE.Group();
+    super(group, player, colorHex);
+    this.island = island;
+    this.group = group;
+    this.color = new THREE.Color(colorHex);
+    this.transit = false;
+    this.hidden = false;
+    this.charred = false;
+    this.saved = null;
+    this.smokeAcc = 0;
+    this.popT = -1;
+    island.scene.add(group);
+  }
+  afterSwap() {
+    this.charred = false;
+    this.saved = null;
+    if (this.model && this.model.setEnginePower) this.model.setEnginePower(0.35);
+  }
+  // The owner's ship entity: the one seen on the wire, else (a screen that connected after they landed) the drawing URL the
+  // server may put on the parked entry itself (island.parked[].image).
+  entityFor(q) {
+    const e = entShips.get(this.name);
+    if (e) return e;
+    if (!q.image) return null;
+    if (!this.imgEnt || this.imgEnt.image !== q.image) this.imgEnt = { type: "ship", image: q.image };
+    return this.imgEnt;
+  }
+  // Wrecked: every material darkened, the engines out. Restored if the ship is repaired.
+  setWrecked(on) {
+    if (on === this.charred || !this.model) return;
+    this.charred = on;
+    const mats = this.model.materials || [];
+    if (on) {
+      this.saved = mats.map((m) => ({ c: m.color ? m.color.clone() : null, e: m.emissive ? m.emissive.clone() : null, ei: m.emissiveIntensity }));
+      mats.forEach((m) => {
+        if (m.color) m.color.multiplyScalar(0.2);
+        if (m.emissive) { m.emissive.setScalar(0); m.emissiveIntensity = 0; }
+        if (m.userData && m.userData.rimK) m.userData.rimK.value = 0; // a drawn body's coloured rim goes out too
+      });
+      if (this.model.setEnginePower) this.model.setEnginePower(0);
+    } else if (this.saved) {
+      mats.forEach((m, i) => {
+        const s = this.saved[i];
+        if (!s) return;
+        if (s.c) m.color.copy(s.c);
+        if (s.e) m.emissive.copy(s.e);
+        m.emissiveIntensity = s.ei;
+        if (m.userData && m.userData.rimK) m.userData.rimK.value = 1;
+      });
+      this.saved = null;
+      if (this.model.setEnginePower) this.model.setEnginePower(0.35);
+    }
+  }
+  // One frame on the pad: q = the world.island.parked entry, p = the owner's tick entry (or undefined).
+  step(q, p, dt, t, ctx) {
+    const isl = this.island, g = this.group;
+    g.visible = !this.hidden;
+    g.position.set(q.x, isl.groundAt(q.x, q.z) + 0.55, q.z);
+    g.rotation.set(0, isl.parkYaw, 0);
+    if (this.wantMesh) this.sync(t, this.lodDist, this.entityFor(q));
+    else if (this.model || this.claim.e) this.drop();
+    if (this.popPending) { this.popPending = false; this.popT = t; }
+    let pop = 1;
+    if (this.popT >= 0) { const k = (t - this.popT) / 0.5; if (k >= 1) this.popT = -1; else pop = entPop(k); }
+    g.scale.setScalar(pop);
+    const c = this.color;
+    this.setWrecked(!!q.wrecked);
+    if (q.wrecked) {
+      // Crashed: a little askew, smoking, with the odd ember.
+      g.rotation.z = 0.14;
+      g.rotation.x = -0.09;
+      this.smokeAcc += dt * 8;
+      while (this.smokeAcc >= 1) {
+        this.smokeAcc -= 1;
+        isl.particles.emit(q.x + (Math.random() - 0.5) * 1.4, g.position.y + 0.9, q.z + (Math.random() - 0.5) * 1.4, (Math.random() - 0.5) * 0.8, 1.2 + Math.random(), (Math.random() - 0.5) * 0.8,
+          1.7, 0.5, 2.6, isl.smokeCol || (isl.smokeCol = new THREE.Color(0xa8a8b8)), 0.5, 0.4, -0.5);
+      }
+      if (Math.random() < dt * 3) isl.particles.emit(q.x, g.position.y + 0.8, q.z, (Math.random() - 0.5) * 2, 2.5, (Math.random() - 0.5) * 2, 0.8, 0.35, 0.05, isl.emberCol || (isl.emberCol = new THREE.Color(0xff7a2a)), 2.5, 0.5, 4);
+    }
+    // An impostor (no mesh): a glow in the player colour on the pad.
+    if (!this.model) isl.glow.add(q.x, g.position.y + 0.6, q.z, 2.6, c.r * 1.5, c.g * 1.5, c.b * 1.5, 0.9);
+    if (p && p.flags.takingOff) {
+      // Someone else's take-off lifts it away (the followed player gets the full shot).
+      const k = clamp((ctx.serverNow - (p.startedAt || 0)) / (TUNING.planet.takeoffSeconds * 1000), 0, 1);
+      g.position.y += k * k * 60;
+      g.rotation.x = k * 0.6;
+      if (k > 0.97) g.visible = false;
+      if (Math.random() < dt * 30) isl.particles.emit(g.position.x, g.position.y - 0.4, g.position.z, (Math.random() - 0.5) * 2, -6, (Math.random() - 0.5) * 2, 0.6, 1.0, 0.2, c, 2.5, 0.5);
+    }
+  }
+  dispose() {
+    this.group.removeFromParent();
+    super.dispose();
+  }
+}
+
+// One explorer on the island (any planet type): the A-009 / A-008 person, a drawing, or a cheerful toy; the animator
+// from anim.js (bike uses the car rig); wheels spin with the ground speed. The model is rebuilt only when its (type,
+// image URL) changes, and only while the view is among the meshes (the phone keeps at most 8).
+class ExplorerView {
+  constructor(island, p, ctx) {
+    this.island = island;
+    this.name = p.name;
+    this.colorHex = p.color;
+    this.color = new THREE.Color(p.color);
+    this.group = new THREE.Group();
+    this.shield = new THREE.Mesh(island.shieldGeo, island.shieldMat);
+    this.shield.visible = false;
+    this.shield.renderOrder = 13;
+    this.group.add(this.shield);
+    this.model = null;
+    this.kind = ""; // "drawn" | "default" | "placeholder" | "toy"
+    this.modelType = "";
+    this.type = "person";
+    this.claim = new DrawnClaim();
+    this.shown = null;
+    this.loadingDefault = false;
+    this.waitSince = -1;
+    this.clip = null;
+    this.clipSet = null;
+    this.anim = null;
+    this.lastStarted = undefined;
+    this.lastHp = null;
+    this.prev = { x: 0, y: 0, z: 0 };
+    this.hasPrev = false;
+    this.speedRef = TUNING.island.walkSpeed * TUNING.island.runMultiplier;
+    this.stepOutUntil = 0;
+    this.pendingStepOut = false;
+    this.wantMesh = false;
+    this.hadMesh = false;
+    this.forced = false;
+    this.lodDist = 0;
+    this.lodScore = 0;
+    this.keepUntil = 0;
+    this.dwell = 12; // the default person (A-008) is heavy to build: keep it a while
+    this.seen = 0;
+    this.hiddenSince = -1;
+    this.popPending = false;
+    this.swapped = false;
+    this.popT = -1;
+    this.disposed = false;
+    // Just landed: the explorer climbs out next to the parked ship (A-008 step_out + the animator's stepOut).
+    if (p.action === "land" && ctx.serverNow - (p.startedAt || 0) < TUNING.planet.landingSeconds * 1000 + 2500) {
+      this.pendingStepOut = true;
+      this.stepOutUntil = ctx.t + 1.5;
+    }
+    this.setType("person");
+    island.scene.add(this.group);
+  }
+  setType(type) {
+    this.type = type;
+    this.speedRef = TUNING.island.walkSpeed * (TUNING.island.speeds[type] || 1) * TUNING.island.runMultiplier;
+    const sh = entShield[type] || entShield.person;
+    this.shield.position.y = sh[0];
+    this.shield.scale.set(sh[1], sh[2], sh[3]);
+    this.markY = entMarkY[type] || 2.3;
+  }
+  hasClip(n) { return !!this.clipSet && this.clipSet.has(n); }
+  disposeAnim() {
+    if (this.anim && this.anim.dispose) { try { this.anim.dispose(); } catch { /* ignore */ } }
+    this.anim = null;
+  }
+  use(model, kind, type) {
+    this.disposeAnim();
+    const old = this.model;
+    if (old) { this.group.remove(old.object3d); old.dispose?.(); }
+    this.model = model;
+    this.kind = kind;
+    this.modelType = type;
+    this.clip = null;
+    this.clipSet = model && model.clips ? new Set(model.clips.map((c) => c.name)) : null;
+    if (model) this.group.add(model.object3d);
+    this.swapped = !!old;
+    this.popPending = !!model;
+  }
+  drop() {
+    if (this.model || this.shown) {
+      this.disposeAnim();
+      if (this.model) { this.group.remove(this.model.object3d); this.model.dispose?.(); }
+      this.model = null;
+      this.kind = "";
+      this.modelType = "";
+      this.clipSet = null;
+      if (this.shown) { DRAWN.release(this.shown); this.shown = null; }
+    }
+    this.claim.clear();
+    this.waitSince = -1;
+  }
+  // The model for (type, drawing): a built drawing beats everything; the person keeps its place empty for up to 3 s while
+  // the drawing is on its way (the default person is heavy to build); the other types show their toy meanwhile.
+  sync(t, prio, ent) {
+    const type = ent && entPlanetTypes.has(ent.type) ? ent.type : "person";
+    const url = ent && ent.type !== "ship" && ent.image ? ent.image : "";
+    if (type !== this.type) this.setType(type);
+    const e = this.claim.set(url && DRAWN.usable() ? url : "", type, this.colorHex);
+    if (e) {
+      DRAWN.want(e, this.forced ? 0 : prio); // mine and the followed one first, then nearest first
+      if (e.state === "ready") {
+        if (!this.shown || this.shown.key !== e.key) this.adopt(e, type);
+        return;
+      }
+      if (e.state !== "failed" && !this.model && type === "person") {
+        if (this.waitSince < 0) this.waitSince = t;
+        if (t - this.waitSince < 3) return;
+      }
+    } else if (this.kind === "drawn") this.drop();
+    if (this.model && this.modelType === type) return; // a drawing or fallback of this type is on show
+    if (type === "person") {
+      if (!this.model || this.modelType !== "person") this.use(placeholderExplorer(this.colorHex), "placeholder", "person");
+      if (!this.loadingDefault && this.kind !== "default") this.loadDefault();
+    } else this.use(entToy(type, this.colorHex), "toy", type);
+  }
+  adopt(e, type) {
+    let inst;
+    try { inst = e.result.instance({ color: this.colorHex }); } catch (err) { e.state = "failed"; return; }
+    DRAWN.retain(e);
+    if (this.shown) DRAWN.release(this.shown);
+    this.shown = e;
+    this.use({ object3d: inst.object3d, sockets: inst.sockets, materials: inst.materials, wheels: inst.wheels, dispose: inst.dispose, drawn: true }, "drawn", type);
+  }
+  loadDefault() {
+    this.loadingDefault = true;
+    loadAsset("explorer", this.colorHex).then((asset) => {
+      this.loadingDefault = false;
+      if (!asset) return;
+      if (this.disposed || !this.wantMesh || this.type !== "person" || this.kind === "drawn" || this.kind === "default") { asset.dispose?.(); return; }
+      const box = new THREE.Box3().setFromObject(asset.object3d);
+      asset.object3d.scale.setScalar(1.8 / Math.max(box.max.y - box.min.y, 0.01));
+      this.use(asset, "default", "person");
+    });
+  }
+  ensureAnim() {
+    if (this.anim !== null || !Anim || !this.model || this.disposed) return;
+    try {
+      // Root = the explorer group; the animator moves the model (and the bubble) under its own pivot.
+      const ent = entPlanet.get(this.name);
+      this.anim = Anim.createAnimator(entRig[this.modelType] || "person", this.group, {
+        anims: ent && ent.anims ? ent.anims : undefined, sockets: this.model.sockets, clips: this.model.clips, play: this.model.play,
+        size: entSize[this.modelType] || 1.8, fx: false, onFx: animFx(this.island.particles, this.color),
+      });
+    } catch (err) { console.warn("[render] explorer animator failed:", err?.message || err); this.anim = false; }
+  }
+  // One frame for this explorer (it is among the live planet players).
+  step(p, dt, t, ctx) {
+    const isl = this.island, g = this.group;
+    if (this.wantMesh) this.sync(t, this.lodDist, entPlanet.get(this.name));
+    else if (this.model || this.claim.e) this.drop();
+    const pv = this.prev, inv = 1 / Math.max(dt, 1e-3);
+    const dx = this.hasPrev ? p.x - pv.x : 0, dz = this.hasPrev ? p.z - pv.z : 0;
+    const speed = Math.hypot(dx, dz) * inv;
+    const fwdSpeed = (dx * -Math.sin(p.yaw) + dz * -Math.cos(p.yaw)) * inv; // signed: negative when reversing
+    pv.x = p.x; pv.y = p.y; pv.z = p.z;
+    this.hasPrev = true;
+    g.position.set(p.x, p.y, p.z);
+    g.rotation.set(0, p.yaw, 0);
+    if (this.popPending) {
+      this.popPending = false;
+      this.popT = t;
+      if (this.swapped && g.visible) isl.particles.burst(g.position, this.color, 14, 4, 0.5, 0.5, 0.05, { boost: 2.5, drag: 2 });
+    }
+    let pop = 1;
+    if (this.popT >= 0) { const k = (t - this.popT) / 0.5; if (k >= 1) this.popT = -1; else pop = entPop(k); }
+    g.scale.setScalar(pop);
+    const flick = p.flags.stun && Math.floor(t * 14) % 2 === 0;
+    g.visible = !(ctx.cockpit && p.name === ctx.me) && !flick;
+    const ground = isl.groundAt(p.x, p.z);
+    const person = this.modelType === "person";
+    // World hint: standing still on an X, the explorer kneels and pats the ground.
+    const onX = person && !p.flags.digging && speed < 0.8 && p.y <= ground + 0.4 ? isl.buriedChestNear(p.x, p.z, TUNING.island.pickupRange || 3) : null;
+    const model = this.model;
+    if (model && model.play && this.clipSet) {
+      const stepping = this.stepOutUntil > t;
+      let clip = p.flags.digging ? "dig" : p.y > ground + 0.4 ? "jump" : speed > TUNING.island.walkSpeed * 1.3 ? "run" : speed > 0.6 ? "walk" : onX ? "kneel" : "idle";
+      if (stepping && clip === "idle") clip = "step_out";
+      if (clip === "kneel" && !this.hasClip("kneel")) clip = "idle";
+      if (clip === "step_out" && !this.hasClip("step_out")) clip = "idle";
+      if (clip !== this.clip) { this.clip = clip; try { model.play(clip, clip === "step_out" ? { loop: false, restart: true } : undefined); } catch { /* clip missing in the placeholder */ } }
+    }
+    // Without a kneel clip, crouch procedurally (the animator owns the model's own transform, the root is ours).
+    if (onX && !this.hasClip("kneel")) g.position.y -= 0.35;
+    if (onX && Math.random() < dt * 2.2) {
+      const f = forwardOf(p.yaw, 0, isl.tmp);
+      isl.particles.burst(v3(p.x + f.x * 0.6, ground + 0.1, p.z + f.z * 0.6), DIRT, 5, 1.6, 0.6, 0.3, 0.1, { boost: 1, grav: 8, drag: 1 });
+    }
+    // Procedural layer (anim.js) on top of the clips; its dt feeds the mixer (hit-stop freezes it).
+    this.ensureAnim();
+    let animDt = dt;
+    if (this.anim) {
+      if (this.pendingStepOut) { this.pendingStepOut = false; this.anim.trigger("stepOut", {}); }
+      if (this.lastStarted !== undefined && p.startedAt !== this.lastStarted && p.slot && p.slot !== "mount") this.anim.trigger(p.slot, { verb: p.action });
+      if (this.lastHp !== null && p.hp < this.lastHp - 0.5) this.anim.trigger("hit", { intensity: clamp((this.lastHp - p.hp) / 20, 0.4, 1.5) });
+      animDt = this.anim.update(dt, { speed: clamp(speed / this.speedRef, 0, 1), grounded: p.y <= ground + 0.4, digging: !!p.flags.digging });
+      if (!Number.isFinite(animDt)) animDt = dt;
+    }
+    this.lastStarted = p.startedAt;
+    this.lastHp = p.hp;
+    if (model) {
+      if (model.update) model.update(animDt);
+      const wh = model.wheels;
+      if (wh) for (let i = 0; i < wh.length; i++) wh[i].pivot.rotation.x -= (clamp(fwdSpeed, -40, 40) * dt) / wh[i].radius;
+    }
+    this.shield.visible = !!model && !!(p.flags.spawnShield || p.flags.shield);
+    if (p.flags.digging && Math.random() < dt * 14) {
+      const f = forwardOf(p.yaw, 0, isl.tmp);
+      isl.particles.emit(p.x + f.x * 0.8, ground + 0.2, p.z + f.z * 0.8, (Math.random() - 0.5) * 3, 3 + Math.random() * 3, (Math.random() - 0.5) * 3, 0.8, 0.35, 0.15, DIRT, 1.0, 0.5, 12);
+    }
+    const c = this.color;
+    // An impostor (no mesh): a glow in the player colour at body height.
+    if (!model) isl.glow.add(p.x, p.y + 0.9, p.z, 2.0, c.r * 1.6, c.g * 1.6, c.b * 1.6, 0.9);
+    isl.glow.add(p.x, p.y + this.markY, p.z, 0.5, c.r * 3, c.g * 3, c.b * 3, 1);
+  }
+  dispose() {
+    this.disposed = true;
+    this.group.removeFromParent();
+    this.drop();
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Entity preview: a small turntable of a drawing in 3D (the phone's result card, the lobby). Its own renderer, drawn only
+// while visible.
+//   const preview = createEntityPreview({ canvas, quality: "phone" });
+//   preview.show({ image, kind, color }) → Promise<{ ok, triangles, ms }>   image: URL, data URL, <img>, canvas, ImageBitmap;
+//       kind: "ship" | "person" | "car" | "bike" | "quadruped" | "blob"; ok is false when inflate.js (or WebGL) is missing
+//   preview.clear()   preview.setVisible(bool)   preview.dispose()
+export function createEntityPreview({ canvas, quality = "phone" } = {}) {
+  if (!canvas) throw new TypeError("createEntityPreview needs a canvas");
+  const q = quality === "big" ? "big" : "phone";
+  let renderer = null, scene = null, camera = null, spin = null, tilt = null, shadow = null, rim = null, shadowTex = null;
+  let entity = null, standing = false, fitted = "";
+  let raf = 0, visible = true, disposed = false, lost = false, lastT = 0, angle = 0.6, seq = 0, latest = null;
+
+  function init() {
+    if (renderer) return true;
+    if (disposed) return false;
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "low-power" });
+    } catch (e) { renderer = null; return false; }
+    renderer.setClearColor(0x000000, 0);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
+    // Bright, toon-like light: a sky / ground fill, a warm key from the front left, a rim in the player colour behind.
+    scene.add(new THREE.HemisphereLight(0xeaf6ff, 0xffd8b0, 1.3));
+    const key = new THREE.DirectionalLight(0xfff0d6, 2.6);
+    key.position.set(2.5, 4, 3);
+    rim = new THREE.DirectionalLight(0xffffff, 1.8);
+    rim.position.set(-3, 1.5, -2.5);
+    scene.add(key, rim);
+    tilt = new THREE.Group();
+    spin = new THREE.Group();
+    tilt.add(spin);
+    scene.add(tilt);
+    shadowTex = canvasTexture(64, 64, (g) => {
+      const rg = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      rg.addColorStop(0, "rgba(10,6,30,0.55)");
+      rg.addColorStop(0.6, "rgba(10,6,30,0.25)");
+      rg.addColorStop(1, "rgba(10,6,30,0)");
+      g.fillStyle = rg;
+      g.fillRect(0, 0, 64, 64);
+    });
+    shadow = new THREE.Mesh(new THREE.CircleGeometry(1, 32), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, toneMapped: false }));
+    shadow.rotation.x = -Math.PI / 2;
+    scene.add(shadow);
+    return true;
+  }
+
+  // Size the drawing buffer to the canvas and put the camera where the unit sphere around the drawing fits.
+  function fit() {
+    const w = Math.max(1, canvas.clientWidth | 0), h = Math.max(1, canvas.clientHeight | 0);
+    const key = `${w}x${h}:${devicePixelRatio || 1}:${standing}`;
+    if (key === fitted) return;
+    fitted = key;
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    const vf = (camera.fov * Math.PI) / 360, hf = Math.atan(Math.tan(vf) * camera.aspect);
+    const dist = 1.2 / Math.sin(Math.min(vf, hf));
+    const el = standing ? 0.2 : 0.55; // a flat ship is seen from above so its drawing reads
+    camera.position.set(0, Math.sin(el) * dist, Math.cos(el) * dist);
+    camera.lookAt(0, 0, 0);
+  }
+
+  function draw(dt) {
+    if (!renderer || !canvas.clientWidth || !canvas.clientHeight) return;
+    fit();
+    if (entity) {
+      angle += dt * 0.8;
+      spin.rotation.y = angle;
+      tilt.rotation.x = standing ? 0.06 : 0.3 + Math.sin(angle * 0.6) * 0.04;
+      tilt.rotation.z = Math.sin(angle * 0.5) * 0.04;
+      const wh = entity.wheels;
+      if (wh) for (let i = 0; i < wh.length; i++) wh[i].pivot.rotation.x -= (dt * 3.2) / Math.max(0.2, wh[i].radius);
+    }
+    renderer.render(scene, camera);
+  }
+  function frame(now) {
+    raf = 0;
+    if (disposed || !visible || lost || document.hidden) return;
+    raf = requestAnimationFrame(frame);
+    const dt = Math.min(0.1, Math.max(0, (now - lastT) / 1000));
+    lastT = now;
+    draw(dt);
+  }
+  function start() {
+    if (!raf && entity && visible && !disposed && !lost && !document.hidden) { lastT = performance.now(); raf = requestAnimationFrame(frame); }
+  }
+  function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
+  const onVis = () => (document.hidden ? stop() : start());
+  const onLost = (e) => { e.preventDefault(); lost = true; stop(); };
+  const onRestored = () => { lost = false; fitted = ""; draw(0); start(); };
+  document.addEventListener("visibilitychange", onVis);
+  canvas.addEventListener("webglcontextlost", onLost);
+  canvas.addEventListener("webglcontextrestored", onRestored);
+
+  function clearEntity() {
+    if (!entity) return;
+    spin.remove(entity.object3d);
+    try { entity.dispose(); } catch { /* ignore */ }
+    entity = null;
+  }
+  async function run({ image, kind = "ship", color = 0x22d3ee } = {}) {
+    const my = ++seq;
+    entLoadInflate();
+    const inf = await entInflatePromise;
+    if (!inf || disposed) return { ok: false, error: "inflate.js unavailable" };
+    let img = null, owned = false;
+    try {
+      if (typeof image === "string" && /^data:/.test(image)) {
+        img = new Image();
+        img.src = image;
+        await img.decode();
+      } else if (typeof image === "string") {
+        img = await inf.loadDrawing(image, { fresh: true });
+        owned = true;
+      } else if (image && typeof image === "object") {
+        img = image;
+        if (img.complete === false && img.decode) await img.decode();
+      } else return { ok: false, error: "no image" };
+    } catch (err) { return { ok: false, error: "image did not load" }; }
+    if (my !== seq) { if (owned) try { img.close?.(); } catch { /* ignore */ } return latest; } // a newer show() took over
+    if (!init()) { if (owned) try { img.close?.(); } catch { /* ignore */ } return { ok: false, error: "webgl unavailable" }; }
+    const col = new THREE.Color(color);
+    const useKind = inf.KINDS && inf.KINDS.includes(kind) ? kind : "ship";
+    let result;
+    try {
+      result = inf.inflateDrawing(img, { kind: useKind, quality: q, color: col.getHex() });
+    } catch (err) {
+      return { ok: false, error: String((err && err.message) || err) };
+    } finally {
+      if (owned) try { img.close?.(); } catch { /* ignore */ }
+    }
+    clearEntity();
+    entity = result;
+    standing = useKind !== "ship";
+    // Centre the drawing on the turntable and scale it to a unit sphere (the camera is fitted to that).
+    const obj = result.object3d;
+    obj.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(obj);
+    const sph = box.getBoundingSphere(new THREE.Sphere());
+    const s = 1 / Math.max(sph.radius, 1e-3);
+    obj.scale.setScalar(s);
+    obj.position.copy(sph.center).multiplyScalar(-s);
+    spin.add(obj);
+    shadow.position.y = standing ? (box.min.y - sph.center.y) * s - 0.01 : -0.62;
+    shadow.scale.setScalar(standing ? Math.max(0.5, Math.max(box.max.x - box.min.x, box.max.z - box.min.z) * s * 0.7) : 0.95);
+    rim.color.copy(col).lerp(new THREE.Color(0xffffff), 0.35);
+    fitted = "";
+    draw(0);
+    start();
+    return { ok: true, triangles: result.triangles, ms: result.ms, kind: useKind, wheels: result.wheels ? result.wheels.length : 0 };
+  }
+  return {
+    show(opts) { return (latest = run(opts || {})); },
+    clear() { seq++; latest = Promise.resolve({ ok: false, cleared: true }); if (entity) clearEntity(); if (renderer) renderer.clear(); stop(); },
+    setVisible(v) { visible = !!v; if (visible) start(); else stop(); },
+    dispose() {
+      disposed = true;
+      seq++;
+      latest = Promise.resolve({ ok: false, error: "disposed" });
+      stop();
+      document.removeEventListener("visibilitychange", onVis);
+      canvas.removeEventListener("webglcontextlost", onLost);
+      canvas.removeEventListener("webglcontextrestored", onRestored);
+      if (scene) clearEntity();
+      if (shadow) { shadow.geometry.dispose(); shadow.material.dispose(); }
+      if (shadowTex) shadowTex.dispose();
+      if (renderer) { renderer.dispose(); try { renderer.forceContextLoss(); } catch { /* ignore */ } renderer = null; }
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // Space scene.
 function nebulaBackdropTexture() {
-  // Equirectangular violet/magenta nebula painted with additive soft blobs; baked once at low resolution (it is all
-  // soft gradients) and box-filtered so the browser's gradient dithering does not show up as a grid when magnified.
-  const w = 512, h = 256;
+  // The fallback backdrop (A-011's panorama replaces it once it loads): an equirectangular nebula in saturated blue, violet and
+  // magenta like the reference. Cloud density, colour mix and bright filaments come from tileable fractal noise (computed once
+  // at 256 x 128 and stretched), then a few big soft glows add colour variety; baked once and box-filtered so the browser's
+  // gradient dithering does not show up as a grid when magnified.
+  const w = 512, h = 256, NW = 256, NH = 128;
+  const hash2 = (ix, iy, seed) => {
+    let n = (Math.imul(ix, 374761393) + Math.imul(iy, 668265263) + Math.imul(seed, 1442695041)) | 0;
+    n = Math.imul(n ^ (n >>> 13), 1274126177);
+    return ((n ^ (n >>> 16)) & 0xffffff) / 16777215;
+  };
+  const vnoise = (u, v, px, py, seed) => {
+    const x = u * px, y = v * py, x0 = Math.floor(x), y0 = Math.floor(y);
+    let fx = x - x0, fy = y - y0;
+    fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+    const X0 = ((x0 % px) + px) % px, X1 = (X0 + 1) % px;
+    const a = hash2(X0, y0, seed), b = hash2(X1, y0, seed), c = hash2(X0, y0 + 1, seed), d = hash2(X1, y0 + 1, seed);
+    return (a + (b - a) * fx) * (1 - fy) + (c + (d - c) * fx) * fy;
+  };
+  const fbm = (u, v, px, py, oct, seed) => {
+    let s = 0, amp = 0.5, tot = 0;
+    for (let o = 0; o < oct; o++) { s += amp * vnoise(u, v, px << o, py << o, seed + o * 7); tot += amp; amp *= 0.5; }
+    return s / tot;
+  };
   return canvasTexture(w, h, (g) => {
     const grad = g.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, "#05030f");
-    grad.addColorStop(0.35, "#0c0a2e");
-    grad.addColorStop(0.55, "#1a0f45");
-    grad.addColorStop(0.75, "#0b1440");
-    grad.addColorStop(1, "#04030c");
+    grad.addColorStop(0, "#0b0b52");
+    grad.addColorStop(0.3, "#14148a");
+    grad.addColorStop(0.5, "#1d159f");
+    grad.addColorStop(0.72, "#111178");
+    grad.addColorStop(1, "#080638");
     g.fillStyle = grad;
     g.fillRect(0, 0, w, h);
-    const rnd = seeded(1337);
-    const palette = ["124,58,237", "219,39,119", "37,99,235", "147,51,234", "192,38,211", "56,189,248", "236,72,153"];
+    // Clouds and filaments.
+    const nc = document.createElement("canvas");
+    nc.width = NW; nc.height = NH;
+    const ng = nc.getContext("2d");
+    const img = ng.createImageData(NW, NH);
+    const blue = [37, 99, 235], violet = [124, 58, 237], pink = [236, 72, 153], sky = [56, 189, 248];
+    const mix3 = (a, b, k, out) => { out[0] = a[0] + (b[0] - a[0]) * k; out[1] = a[1] + (b[1] - a[1]) * k; out[2] = a[2] + (b[2] - a[2]) * k; };
+    const col = [0, 0, 0];
+    for (let j = 0; j < NH; j++) {
+      for (let i = 0; i < NW; i++) {
+        const u = (i + 0.5) / NW, v = (j + 0.5) / NH;
+        const wp = fbm(u, v, 3, 2, 3, 11);
+        const uw = (u + 0.12 * (wp - 0.5) + 1) % 1, vw = Math.min(0.9999, Math.max(0, v + 0.08 * (wp - 0.5)));
+        const n1 = fbm(uw, vw, 4, 3, 6, 101), n2 = fbm(uw, vw, 6, 4, 5, 202), n3 = fbm(uw, vw, 9, 6, 5, 303);
+        const band = Math.exp(-(((v - 0.5) / 0.28) ** 2));
+        let dens = Math.min(1, Math.max(0, (n1 - 0.38) * 2.6)) * (0.35 + 0.9 * band);
+        dens = Math.pow(dens, 1.2);
+        const t = Math.min(1, Math.max(0, n2 * 1.6 - 0.3));
+        if (t < 0.5) mix3(blue, violet, t * 2, col); else mix3(violet, pink, t * 2 - 1, col);
+        const ridge = Math.pow(Math.min(1, Math.max(0, (1 - Math.abs(2 * n3 - 1) - 0.72) * 3.5)), 1.5) * dens;
+        const o = (j * NW + i) * 4;
+        img.data[o] = Math.min(255, col[0] * dens * 0.95 + (sky[0] * 0.6 + pink[0] * 0.4) * ridge * 0.65);
+        img.data[o + 1] = Math.min(255, col[1] * dens * 0.95 + (sky[1] * 0.6 + pink[1] * 0.4) * ridge * 0.65);
+        img.data[o + 2] = Math.min(255, col[2] * dens * 0.95 + (sky[2] * 0.6 + pink[2] * 0.4) * ridge * 0.65);
+        img.data[o + 3] = 255;
+      }
+    }
+    ng.putImageData(img, 0, 0);
     g.globalCompositeOperation = "lighter";
-    const blob = (x, y, r, col, a) => {
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = "high";
+    g.drawImage(nc, 0, 0, w, h);
+    // A few big soft glows for colour variety.
+    const rnd = seeded(1337);
+    const palette = ["37,99,235", "79,70,229", "124,58,237", "168,85,247", "217,70,239", "236,72,153", "56,189,248", "14,165,233"];
+    const blob = (x, y, r, c, a) => {
       for (const ox of [-w, 0, w]) {
         const rg = g.createRadialGradient(x + ox, y, 0, x + ox, y, r);
-        rg.addColorStop(0, `rgba(${col},${a})`);
-        rg.addColorStop(0.5, `rgba(${col},${a * 0.35})`);
-        rg.addColorStop(1, `rgba(${col},0)`);
+        rg.addColorStop(0, `rgba(${c},${a})`);
+        rg.addColorStop(0.5, `rgba(${c},${a * 0.35})`);
+        rg.addColorStop(1, `rgba(${c},0)`);
         g.fillStyle = rg;
         g.fillRect(x + ox - r, y - r, r * 2, r * 2);
       }
     };
-    // A few big clouds along a band (the "galactic plane"), then wisps.
-    for (let i = 0; i < 14; i++) {
-      const cx = rnd() * w, cy = h * (0.35 + rnd() * 0.3);
-      const col = palette[Math.floor(rnd() * palette.length)];
-      for (let k = 0; k < 26; k++) blob(cx + (rnd() - 0.5) * w * 0.22, cy + (rnd() - 0.5) * h * 0.25, (0.03 + rnd() * 0.09) * w, col, 0.05 + rnd() * 0.07);
-    }
-    for (let i = 0; i < 120; i++) blob(rnd() * w, h * (0.15 + rnd() * 0.7), (0.01 + rnd() * 0.03) * w, palette[i % palette.length], 0.05);
+    for (let i = 0; i < 9; i++) blob(rnd() * w, h * (0.35 + rnd() * 0.3), (0.06 + rnd() * 0.08) * w, palette[Math.floor(rnd() * palette.length)], 0.1 + rnd() * 0.08);
     // Box filter: average shifted copies to remove dithering.
     g.globalCompositeOperation = "source-over";
     const copy = document.createElement("canvas");
@@ -346,19 +1358,11 @@ function nebulaBackdropTexture() {
   });
 }
 
+// Stars: many small ones plus a few big bright ones (HDR colours, so the brightest bloom). Two Points objects in one group;
+// they stay THREE.Points with a PointsMaterial because transition.js fades the stars' material opacity during the landing.
 function makeStars(count) {
-  const pos = new Float32Array(count * 3), col = new Float32Array(count * 3);
-  const tints = [0xffffff, 0x93c5fd, 0xfde68a, 0xf9a8d4, 0xc4b5fd].map((c) => new THREE.Color(c));
+  const tints = [0xffffff, 0x93c5fd, 0xfde68a, 0xf9a8d4, 0xc4b5fd, 0x7dd3fc].map((c) => new THREE.Color(c));
   const rnd = seeded(99);
-  for (let i = 0; i < count; i++) {
-    const u = rnd() * 2 - 1, th = rnd() * Math.PI * 2, s = Math.sqrt(1 - u * u), r = 2500;
-    pos.set([Math.cos(th) * s * r, u * r, Math.sin(th) * s * r], i * 3);
-    const c = tints[i % tints.length], b = 0.6 + rnd() * 1.6;
-    col.set([c.r * b, c.g * b, c.b * b], i * 3);
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  g.setAttribute("color", new THREE.BufferAttribute(col, 3));
   const dot = canvasTexture(32, 32, (c) => {
     const rg = c.createRadialGradient(16, 16, 0, 16, 16, 16);
     rg.addColorStop(0, "rgba(255,255,255,1)");
@@ -367,10 +1371,25 @@ function makeStars(count) {
     c.fillStyle = rg;
     c.fillRect(0, 0, 32, 32);
   });
-  const pts = new THREE.Points(g, new THREE.PointsMaterial({ size: 3.2, sizeAttenuation: false, map: dot, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
-  pts.frustumCulled = false;
-  pts.renderOrder = -1;
-  return pts;
+  const layer = (n, size, bMin, bRange) => {
+    const pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      const u = rnd() * 2 - 1, th = rnd() * Math.PI * 2, s = Math.sqrt(1 - u * u), r = 2500;
+      pos.set([Math.cos(th) * s * r, u * r, Math.sin(th) * s * r], i * 3);
+      const c = tints[i % tints.length], b = bMin + rnd() * bRange;
+      col.set([c.r * b, c.g * b, c.b * b], i * 3);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+    const pts = new THREE.Points(g, new THREE.PointsMaterial({ size, sizeAttenuation: false, map: dot, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+    pts.frustumCulled = false;
+    pts.renderOrder = -1;
+    return pts;
+  };
+  const group = new THREE.Group();
+  group.add(layer(count, 2.8, 0.7, 1.7), layer(Math.max(40, Math.round(count / 50)), 6, 1.6, 1.8));
+  return group;
 }
 
 // Soft cloud puff texture (alpha) for the decorative nebula around the boss.
@@ -421,7 +1440,7 @@ function placeholderShip(color) {
   const wings = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.12, 0.9), dark);
   wings.position.z = 0.6;
   group.add(body, wings);
-  return { object3d: group, materials: [mat, dark], engines: [v3(-0.35, 0, 1.5), v3(0.35, 0, 1.5)], dispose() {} };
+  return { object3d: group, materials: [mat, dark], engines: ENT_ENGINES, dispose() { group.removeFromParent(); body.geometry.dispose(); wings.geometry.dispose(); mat.dispose(); dark.dispose(); } };
 }
 
 function placeholderExplorer(color) {
@@ -439,56 +1458,53 @@ function placeholderExplorer(color) {
   const pack = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.5, 0.22), white);
   pack.position.set(0, 0.95, 0.3);
   group.add(body, head, vis, pack);
-  return { object3d: group, materials: [suit, white, visor], play() {}, update() {}, dispose() {} };
+  return { object3d: group, materials: [suit, white, visor], play() {}, update() {}, dispose() { group.removeFromParent(); group.traverse((o) => o.geometry?.dispose()); suit.dispose(); white.dispose(); visor.dispose(); } };
 }
 
-// One ship: A-009 default ship (or placeholder) in player colour, engine glow + trail, hex shield, animator.
-class ShipView {
+// One ship: its drawing or the A-009 default ship (see ShipModel) in the player colour, engine glow + trail, hex shield,
+// animator. A far ship is an impostor (SpaceWorld.planLod): no mesh, a glow sprite plus its engine glow. In the lobby
+// every ship spins slowly on the spot and pops in (a scale bounce) when its model first appears.
+class ShipView extends ShipModel {
   constructor(space, name, color) {
+    // body: the animator's root (its transform stays identity; the animator moves the model under its own pivot).
+    const body = new THREE.Group();
+    super(body, name, color);
     this.space = space;
-    this.name = name;
     this.color = new THREE.Color(color);
     this.group = new THREE.Group();
-    // body: the animator's root (its transform stays identity; the animator moves the model under its own pivot).
-    this.body = new THREE.Group();
-    this.group.add(this.body);
-    this.model = placeholderShip(color);
-    this.body.add(this.model.object3d);
-    this.engines = this.model.engines;
+    this.body = body;
+    body.visible = false; // until a model is on show
+    this.group.add(body);
+    this.engines = ENT_ENGINES;
     this.shield = new THREE.Mesh(space.shieldGeo, space.shieldMat);
     this.shield.visible = false;
     this.shield.renderOrder = 13;
     this.group.add(this.shield);
     this.vel = v3();
-    this.prev = null;
+    this.prev = v3();
+    this.hasPrev = false;
     this.trailAcc = 0;
     this.opacity = 1;
     this.transit = false; // true while transition.js owns the group (the landing / take-off shot)
     this.anim = null;
-    this.modelReady = false;
     this.lastStarted = undefined;
     this.lastHp = null;
+    this.seen = 0;
+    this.seed = entHash(name);
+    this.yawOff = null; // the lobby spin, set on the first update
+    this.bobAmt = 0;
+    this.popT = -1;
     space.scene.add(this.group);
-    loadAsset("ship", color).then((asset) => {
-      this.modelReady = true;
-      if (!asset) return;
-      if (this.disposed) return asset.dispose();
-      this.body.remove(this.model.object3d);
-      this.model.dispose();
-      // Normalise to about 3.2 m long so every ship reads the same.
-      const box = new THREE.Box3().setFromObject(asset.object3d);
-      const len = Math.max(box.max.z - box.min.z, box.max.x - box.min.x, 0.01);
-      asset.object3d.scale.setScalar(3.2 / len);
-      this.body.add(asset.object3d);
-      const s = asset.object3d.scale.x;
-      const sock = ["engine_l", "engine_r"].map((k) => asset.sockets[k]).filter(Boolean);
-      asset.object3d.updateMatrixWorld(true);
-      this.engines = sock.length
-        ? sock.map((o) => { const p = v3(); o.getWorldPosition(p); this.group.worldToLocal(p); return p; })
-        : [v3(0, 0, 1.6 * s)];
-      this.model = asset;
-      this.opacity = -1; // force material refresh
-    });
+  }
+  beforeSwap() { this.disposeAnim(); }
+  afterSwap() {
+    this.body.visible = !!this.model;
+    this.engines = this.model ? entEngines(this.model, this.group) : ENT_ENGINES;
+    this.opacity = -1; // force material refresh
+  }
+  disposeAnim() {
+    if (this.anim && this.anim.dispose) { try { this.anim.dispose(); } catch { /* ignore */ } }
+    this.anim = null;
   }
   setOpacity(a) {
     if (this.opacity === a) return;
@@ -501,31 +1517,56 @@ class ShipView {
     }
   }
   ensureAnim() {
-    if (this.anim || !Anim || !this.modelReady || this.disposed) return;
+    if (this.anim !== null || !Anim || !this.model || this.disposed) return;
     try {
       this.anim = Anim.createAnimator("ship", this.body, { anims: animsFor(this.name, "ship"), sockets: this.model.sockets, size: 3.2, fx: false, onFx: animFx(this.space.particles, this.color) });
     } catch (e) { console.warn("[render] ship animator failed:", e?.message || e); this.anim = false; }
   }
   update(p, dt, t, ctx) {
-    if (this.transit) return; // the shot places, reparents and hides it
     const g = this.group;
+    // The shot places, reparents and hides it; the model may still arrive meanwhile.
+    if (this.transit) { if (this.wantMesh || !this.model) this.sync(t, this.lodDist, entShips.get(this.name)); return; }
     const dead = p.flags.dead || p.mode !== "space";
     const hideSelf = ctx.cockpit && p.name === ctx.me;
     const flicker = p.flags.stun && Math.floor(t * 14) % 2 === 0;
     g.visible = !dead && !hideSelf && !flicker;
-    if (dead) { this.prev = null; this.lastHp = null; return; }
-    if (this.prev) this.vel.set(p.x - this.prev.x, p.y - this.prev.y, p.z - this.prev.z).divideScalar(Math.max(dt, 1e-3));
-    this.prev = { x: p.x, y: p.y, z: p.z };
-    g.position.set(p.x, p.y, p.z);
-    g.rotation.set(p.pitch, p.yaw, p.roll, "YXZ");
-    g.scale.setScalar(1);
+    // A mesh only while the LOD plan wants one; an impostor frees its model and animator.
+    if (this.wantMesh) this.sync(t, this.lodDist, entShips.get(this.name));
+    else if (this.model || this.claim.e) this.drop();
+    if (dead) { this.hasPrev = false; this.lastHp = null; return; }
+    if (this.hasPrev) this.vel.set(p.x - this.prev.x, p.y - this.prev.y, p.z - this.prev.z).divideScalar(Math.max(dt, 1e-3));
+    this.prev.set(p.x, p.y, p.z);
+    this.hasPrev = true;
+    // Lobby showcase: every ship spins slowly on the spot and bobs; at START it eases back to its heading.
+    const lobby = !!ctx.lobby;
+    if (this.yawOff === null) this.yawOff = lobby ? this.seed * ENT_TAU : 0;
+    if (lobby) this.yawOff += dt * 0.55;
+    else if (this.yawOff !== 0) {
+      const home = Math.round(this.yawOff / ENT_TAU) * ENT_TAU;
+      this.yawOff = Math.abs(this.yawOff - home) < 1e-3 ? 0 : damp(this.yawOff, home, 4, dt);
+    }
+    this.bobAmt = damp(this.bobAmt, lobby ? 1 : 0, 3, dt);
+    const yaw = p.yaw + this.yawOff;
+    g.position.set(p.x, p.y + Math.sin(t * 1.6 + this.seed * ENT_TAU) * 0.22 * this.bobAmt, p.z);
+    g.rotation.set(p.pitch, yaw, p.roll, "YXZ");
+    // Pop-in: a scale bounce (0 → 1.15 → 1) when the model first appears; a swap (default → drawing) adds a burst.
+    if (this.popPending) {
+      this.popPending = false;
+      this.popT = t;
+      if (this.swapped && g.visible) this.space.particles.burst(g.position, this.color, 16, 5, 0.5, 0.7, 0.05, { boost: 2.5, drag: 2 });
+    }
+    let pop = 1;
+    if (this.popT >= 0) { const k = (t - this.popT) / 0.5; if (k >= 1) this.popT = -1; else pop = entPop(k); }
+    // a showcase in the lobby: bigger so the drawings on their tops read from afar (the TV frames 25 of them at once)
+    pop *= 1 + (this.space.big ? 1.9 : 0.7) * this.bobAmt;
+    g.scale.setScalar(pop);
     const P = ctx.planet;
     if (P && p.flags.landing) {
       // Someone else's landing (the followed player gets the full shot): a dive into the planet.
       const k = clamp((ctx.serverNow - (p.startedAt || 0)) / (TUNING.planet.landingSeconds * 1000), 0, 1);
       const e = k * k;
       g.position.set(lerp(p.x, P.x, e * 0.92), lerp(p.y, P.y, e * 0.92), lerp(p.z, P.z, e * 0.92));
-      g.scale.setScalar(1 - 0.7 * e);
+      g.scale.setScalar((1 - 0.7 * e) * pop);
       if (k > 0.95) g.visible = false;
     } else if (P) {
       // World hint: near the planet the ship wobbles above the pulsing landing ring.
@@ -537,9 +1578,12 @@ class ShipView {
         g.position.y += Math.sin(t * 3.4) * 0.25 * near;
       }
     }
-    this.shield.visible = !!(p.flags.shield || p.flags.spawnShield);
-    this.setOpacity(p.flags.invisible ? (p.name === ctx.me ? 0.35 : 0.12) : 1);
-    if (this.model.setEnginePower) this.model.setEnginePower(p.flags.boost ? 2.2 : 1);
+    const shown = !!this.model;
+    this.shield.visible = shown && !!(p.flags.shield || p.flags.spawnShield);
+    if (shown) {
+      this.setOpacity(p.flags.invisible ? (p.name === ctx.me ? 0.35 : 0.12) : 1);
+      if (this.model.setEnginePower) this.model.setEnginePower(p.flags.boost ? 2.2 : 1);
+    }
     // Procedural animation (anim.js): triggered by the tick's action / startedAt, hits from health drops.
     this.ensureAnim();
     if (this.anim) {
@@ -554,27 +1598,39 @@ class ShipView {
     // Engine glow and trail.
     const boost = p.flags.boost ? 1 : 0;
     const glow = this.space.glow, parts = this.space.particles;
-    const fwd = forwardOf(p.yaw, p.pitch, this.space.tmp);
+    const fwd = forwardOf(yaw, p.pitch, this.space.tmp);
     g.updateMatrixWorld();
+    // An impostor (no mesh): a glow in the ship's colour where the ship is.
+    if (!shown) {
+      const c = this.color;
+      glow.add(g.position.x, g.position.y, g.position.z, 3.2, c.r * 1.8, c.g * 1.8, c.b * 1.8, 0.9);
+      glow.add(g.position.x, g.position.y, g.position.z, 1.1, 2.2, 2.2, 2.2, 0.8);
+    }
     for (const e of this.engines) {
       const w = this.space.tmp2.copy(e).applyMatrix4(g.matrixWorld);
       glow.addColor(w, 1.2 + boost * 1.0, this.color, 1, 2.5);
       glow.add(w.x, w.y, w.z, 0.45 + boost * 0.3, 2.5, 2.5, 2.5, 1);
-      // One puff every 0.3 m travelled (at least 30 per second), so trails stay continuous at any speed.
-      const n = Math.min(10, Math.max(dt * 30, (this.vel.length() * dt) / 0.3) + (this.trailAcc % 1));
+      if (ctx.lobby) continue; // spinning on the spot: the glow is enough, no trail
+      // World look: a long, bright ribbon in the player's colour behind each engine (one tapering streak, so it is smooth at any
+      // speed) plus a few sparks; far ships get a thicker, sparser one and none beyond 500 m (the pool is shared by all 25).
+      const cd = this.space.camPos.distanceTo(g.position);
+      if (cd > 500) continue;
+      const sp = this.vel.length(), lod = cd < 90 ? 1 : cd < 220 ? 2 : 4;
+      this.space.streaks.add(w.x, w.y, w.z, fwd.x, fwd.y, fwd.z, Math.min(36, Math.max(3, sp * (0.9 + boost * 0.5))), Math.max(1.5 + boost * 0.6, cd * 0.008),
+        this.color.r * 1.8, this.color.g * 1.8, this.color.b * 1.8, 1, 2);
+      const n = Math.min(3, Math.max((dt * 12) / lod, (sp * dt) / (1.2 * lod)) + (this.trailAcc % 1));
       this.trailAcc = n;
       for (let k = 0; k < Math.floor(n); k++) {
         const j = ((k + Math.random()) / Math.max(1, Math.floor(n))) * dt;
-        parts.emit(w.x - this.vel.x * j, w.y - this.vel.y * j, w.z - this.vel.z * j, -fwd.x * 3, -fwd.y * 3, -fwd.z * 3,
-          0.5 + boost * 0.6, 0.55 + boost * 0.5, 0.08, this.color, 2.0, 0.5);
+        parts.emit(w.x - this.vel.x * j, w.y - this.vel.y * j, w.z - this.vel.z * j, -fwd.x * 2.5, -fwd.y * 2.5, -fwd.z * 2.5,
+          0.7 + boost * 0.4, 0.5 + boost * 0.3, 0.04, this.color, 1.8, 0.6);
       }
     }
   }
   dispose() {
-    this.disposed = true;
-    this.anim?.dispose?.();
+    this.disposeAnim();
     this.group.removeFromParent();
-    this.model.dispose?.();
+    super.dispose();
   }
 }
 
@@ -608,9 +1664,9 @@ const NOISE_GLSL = /* glsl */ `
     return mix(mix(mix(h3(i+vec3(0,0,0)),h3(i+vec3(1,0,0)),f.x), mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
                mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x), mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y), f.z); }
   float fbm3(vec3 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++){ s += a * n3(p); p *= 2.03; a *= 0.5; } return s; }`;
-function makePlanet(radius, landRange, phone) {
+function makePlanet(radius, landRange, phone, sun) {
   const group = new THREE.Group();
-  const sunDir = v3(0.8, 0.35, 0.5).normalize();
+  const sunDir = sun ? sun.clone().normalize() : v3(0.8, 0.35, 0.5).normalize();
   const detail = phone ? 4 : 5;
   const surf = new THREE.ShaderMaterial({
     uniforms: { uSun: { value: sunDir } },
@@ -669,32 +1725,14 @@ function makePlanet(radius, landRange, phone) {
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide,
   });
   const atmo = new THREE.Mesh(new THREE.IcosahedronGeometry(radius * 1.08, phone ? 3 : 4), atmoMat);
-  // Landing ring: a billboarded glowing circle at radius + landRange that pulses.
-  const ringMat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 }, uR: { value: radius + landRange }, uIn: { value: 0 } },
-    vertexShader: /* glsl */ `uniform float uR; varying vec2 vUv;
-      void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(0.0,0.0,0.0,1.0); mv.xy += position.xy * uR * 2.3; gl_Position = projectionMatrix * mv; }`,
-    fragmentShader: /* glsl */ `uniform float uTime; uniform float uIn; varying vec2 vUv;
-      void main(){
-        float d = length(vUv - 0.5) * 2.3;
-        float pulse = 0.55 + 0.45 * sin(uTime * (3.0 + 4.0 * uIn));
-        float ring = exp(-pow((d - 1.0) * 45.0, 2.0)) * (0.8 + uIn) + exp(-pow((d - 1.0) * 10.0, 2.0)) * 0.25;
-        gl_FragColor = vec4(mix(vec3(0.2,1.0,1.4), vec3(1.0,1.6,1.4), uIn) * ring * pulse * 1.6, 1.0);
-      }`,
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-  });
-  const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), ringMat);
-  ring.frustumCulled = false;
-  ring.renderOrder = 9;
-  group.add(body, clouds, atmo, ring);
+  // The landing-range ring and the locked shimmer belong to PlanetLook (World look), not to this fallback planet.
+  group.add(body, clouds, atmo);
   return {
     group,
-    update(dt, t, inRange) {
+    update(dt, t) {
       clouds.rotation.y += dt * 0.02;
       body.rotation.y += dt * 0.004;
       cloudMat.uniforms.uTime.value = t;
-      ringMat.uniforms.uTime.value = t;
-      ringMat.uniforms.uIn.value = damp(ringMat.uniforms.uIn.value, +inRange || 0, 4, dt);
     },
     dispose() { group.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); }); },
   };
@@ -721,7 +1759,7 @@ function writeBullets(mesh, d, bullets, mode) {
     if (dx * dx + dy * dy + dz * dz > 1e-6) d.lookAt(b[1] + dx, b[2] + dy, b[3] + dz);
     d.updateMatrix();
     mesh.setMatrixAt(n, d.matrix);
-    mesh.setColorAt(n, _bulletCol.set(b[4] || 0xffffff).multiplyScalar(3.5));
+    mesh.setColorAt(n, _bulletCol.set(b[4] || 0xffffff).multiplyScalar(5));
     n++;
   }
   mesh.count = n;
@@ -733,47 +1771,74 @@ class SpaceWorld {
   constructor(renderer, { phone, big }) {
     this.phone = phone;
     this.big = big;
+    this.renderer = renderer;
     this.tmp = v3();
     this.tmp2 = v3();
+    this.camPos = v3(); // the camera's position this frame (ShipView trails and the shots read it)
     const scene = (this.scene = new THREE.Scene());
+    // Backdrop: the procedural nebula at once; A-011's panorama replaces it when (and if) it loads.
     const bg = nebulaBackdropTexture();
     bg.mapping = THREE.EquirectangularReflectionMapping;
     scene.background = bg;
-    scene.backgroundIntensity = 0.85;
-    scene.fog = new THREE.FogExp2(0x160c36, phone ? 0.0019 : 0.0015);
-    scene.add(new THREE.HemisphereLight(0xa78bfa, 0x1e1b4b, 0.9));
-    const key = new THREE.DirectionalLight(0xfff1dc, 2.0);
-    key.position.set(1, 0.8, 0.5);
-    const rim = new THREE.DirectionalLight(0xff4fd8, 1.4);
-    rim.position.set(-1, -0.3, -0.8);
-    scene.add(key, rim);
+    scene.backgroundIntensity = 1;
+    this.bgTexture = bg;
+    this.env = null;
+    loadAsset("spaceEnv", { phone }).then((env) => {
+      if (!env) return;
+      this.env = env;
+      scene.add(env.object3d);
+      scene.background = null;
+      this.bgTexture?.dispose();
+      this.bgTexture = null;
+    });
+    scene.fog = new THREE.FogExp2(0x1a1470, phone ? 0.0011 : 0.0009);
+    // Bright, toon-like light: a blue-violet sky fill, a warm key and a saturated magenta rim. The key and rim directions
+    // follow the planet's side of the sky (setSun) so the planet, the boss and the rocks are lit alike.
+    scene.add(new THREE.HemisphereLight(0x9fb8ff, 0x7a46dc, 1.1));
+    this.key = new THREE.DirectionalLight(0xffeccf, 2.8);
+    this.rim = new THREE.DirectionalLight(0xff48d2, 1.9);
+    this.sun = v3();
+    this.setSun(v3(1, 0.8, 0.5));
+    scene.add(this.key, this.rim);
     this.flareLight = new THREE.PointLight(0xfff2c4, 0, 260, 1.2);
     scene.add(this.flareLight);
-    scene.add(makeStars(phone ? 2500 : 5000));
+    // The boss's red light: its glow lands on the rocks and ships that fly close.
+    this.bossLight = new THREE.PointLight(0xff2a1a, 0, 280, 1.6);
+    scene.add(this.bossLight);
+    scene.add(makeStars(phone ? 3500 : 7000));
     this.nebula = new BillboardBatch(phone ? 40 : 70, { map: puffTexture(), nearFade: 1.6, renderOrder: 5 });
     scene.add(this.nebula.mesh);
     this.glow = new BillboardBatch(512, { renderOrder: 14 });
     scene.add(this.glow.mesh);
-    this.particles = new Particles(phone ? 1400 : 3000);
+    this.particles = new Particles(phone ? 1800 : 4000);
     scene.add(this.particles.mesh);
-    this.rings = new RingPool(6);
+    this.rings = new RingPool(8);
     scene.add(this.rings.group);
     this.shieldGeo = new THREE.SphereGeometry(2.6, 28, 18);
     this.shieldMat = SHIELD_MAT();
-    // Bullets: thin bright streaks in the shooter's colour, one instanced draw.
-    this.bullets = makeBulletMesh(2.6, 0.14, 512);
-    scene.add(this.bullets);
-    this.bossShots = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.7, 1), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xff2a2a).multiplyScalar(4), toneMapped: false, fog: false }), 64);
-    this.bossShots.count = 0;
-    this.bossShots.frustumCulled = false;
-    scene.add(this.bossShots);
+    // Laser streaks: the players' bullets and the boss's red shots, one instanced draw.
+    this.streaks = new StreakBatch(192);
+    scene.add(this.streaks.mesh);
+    this.shotCol = new THREE.Color();
     this.ships = new Map();
     this.rockIndex = [];
     this.rockKey = null;
     this.boss = null;
-    this.planet = null;
+    this.planet = null; // ONLY the unlocked planet (world.planet): ShipView's landing dive, transition.js and the hud read it
+    this.planetLook = new PlanetLook(this); // the planet you see: in view from the start, locked until the boss dies
+    this.deco = [];     // decorative rock fields (World look)
+    this.lookKey = null;
+    this.sawLocked = false;
     this.farRocks = true;
     this.dummy = new THREE.Object3D();
+    worldSound.reset();
+  }
+
+  // The key light's direction (towards the light) and the rim light opposite, a little below.
+  setSun(dir) {
+    this.sun.copy(dir).normalize();
+    this.key.position.copy(this.sun).multiplyScalar(100);
+    this.rim.position.set(-this.sun.x, -0.25, -this.sun.z).normalize().multiplyScalar(100);
   }
 
   // ---- world message ----
@@ -782,19 +1847,52 @@ class SpaceWorld {
     if (n && (!this.nebulaAt || this.nebulaAt.x !== n.x || this.nebulaAt.z !== n.z)) {
       this.nebulaAt = { ...n };
       const rnd = seeded(w.seed || 1);
-      const cols = [0x7c3aed, 0xc026d3, 0xdb2777, 0x4f46e5, 0x9333ea, 0x2563eb].map((c) => new THREE.Color(c));
+      const cols = [0x3b7bff, 0x7c3aed, 0xc026d3, 0xec4899, 0x4f46e5, 0x22b8f0, 0x9333ea].map((c) => new THREE.Color(c));
       const b = this.nebula;
       b.begin();
       for (let i = 0; i < b.capacity; i++) {
-        const u = rnd() * 2 - 1, th = rnd() * Math.PI * 2, s = Math.sqrt(1 - u * u), r = n.radius * (0.75 + rnd() * 0.7);
+        const u = rnd() * 2 - 1, th = rnd() * Math.PI * 2, s = Math.sqrt(1 - u * u), r = n.radius * (0.7 + rnd() * 0.7);
         const c = cols[i % cols.length];
-        b.add(n.x + Math.cos(th) * s * r, n.y + u * r * 0.5, n.z + Math.sin(th) * s * r, n.radius * (0.6 + rnd() * 0.7), c.r, c.g, c.b, 0.16 + rnd() * 0.14);
+        // A faint tint of cloud round the boss (A-011's panorama paints the real nebula): additive puffs that are too bright or
+        // too big wash out the planet and the rocks behind them.
+        b.add(n.x + Math.cos(th) * s * r, n.y + u * r * 0.5, n.z + Math.sin(th) * s * r, n.radius * (0.45 + rnd() * 0.6), c.r, c.g, c.b, 0.05 + rnd() * 0.06);
       }
       b.end();
     }
+    const boss = w.targets.find((t) => t.kind === "boss");
+    this.setLook(w, boss);
     this.setRocks(w);
-    this.setBoss(w.targets.find((t) => t.kind === "boss"));
+    this.setBoss(boss);
     this.setPlanet(w.planet);
+  }
+
+  // Once per round: the sun, the planet in view (locked) and the decorative rocks.
+  setLook(w, boss) {
+    if (!boss) return;
+    const key = `${w.round}:${w.seed}`;
+    if (key === this.lookKey) return;
+    this.lookKey = key;
+    this.sawLocked = false;
+    const bossPos = v3(boss.x, boss.y, boss.z);
+    // Where the server puts the planet once the boss dies: beyond the boss, on the line from the spawn.
+    const planetAt = bossPos.clone().add(bossPos.clone().normalize().multiplyScalar(TUNING.planet.offset));
+    // The sun sits behind the camera of the route (from the spawn, looking at the planet) on the left and above: it lights the
+    // planet's left side (the right stays dark, with its city lights), the rocks and the ships from the upper left.
+    const approach = planetAt.clone().normalize().negate(); // from the planet back towards the spawn
+    const up = Math.abs(approach.y) > 0.95 ? v3(1, 0, 0) : v3(0, 1, 0);
+    const right = v3().crossVectors(up, approach).normalize(); // the camera's right when it looks at the planet
+    const sun = right.multiplyScalar(-0.8).addScaledVector(up, 0.55).addScaledVector(approach, 0.4).normalize();
+    this.setSun(sun);
+    this.planetLook.place(planetAt, Math.floor(w.seed) || 1, sun, approach);
+    // Decorative rocks (never collide): a dense field of small ones around the boss, a few huge ones beside the route.
+    for (const f of this.deco) f.dispose();
+    this.deco = [];
+    const plan = planDecoRocks({ seed: w.seed || 1, boss, planetAt, gameplay: w.rocks || [], phone: this.phone });
+    const sd = this.phone ? 0 : 1; // 20 triangles per small rock on the phone, 80 on the big screen
+    const small = new DecoField(plan.small, [chunkyRockGeometry(sd, 11, 6), chunkyRockGeometry(sd, 23, 7)], 6);
+    const huge = new DecoField(plan.huge, [chunkyRockGeometry(3, 31, 13, 0.65), chunkyRockGeometry(3, 47, 14, 0.65), chunkyRockGeometry(3, 59, 12, 0.65)], 30);
+    this.scene.add(small.group, huge.group);
+    this.deco.push(small, huge);
   }
 
   setRocks(w) {
@@ -817,11 +1915,12 @@ class SpaceWorld {
     loadAsset("rocks").then((asset) => {
       if (gen !== this.rockGen) return;
       this.rockField?.dispose?.();
-      this.rockField = asset ? asset.createRockField({ templates: asset.templates, rocks: records, seed: w.seed || 1 }) : placeholderRockField(records);
+      // The phone draws one shape per batch (a third of the submitted triangles, same rocks); the big screen keeps A-002's batches.
+      this.rockField = asset ? (this.phone ? splitRockField(asset, records, w.seed || 1) : asset.createRockField({ templates: asset.templates, rocks: records, seed: w.seed || 1 })) : placeholderRockField(records);
       this.scene.add(this.rockField.object3d);
       this.rockIndex = records.map((r) => {
         const h = this.rockField.handles.get(r.id);
-        const mesh = this.rockField.batches[h.type];
+        const mesh = h.field ? h.field.batches[h.type] : this.rockField.batches[h.type];
         const m = new THREE.Matrix4();
         mesh.getMatrixAt(h.index, m);
         return { id: r.id, mesh, index: h.index, matrix: m, pos: v3(...r.position), alive: true, shown: true };
@@ -849,22 +1948,28 @@ class SpaceWorld {
     if (!this.boss) {
       const group = new THREE.Group();
       this.scene.add(group);
-      const s = (b.radius || TUNING.boss.radius) / 9;
-      // Hostile red accents (reference mothership): a slowly turning ring plus red lights, until A-001 gets its seams.
-      const ringMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xff2a2a).multiplyScalar(3), toneMapped: false });
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(17 * s, 0.35 * s, 6, 64), ringMat);
-      ring.rotation.x = Math.PI / 2.3;
-      group.add(ring);
-      this.boss = { group, ring, model: null, state: null, data: b, dead: false, scale: s };
+      // Mothership scale: the A-001 hull is 1.25 x the hit radius; a ring of girders, spokes and spires with red light strips
+      // (two merged meshes) reach out to about twice the hit radius.
+      const R = b.radius || TUNING.boss.radius;
+      const hull = R * BOSS_HULL_K;
+      const s = hull / BOSS_MODEL_RADIUS;
+      const st = makeBossStructures(hull, this.phone);
+      const metal = new THREE.Mesh(st.dark, new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.6, metalness: 0.15, fog: false }));
+      const redMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(3.2, 0.5, 0.35), toneMapped: false, fog: false });
+      const lights = new THREE.Mesh(st.red, redMat);
+      group.add(metal, lights);
+      this.boss = { group, model: null, state: null, data: b, dead: false, scale: s, hull, st, redMat, crack: null };
       if (this.big) { this.boss.bar = bossBar(); this.scene.add(this.boss.bar); }
       loadAsset("boss").then((asset) => {
-        const model = asset || placeholderBoss(s);
-        if (asset) asset.object3d.scale.setScalar(s * 1.05);
+        const model = asset || placeholderBoss(hull / 12);
+        if (asset) {
+          asset.object3d.scale.setScalar(s);
+          // A far boss must not dissolve into the fog: it is THE enemy, visible from anywhere on the map.
+          asset.object3d.traverse((o) => { if (o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.fog = false; });
+        }
         group.add(model.object3d);
         this.boss.model = model;
         this.boss.state = null;
-        this.boss.crack = bossCrack(model.object3d, (b.radius || TUNING.boss.radius) * 1.05);
-        group.add(this.boss.crack.lines);
         this.applyBossState();
       });
     }
@@ -877,15 +1982,21 @@ class SpaceWorld {
       this.particles.burst(pos, new THREE.Color(0xff6a2a), 160, 40, 2.2, 6, 1, { boost: 3, drag: 1.2, spread: 10 });
       this.particles.burst(pos, new THREE.Color(0xffd27a), 80, 25, 1.6, 9, 2, { boost: 3, drag: 1.6, spread: 6 });
       this.rings.spawn(pos, 0xff7a3a, 70, 1.6);
+      this.rings.spawn(pos, 0xffd27a, 120, 2.2);
     }
     if (!b.dead) this.boss.seenAlive = true;
     this.applyBossState();
   }
+  // The armour breaks as the boss loses health: intact, then cracked below 2/3, then broken (the red core bared) below 1/3.
+  // (An older server that still sends armour keeps its own states.)
   applyBossState() {
     const B = this.boss;
     if (!B?.model) return;
     const b = B.data;
-    const state = b.armour <= 0 ? "armour_broken" : b.cracked || b.armour < (TUNING.boss.armour || 100) ? "armour_cracked" : "armour_intact";
+    const frac = b.hp / (b.maxHp || 1);
+    const state = b.armour > 0
+      ? (b.cracked || b.armour < (TUNING.boss.armour || 100) ? "armour_cracked" : "armour_intact")
+      : frac > 0.66 ? "armour_intact" : frac > 0.33 ? "armour_cracked" : "armour_broken";
     if (state !== B.state) {
       B.state = state;
       B.model.setState?.(state);
@@ -895,52 +2006,72 @@ class SpaceWorld {
   }
   bossAlive() { return this.boss && !this.boss.dead ? this.boss.data : null; }
 
+  // world.planet arrives when the boss dies: the planet you have been looking at all along unlocks (a burst, a ring, the
+  // pulsing range ring). this.planet stays the UNLOCKED planet's data only.
   setPlanet(p) {
+    const L = this.planetLook;
     if (!p) {
-      if (this.planet) { this.planet.view.group.removeFromParent(); this.planet.view.dispose(); this.planet = null; }
+      this.planet = null;
+      L.setUnlocked(false);
+      this.sawLocked = true;
       return;
     }
     if (this.planet && this.planet.x === p.x && this.planet.z === p.z) return;
-    if (this.planet) { this.planet.view.group.removeFromParent(); this.planet.view.dispose(); }
-    const view = makePlanet(p.radius, p.landRange, this.phone);
-    view.group.position.set(p.x, p.y, p.z);
-    view.group.scale.setScalar(0.01);
-    this.scene.add(view.group);
-    this.planet = { ...p, view, born: performance.now() };
-    this.particles.burst(v3(p.x, p.y, p.z), new THREE.Color(0x60a5fa), 120, 60, 1.8, 8, 2, { boost: 2.5, spread: p.radius });
+    const first = !this.planet;
+    this.planet = { ...p, born: performance.now() };
+    L.root.position.set(p.x, p.y, p.z);
+    L.setUnlocked(true);
+    if (first && this.sawLocked) {
+      const c = v3(p.x, p.y, p.z);
+      this.particles.burst(c, new THREE.Color(0x60a5fa), 140, 60, 1.8, 8, 2, { boost: 2.5, spread: p.radius });
+      this.particles.burst(c, new THREE.Color(0xfff1c2), 70, 90, 1.4, 10, 2, { boost: 3, spread: p.radius * 0.5 });
+      this.rings.spawn(c, 0x67e8f9, Math.max(80, (L.scale || 1) * p.radius * 2.6), 1.6);
+      sfx.play("unlock", { volume: 0.8 });
+    }
+  }
+
+  // Which ships get a full mesh this frame (entPlanLod): the phone keeps at most 8, the nearest to the camera (the
+  // followed and its own ship always); the big screen everything within ~450 m. The others are impostors.
+  planLod(list, ctx, cam, t) {
+    const items = this.lodItems || (this.lodItems = []);
+    items.length = 0;
+    const subject = ctx.subject ? ctx.subject.name : null;
+    for (let i = 0; i < list.length; i++) {
+      const p = list[i], s = this.ships.get(p.name);
+      s.hadMesh = s.wantMesh;
+      if (p.flags.dead || p.mode !== "space") { s.wantMesh = false; continue; }
+      s.lodDist = Math.hypot(p.x - cam.x, p.y - cam.y, p.z - cam.z);
+      s.forced = s.transit || p.name === ctx.me || p.name === subject;
+      items.push(s);
+    }
+    entPlanLod(items, this.phone, 8, 450, 520, this.lodOrder || (this.lodOrder = []), t);
   }
 
   // ---- per-frame ----
   update(dt, t, snap, ctx, camera) {
     this.glow.begin();
-    // Ships.
-    const seen = new Set();
-    for (const p of snap.players) {
-      seen.add(p.name);
+    this.streaks.begin(); // the ships add their engine trails, then updateShots the bullets and the boss's shots
+    this.camPos.copy(camera.position);
+    worldSound.tick(snap, ctx, camera, "space");
+    // Ships: one build of a drawn mesh per frame at most (DRAWN.pump), then the LOD plan, then every view.
+    try { DRAWN.pump(); } catch (e) { entWarn("drawn cache", e); }
+    this.frame = (this.frame || 0) + 1;
+    const list = snap.players;
+    ctx.lobby = snap.phase === "lobby";
+    for (let i = 0; i < list.length; i++) {
+      const p = list[i];
       let s = this.ships.get(p.name);
       if (!s) { s = new ShipView(this, p.name, p.color); this.ships.set(p.name, s); }
-      s.update(p, dt, t, ctx);
+      s.seen = this.frame;
     }
-    for (const [name, s] of this.ships) if (!seen.has(name)) { s.dispose(); this.ships.delete(name); }
+    this.planLod(list, ctx, camera.position, t);
+    for (let i = 0; i < list.length; i++) {
+      try { this.ships.get(list[i].name).update(list[i], dt, t, ctx); } catch (e) { entWarn(`ship ${list[i].name}`, e); }
+    }
+    for (const s of this.ships.values()) if (s.seen !== this.frame) { s.dispose(); this.ships.delete(s.name); }
     this.shieldMat.uniforms.uTime.value = t;
-    // Bullets (oriented along their motion): only the space ones (mode 0).
-    writeBullets(this.bullets, this.dummy, snap.bullets, 0);
-    const d = this.dummy;
-    // Boss shots: red orbs with a hostile glow.
-    const red = this.red || (this.red = new THREE.Color(0xff2a2a));
-    let n = 0;
-    for (const s of snap.bossShots) {
-      if (n >= 64) break;
-      d.position.set(s[1], s[2], s[3]);
-      d.rotation.set(t * 3, t * 2, 0);
-      d.scale.setScalar(1);
-      d.updateMatrix();
-      this.bossShots.setMatrixAt(n++, d.matrix);
-      this.glow.add(s[1], s[2], s[3], 4.5, red.r * 2.5, red.g * 2.5, red.b * 2.5, 1);
-    }
-    d.rotation.set(0, 0, 0);
-    this.bossShots.count = n;
-    this.bossShots.instanceMatrix.needsUpdate = true;
+    // Bullets and the boss's shots: laser streaks along their motion, each with a glow.
+    this.updateShots(snap, camera);
     // Flares: bright bursts with a real light on the nearest one.
     let best = null, bestD = Infinity;
     for (const f of snap.flares) {
@@ -957,71 +2088,118 @@ class SpaceWorld {
       this.flareLight.distance = best[3] * 2;
       this.flareLight.intensity = 350 * clamp(best[4] / TUNING.flare.seconds, 0.2, 1);
     } else this.flareLight.intensity = 0;
-    // Boss.
-    const B = this.boss;
-    if (B && !B.dead) {
-      const b = B.data;
-      B.ring.rotation.z += dt * 0.25;
-      B.model?.update?.(dt);
-      B.group.rotation.y += dt * 0.05;
-      const hostile = this.red;
-      const s = B.scale;
-      for (let i = 0; i < 6; i++) {
-        const a = t * 0.25 + (i / 6) * Math.PI * 2;
-        this.tmp.set(Math.cos(a) * 17 * s, 0, Math.sin(a) * 17 * s).applyEuler(B.ring.rotation).add(B.group.position);
-        this.glow.add(this.tmp.x, this.tmp.y, this.tmp.z, 3.2 * s, hostile.r * 3, hostile.g * 3, hostile.b * 3, 0.9);
-      }
-      const pulse = 0.6 + 0.4 * Math.sin(t * 2.4);
-      this.glow.add(b.x, b.y, b.z, 30 * s, 0.35 * pulse, 0.03, 0.05, 0.5);
-      // World hint: a glowing hairline crack shows where the armour is weakest (brighter once drilling cracks it).
-      if (B.crack) {
-        const on = b.armour > 0;
-        B.crack.lines.visible = on;
-        if (on) {
-          const cracked = b.armour < (TUNING.boss.armour || 100);
-          const k = (cracked ? 1.4 : 0.8) * (0.7 + 0.3 * Math.sin(t * 3.1)) * (0.85 + 0.15 * Math.sin(t * 17));
-          B.crack.mat.color.setRGB(3.2 * k, 1.2 * k, 0.3 * k);
-          B.group.updateMatrixWorld();
-          const pts = B.crack.glowPoints;
-          for (let i = 0; i < pts.length; i++) {
-            const w = this.tmp.copy(pts[i]).applyMatrix4(B.group.matrixWorld);
-            this.glow.add(w.x, w.y, w.z, (cracked ? 2.2 : 1.4) * s, 1.6 * k, 0.55 * k, 0.12 * k, 0.9);
-          }
-        }
-      }
-      if (b.armour <= 0) this.glow.add(b.x, b.y, b.z, 18 * s * (0.9 + 0.2 * pulse), 3, 1.3, 0.3, 1);
-      if (B.bar) {
-        B.bar.position.set(b.x, b.y + 19 * s, b.z);
-        B.bar.material.uniforms.uFill.value = clamp(b.hp / (b.maxHp || 1), 0, 1);
-        const dist = camera.position.distanceTo(B.bar.position);
-        B.bar.material.uniforms.uSize.value.set(clamp(dist * 0.12, 14, 60), clamp(dist * 0.0085, 1, 4.2));
-      }
-    }
-    // Planet.
-    if (this.planet) {
-      const P = this.planet;
-      const k = clamp((performance.now() - P.born) / 1500, 0, 1);
-      P.view.group.scale.setScalar(0.01 + 0.99 * (1 - Math.pow(1 - k, 3)));
-      // World hint: the landing ring pulses harder as the followed ship (mine on a phone) gets close.
-      const me = ctx.subject;
-      const d = me && me.mode === "space" ? Math.hypot(me.x - P.x, me.y - P.y, me.z - P.z) - P.radius : Infinity;
-      P.view.update(dt, t, d < P.landRange ? 1 : clamp(1 - (d - P.landRange) / 60, 0, 1) * 0.5);
-    }
+    this.updateBoss(dt, t, camera);
+    this.updatePlanet(dt, t, ctx, camera);
+    for (const f of this.deco) f.update(t);
+    if (this.deco[0]) this.deco[0].group.visible = this.farRocks; // the lowest quality tier drops the small decorative field
     this.glow.end();
     this.particles.update(dt);
     this.rings.update(dt, camera);
     this.cullRocks(camera.position, t);
   }
 
+  // Player bullets (mode 0) and boss shots as laser streaks: cylindrical billboards along their motion (the interpolated
+  // snapshot carries the direction at indices 6, 7, 8), thicker and longer with distance so they stay visible from far.
+  updateShots(snap, camera) {
+    const S = this.streaks, cp = camera.position, col = this.shotCol, g = this.glow;
+    for (const b of snap.bullets) {
+      if ((b[5] || 0) !== 0) continue;
+      col.set(b[4] || 0xffffff);
+      const dx = b[6] || 0, dy = b[7] || 0, dz = b[8] || 0, l = Math.hypot(dx, dy, dz);
+      const d = Math.hypot(b[1] - cp.x, b[2] - cp.y, b[3] - cp.z);
+      const wid = Math.max(1.5, d * 0.012);
+      if (l > 1e-4) S.add(b[1], b[2], b[3], dx / l, dy / l, dz / l, Math.max(5, d * 0.03), wid, col.r * 4.5, col.g * 4.5, col.b * 4.5, 1, 0);
+      else S.add(b[1], b[2], b[3], 0, 0, -1, wid, wid, col.r * 4.5, col.g * 4.5, col.b * 4.5, 1, 0);
+      g.add(b[1], b[2], b[3], Math.max(1.2, d * 0.008), col.r * 1.6, col.g * 1.6, col.b * 1.6, 0.7);
+    }
+    const B = this.boss && !this.boss.dead ? this.boss.data : null;
+    for (const s of snap.bossShots) {
+      let dx = s[6] || 0, dy = s[7] || 0, dz = s[8] || 0, l = Math.hypot(dx, dy, dz);
+      if (l < 1e-4 && B) { dx = s[1] - B.x; dy = s[2] - B.y; dz = s[3] - B.z; l = Math.hypot(dx, dy, dz); } // a new shot: away from the boss
+      if (l < 1e-4) { dx = 0; dy = 0; dz = -1; l = 1; }
+      const d = Math.hypot(s[1] - cp.x, s[2] - cp.y, s[3] - cp.z);
+      S.add(s[1], s[2], s[3], dx / l, dy / l, dz / l, Math.max(22, d * 0.06), Math.max(2.8, d * 0.014), 4.2, 0.4, 0.3, 1, 0);
+      g.add(s[1], s[2], s[3], Math.max(4.5, d * 0.02), 3.2, 0.35, 0.3, 0.85);
+    }
+    S.end();
+  }
+
+  // The mothership: running red lights around the ring, blinking spire tips, a pulsing core and a faint red halo that reads
+  // from across the map; plus its red light on the neighbourhood. Beacon sizes grow with the distance.
+  updateBoss(dt, t, camera) {
+    const B = this.boss;
+    if (!B || B.dead) { this.bossLight.intensity = 0; return; }
+    const b = B.data, st = B.st, g = this.glow, tmp = this.tmp, hull = B.hull;
+    B.model?.update?.(dt);
+    B.group.rotation.y += dt * 0.05;
+    B.group.updateMatrixWorld();
+    const dist = camera.position.distanceTo(B.group.position);
+    const pulse = 0.6 + 0.4 * Math.sin(t * 2.4);
+    B.redMat.color.setRGB(2.4 + 1.2 * pulse, 0.35 + 0.2 * pulse, 0.25 + 0.15 * pulse);
+    const far = Math.max(1, dist * 0.006);
+    for (let i = 0; i < st.ringBeacons.length; i++) {
+      const k = Math.max(0, Math.sin(t * 3.4 - i * 0.55)), f = 0.3 + 0.7 * k * k;
+      const w = tmp.copy(st.ringBeacons[i]).applyMatrix4(B.group.matrixWorld);
+      g.add(w.x, w.y, w.z, Math.max(3.4, far) * (0.7 + 0.5 * k), 2.8 * f, 0.3 * f, 0.2 * f, 0.95);
+    }
+    for (let i = 0; i < st.tipBeacons.length; i++) {
+      const on = Math.sin(t * 2.2 + i * 1.7) > 0.25 ? 1 : 0.3;
+      const w = tmp.copy(st.tipBeacons[i]).applyMatrix4(B.group.matrixWorld);
+      g.add(w.x, w.y, w.z, Math.max(4.6, far * 1.3) * (0.8 + 0.3 * on), 3 * on, 0.35 * on, 0.22 * on, 1);
+    }
+    g.add(b.x, b.y, b.z, Math.max(hull * 1.3, dist * 0.025) * (0.9 + 0.2 * pulse), 2.2, 0.35, 0.2, 0.45); // the core
+    g.add(b.x, b.y, b.z, Math.max(150, dist * 0.2), 0.3 + 0.12 * pulse, 0.03, 0.05, 0.5);               // the halo
+    this.bossLight.position.set(b.x, b.y, b.z);
+    this.bossLight.intensity = 320 * (0.85 + 0.3 * pulse);
+    // World hint of an older server (armour > 0): a glowing hairline crack where the armour is weakest.
+    if (b.armour > 0 && B.model && !B.crack) { B.crack = bossCrack(B.model.object3d, hull * 1.05); B.group.add(B.crack.lines); }
+    if (B.crack) {
+      const on = b.armour > 0;
+      B.crack.lines.visible = on;
+      if (on) {
+        const cracked = b.armour < (TUNING.boss.armour || 100);
+        const k = (cracked ? 1.4 : 0.8) * (0.7 + 0.3 * Math.sin(t * 3.1)) * (0.85 + 0.15 * Math.sin(t * 17));
+        B.crack.mat.color.setRGB(3.2 * k, 1.2 * k, 0.3 * k);
+        const pts = B.crack.glowPoints;
+        for (let i = 0; i < pts.length; i++) {
+          const w = tmp.copy(pts[i]).applyMatrix4(B.group.matrixWorld);
+          g.add(w.x, w.y, w.z, (cracked ? 2.2 : 1.4) * B.scale, 1.6 * k, 0.55 * k, 0.12 * k, 0.9);
+        }
+      }
+    }
+    if (B.bar) {
+      B.bar.position.set(b.x, b.y + st.extent + 6, b.z);
+      B.bar.material.uniforms.uFill.value = clamp(b.hp / (b.maxHp || 1), 0, 1);
+      const d = camera.position.distanceTo(B.bar.position);
+      B.bar.material.uniforms.uSize.value.set(clamp(d * 0.12, 14, 60), clamp(d * 0.0085, 1, 4.2));
+    }
+  }
+
+  // The planet you see: scaled so it never covers less than ~5.7 degrees of the sky, true size inside ~400 m. The landing ring
+  // pulses harder as the camera's subject gets close to the unlocked planet.
+  updatePlanet(dt, t, ctx, camera) {
+    const me = ctx.subject, P = this.planet;
+    let near = 0;
+    if (P && me && me.mode === "space") {
+      const d = Math.hypot(me.x - P.x, me.y - P.y, me.z - P.z) - P.radius;
+      near = d < P.landRange ? 1 : clamp(1 - (d - P.landRange) / 60, 0, 1) * 0.5;
+    }
+    this.planetLook.update(dt, t, camera.position, near);
+  }
+
   fx(m) {
+    worldSound.fx(m);
     const pos = v3(m.pos.x, m.pos.y, m.pos.z);
     const c = new THREE.Color(m.color ?? 0xffffff);
     const size = m.size || 1;
     const P = this.particles;
     switch (m.kind) {
       case "explode":
-        P.burst(pos, new THREE.Color(0xffd08a), 10, size * 3, 0.35, size * 2.4, size * 0.6, { boost: 3 });
+        // A white-hot flash, an orange fireball, the player's colour in the debris, and a shock ring for the bigger ones.
+        P.burst(pos, new THREE.Color(0xfff0c8), 8, size * 3, 0.3, size * 2.6, size * 0.7, { boost: 4 });
+        P.burst(pos, new THREE.Color(0xffa040), Math.min(50, 10 + size * 3), size * 3.2, 0.7, size * 1.6, size * 0.4, { boost: 3.2, drag: 1.6 });
         P.burst(pos, c, Math.min(60, 14 + size * 4), 6 + size * 2.5, 1.1, Math.max(0.6, size * 0.35), 0.1, { boost: 2.5, drag: 1.2, spread: size * 0.6 });
+        if (size >= 3) this.rings.spawn(pos, 0xffb060, size * 2.2, 0.8);
         break;
       case "blast":
         P.burst(pos, c, 60, size * 2.5, 0.9, 2.5, 0.2, { boost: 3 });
@@ -1059,12 +2237,34 @@ class SpaceWorld {
 
   clearForRound() {
     this.particles.clear();
+    worldSound.reset();
   }
 }
 
 const ZERO_MATRIX = new THREE.Matrix4().makeScale(0, 0, 0);
 
 // Placeholder rock field when A-002 is unavailable: one InstancedMesh per type, flat-shaded low-poly.
+// Phone (World look): A-002's createRockField merges the 3 shapes of a type into ONE batch and collapses the unused ones with
+// an instance attribute, but every instance still submits all 3 shapes (about 240 triangles for an 80-triangle rock: 77k for
+// the 320 rocks, most of the phone's 120k budget). Here each rock keeps ONE shape: 3 fields (id % 3), one template per type
+// each, so a third of the triangles for the same rocks, at the cost of 4 more draw calls.
+function splitRockField(asset, records, seed) {
+  const object3d = new THREE.Group();
+  const fields = [];
+  const handles = new Map();
+  for (let v = 0; v < 3; v++) {
+    const mine = records.filter((r) => r.id % 3 === v).map((r) => ({ ...r, variant: 1 }));
+    if (!mine.length) continue;
+    const templates = {};
+    for (const type of Object.keys(asset.templates)) templates[type] = [asset.templates[type][v]];
+    const field = asset.createRockField({ templates, rocks: mine, seed });
+    fields.push(field);
+    object3d.add(field.object3d);
+    for (const r of mine) { const h = field.handles.get(r.id); handles.set(r.id, { type: h.type, index: h.index, field }); }
+  }
+  return { object3d, handles, dispose() { for (const f of fields) f.dispose(); object3d.removeFromParent(); } };
+}
+
 function placeholderRockField(records) {
   const object3d = new THREE.Group();
   const batches = {};
@@ -1152,28 +2352,1330 @@ function placeholderBoss(s) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// World look: sound. A small WebAudio synth, no files: every sound is built from oscillators and filtered noise.
+// master gain -> compressor -> speakers; at most 14 voices (the quietest give way), per-sound throttles.
+//   sfx.unlock()                      create / resume the AudioContext: call it inside a user gesture (iOS). The pages call
+//                                     it on their first tap, and a capture listener on the document does it as well.
+//   sfx.play(name, { volume, pitch, delay })   volume 0..1.5 (x the sound's own level), pitch = frequency multiplier.
+//   sfx.setMuted(bool)  sfx.muted
+// Names: laser explosion explosionBig boost drill dig land takeoff chest hit zap click pop unlock countdown start win
+// (+ internal: bossLaser touch scan). Nothing here ever throws: without WebAudio, or before the first gesture, play()
+// just returns false. The game plays its world sounds itself (WorldSound below), pages only add UI sounds.
+const sfx = (() => {
+  const VOICES = 14, MASTER = 0.9, FLOOR = 0.0001;
+  let ctx = null, master = null, noiseBuf = null, primed = false, muted = false;
+  const voices = [];
+  const lastAt = Object.create(null);
+  const noop = () => {};
+  const hz = (f) => Math.min(18000, Math.max(20, f));
+
+  // Gain envelope: silence -> peak in `a` s, held for `hold` s, then an exponential fall to silence at `dur`.
+  function env(g, t, a, hold, dur, peak) {
+    const p = g.gain, top = Math.max(FLOOR * 2, peak);
+    p.setValueAtTime(FLOOR, t);
+    p.exponentialRampToValueAtTime(top, t + a);
+    if (hold > 0) p.setValueAtTime(top, t + a + hold);
+    p.exponentialRampToValueAtTime(FLOOR, t + Math.max(dur, a + hold + 0.01));
+  }
+  function filt(c, dest, type, f, q = 0.7) {
+    const b = c.createBiquadFilter();
+    b.type = type; b.frequency.value = hz(f); b.Q.value = q;
+    b.connect(dest);
+    return b;
+  }
+  // One oscillator through its own envelope.
+  function osc(c, dest, type, f0, f1, t, dur, peak, a = 0.004, hold = 0) {
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(hz(f0), t);
+    if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(hz(f1), t + dur);
+    env(g, t, a, hold, dur, peak);
+    o.connect(g); g.connect(dest);
+    o.start(t); o.stop(t + dur + 0.05);
+    return o;
+  }
+  // A burst of noise through a swept filter and its own envelope.
+  function nz(c, dest, type, f0, f1, q, t, dur, peak, a = 0.004, hold = 0) {
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = noiseBuf; s.loop = true;
+    f.type = type; f.Q.value = q;
+    f.frequency.setValueAtTime(hz(f0), t);
+    if (f1 !== f0) f.frequency.exponentialRampToValueAtTime(hz(f1), t + dur);
+    env(g, t, a, hold, dur, peak);
+    s.connect(f); f.connect(g); g.connect(dest);
+    s.start(t, Math.random() * 1.5); s.stop(t + dur + 0.05);
+    return s;
+  }
+  function brass(c, dest, f, t, dur, peak) {
+    const lp = filt(c, dest, "lowpass", 2000, 0.8);
+    osc(c, lp, "sawtooth", f, f, t, dur, peak, 0.025, dur * 0.45);
+    osc(c, lp, "sawtooth", f * 1.006, f * 1.006, t, dur, peak * 0.7, 0.025, dur * 0.45);
+    osc(c, lp, "square", f * 0.5, f * 0.5, t, dur, peak * 0.3, 0.025, dur * 0.45);
+  }
+  function bell(c, dest, f, t, dur, peak) {
+    osc(c, dest, "triangle", f, f, t, dur, peak, 0.004);
+    osc(c, dest, "sine", f * 2.01, f * 2.01, t, dur * 0.6, peak * 0.35, 0.004);
+  }
+
+  // name -> { gap: min seconds between two plays, vol: level, pri: voice priority, make(c, out, t, pitch) -> seconds }
+  const SOUNDS = {
+    // Short square / saw zap with a fast pitch drop.
+    laser: { gap: 0.05, vol: 0.5, pri: 2, make(c, out, t, p) {
+      const lp = filt(c, out, "lowpass", 4600, 0.7);
+      osc(c, lp, "sawtooth", 1750 * p, 250 * p, t, 0.16, 0.55, 0.002);
+      osc(c, lp, "square", 880 * p, 125 * p, t, 0.14, 0.22, 0.002);
+      nz(c, out, "highpass", 3500, 3500, 0.7, t, 0.03, 0.22, 0.001);
+      return 0.22;
+    } },
+    // The boss's heavy red shot: lower and longer.
+    bossLaser: { gap: 0.12, vol: 0.55, pri: 3, make(c, out, t, p) {
+      const lp = filt(c, out, "lowpass", 2600, 0.8);
+      osc(c, lp, "sawtooth", 560 * p, 80 * p, t, 0.34, 0.6, 0.003);
+      osc(c, lp, "square", 280 * p, 55 * p, t, 0.3, 0.3, 0.003);
+      nz(c, out, "bandpass", 1800 * p, 500 * p, 1.2, t, 0.25, 0.2, 0.003);
+      return 0.4;
+    } },
+    explosion: { gap: 0.06, vol: 0.7, pri: 6, make(c, out, t, p) {
+      nz(c, out, "lowpass", 2600 * p, 180 * p, 0.8, t, 0.7, 0.9, 0.003);
+      osc(c, out, "sine", 130 * p, 38 * p, t, 0.5, 0.95, 0.004);
+      nz(c, out, "bandpass", 900 * p, 300 * p, 0.9, t + 0.02, 0.35, 0.28, 0.003);
+      return 0.78;
+    } },
+    explosionBig: { gap: 0.15, vol: 0.85, pri: 9, make(c, out, t, p) {
+      nz(c, out, "lowpass", 1900 * p, 90 * p, 0.8, t, 1.5, 1.0, 0.004);
+      osc(c, out, "sine", 95 * p, 26 * p, t, 0.95, 1.0, 0.005);
+      nz(c, out, "bandpass", 700 * p, 200 * p, 0.9, t + 0.03, 0.9, 0.35, 0.004);
+      nz(c, out, "lowpass", 700 * p, 120 * p, 0.7, t + 0.2, 0.9, 0.6, 0.01);
+      osc(c, out, "sine", 60 * p, 25 * p, t + 0.12, 1.2, 0.5, 0.01);
+      return 1.6;
+    } },
+    // Rising whoosh.
+    boost: { gap: 0.3, vol: 0.55, pri: 5, make(c, out, t, p) {
+      nz(c, out, "bandpass", 300 * p, 2600 * p, 1.4, t, 0.9, 0.6, 0.25);
+      osc(c, filt(c, out, "lowpass", 700, 0.7), "sawtooth", 80 * p, 240 * p, t, 0.85, 0.3, 0.22);
+      return 0.95;
+    } },
+    // A short gritty buzz; the game repeats it every ~0.35 s while drilling.
+    drill: { gap: 0.1, vol: 0.5, pri: 3, make(c, out, t, p) {
+      const bp = filt(c, out, "bandpass", 650 * p, 2.2);
+      const g = c.createGain();
+      g.gain.setValueAtTime(FLOOR, t);
+      g.gain.linearRampToValueAtTime(0.5, t + 0.02);
+      g.gain.setValueAtTime(0.5, t + 0.3);
+      g.gain.linearRampToValueAtTime(FLOOR, t + 0.4);
+      const lfo = c.createOscillator(), lg = c.createGain();
+      lfo.frequency.value = 26; lg.gain.value = 0.32;
+      lfo.connect(lg); lg.connect(g.gain);
+      for (const [type, f] of [["sawtooth", 68], ["square", 71.5]]) {
+        const o = c.createOscillator();
+        o.type = type; o.frequency.value = hz(f * p);
+        o.connect(g); o.start(t); o.stop(t + 0.45);
+      }
+      g.connect(bp);
+      lfo.start(t); lfo.stop(t + 0.45);
+      nz(c, out, "highpass", 2800, 2800, 0.7, t, 0.38, 0.14, 0.01);
+      return 0.45;
+    } },
+    // Crunchy scoops.
+    dig: { gap: 0.12, vol: 0.7, pri: 4, make(c, out, t, p) {
+      for (let i = 0; i < 3; i++) nz(c, out, "bandpass", (1300 - i * 180) * p, (700 - i * 100) * p, 0.9, t + i * 0.075, 0.075, 0.55, 0.002);
+      osc(c, out, "sine", 150 * p, 70 * p, t, 0.22, 0.5, 0.003);
+      return 0.34;
+    } },
+    // The landing shot (3 s): an entry whoosh, the engines winding down, a thump at touchdown.
+    land: { gap: 1, vol: 0.8, pri: 8, make(c, out, t, p) {
+      nz(c, out, "bandpass", 500 * p, 2200 * p, 0.9, t + 0.1, 1.4, 0.4, 0.5);
+      nz(c, out, "lowpass", 2400 * p, 350 * p, 0.7, t + 1.2, 1.7, 0.5, 0.6);
+      osc(c, filt(c, out, "lowpass", 900, 0.7), "sawtooth", 210 * p, 70 * p, t, 2.7, 0.25, 0.6);
+      osc(c, out, "sine", 100 * p, 34 * p, t + 2.85, 0.55, 1.0, 0.004);
+      nz(c, out, "lowpass", 900 * p, 150 * p, 0.7, t + 2.85, 0.5, 0.7, 0.004);
+      return 3.45;
+    } },
+    // A thump and a puff of dust (touchdown heard from elsewhere).
+    touch: { gap: 0.3, vol: 0.8, pri: 6, make(c, out, t, p) {
+      osc(c, out, "sine", 110 * p, 34 * p, t, 0.45, 1.0, 0.003);
+      nz(c, out, "lowpass", 1100 * p, 160 * p, 0.7, t, 0.35, 0.7, 0.003);
+      return 0.5;
+    } },
+    // The take-off shot (2 s): a swelling roar.
+    takeoff: { gap: 1, vol: 0.8, pri: 8, make(c, out, t, p) {
+      nz(c, out, "lowpass", 250 * p, 3800 * p, 0.8, t, 1.95, 0.75, 1.0);
+      osc(c, filt(c, out, "lowpass", 900, 0.7), "sawtooth", 55 * p, 230 * p, t, 1.9, 0.36, 0.9);
+      osc(c, filt(c, out, "lowpass", 1200, 0.7), "square", 110 * p, 460 * p, t, 1.9, 0.12, 0.9);
+      return 2.05;
+    } },
+    // Bright arpeggio.
+    chest: { gap: 0.2, vol: 0.55, pri: 8, make(c, out, t, p) {
+      [1046.5, 1318.5, 1568, 2093].forEach((f, i) => bell(c, out, f * p, t + i * 0.085, 0.5, 0.3));
+      nz(c, out, "highpass", 6500, 6500, 0.7, t + 0.25, 0.45, 0.08, 0.05);
+      return 1.0;
+    } },
+    // Short metallic tick.
+    hit: { gap: 0.045, vol: 0.5, pri: 4, make(c, out, t, p) {
+      osc(c, out, "square", 940 * p, 700 * p, t, 0.09, 0.3, 0.001);
+      osc(c, out, "triangle", 1530 * p, 1100 * p, t, 0.12, 0.3, 0.001);
+      nz(c, out, "bandpass", 3800, 3800, 2, t, 0.04, 0.25, 0.001);
+      return 0.16;
+    } },
+    // Mischief: a wobbling FM zap.
+    zap: { gap: 0.15, vol: 0.55, pri: 6, make(c, out, t, p) {
+      const car = c.createOscillator(), mod = c.createOscillator(), mg = c.createGain(), lfo = c.createOscillator(), lg = c.createGain(), g = c.createGain();
+      car.type = "sine";
+      car.frequency.setValueAtTime(hz(520 * p), t);
+      car.frequency.exponentialRampToValueAtTime(hz(230 * p), t + 0.55);
+      mod.type = "sine"; mod.frequency.value = hz(43 * p); mg.gain.value = 210;
+      mod.connect(mg); mg.connect(car.frequency);
+      lfo.frequency.value = 9; lg.gain.value = 70;
+      lfo.connect(lg); lg.connect(car.frequency);
+      env(g, t, 0.01, 0.15, 0.6, 0.6);
+      car.connect(g); g.connect(out);
+      for (const o of [car, mod, lfo]) { o.start(t); o.stop(t + 0.65); }
+      return 0.65;
+    } },
+    click: { gap: 0.03, vol: 0.5, pri: 5, make(c, out, t, p) {
+      osc(c, out, "triangle", 1400 * p, 900 * p, t, 0.05, 0.4, 0.001);
+      nz(c, out, "highpass", 5000, 5000, 0.7, t, 0.02, 0.12, 0.001);
+      return 0.08;
+    } },
+    pop: { gap: 0.05, vol: 0.55, pri: 5, make(c, out, t, p) {
+      osc(c, out, "sine", 320 * p, 760 * p, t, 0.1, 0.6, 0.003);
+      nz(c, out, "bandpass", 2400, 2400, 1, t, 0.02, 0.1, 0.001);
+      return 0.14;
+    } },
+    // The unlock card: a magic sparkle chord.
+    unlock: { gap: 0.2, vol: 0.55, pri: 7, make(c, out, t, p) {
+      [523.25, 659.25, 783.99, 987.77, 1318.5].forEach((f, i) => bell(c, out, f * p, t + i * 0.045, 1.1, 0.26));
+      for (let i = 0; i < 5; i++) osc(c, out, "sine", (2200 + i * 520) * p, (2400 + i * 520) * p, t + 0.18 + i * 0.07, 0.16, 0.1, 0.004);
+      nz(c, out, "highpass", 7000, 7000, 0.7, t, 0.7, 0.06, 0.1);
+      return 1.4;
+    } },
+    countdown: { gap: 0.2, vol: 0.5, pri: 7, make(c, out, t, p) {
+      osc(c, filt(c, out, "lowpass", 3200, 0.7), "square", 880 * p, 880 * p, t, 0.17, 0.2, 0.003, 0.09);
+      osc(c, out, "sine", 880 * p, 880 * p, t, 0.17, 0.35, 0.003, 0.09);
+      return 0.22;
+    } },
+    // Fanfare.
+    start: { gap: 1, vol: 0.6, pri: 9, make(c, out, t, p) {
+      [[261.63, 0, 0.16], [329.63, 0.13, 0.16], [392, 0.26, 0.16]].forEach(([f, at, d]) => brass(c, out, f * p, t + at, d + 0.08, 0.34));
+      [523.25, 659.25, 783.99, 1046.5].forEach((f) => brass(c, out, f * p, t + 0.4, 0.8, 0.24));
+      nz(c, out, "highpass", 6000, 6000, 0.7, t + 0.4, 0.5, 0.05, 0.02);
+      return 1.3;
+    } },
+    // Victory jingle.
+    win: { gap: 1.5, vol: 0.6, pri: 9, make(c, out, t, p) {
+      [392, 523.25, 659.25, 783.99].forEach((f, i) => { brass(c, out, f * p, t + i * 0.11, 0.2, 0.3); bell(c, out, f * 2 * p, t + i * 0.11, 0.5, 0.14); });
+      [523.25, 659.25, 783.99, 1046.5].forEach((f) => brass(c, out, f * p, t + 0.52, 1.2, 0.24));
+      for (let i = 0; i < 7; i++) osc(c, out, "sine", (1800 + i * 330) * p, (1900 + i * 330) * p, t + 0.55 + i * 0.09, 0.2, 0.09, 0.004);
+      nz(c, out, "highpass", 7000, 7000, 0.7, t + 0.52, 1.0, 0.07, 0.05);
+      return 2.0;
+    } },
+    // A radar ping (scan).
+    scan: { gap: 0.3, vol: 0.5, pri: 3, make(c, out, t, p) {
+      osc(c, out, "sine", 700 * p, 2100 * p, t, 0.3, 0.4, 0.01);
+      osc(c, out, "sine", 700 * p, 2100 * p, t + 0.2, 0.3, 0.2, 0.01);
+      return 0.55;
+    } },
+  };
+
+  function create() {
+    if (ctx) return ctx;
+    const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
+    if (!AC) return null;
+    try { ctx = new AC({ latencyHint: "interactive" }); } catch { try { ctx = new AC(); } catch { ctx = null; return null; } }
+    master = ctx.createGain();
+    master.gain.value = muted ? 0 : MASTER;
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.2;
+    master.connect(comp); comp.connect(ctx.destination);
+    noiseBuf = ctx.createBuffer(1, Math.round(ctx.sampleRate * 2), ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return ctx;
+  }
+  function resume() {
+    if (!ctx || ctx.state === "running") return;
+    try { const r = ctx.resume(); if (r && r.catch) r.catch(noop); } catch { /* not allowed outside a gesture */ }
+  }
+  function unlock() {
+    try {
+      if (!create()) return false;
+      resume();
+      // The iOS trick: a silent buffer played inside the gesture. Repeat it until audio runs: on iOS a touch's pointerdown
+      // is not a gesture (touchend / pointerup / click are), so the first try can be too early.
+      if (!primed || ctx.state !== "running") {
+        primed = true;
+        const s = ctx.createBufferSource();
+        s.buffer = ctx.createBuffer(1, 1, 22050);
+        s.connect(ctx.destination);
+        s.start(0);
+      }
+      return ctx.state === "running";
+    } catch { return false; }
+  }
+  function play(name, o) {
+    try {
+      if (!ctx || muted) return false;
+      const def = SOUNDS[name];
+      if (!def) return false;
+      if (ctx.state !== "running") { resume(); return false; }
+      const now = ctx.currentTime;
+      if (now - (lastAt[name] ?? -9) < def.gap) return false;
+      const vol = (o && Number.isFinite(o.volume) ? Math.min(o.volume, 1.5) : 1) * def.vol;
+      if (!(vol > 0.012)) return false;
+      // Voice cap: drop finished voices; when full, the new sound only replaces a quieter-priority one.
+      for (let i = voices.length - 1; i >= 0; i--) if (voices[i].end <= now) voices.splice(i, 1);
+      if (voices.length >= VOICES) {
+        let low = 0;
+        for (let i = 1; i < voices.length; i++) if (voices[i].pri < voices[low].pri || (voices[i].pri === voices[low].pri && voices[i].end < voices[low].end)) low = i;
+        if (voices[low].pri >= def.pri) return false;
+        const v = voices.splice(low, 1)[0];
+        v.bus.gain.cancelScheduledValues(now);
+        v.bus.gain.setTargetAtTime(0, now, 0.012);
+      }
+      const bus = ctx.createGain();
+      bus.gain.value = vol;
+      bus.connect(master);
+      const delay = o && Number.isFinite(o.delay) ? Math.max(0, o.delay) : 0;
+      const t0 = now + 0.006 + delay;
+      let dur;
+      try { dur = def.make(ctx, bus, t0, o && Number.isFinite(o.pitch) && o.pitch > 0 ? o.pitch : 1); } catch (e) { try { bus.disconnect(); } catch { /* gone */ } return false; }
+      lastAt[name] = now;
+      voices.push({ end: t0 + dur, pri: def.pri, bus });
+      setTimeout(() => { try { bus.disconnect(); } catch { /* gone */ } }, (dur + delay + 0.4) * 1000);
+      return true;
+    } catch { return false; }
+  }
+  function setMuted(m) {
+    muted = !!m;
+    try { if (master) master.gain.setTargetAtTime(muted ? 0 : MASTER, ctx.currentTime, 0.02); } catch { /* no context */ }
+  }
+
+  if (typeof document !== "undefined") {
+    // Any later tap, click or key also (re)starts audio: iOS suspends it after calls, locks and tab switches.
+    const gesture = () => { if (!ctx || ctx.state !== "running") unlock(); };
+    for (const ev of ["pointerup", "touchend", "click", "keydown"]) document.addEventListener(ev, gesture, { capture: true, passive: true });
+    document.addEventListener("visibilitychange", () => {
+      if (!ctx) return;
+      try { if (document.hidden) { const r = ctx.suspend(); if (r && r.catch) r.catch(noop); } else resume(); } catch { /* ignore */ }
+    });
+  }
+  return {
+    unlock, play, setMuted, resume,
+    get muted() { return muted; },
+    get ready() { return !!ctx && ctx.state === "running"; },
+    names: Object.keys(SOUNDS),
+  };
+})();
+
+// The game's world sounds, hooked into the events the renderer already sees: fx messages, tick flags (boost, landing,
+// take-off), new bullets and boss shots, phase changes and the last 10 s of the round. Volume falls with the distance
+// from the camera's subject (the phone's own ship; the followed player on the big screen). Both worlds call tick() once
+// per frame and fx() for their fx messages.
+class WorldSound {
+  constructor() {
+    this.game = null;
+    this.L = { ok: false, x: 0, y: 0, z: 0, mode: "space", color: null };
+    this.boost = new Map();
+    this.shot = new Map();
+    this.bullets = new Set();
+    this.bTmp = new Set();
+    this.shots = new Set();
+    this.sTmp = new Set();
+    this.names = new Set();
+    this.phase = null;
+    this.count = NaN;
+  }
+  attach(game) { this.game = game; }
+  reset() { this.boost.clear(); this.shot.clear(); this.bullets.clear(); this.shots.clear(); this.phase = null; this.count = NaN; }
+  // One sound at a place: quieter with distance, silent from the other world (unless `global` is given).
+  at(name, x, y, z, mode, o = {}) {
+    const L = this.L;
+    let v = o.v === undefined ? 1 : o.v;
+    if (L.ok) {
+      if (mode !== L.mode) {
+        if (!(o.global > 0)) return;
+        v *= o.global;
+      } else {
+        const k = Math.hypot(x - L.x, y - L.y, z - L.z) / (o.ref || 60);
+        v /= 1 + k * k;
+      }
+    } else v *= 0.5;
+    if (v < 0.03) return;
+    sfx.play(name, { volume: v, pitch: o.pitch });
+  }
+  tick(snap, ctx, camera, scene) {
+    const L = this.L, subj = ctx.subject;
+    if (subj) { L.x = subj.x; L.y = subj.y; L.z = subj.z; L.mode = subj.mode === "planet" ? "planet" : "space"; L.color = subj.color; }
+    else { L.x = camera.position.x; L.y = camera.position.y; L.z = camera.position.z; L.mode = scene; L.color = null; }
+    L.ok = true;
+    // Phases: lobby -> playing is the start fanfare; the scoreboard is the win jingle.
+    const phase = snap.phase;
+    if (phase && phase !== this.phase) {
+      const was = this.phase;
+      this.phase = phase;
+      if (was === "lobby" && phase === "playing") sfx.play("start", { volume: 0.85 });
+      else if (was && was !== "scoreboard" && phase === "scoreboard") sfx.play("win", { volume: 0.85 });
+    }
+    // The last 10 s of the round: one beep per second, higher for the last three.
+    const g = this.game, tk = g && g.snaps && g.snaps.latest;
+    if (tk && (phase === "playing" || phase === "assists") && tk.left > 0) {
+      const sec = Math.ceil(tk.left - Math.min(1, (Date.now() - g.snaps.latestAt) / 1000));
+      if (sec !== this.count) {
+        const first = Number.isNaN(this.count);
+        this.count = sec;
+        if (!first && sec >= 1 && sec <= 10) sfx.play("countdown", { volume: 0.7, pitch: sec <= 3 ? 1.5 : 1 });
+      }
+    } else this.count = NaN;
+    // Players: boost, landing and take-off edges.
+    const names = this.names;
+    names.clear();
+    for (const p of snap.players) {
+      names.add(p.name);
+      const f = p.flags || {};
+      const b = !!f.boost;
+      if (b && !this.boost.get(p.name)) this.at("boost", p.x, p.y, p.z, p.mode, { v: 0.55, ref: 70 });
+      this.boost.set(p.name, b);
+      const st = f.landing ? "land" : f.takingOff ? "takeoff" : "";
+      if (st && st !== (this.shot.get(p.name) || "")) this.at(st, p.x, p.y, p.z, p.mode, { v: 0.9, ref: 110 });
+      this.shot.set(p.name, st);
+    }
+    if (this.boost.size > names.size) for (const k of this.boost.keys()) if (!names.has(k)) { this.boost.delete(k); this.shot.delete(k); }
+    // Bullets: a laser zap for every new one close to the listener (the subject's own at full volume).
+    const cur = this.bTmp;
+    cur.clear();
+    for (const b of snap.bullets) {
+      cur.add(b[0]);
+      if (this.bullets.has(b[0])) continue;
+      const mine = L.color !== null && b[4] === L.color;
+      this.at("laser", b[1], b[2], b[3], b[5] ? "planet" : "space", { v: mine ? 0.6 : 0.22, ref: 45, pitch: 0.92 + (b[0] % 7) * 0.025 });
+    }
+    this.bTmp = this.bullets;
+    this.bullets = cur;
+    // The boss's shots.
+    const curS = this.sTmp;
+    curS.clear();
+    for (const s of snap.bossShots) {
+      curS.add(s[0]);
+      if (!this.shots.has(s[0])) this.at("bossLaser", s[1], s[2], s[3], "space", { v: 0.5, ref: 140 });
+    }
+    this.sTmp = this.shots;
+    this.shots = curS;
+  }
+  // fx messages (kind, mode, pos, color, size).
+  fx(m) {
+    const p = m && m.pos;
+    if (!p) return;
+    const mode = m.mode === "planet" ? "planet" : "space";
+    const size = Number(m.size) || 1;
+    switch (m.kind) {
+      case "explode":
+        if (size >= 12) this.at("explosionBig", p.x, p.y, p.z, mode, { v: 1, ref: 220 });
+        else this.at("explosion", p.x, p.y, p.z, mode, { v: 0.75, ref: 60 + size * 8, pitch: Math.min(1.25, Math.max(0.8, 1.25 - size * 0.04)) });
+        break;
+      case "blast": this.at("explosion", p.x, p.y, p.z, mode, { v: 0.6, ref: 90, pitch: 1.25 }); break;
+      case "crack": this.at("explosion", p.x, p.y, p.z, mode, { v: 0.8, ref: 120, pitch: 0.75 }); break;
+      case "hit": this.at("hit", p.x, p.y, p.z, mode, { v: 0.7, ref: 50 }); break;
+      case "spark": this.at("hit", p.x, p.y, p.z, mode, { v: 0.35, ref: 40, pitch: 1.5 }); break;
+      case "drill": this.at("drill", p.x, p.y, p.z, mode, { v: 0.7, ref: 40 }); break;
+      case "dig": this.at("dig", p.x, p.y, p.z, mode, { v: 0.9, ref: 30 }); break;
+      case "treasure": this.at("chest", p.x, p.y, p.z, mode, { v: 0.9, ref: 90, global: 0.3 }); break;
+      case "land": if (mode === "planet") this.at("touch", p.x, p.y, p.z, mode, { v: 0.7, ref: 60 }); break;
+      case "respawn": this.at("pop", p.x, p.y, p.z, mode, { v: 0.6, ref: 40, pitch: 1.3 }); break;
+      case "flare": this.at("boost", p.x, p.y, p.z, mode, { v: 0.3, ref: 90, pitch: 1.4 }); break;
+      case "scan": this.at("scan", p.x, p.y, p.z, mode, { v: 0.45, ref: 120 }); break;
+      default: break;
+    }
+  }
+}
+const worldSound = new WorldSound();
+export { sfx }; // the sound synth: pages call sfx.unlock() in a user gesture and sfx.play("click") etc. for their own UI sounds
+// ---------------------------------------------------------------------------------------------------------------
+// World look: laser streaks. Instanced quads that turn around their own axis to face the camera (cylindrical
+// billboards): player bullets, the boss's red shots, the engine trails and the gold light beams over the chests, in ONE draw call.
+// Head = the leading tip (the bright end); the streak trails behind it along -dir. style 0 = laser, 1 = beam (constant
+// width, brightest at the head, which is the base of the beam), 2 = engine trail (brightest at the head, tapering to the tail).
+const STREAK_VERT = /* glsl */ `
+  attribute vec3 iHead; attribute vec3 iDir; attribute vec3 iSize; attribute vec4 iColor;
+  varying vec2 vUv; varying vec4 vColor; varying float vStyle;
+  void main() {
+    float len = iSize.x, wid = iSize.y;
+    vec3 centre = iHead - iDir * (len * 0.5);
+    vec3 side = cross(iDir, cameraPosition - centre);
+    float sl = length(side);
+    side = sl > 1e-4 ? side / sl : vec3(1.0, 0.0, 0.0);
+    float taper = iSize.z > 1.5 ? mix(0.3, 1.0, position.y + 0.5) : 1.0; // engine trails thin out towards the tail
+    vec3 wp = centre + iDir * (position.y * len) + side * (position.x * wid * taper);
+    vUv = position.xy + 0.5;
+    vColor = iColor;
+    vStyle = iSize.z;
+    gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0);
+  }`;
+const STREAK_FRAG = /* glsl */ `
+  varying vec2 vUv; varying vec4 vColor; varying float vStyle;
+  void main() {
+    float ax = abs(vUv.x * 2.0 - 1.0);
+    float along = clamp(vUv.y, 0.0, 1.0);
+    float edge = 1.0 - smoothstep(0.55, 1.0, ax);
+    float core, glow;
+    if (vStyle > 1.5) {
+      float f = pow(along, 1.4);
+      core = exp(-ax * ax * 7.0) * f * edge;
+      glow = exp(-ax * ax * 1.8) * 0.45 * f * edge;
+    } else if (vStyle > 0.5) {
+      float f = pow(along, 0.85);
+      core = exp(-ax * ax * 6.0) * f * edge;
+      glow = exp(-ax * ax * 1.6) * 0.55 * f * edge;
+    } else {
+      float tail = pow(along, 1.5);
+      float cap = 1.0 - smoothstep(0.88, 1.0, along);
+      core = exp(-ax * ax * 9.0) * tail * cap * edge;
+      glow = exp(-ax * ax * 2.2) * 0.5 * tail * cap * edge;
+    }
+    vec3 col = vColor.rgb * (core * 1.5 + glow) + vec3(core * core * 0.9);
+    gl_FragColor = vec4(col * vColor.a, 1.0);
+  }`;
+class StreakBatch {
+  constructor(capacity, { renderOrder = 13 } = {}) {
+    this.capacity = capacity;
+    const base = new THREE.PlaneGeometry(1, 1);
+    const g = new THREE.InstancedBufferGeometry();
+    g.index = base.index;
+    g.setAttribute("position", base.getAttribute("position"));
+    g.setAttribute("uv", base.getAttribute("uv"));
+    this.head = new Float32Array(capacity * 3);
+    this.dir = new Float32Array(capacity * 3);
+    this.size = new Float32Array(capacity * 3);
+    this.color = new Float32Array(capacity * 4);
+    this.aHead = new THREE.InstancedBufferAttribute(this.head, 3).setUsage(THREE.DynamicDrawUsage);
+    this.aDir = new THREE.InstancedBufferAttribute(this.dir, 3).setUsage(THREE.DynamicDrawUsage);
+    this.aSize = new THREE.InstancedBufferAttribute(this.size, 3).setUsage(THREE.DynamicDrawUsage);
+    this.aColor = new THREE.InstancedBufferAttribute(this.color, 4).setUsage(THREE.DynamicDrawUsage);
+    g.setAttribute("iHead", this.aHead);
+    g.setAttribute("iDir", this.aDir);
+    g.setAttribute("iSize", this.aSize);
+    g.setAttribute("iColor", this.aColor);
+    g.instanceCount = 0;
+    this.material = new THREE.ShaderMaterial({
+      vertexShader: STREAK_VERT,
+      fragmentShader: STREAK_FRAG,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    this.mesh = new THREE.Mesh(g, this.material);
+    this.mesh.frustumCulled = false;
+    this.mesh.renderOrder = renderOrder;
+    this.geometry = g;
+    this.n = 0;
+  }
+  begin() { this.n = 0; }
+  // (hx, hy, hz) head, (dx, dy, dz) UNIT direction of travel, len / wid in metres (wid = the whole quad: the bright core
+  // is about a sixth of it), r g b the colour (HDR: > 1 blooms), a the alpha, style 0 laser / 1 beam.
+  add(hx, hy, hz, dx, dy, dz, len, wid, r, g, b, a = 1, style = 0) {
+    if (this.n >= this.capacity) return;
+    const i = this.n++, i3 = i * 3;
+    this.head[i3] = hx; this.head[i3 + 1] = hy; this.head[i3 + 2] = hz;
+    this.dir[i3] = dx; this.dir[i3 + 1] = dy; this.dir[i3 + 2] = dz;
+    this.size[i3] = len; this.size[i3 + 1] = wid; this.size[i3 + 2] = style;
+    this.color[i * 4] = r; this.color[i * 4 + 1] = g; this.color[i * 4 + 2] = b; this.color[i * 4 + 3] = a;
+  }
+  end() {
+    this.geometry.instanceCount = this.n;
+    this.aHead.needsUpdate = this.aDir.needsUpdate = this.aSize.needsUpdate = this.aColor.needsUpdate = true;
+  }
+  dispose() { this.geometry.dispose(); this.material.dispose(); }
+}
+// ---------------------------------------------------------------------------------------------------------------
+// World look: decorative rocks (never collide; the gameplay rocks are the A-002 ones). Two fields, each a few instanced
+// meshes (one per shape): a dense field of small chunky rocks around the boss that thins out, and 8-14 HUGE low-poly
+// rocks drifting 120-500 m to the side of the spawn -> boss -> planet line, so they slide past the camera in the
+// foreground (the reference picture). They tumble and bob in the vertex shader (no CPU work per frame) and dissolve
+// when the camera comes inside them, so nothing ever clips through the camera.
+const ROCK_TINTS = ["#8f7b6a", "#a38a72", "#7d6c5e", "#9a8470", "#86766a", "#6f6a72"].map((c) => new THREE.Color(c)); // warm greys and browns; the last (cool) one is not used
+const PLANET_VISUAL_MAX = 230; // m: the visual planet seen from the spawn side (1900 m away) is about this big (PLANET_K x distance)
+
+// A chunky low-poly rock: an icosphere pulled into a lumpy convex shape by random cutting planes (the more planes and the
+// smaller `rough`, the more it looks like a few big flat facets), one flat colour per face (warm grey-brown; coplanar faces
+// share a shade so the facets read), flat shading does the rest. Radius about 1.
+function chunkyRockGeometry(detail, seed, cuts, rough = 1) {
+  const rnd = seeded(seed);
+  const g = new THREE.IcosahedronGeometry(1, detail);
+  const pos = g.attributes.position;
+  const planes = [];
+  for (let k = 0; k < cuts; k++) {
+    const u = rnd() * 2 - 1, th = rnd() * Math.PI * 2, s = Math.sqrt(1 - u * u);
+    planes.push({ x: Math.cos(th) * s, y: u, z: Math.sin(th) * s, c: 0.72 + rnd() * 0.2 });
+  }
+  const waves = [];
+  for (let k = 0; k < 4; k++) waves.push({ fx: (rnd() - 0.5) * 6, fy: (rnd() - 0.5) * 6, fz: (rnd() - 0.5) * 6, ph: rnd() * 6.28, a: (0.05 + rnd() * 0.07) * rough });
+  const p = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    p.fromBufferAttribute(pos, i).normalize();
+    let r = 1;
+    for (const w of waves) r += w.a * Math.sin(p.x * w.fx + p.y * w.fy + p.z * w.fz + w.ph);
+    for (const pl of planes) { const d = p.x * pl.x + p.y * pl.y + p.z * pl.z; if (d > 0.04) r = Math.min(r, pl.c / d); }
+    r = Math.max(0.55, Math.min(1.25, r));
+    if (detail <= 1) { // few corners: pull each one in or out by its own amount (the same for every copy of it), no regular gems
+      const j = Math.sin(Math.round(p.x * 997) * 12.9898 + Math.round(p.y * 997) * 78.233 + Math.round(p.z * 997) * 37.719) * 43758.5453;
+      r *= 0.78 + (j - Math.floor(j)) * 0.42;
+    }
+    pos.setXYZ(i, p.x * r, p.y * r, p.z * r);
+  }
+  g.computeVertexNormals();
+  const nrm = g.attributes.normal;
+  const col = new Float32Array(pos.count * 3);
+  const base = ROCK_TINTS[Math.floor(rnd() * 5)];
+  const c = new THREE.Color();
+  const plane = (f) => { const k = Math.round(nrm.getX(f) * 5) * 121 + Math.round(nrm.getY(f) * 5) * 11 + Math.round(nrm.getZ(f) * 5); const s = Math.sin(k * 12.9898 + 78.233) * 43758.5453; return s - Math.floor(s); };
+  for (let f = 0; f < pos.count; f += 3) {
+    const cy = (pos.getY(f) + pos.getY(f + 1) + pos.getY(f + 2)) / 3;
+    c.copy(base).multiplyScalar((0.8 + plane(f) * 0.4) * (0.96 + rnd() * 0.08) * (0.88 + 0.2 * (cy * 0.5 + 0.5)));
+    for (let k = 0; k < 3; k++) { col[(f + k) * 3] = c.r; col[(f + k) * 3 + 1] = c.g; col[(f + k) * 3 + 2] = c.b; }
+  }
+  g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  g.deleteAttribute("uv");
+  return g;
+}
+
+const DECO_VERT_PARS = /* glsl */ `
+  attribute vec4 iSpin; attribute vec4 iShape; attribute vec3 iDrift;
+  uniform float uTime; uniform float uFadeMargin;
+  varying float vFade;
+  vec3 decoRot(vec3 v, vec3 k, float a) {
+    float c = cos(a), s = sin(a);
+    return v * c + cross(k, v) * s + k * dot(k, v) * (1.0 - c);
+  }`;
+// iSpin = axis xyz + angular speed, iShape = squash xyz + phase, iDrift = world-space bobbing amplitude. The instance
+// matrix holds only the position and a uniform scale (the radius).
+const DECO_VERT_BODY = /* glsl */ `
+  {
+    transformed *= iShape.xyz;
+    transformed = decoRot(transformed, iSpin.xyz, iShape.w + iSpin.w * uTime);
+    float decoRad = length(instanceMatrix[0].xyz);
+    vec3 decoBob = iDrift * sin(uTime * 0.09 + iShape.w * 3.1);
+    transformed += decoBob / decoRad;
+    vec3 decoCentre = (modelMatrix * vec4(instanceMatrix[3].xyz + decoBob, 1.0)).xyz;
+    float decoR0 = decoRad * 1.7;
+    vFade = smoothstep(decoR0, decoR0 + uFadeMargin + decoRad * 0.3, distance(decoCentre, cameraPosition));
+    if (vFade <= 0.001) transformed *= 0.0;
+  }`;
+const DECO_FRAG_BODY = /* glsl */ `
+  if (vFade < 0.999) {
+    float decoTh = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+    if (vFade < decoTh) discard;
+  }`;
+function decoMaterial(uTime, fadeMargin) {
+  const m = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.93, metalness: 0 });
+  m.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = uTime;
+    shader.uniforms.uFadeMargin = { value: fadeMargin };
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\n" + DECO_VERT_PARS)
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\n" + DECO_VERT_BODY);
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", "#include <common>\nvarying float vFade;")
+      .replace("#include <clipping_planes_fragment>", "#include <clipping_planes_fragment>\n" + DECO_FRAG_BODY);
+  };
+  m.customProgramCacheKey = () => "world_deco_rock_v1";
+  return m;
+}
+
+// items: [{ x, y, z, rad, sq: [3], axis: [3], spin, phase, drift: [3], tint: [3] }], one InstancedMesh per geometry
+// (items go round-robin to the shapes).
+class DecoField {
+  constructor(items, geometries, fadeMargin) {
+    this.group = new THREE.Group();
+    this.uTime = { value: 0 };
+    this.meshes = [];
+    const lists = geometries.map(() => []);
+    items.forEach((it, i) => lists[i % geometries.length].push(it));
+    const mat4 = new THREE.Matrix4(), scl = new THREE.Vector3(), pos = new THREE.Vector3(), qI = new THREE.Quaternion(), col = new THREE.Color();
+    geometries.forEach((geo, gi) => {
+      const list = lists[gi];
+      if (!list.length) { geo.dispose(); return; }
+      const n = list.length;
+      const geom = geo;
+      const spin = new Float32Array(n * 4), shape = new Float32Array(n * 4), drift = new Float32Array(n * 3);
+      const mesh = new THREE.InstancedMesh(geom, decoMaterial(this.uTime, fadeMargin), n);
+      list.forEach((it, i) => {
+        mat4.compose(pos.set(it.x, it.y, it.z), qI, scl.set(it.rad, it.rad, it.rad));
+        mesh.setMatrixAt(i, mat4);
+        mesh.setColorAt(i, col.setRGB(it.tint[0], it.tint[1], it.tint[2]));
+        spin.set([it.axis[0], it.axis[1], it.axis[2], it.spin], i * 4);
+        shape.set([it.sq[0], it.sq[1], it.sq[2], it.phase], i * 4);
+        drift.set(it.drift, i * 3);
+      });
+      geom.setAttribute("iSpin", new THREE.InstancedBufferAttribute(spin, 4));
+      geom.setAttribute("iShape", new THREE.InstancedBufferAttribute(shape, 4));
+      geom.setAttribute("iDrift", new THREE.InstancedBufferAttribute(drift, 3));
+      mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+      mesh.frustumCulled = false;
+      this.group.add(mesh);
+      this.meshes.push(mesh);
+    });
+  }
+  update(t) { this.uTime.value = t; }
+  dispose() {
+    this.group.removeFromParent();
+    for (const m of this.meshes) { m.geometry.dispose(); m.material.dispose(); m.dispose?.(); }
+    this.meshes.length = 0;
+  }
+}
+
+// Where the decorative rocks go, deterministic from the world seed. boss = the world's boss target, planetAt = where the
+// planet appears, gameplay = world.rocks ([id, x, y, z, size, ...]) to keep clear of, big = the big screen.
+function planDecoRocks({ seed, boss, planetAt, gameplay, phone }) {
+  const rnd = seeded((seed >>> 0) * 2654435761 + 12345);
+  const unit = () => { const u = rnd() * 2 - 1, th = rnd() * Math.PI * 2, s = Math.sqrt(1 - u * u); return new THREE.Vector3(Math.cos(th) * s, u, Math.sin(th) * s); };
+  const bossPos = new THREE.Vector3(boss.x, boss.y, boss.z);
+  const hull = (boss.radius || TUNING.boss.radius) * 1.25;
+  const routeLen = planetAt.length();
+  const routeDir = planetAt.clone().normalize();
+  const up = Math.abs(routeDir.y) > 0.95 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+  const p1 = new THREE.Vector3().crossVectors(routeDir, up).normalize();
+  const p2 = new THREE.Vector3().crossVectors(routeDir, p1).normalize();
+  const pos = new THREE.Vector3();
+  const tintOf = () => { const k = 0.88 + rnd() * 0.24, w = (rnd() - 0.5) * 0.14; return [k * (1 + w), k, k * (1 - w)]; };
+  const clearOfGameplay = (rad) => {
+    for (const r of gameplay) {
+      const dx = pos.x - r[1], dy = pos.y - r[2], dz = pos.z - r[3], m = rad + r[4] + 3;
+      if (dx * dx + dy * dy + dz * dz < m * m) return false;
+    }
+    return true;
+  };
+  // Small rocks: 80% crowd around the boss (denser close in), the rest thinly along the route.
+  const small = [];
+  const nSmall = phone ? 250 : 600;
+  for (let guard = 0; small.length < nSmall && guard < nSmall * 14; guard++) {
+    const rad = 0.7 + Math.pow(rnd(), 2.4) * 5.5;
+    if (rnd() < 0.8) {
+      const d = unit(); d.y *= 0.6; d.normalize();
+      pos.copy(bossPos).addScaledVector(d, hull + 40 + Math.pow(rnd(), 1.7) * 420);
+    } else {
+      pos.copy(routeDir).multiplyScalar(routeLen * (0.08 + rnd() * 0.97));
+      const a = rnd() * Math.PI * 2;
+      pos.addScaledVector(p1, Math.cos(a) * (30 + rnd() * 230)).addScaledVector(p2, Math.sin(a) * (30 + rnd() * 230) * 0.7);
+    }
+    if (pos.length() < 60 + rad || pos.distanceTo(bossPos) < hull + 40 + rad || pos.distanceTo(planetAt) < PLANET_VISUAL_MAX + 20 + rad) continue;
+    if (!clearOfGameplay(rad)) continue;
+    const ax = unit();
+    small.push({
+      x: pos.x, y: pos.y, z: pos.z, rad, sq: [0.7 + rnd() * 0.6, 0.65 + rnd() * 0.6, 0.7 + rnd() * 0.6],
+      axis: [ax.x, ax.y, ax.z], spin: (0.04 + rnd() * 0.35) * (rnd() < 0.5 ? -1 : 1), phase: rnd() * 6.28,
+      drift: [(rnd() - 0.5) * 12, (rnd() - 0.5) * 8, (rnd() - 0.5) * 12], tint: tintOf(),
+    });
+  }
+  // Huge rocks beside the route (never on it).
+  const huge = [];
+  const nHuge = phone ? 8 : 14;
+  for (let guard = 0; huge.length < nHuge && guard < 400; guard++) {
+    const rad = 25 + Math.pow(rnd(), 1.3) * 55;
+    const lateral = Math.max(120, rad * 1.5 + 70) + rnd() * 330;
+    const a = rnd() * Math.PI * 2;
+    pos.copy(routeDir).multiplyScalar(routeLen * (0.04 + rnd() * 0.95));
+    pos.addScaledVector(p1, Math.cos(a) * lateral).addScaledVector(p2, Math.sin(a) * lateral * 0.75);
+    if (pos.length() < rad + 120 || pos.distanceTo(bossPos) < hull + rad + 80 || pos.distanceTo(planetAt) < PLANET_VISUAL_MAX + rad + 30) continue;
+    if (huge.some((h) => Math.hypot(h.x - pos.x, h.y - pos.y, h.z - pos.z) < h.rad + rad + 30)) continue;
+    const ax = unit();
+    huge.push({
+      x: pos.x, y: pos.y, z: pos.z, rad, sq: [0.8 + rnd() * 0.45, 0.7 + rnd() * 0.45, 0.8 + rnd() * 0.45],
+      axis: [ax.x, ax.y, ax.z], spin: (0.008 + rnd() * 0.03) * (rnd() < 0.5 ? -1 : 1), phase: rnd() * 6.28,
+      drift: [(rnd() - 0.5) * 40, (rnd() - 0.5) * 24, (rnd() - 0.5) * 40], tint: tintOf(),
+    });
+  }
+  return { small, huge };
+}
+// ---------------------------------------------------------------------------------------------------------------
+// World look: the mothership. The A-001 hull (scaled to 1.25 x the hit radius) gets a tilted ring of dark girders with a
+// red light strip, radial spokes and a crown of spires, all merged into two meshes (dark metal + red light): two draw
+// calls. Returns the geometries and the local positions of the blinking beacons.
+const BOSS_HULL_K = 1.25;        // hull radius = this x TUNING.boss.radius
+const BOSS_MODEL_RADIUS = 13;    // mean shell radius of the A-001 model in its own units
+function makeBossStructures(hull, phone) {
+  const dark = [], red = [];
+  const bake = (list, geo, color) => {
+    const g = geo.index ? geo.toNonIndexed() : geo;
+    g.deleteAttribute("uv");
+    const c = new THREE.Color(color), n = g.attributes.position.count, arr = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { arr[i * 3] = c.r; arr[i * 3 + 1] = c.g; arr[i * 3 + 2] = c.b; }
+    g.setAttribute("color", new THREE.BufferAttribute(arr, 3));
+    list.push(g);
+  };
+  const rnd = seeded(2024);
+  const tub = phone ? 36 : 56;
+  const R = hull * 1.55, tube = hull * 0.085;
+  const ringM = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0.32, 0, 0.2));
+  const ringBeacons = [], tipBeacons = [];
+  const tmp = new THREE.Vector3();
+
+  // The ring: a diamond-section girder, 12 pylons, 8 spokes to the hull, three red light strips.
+  bake(dark, new THREE.TorusGeometry(R, tube, 4, tub).rotateX(Math.PI / 2).applyMatrix4(ringM), 0x5a546f);
+  for (let k = 0; k < 12; k++) {
+    const a = (k / 12) * Math.PI * 2;
+    bake(dark, new THREE.BoxGeometry(hull * 0.17, hull * 0.34, hull * 0.17).rotateY(-a).translate(Math.cos(a) * R, 0, Math.sin(a) * R).applyMatrix4(ringM), k % 2 ? 0x484260 : 0x645e7c);
+    if (k % 2 === 0) bake(red, new THREE.BoxGeometry(hull * 0.06, hull * 0.06, hull * 0.06).translate(Math.cos(a) * (R + hull * 0.1), hull * 0.12, Math.sin(a) * (R + hull * 0.1)).applyMatrix4(ringM), 0xffffff);
+  }
+  const spokeLen = R - tube - hull * 0.88;
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2 + 0.2;
+    const mid = hull * 0.88 + spokeLen / 2;
+    bake(dark, new THREE.BoxGeometry(hull * 0.07, hull * 0.07, spokeLen).rotateY(Math.PI / 2 - a).translate(Math.cos(a) * mid, 0, Math.sin(a) * mid).applyMatrix4(ringM), 0x4e4866);
+  }
+  const strip = (radius, y) => new THREE.TorusGeometry(radius, hull * 0.014, 4, phone ? 32 : 48).rotateX(Math.PI / 2).translate(0, y, 0).applyMatrix4(ringM);
+  bake(red, strip(R + tube * 0.95, 0), 0xffffff);
+  bake(red, strip(R, tube * 0.95), 0xffffff);
+  bake(red, strip(R, -tube * 0.95), 0xffffff);
+  const nBeacon = 24;
+  for (let k = 0; k < nBeacon; k++) {
+    const a = (k / nBeacon) * Math.PI * 2;
+    ringBeacons.push(new THREE.Vector3(Math.cos(a) * (R + tube * 1.05), 0, Math.sin(a) * (R + tube * 1.05)).applyMatrix4(ringM));
+  }
+
+  // The crown: two polar spires and eight more at mid latitudes, chunky tapered towers with two collars, a red band and a red tip.
+  const dirs = [new THREE.Vector3(0.1, 1, 0.05).normalize(), new THREE.Vector3(-0.08, -1, 0.1).normalize()];
+  for (let i = 0; i < 8; i++) {
+    const lon = (i / 8) * Math.PI * 2 + rnd() * 0.5, lat = (rnd() < 0.5 ? 1 : -1) * (0.5 + rnd() * 0.65);
+    dirs.push(new THREE.Vector3(Math.cos(lat) * Math.cos(lon), Math.sin(lat), Math.cos(lat) * Math.sin(lon)));
+  }
+  const Y = new THREE.Vector3(0, 1, 0), q = new THREE.Quaternion();
+  const r0 = hull * 0.1, r1 = hull * 0.03; // radius at the base and at the tip
+  let extent = R + tube;
+  dirs.forEach((d, i) => {
+    const len = hull * (i < 2 ? 0.85 + rnd() * 0.2 : 0.45 + rnd() * 0.4);
+    const base = hull * 0.84;
+    const along = (f, g, col, list = dark) => bake(list, g.applyQuaternion(q).translate(d.x * (base + len * f), d.y * (base + len * f), d.z * (base + len * f)), col);
+    const rAt = (f) => r0 + (r1 - r0) * f;
+    q.setFromUnitVectors(Y, d);
+    along(0.5, new THREE.CylinderGeometry(r1, r0, len, 6, 1), i % 3 === 0 ? 0x645e7c : 0x484260);
+    along(0.25, new THREE.CylinderGeometry(rAt(0.25) * 1.3, rAt(0.25) * 1.3, hull * 0.05, 6, 1), 0x70698a);
+    along(0.58, new THREE.CylinderGeometry(rAt(0.58) * 1.3, rAt(0.58) * 1.3, hull * 0.05, 6, 1), 0x70698a);
+    along(0.8, new THREE.CylinderGeometry(rAt(0.8) * 1.14, rAt(0.8) * 1.14, hull * 0.028, 6, 1), 0xffffff, red);
+    along(1 + (hull * 0.04) / len, new THREE.ConeGeometry(hull * 0.04, hull * 0.09, 6), 0xffffff, red);
+    tipBeacons.push(tmp.copy(d).multiplyScalar(base + len + hull * 0.1).clone());
+    extent = Math.max(extent, base + len + hull * 0.1);
+  });
+  const geoDark = mergeGeometries(dark, false), geoRed = mergeGeometries(red, false);
+  for (const g of dark.concat(red)) g.dispose();
+  return { dark: geoDark, red: geoRed, ringBeacons, tipBeacons, extent, ringRadius: R };
+}
+// ---------------------------------------------------------------------------------------------------------------
+// World look: the planet in view from the start. A-004 (Earth-like: oceans, clouds, night-side city lights, locked
+// shield shimmer) at the position the server will use (boss + normalize(boss) * planet.offset), locked until the boss
+// dies, then unlocked with a burst and the pulsing range ring. The visual is scaled up with the distance so it always
+// covers at least ~6.9 degrees of the sky (visual radius = max(real radius, distance * PLANET_K)); inside ~330 m it is
+// exactly the real size. If A-004 fails to load, the procedural planet plus a shimmer shell stands in.
+const PLANET_K = 0.12; // ~6.9 degrees; the visual is the real size inside TUNING.planet.radius / PLANET_K = 333 m
+
+// The phone's texture budget: A-004's two 2048 x 1024 maps are shared and cached by its module, so shrink them in place
+// to 1024 x 512 (drawn into a canvas once) before the first use; same uniforms, same texture objects.
+async function shrinkPlanetMaps(m) {
+  const maps = await m.loadPlanetMaps();
+  for (const t of [maps.color, maps.data]) {
+    const img = t.image;
+    if (!img || !(img.width > 1024)) continue;
+    const c = document.createElement("canvas");
+    c.width = 1024; c.height = 512;
+    const g = c.getContext("2d");
+    g.imageSmoothingQuality = "high";
+    g.drawImage(img, 0, 0, 1024, 512);
+    t.image = c;
+    t.needsUpdate = true;
+  }
+}
+
+// An image URL drawn into a w x h canvas texture (for the phone's 1024 px texture cap).
+function loadShrunkTexture(url, w, h) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = () => {
+      try {
+        const c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        const g = c.getContext("2d");
+        g.imageSmoothingQuality = "high";
+        g.drawImage(img, 0, 0, w, h);
+        resolve(new THREE.CanvasTexture(c));
+      } catch (e) { reject(e); }
+    };
+    img.onerror = () => reject(new Error("image failed to load: " + url));
+    img.src = url;
+  });
+}
+
+// The pulsing landing-range ring: a camera-facing glowing circle that sits just outside the planet. Shown once unlocked.
+function makeRangeRing(radius, landRange) {
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 }, uR: { value: radius + landRange }, uIn: { value: 0 } },
+    vertexShader: /* glsl */ `uniform float uR; varying vec2 vUv;
+      void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(0.0,0.0,0.0,1.0); mv.xy += position.xy * uR * 2.3; gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: /* glsl */ `uniform float uTime; uniform float uIn; varying vec2 vUv;
+      void main(){
+        float d = length(vUv - 0.5) * 2.3;
+        float pulse = 0.55 + 0.45 * sin(uTime * (3.0 + 4.0 * uIn));
+        float e1 = (d - 1.0) * 45.0, e2 = (d - 1.0) * 10.0;
+        float ring = exp(-e1 * e1) * (0.8 + uIn) + exp(-e2 * e2) * 0.25;
+        gl_FragColor = vec4(mix(vec3(0.2,1.0,1.4), vec3(1.0,1.6,1.4), uIn) * ring * pulse * 1.6, 1.0);
+      }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
+  mesh.frustumCulled = false;
+  mesh.renderOrder = 9;
+  return {
+    mesh,
+    update(dt, t, near, worldRadius) {
+      mat.uniforms.uTime.value = t;
+      mat.uniforms.uR.value = worldRadius;
+      mat.uniforms.uIn.value = damp(mat.uniforms.uIn.value, +near || 0, 4, dt);
+    },
+    dispose() { mesh.geometry.dispose(); mat.dispose(); },
+  };
+}
+
+// The locked planet's faint blue shield bands, for the procedural fallback (A-004 draws its own).
+function makeShieldShell(radius) {
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 } },
+    vertexShader: /* glsl */ `varying vec3 vN; varying vec3 vV; varying float vY;
+      void main(){ vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = normalize(-mv.xyz); vY = position.y; gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: /* glsl */ `uniform float uTime; varying vec3 vN; varying vec3 vV; varying float vY;
+      void main(){
+        float fres = pow(1.0 - abs(dot(normalize(vN), normalize(vV))), 2.0);
+        float bands = pow(0.5 + 0.5 * sin(vY / ${radius.toFixed(3)} * 52.0 + uTime * 1.4), 18.0);
+        float a = (0.1 + bands * 0.55) * (0.25 + fres * 1.1);
+        gl_FragColor = vec4(vec3(0.15, 0.5, 1.2) * a * 1.4, 1.0);
+      }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(radius * 1.05, 40, 24), mat);
+  mesh.renderOrder = 8;
+  return { mesh, update(t) { mat.uniforms.uTime.value = t; }, dispose() { mesh.geometry.dispose(); mat.dispose(); } };
+}
+
+class PlanetLook {
+  constructor(space) {
+    this.space = space;
+    this.phone = space.phone;
+    this.root = new THREE.Group();
+    this.root.visible = false;
+    space.scene.add(this.root);
+    this.R = TUNING.planet.radius;
+    this.landRange = TUNING.planet.landRange;
+    this.ring = makeRangeRing(this.R, this.landRange);
+    this.ring.mesh.visible = false;
+    this.root.add(this.ring.mesh);
+    this.view = null;   // the A-004 planet
+    this.proc = null;   // procedural fallback
+    this.shell = null;  // the fallback's locked shimmer
+    this.approach = new THREE.Vector3(0, 0, 1);
+    this.sun = new THREE.Vector3(1, 0.5, 0.4).normalize();
+    this.unlocked = false;
+    this.key = null;
+    this.gen = 0;
+    this.born = 0;
+    this.scale = 1;
+  }
+  // The planet for this round: at `pos`, built from `seed`, lit from `sun`, its landing region turned to face `approach`
+  // (the unit vector from the planet back towards the spawn). A new seed rebuilds it; the same seed only moves it.
+  place(pos, seed, sun, approach) {
+    this.root.position.copy(pos);
+    this.approach.copy(approach);
+    this.sun.copy(sun);
+    if (this.key === seed) { this.orient(); this.view?.setSunDirection([sun.x, sun.y, sun.z]); return; }
+    this.key = seed;
+    this.clear();
+    const gen = ++this.gen;
+    loadAsset("planet", { seed, radius: this.R, unlocked: this.unlocked, sun: [sun.x, sun.y, sun.z], phone: this.phone }).then((planet) => {
+      if (gen !== this.gen) { planet?.dispose?.(); return; }
+      this.born = performance.now();
+      if (planet) {
+        this.view = planet;
+        planet.setUnlocked(this.unlocked); // the boss may have died while it loaded (a late joiner)
+        this.root.add(planet.object3d);
+        this.orient();
+      } else {
+        this.proc = makePlanet(this.R, this.landRange, this.phone, this.sun);
+        this.root.add(this.proc.group);
+        this.shell = makeShieldShell(this.R);
+        this.shell.mesh.visible = !this.unlocked;
+        this.root.add(this.shell.mesh);
+      }
+      this.root.visible = true;
+    });
+  }
+  orient() {
+    if (!this.view) return;
+    this.view.object3d.quaternion.setFromUnitVectors(this.view.landingDirection, this.approach);
+    this.view.update(0);
+  }
+  setUnlocked(on) {
+    this.unlocked = !!on;
+    this.ring.mesh.visible = this.unlocked;
+    this.view?.setUnlocked(this.unlocked);
+    if (this.shell) this.shell.mesh.visible = !this.unlocked;
+  }
+  get ready() { return !!(this.view || this.proc); }
+  // proximity 0..1: how close the camera's subject is (speeds up the ring pulse).
+  update(dt, t, camPos, proximity) {
+    if (!this.ready) return;
+    const d = camPos.distanceTo(this.root.position);
+    const age = Math.min(1, (performance.now() - this.born) / 800);
+    this.scale = (Math.max(this.R, d * PLANET_K) / this.R) * Math.max(0.001, 1 - Math.pow(1 - age, 3));
+    this.root.scale.setScalar(this.scale);
+    if (this.view) { this.view.setProximity(proximity); this.view.update(dt); }
+    else { this.proc.update(dt, t); this.shell.update(t); }
+    this.ring.update(dt, t, proximity, (this.R + this.landRange) * this.scale);
+  }
+  clear() {
+    if (this.view) { this.root.remove(this.view.object3d); this.view.dispose(); this.view = null; }
+    if (this.proc) { this.root.remove(this.proc.group); this.proc.dispose(); this.proc = null; }
+    if (this.shell) { this.root.remove(this.shell.mesh); this.shell.dispose(); this.shell = null; }
+    this.root.visible = false;
+  }
+  dispose() {
+    this.gen++;
+    this.clear();
+    this.ring.dispose();
+    this.root.removeFromParent();
+  }
+}
+// ---------------------------------------------------------------------------------------------------------------
+// World look: the island's chests. ALL of them live in ONE instanced mesh (one draw call; the gold light beams over the
+// closed chests in assists are one more): every instance holds the parts of both kinds and its state decides which show.
+//   kind "buried": a sand mound with a big X on a dug-over patch; digging shrinks the mound and the chest rises out of it.
+//   kind "rock":   a big chunky boulder of loose plates with glowing gold seams (the chest is locked inside); drilling
+//                  brightens the seams and cracks the plates apart; when it opens the plates fly off and the chest pops up.
+//   Then the chest waits (closed, gold shimmer, lid rattling); collected: the lid swings open on a glowing pile of gold.
+// Part ids (attribute aPart): 0 hump, 1 boulder, 2 chest body, 3 chest lid, 4 X mark, 5 dug-over patch.
+const CHEST = { w: 1.6, h: 0.74, d: 1.02 }; // chest body size (m); the lid's hinge is the back top edge
+const BOULDER_Y = 0.85;                       // boulder centre height above the ground
+
+function chestPart(geo, id, colorFn, glowFn) {
+  const g = geo.index ? geo.toNonIndexed() : geo;
+  g.deleteAttribute("uv");
+  g.computeVertexNormals();
+  const p = g.attributes.position, n = p.count;
+  const col = new Float32Array(n * 3), glow = new Float32Array(n), cen = new Float32Array(n * 3), part = new Float32Array(n).fill(id);
+  const c = new THREE.Color();
+  for (let f = 0; f < n; f += 3) {
+    const cx = (p.getX(f) + p.getX(f + 1) + p.getX(f + 2)) / 3, cy = (p.getY(f) + p.getY(f + 1) + p.getY(f + 2)) / 3, cz = (p.getZ(f) + p.getZ(f + 1) + p.getZ(f + 2)) / 3;
+    colorFn(c, f / 3, cx, cy, cz);
+    const gl = glowFn ? glowFn(f / 3, cx, cy, cz) : 0;
+    for (let k = 0; k < 3; k++) {
+      const v = f + k;
+      col[v * 3] = c.r; col[v * 3 + 1] = c.g; col[v * 3 + 2] = c.b;
+      glow[v] = gl;
+      cen[v * 3] = cx; cen[v * 3 + 1] = cy; cen[v * 3 + 2] = cz;
+    }
+  }
+  g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  g.setAttribute("aPart", new THREE.BufferAttribute(part, 1));
+  g.setAttribute("aGlow", new THREE.BufferAttribute(glow, 1));
+  g.setAttribute("aCentre", new THREE.BufferAttribute(cen, 3));
+  return g;
+}
+const hash1 = (i) => { const s = Math.sin(i * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+function buildChestGeometry() {
+  const parts = [];
+  const { w, h, d } = CHEST;
+  const wood = new THREE.Color(0xc4762c), woodDark = new THREE.Color(0x7d4119), gold = new THREE.Color(0xffc93c), inside = new THREE.Color(0x3a1c0c);
+  const sand = new THREE.Color(0xe9c27a), sandDark = new THREE.Color(0xb98a4c), mark = new THREE.Color(0xc2361a);
+  const flat = (col, jit = 0.14) => (c, i) => c.copy(col).multiplyScalar(1 - jit / 2 + hash1(i) * jit);
+  const half = (r, len, theta) => new THREE.CylinderGeometry(r, r, len, 10, 1, false, 0, theta).rotateZ(Math.PI / 2);
+
+  // Chest body: wood box, plank grooves, two gold straps, gold base trim, a lock, and a glowing pile of coins.
+  parts.push(chestPart(new THREE.BoxGeometry(w, h, d).translate(0, h / 2, 0), 2, (c, i, x, y) => (y > h - 0.01 ? c.copy(inside) : c.copy(wood).multiplyScalar(0.86 + hash1(i) * 0.26))));
+  for (const y of [h * 0.3, h * 0.62]) parts.push(chestPart(new THREE.BoxGeometry(w + 0.02, 0.035, d + 0.02).translate(0, y, 0), 2, flat(woodDark, 0.1)));
+  for (const x of [-w * 0.33, w * 0.33]) parts.push(chestPart(new THREE.BoxGeometry(0.16, h + 0.02, d + 0.07).translate(x, h / 2, 0), 2, flat(gold, 0.1), () => 0.3));
+  parts.push(chestPart(new THREE.BoxGeometry(w + 0.08, 0.1, d + 0.08).translate(0, 0.05, 0), 2, flat(gold, 0.1), () => 0.25));
+  parts.push(chestPart(new THREE.BoxGeometry(0.24, 0.28, 0.08).translate(0, h * 0.72, d / 2 + 0.04), 2, flat(gold, 0.1), () => 0.55));
+  parts.push(chestPart(new THREE.SphereGeometry(0.5, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2).scale(w * 0.72, 0.5, d * 0.72).translate(0, h - 0.02, 0), 2, (c, i) => c.copy(gold).multiplyScalar(0.8 + hash1(i) * 0.5), () => 1));
+  // Lid: a D-shaped barrel (round side up), wood with two gold straps; hinged at the back top edge.
+  parts.push(chestPart(half(d / 2, w, Math.PI).translate(0, h, 0), 3, (c, i, x, y) => (Math.abs(x) > w / 2 - 0.02 ? c.copy(woodDark) : c.copy(wood).multiplyScalar(0.92 + (y - h) * 0.5 + hash1(i) * 0.16))));
+  for (const x of [-w * 0.33, w * 0.33]) parts.push(chestPart(half(d / 2 + 0.035, 0.16, Math.PI).translate(x, h, 0), 3, flat(gold, 0.1), () => 0.3));
+
+  // Sand mound: a low hump, a dug-over patch, and a big red-brown X lying across both.
+  parts.push(chestPart(new THREE.SphereGeometry(1.15, 9, 4, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.5, 1), 0, (c, i, x, y) => c.copy(sand).multiplyScalar(0.9 + y * 0.35 + hash1(i) * 0.14)));
+  parts.push(chestPart(new THREE.CylinderGeometry(2.3, 2.5, 0.12, 14).translate(0, 0.04, 0), 5, flat(sandDark, 0.16)));
+  for (const a of [Math.PI / 4, -Math.PI / 4]) parts.push(chestPart(new THREE.BoxGeometry(5.2, 0.17, 0.6).rotateY(a).translate(0, 0.17, 0), 4, flat(mark, 0.18), () => 0.35));
+
+  // Boulder: 80 loose plates (an icosphere pulled into a rock: lumps, a few cutting planes and a little jitter, every face
+  // shrunk towards its centre by a different amount and pushed out) over a gold core whose glow shows through the gaps;
+  // plates below the ground are left out.
+  const ico = new THREE.IcosahedronGeometry(1, 1);
+  const rnd = seeded(777);
+  const waves = [], cuts = [];
+  for (let k = 0; k < 5; k++) waves.push({ fx: (rnd() - 0.5) * 6, fy: (rnd() - 0.5) * 6, fz: (rnd() - 0.5) * 6, ph: rnd() * 6.28, a: 0.07 + rnd() * 0.09 });
+  for (let k = 0; k < 6; k++) { const u = rnd() * 2 - 1, th = rnd() * Math.PI * 2, sq = Math.sqrt(1 - u * u); cuts.push({ x: Math.cos(th) * sq, y: u, z: Math.sin(th) * sq, c: 0.8 + rnd() * 0.12 }); }
+  const S = new THREE.Vector3(1.95, 1.5, 1.9), centre = new THREE.Vector3(0, BOULDER_Y, 0);
+  const ip = ico.attributes.position, tmp = new THREE.Vector3();
+  const lump = (v) => {
+    let r = 1;
+    for (const q of waves) r += q.a * Math.sin(v.x * q.fx + v.y * q.fy + v.z * q.fz + q.ph);
+    for (const q of cuts) { const d = v.x * q.x + v.y * q.y + v.z * q.z; if (d > 0.05) r = Math.min(r, q.c / d); }
+    const j = hash1(Math.round(v.x * 997) * 12.9898 + Math.round(v.y * 997) * 78.233 + Math.round(v.z * 997) * 37.719); // the same for every copy of a corner
+    return Math.max(0.7, Math.min(1.3, r)) * (0.93 + j * 0.14);
+  };
+  const out = [];
+  const A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), N = new THREE.Vector3(), M = new THREE.Vector3();
+  for (let f = 0; f < ip.count; f += 3) {
+    const vs = [A, B, C];
+    for (let k = 0; k < 3; k++) {
+      tmp.fromBufferAttribute(ip, f + k).normalize();
+      vs[k].copy(tmp).multiplyScalar(lump(tmp)).multiply(S).add(centre);
+    }
+    M.copy(A).add(B).add(C).divideScalar(3);
+    if (M.y < 0.05) continue;
+    N.crossVectors(B.clone().sub(A), C.clone().sub(A)).normalize();
+    if (N.dot(M.clone().sub(centre)) < 0) N.negate();
+    const lift = 0.08 + rnd() * 0.14, shrink = 0.84 + rnd() * 0.08;
+    for (const v of vs) out.push(M.x + (v.x - M.x) * shrink + N.x * lift, M.y + (v.y - M.y) * shrink + N.y * lift, M.z + (v.z - M.z) * shrink + N.z * lift);
+  }
+  const plates = new THREE.BufferGeometry();
+  plates.setAttribute("position", new THREE.Float32BufferAttribute(out, 3));
+  const stone = new THREE.Color(0xb39c84), stoneCool = new THREE.Color(0x978fa0), stoneDark = new THREE.Color(0x8a7762);
+  parts.push(chestPart(plates, 1, (c, i, x, y) => {
+    const h = hash1(i * 3.7);
+    c.copy(h < 0.22 ? stoneCool : h < 0.4 ? stoneDark : stone).multiplyScalar((0.8 + hash1(i) * 0.4) * (0.85 + Math.min(1, y / 2.5) * 0.3));
+  }));
+  const core = new THREE.IcosahedronGeometry(1, 1).scale(S.x * 0.72, S.y * 0.72, S.z * 0.72).translate(0, BOULDER_Y, 0);
+  parts.push(chestPart(core, 1, (c, i) => c.set(0xffc23a).multiplyScalar(0.8 + hash1(i * 1.7) * 0.4), (i) => 0.75 + hash1(i * 2.3) * 0.5));
+
+  const merged = mergeGeometries(parts, false);
+  for (const g of parts) g.dispose();
+  return merged;
+}
+
+const CHEST_VERT_PARS = /* glsl */ `
+  attribute float aPart; attribute float aGlow; attribute vec3 aCentre;
+  attribute vec4 iState; attribute vec4 iExtra;
+  uniform float uTime;
+  varying float vGlow;`;
+// iState: x kind (0 buried, 1 rock), y dug 0..1, z rock released 0..1 (the shatter), w lid open 0..1.
+// iExtra: x drill intensity 0..1, y waiting for pick-up (0/1), z random phase.
+const CHEST_VERT_BODY = /* glsl */ `
+  {
+    float cKind = iState.x, cDug = iState.y, cRel = iState.z, cOpen = iState.w;
+    float cDrill = iExtra.x, cAvail = iExtra.y, cPh = iExtra.z;
+    float cPart = aPart;
+    float cVis = 1.0, cGlow = 0.0;
+    if (cPart < 0.5) {
+      cVis = (cKind < 0.5 && cDug < 0.995) ? 1.0 : 0.0;
+      transformed.xz *= 1.0 - 0.5 * cDug;
+      transformed.y *= 1.0 - 0.8 * cDug;
+    } else if (cPart < 1.5) {
+      cVis = (cKind > 0.5 && cRel < 0.995) ? 1.0 : 0.0;
+      vec3 cc = aCentre;
+      vec3 outd = cc - vec3(0.0, ${BOULDER_Y.toFixed(3)}, 0.0);
+      transformed += outd * (cDug * 0.09);
+      transformed = cc + outd * (cRel * 2.4) + (transformed - cc) * (1.0 - cRel * 0.9);
+      transformed.y -= cRel * cRel * 1.8;
+      transformed.xz += vec2(sin(uTime * 61.0 + cPh), cos(uTime * 47.0 + cPh)) * (0.025 * cDrill);
+      cGlow = aGlow * (0.55 + 0.25 * sin(uTime * 2.3 + cPh) + cDug * 0.7 + cDrill * 1.5);
+    } else if (cPart < 3.5) {
+      cVis = cKind < 0.5 ? step(0.002, cDug) : step(0.002, cRel);
+      float cUp = cKind < 0.5 ? smoothstep(0.0, 1.0, cDug) : 1.0;
+      float cHop = cKind > 0.5 ? sin(clamp(cRel / 0.6, 0.0, 1.0) * 3.14159) * 1.1 : 0.0;
+      float cPop = cKind > 0.5 ? mix(0.45, 1.0, smoothstep(0.0, 0.3, cRel)) : 1.0;
+      if (cPart > 2.5) {
+        float cRattle = cAvail > 0.5 ? (-0.06 - 0.05 * sin(uTime * 9.0 + cPh)) * (1.0 - cOpen) : 0.0;
+        float ca = -1.95 * cOpen + cRattle;
+        float cs = sin(ca), cc2 = cos(ca);
+        vec2 dd = vec2(transformed.y - ${CHEST.h.toFixed(3)}, transformed.z + ${(CHEST.d / 2).toFixed(3)});
+        transformed.y = ${CHEST.h.toFixed(3)} + dd.x * cc2 - dd.y * cs;
+        transformed.z = -${(CHEST.d / 2).toFixed(3)} + dd.x * cs + dd.y * cc2;
+      }
+      transformed *= cPop;
+      transformed.y += (cUp - 1.0) * 1.0 + cHop;
+      if (aGlow > 0.9) cGlow = 0.12 + cOpen * 1.7;
+      else cGlow = aGlow * (0.3 + cAvail * (0.55 + 0.45 * sin(uTime * 5.0 + cPh)));
+    } else if (cPart < 4.5) {
+      cVis = (cKind < 0.5 && cDug < 0.02) ? 1.0 : 0.0;
+      cGlow = aGlow * (0.7 + 0.6 * sin(uTime * 3.0 + cPh));
+    } else {
+      cVis = cKind < 0.5 ? 1.0 : 0.0;
+    }
+    if (cVis < 0.5) transformed *= 0.0;
+    vGlow = cGlow;
+  }`;
+function chestMaterial(uTime) {
+  const m = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.8, metalness: 0.08, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+  m.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = uTime;
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\n" + CHEST_VERT_PARS)
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\n" + CHEST_VERT_BODY);
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", "#include <common>\nvarying float vGlow;")
+      .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n  totalEmissiveRadiance += vec3(1.0, 0.64, 0.14) * vGlow;");
+  };
+  m.customProgramCacheKey = () => "world_chest_v1";
+  return m;
+}
+
+const GOLD = new THREE.Color(0xffc94a);
+const STONE_DUST = new THREE.Color(0xb7a590);
+const _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _m4 = new THREE.Matrix4(), _p3 = new THREE.Vector3(), _s3 = new THREE.Vector3(1, 1, 1), _up = new THREE.Vector3(0, 1, 0), _n3 = new THREE.Vector3();
+class ChestField {
+  constructor(isl) {
+    this.isl = isl;
+    this.records = new Map(); // id -> { data: { ...chest, y }, i, dug, rel, open, drill, phase, lastDug } (IslandWorld.chests)
+    this.cap = 32;
+    this.assists = false;
+    this.uTime = { value: 0 };
+    const geo = buildChestGeometry();
+    this.iState = new Float32Array(this.cap * 4);
+    this.iExtra = new Float32Array(this.cap * 4);
+    this.aState = new THREE.InstancedBufferAttribute(this.iState, 4).setUsage(THREE.DynamicDrawUsage);
+    this.aExtra = new THREE.InstancedBufferAttribute(this.iExtra, 4).setUsage(THREE.DynamicDrawUsage);
+    geo.setAttribute("iState", this.aState);
+    geo.setAttribute("iExtra", this.aExtra);
+    this.mesh = new THREE.InstancedMesh(geo, chestMaterial(this.uTime), this.cap);
+    this.mesh.count = 0;
+    this.mesh.frustumCulled = false;
+    isl.scene.add(this.mesh);
+    this.beams = new StreakBatch(48);
+    isl.scene.add(this.beams.mesh);
+  }
+  // world.chests: [{ id, kind, x, z, buried, dug, open, by }] in island coordinates.
+  sync(list, assists) {
+    const isl = this.isl, H = isl.height;
+    if (!H) return;
+    this.assists = !!assists;
+    const seen = new Set();
+    let i = 0;
+    for (const c of list) {
+      if (i >= this.cap) break;
+      seen.add(c.id);
+      const y = H(c.x, c.z);
+      let r = this.records.get(c.id);
+      if (!r || r.data.kind !== c.kind || Math.abs(r.data.x - c.x) > 0.5 || Math.abs(r.data.z - c.z) > 0.5) {
+        // First sight (or a new round): start from the present state, without any effects.
+        r = { data: null, i, dug: c.buried ? c.dug || 0 : 1, rel: c.kind === "rock" && !c.buried ? 1 : 0, open: c.open ? 1 : 0, drill: 0, phase: Math.random() * 6.28, lastDug: c.dug || 0, dugAt: -9 };
+        this.records.set(c.id, r);
+        this.place(r, c, y);
+      }
+      const prev = r.data;
+      if (prev) {
+        const p = _p3.set(c.x, y, c.z);
+        if (c.kind === "rock" && prev.buried && !c.buried) this.shatter(p);
+        if (c.open && !prev.open) {
+          isl.particles.burst(p.clone().setY(y + 1), GOLD, 70, 12, 1.5, 0.55, 0.08, { boost: 2.4, grav: 6, drag: 0.8 });
+          isl.rings.spawn(p.clone().setY(y + 1), 0xffd34d, 10, 1.2, true);
+        }
+      }
+      r.data = { ...c, y };
+      if (r.i !== i) { r.i = i; this.place(r, c, y); }
+      i++;
+    }
+    for (const id of [...this.records.keys()]) if (!seen.has(id)) this.records.delete(id);
+    this.mesh.count = i;
+  }
+  // Instance matrix: on the terrain, tilted with the slope (up to ~25 degrees), a random yaw per chest.
+  place(r, c, y) {
+    const H = this.isl.height;
+    let sx = (H(c.x + 1, c.z) - H(c.x - 1, c.z)) / 2, sz = (H(c.x, c.z + 1) - H(c.x, c.z - 1)) / 2;
+    const sl = Math.hypot(sx, sz);
+    if (sl > 0.45) { sx *= 0.45 / sl; sz *= 0.45 / sl; }
+    _qa.setFromUnitVectors(_up, _n3.set(-sx, 1, -sz).normalize());
+    _qb.setFromAxisAngle(_up, hash1(c.id * 5.31) * Math.PI * 2);
+    _m4.compose(_p3.set(c.x, y, c.z), _qa.multiply(_qb), _s3);
+    this.mesh.setMatrixAt(r.i, _m4);
+    this.mesh.instanceMatrix.needsUpdate = true;
+  }
+  // The boulder opens: stone chips, gold sparks, a ring.
+  shatter(p) {
+    const P = this.isl.particles, y = p.y;
+    P.burst(_n3.set(p.x, y + 1.2, p.z), STONE_DUST, 46, 9, 1.3, 0.9, 0.2, { boost: 1.1, grav: 12, drag: 0.6, spread: 1.6 });
+    P.burst(_n3.set(p.x, y + 1.2, p.z), GOLD, 60, 11, 1.1, 0.45, 0.05, { boost: 2.6, grav: 6, drag: 0.8, spread: 1.2 });
+    this.isl.rings.spawn(_n3.set(p.x, y + 0.3, p.z), 0xffc94a, 9, 1.0, true);
+    worldSound.at("explosion", p.x, y, p.z, "planet", { v: 0.8, ref: 60, pitch: 0.8 });
+  }
+  update(dt, t, snap) {
+    const isl = this.isl, glow = isl.glow, P = isl.particles;
+    this.uTime.value = t;
+    this.beams.begin();
+    // Who is drilling a rock chest right now: an explorer with flags.drilling within ~4.5 m, or the chest's dug rising.
+    for (const r of this.records.values()) r.drillNow = 0;
+    for (const p of snap.players) {
+      if (p.mode !== "planet" || !p.flags.drilling) continue;
+      let best = null, bd = 4.5;
+      for (const r of this.records.values()) {
+        const c = r.data;
+        if (c.kind !== "rock" || !c.buried) continue;
+        const d = Math.hypot(c.x - p.x, c.z - p.z);
+        if (d < bd) { bd = d; best = r; }
+      }
+      if (best) best.drillNow = 1;
+    }
+    for (const r of this.records.values()) {
+      const c = r.data;
+      const i = r.i;
+      if (i < 0 || i >= this.cap) continue;
+      const rock = c.kind === "rock";
+      if ((c.dug || 0) > r.lastDug + 0.001) r.dugAt = t;
+      r.lastDug = c.dug || 0;
+      if (rock && c.buried && t - r.dugAt < 0.5) r.drillNow = 1;
+      r.drill = damp(r.drill, r.drillNow, 9, dt);
+      r.dug = damp(r.dug, c.buried ? c.dug || 0 : 1, 8, dt);
+      r.rel = rock ? Math.min(1, Math.max(0, r.rel + (c.buried ? -4 : 1.25) * dt)) : 0;
+      r.open = damp(r.open, c.open ? 1 : 0, 5, dt);
+      const avail = !c.buried && !c.open ? 1 : 0;
+      const s4 = i * 4;
+      this.iState[s4] = rock ? 1 : 0; this.iState[s4 + 1] = r.dug; this.iState[s4 + 2] = r.rel; this.iState[s4 + 3] = r.open;
+      this.iExtra[s4] = r.drill; this.iExtra[s4 + 1] = avail; this.iExtra[s4 + 2] = r.phase; this.iExtra[s4 + 3] = 0;
+      const x = c.x, y = c.y, z = c.z;
+      const pulse = 0.75 + 0.25 * Math.sin(t * 2.5 + r.phase);
+      if (rock && c.buried) {
+        // The locked boulder: a gold throb that grows with the drilling, sparks flying off the working spot.
+        glow.add(x, y + 2.6, z, 3.4 + r.drill * 2.4, 1.5 + r.drill, 0.9 + r.drill * 0.4, 0.18, (0.14 + 0.1 * pulse) + r.drill * 0.22); // centred high: a sprite is cut by the ground where it dips below it
+        if (r.drill > 0.4 && Math.random() < dt * 55) {
+          const a = Math.random() * Math.PI * 2;
+          P.emit(x + Math.cos(a) * 1.9, y + 0.6 + Math.random() * 1.6, z + Math.sin(a) * 1.9, Math.cos(a) * (2 + Math.random() * 4), 2 + Math.random() * 4, Math.sin(a) * (2 + Math.random() * 4), 0.55, 0.28, 0.04, GOLD, 2.6, 0.8, 9);
+        }
+      } else if (c.buried) {
+        const tw = Math.max(0, Math.sin(t * 3 + c.x)) ** 8;
+        glow.add(x + 0.5, y + 0.5, z, 2.4 + tw * 4.5, 3 * tw + 0.45, 2.4 * tw + 0.35, 0.8 * tw + 0.1, 1);
+      } else if (!c.open) {
+        glow.add(x, y + 2.2, z, 4.5 * pulse, 1.7, 1.2, 0.3, 0.55);
+      } else {
+        glow.add(x, y + 2.8, z, 6.5 * pulse, 1.6, 1.15, 0.3, 0.6);
+        glow.add(x, y + 5.5, z, 6, 1.2, 0.9, 0.3, 0.3);
+      }
+      // Assists: every closed chest gets a tall gold beam, visible from far.
+      if (this.assists && !c.open) {
+        const d = isl.camPos ? Math.hypot(x - isl.camPos.x, y - isl.camPos.y, z - isl.camPos.z) : 100;
+        this.beams.add(x, y + 0.3, z, 0, -1, 0, Math.max(70, d * 0.4), Math.max(3.4, d * 0.022), 1.0, 0.72, 0.2, 0.75 + 0.25 * pulse, 1);
+      }
+    }
+    this.aState.needsUpdate = this.aExtra.needsUpdate = true;
+    this.beams.end();
+  }
+  dispose() {
+    this.mesh.removeFromParent();
+    this.mesh.geometry.dispose();
+    this.mesh.material.dispose();
+    this.beams.mesh.removeFromParent();
+    this.beams.dispose();
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // Island scene (mode "planet"): terrain from Terrain.height, cheap animated water, sky, palms, rocks, chests, explorers.
 const SUN_DIR = v3(-0.55, 0.32, -0.62).normalize(); // warm late-afternoon sun
-function islandSky(big) {
-  if (big) {
-    const sky = new Sky();
-    sky.scale.setScalar(4000);
-    const u = sky.material.uniforms;
-    u.turbidity.value = 6;
-    u.rayleigh.value = 1.4;
-    u.mieCoefficient.value = 0.005;
-    u.mieDirectionalG.value = 0.82;
-    u.sunPosition.value.copy(SUN_DIR).multiplyScalar(1000);
-    return sky;
-  }
-  // Phone: a gradient dome with a soft sun (one cheap draw).
+// The island sky on both screens: a saturated cartoon gradient dome with a soft sun (one cheap draw). The three.js Sky add-on
+// gave the big screen a white horizon that the bloom spread into a milky veil over the whole island.
+function islandSky() {
   const mat = new THREE.ShaderMaterial({
     uniforms: { uSun: { value: SUN_DIR } },
     vertexShader: /* glsl */ `varying vec3 vD; void main(){ vD = normalize(position); vec4 p = projectionMatrix * modelViewMatrix * vec4(position,1.0); gl_Position = p.xyww; }`,
     fragmentShader: /* glsl */ `uniform vec3 uSun; varying vec3 vD;
       void main(){
         float y = clamp(vD.y, -0.1, 1.0);
-        vec3 col = mix(vec3(1.0,0.78,0.55), vec3(0.22,0.5,0.88), pow(max(y,0.0), 0.45));
+        vec3 col = mix(vec3(1.0,0.8,0.58), vec3(0.12,0.42,0.96), pow(max(y,0.0), 0.5));
         float s = max(dot(normalize(vD), uSun), 0.0);
         col += vec3(1.0,0.75,0.45) * (pow(s, 600.0) * 6.0 + pow(s, 12.0) * 0.35);
         gl_FragColor = vec4(col, 1.0);
@@ -1216,43 +3718,6 @@ function palmGeometry() {
   return m;
 }
 
-function chestView() {
-  const wood = new THREE.Color(0x7a4a22), gold = new THREE.Color(0xffc44d);
-  const paint = (g, c) => {
-    g = g.toNonIndexed();
-    const n = g.attributes.position.count, col = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) col.set([c.r, c.g, c.b], i * 3);
-    g.setAttribute("color", new THREE.BufferAttribute(col, 3));
-    g.deleteAttribute("uv");
-    return g;
-  };
-  const body = mergeGeometries([
-    paint(new THREE.BoxGeometry(1.3, 0.75, 0.85).translate(0, 0.375, 0), wood),
-    paint(new THREE.BoxGeometry(1.36, 0.12, 0.9).translate(0, 0.1, 0), gold),
-    paint(new THREE.BoxGeometry(0.14, 0.78, 0.9).translate(-0.45, 0.39, 0), gold),
-    paint(new THREE.BoxGeometry(0.14, 0.78, 0.9).translate(0.45, 0.39, 0), gold),
-    paint(new THREE.BoxGeometry(0.22, 0.26, 0.06).translate(0, 0.6, -0.45), gold),
-  ]);
-  const lid = mergeGeometries([
-    paint(new THREE.CylinderGeometry(0.43, 0.43, 1.3, 10, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).translate(0, 0, 0.43), wood),
-    paint(new THREE.CylinderGeometry(0.45, 0.45, 0.14, 10, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).translate(-0.45, 0, 0.43), gold),
-    paint(new THREE.CylinderGeometry(0.45, 0.45, 0.14, 10, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).translate(0.45, 0, 0.43), gold),
-  ]);
-  lid.computeVertexNormals();
-  body.computeVertexNormals();
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, metalness: 0.45, roughness: 0.5, flatShading: true });
-  const g = new THREE.Group();
-  const b = new THREE.Mesh(body, mat);
-  const lidPivot = new THREE.Group();
-  lidPivot.position.set(0, 0.75, 0.43);
-  const l = new THREE.Mesh(lid, mat);
-  l.position.set(0, 0, -0.43);
-  lidPivot.add(l);
-  g.add(b, lidPivot);
-  g.scale.setScalar(1.25);
-  return { group: g, lid: lidPivot, dispose() { body.dispose(); lid.dispose(); mat.dispose(); } };
-}
-
 class IslandWorld {
   constructor(renderer, { phone, big }) {
     this.phone = phone;
@@ -1261,12 +3726,16 @@ class IslandWorld {
     const horizon = new THREE.Color(0xf3c9a0);
     scene.fog = new THREE.Fog(horizon, 160, phone ? 650 : 900);
     scene.background = horizon;
-    scene.add(islandSky(big));
-    scene.add(new THREE.HemisphereLight(0xbfdcff, 0x8a6a3a, 1.2));
-    const sun = new THREE.DirectionalLight(0xffd7a0, 3.0);
+    scene.add(islandSky());
+    // Bright, toon-like light: a strong sky fill with a warm sand bounce, a warm key, and a cool saturated rim from the other
+    // side so explorers and chests pop.
+    scene.add(new THREE.HemisphereLight(0xb4d8ff, 0xe2a45e, 1.85));
+    const sun = new THREE.DirectionalLight(0xffd9a8, 3.2);
     sun.position.copy(SUN_DIR).multiplyScalar(100);
-    scene.add(sun);
-    this.glow = new BillboardBatch(128, { renderOrder: 14 });
+    const rim = new THREE.DirectionalLight(0x6fc8ff, 1.1);
+    rim.position.set(0.55, 0.3, 0.62).multiplyScalar(100);
+    scene.add(sun, rim);
+    this.glow = new BillboardBatch(192, { renderOrder: 14 });
     this.particles = new Particles(phone ? 600 : 1200);
     this.rings = new RingPool(4);
     scene.add(this.glow.mesh, this.particles.mesh, this.rings.group);
@@ -1277,7 +3746,7 @@ class IslandWorld {
     this.noKit = new URLSearchParams(location.search).get("island") === "procedural";
     this.tmp = v3();
     // Island PvP: laser streaks (bullets with mode 1), a spawn-shield bubble per explorer.
-    this.bullets = makeBulletMesh(1.3, 0.07, 128);
+    this.bullets = makeBulletMesh(1.8, 0.09, 128);
     this.dummy = new THREE.Object3D();
     scene.add(this.bullets);
     this.shieldGeo = new THREE.SphereGeometry(1.25, 20, 12);
@@ -1286,10 +3755,11 @@ class IslandWorld {
     this.parked = new Map();
     this.parkedList = [];
     this.parkYaw = 0;
-    // X marks on the sand over every buried chest (world hint: they glint).
-    const bar = (rot) => new THREE.BoxGeometry(2.6, 0.06, 0.38).rotateY(rot);
-    this.xGeo = mergeGeometries([bar(Math.PI / 4), bar(-Math.PI / 4)]);
-    this.xMat = new THREE.MeshLambertMaterial({ color: 0x8b2a14, emissive: 0x3a0a02, polygonOffset: true, polygonOffsetFactor: -2 });
+    // The chests (World look): every chest in ONE instanced mesh (buried mound with a big X, rock boulder with gold seams, the
+    // chest itself) plus the assist beams. `chests` stays the id -> { data } map the explorers read.
+    this.camPos = v3();
+    this.chestField = new ChestField(this);
+    this.chests = this.chestField.records;
   }
 
   // A-005 kit over the procedural island (which stays as the fallback and while the kit loads).
@@ -1311,37 +3781,32 @@ class IslandWorld {
     });
   }
 
-  // Bay of a player on the pad: same formula as world.js (slot = index in the tick's player list).
+  // Bay of a player on the pad: same formula as world.js (slot = index in the tick's player list). The parked ship's own
+  // x, z (world.island.parked) wins where it is known.
   bay(slot) {
     const L = this.landing || { x: 0, z: 0 };
-    return { x: L.x + (slot % 4) * 4 - 6, z: L.z + Math.floor(slot / 4) * 4 };
+    return { x: L.x + (slot % 5) * 5 - 10, z: L.z + Math.floor(slot / 5) * 5 };
   }
   groundAt(x, z) { return this.height ? Math.max(0, this.height(x, z)) : 0; }
+  // The buried chest within r metres of (x, z) that is not dug out yet ("X marks the spot": the explorer kneels), or null.
+  buriedChestNear(x, z, r) {
+    for (const v of this.chests.values()) {
+      const c = v.data;
+      if (c && c.buried && !c.open && (c.dug || 0) < 1 && Math.hypot(c.x - x, c.z - z) < r) return c;
+    }
+    return null;
+  }
 
-  // A parked ship (A-009 or placeholder) in the player's colour, nose pointing the way take-off leaves.
+  // A parked ship (its drawing, else A-009 / a placeholder) in the player's colour, nose pointing the way take-off leaves.
   makeParked(player, color) {
-    const group = new THREE.Group();
-    const v = { group, model: placeholderShip(color), transit: false };
-    group.add(v.model.object3d);
-    this.scene.add(group);
-    loadAsset("ship", color).then((asset) => {
-      if (!asset) return;
-      if (v.disposed) return asset.dispose();
-      group.remove(v.model.object3d);
-      const box = new THREE.Box3().setFromObject(asset.object3d);
-      asset.object3d.scale.setScalar(3.2 / Math.max(box.max.z - box.min.z, box.max.x - box.min.x, 0.01));
-      group.add(asset.object3d);
-      v.model = asset;
-    });
+    const v = new ParkedShip(this, player, color);
     this.parked.set(player, v);
     return v;
   }
   disposeParked(player) {
     const v = this.parked.get(player);
     if (!v) return;
-    v.disposed = true;
-    v.group.removeFromParent();
-    v.model.dispose?.();
+    v.dispose();
     this.parked.delete(player);
   }
 
@@ -1457,165 +3922,80 @@ class IslandWorld {
     this.loadKit(w);
     this.landing = w.island?.landing || null;
     this.parkedList = w.island?.parked || [];
+    // A ship that left the pad (take-off, a new round) frees its model now, even while the island is not on screen.
+    for (const v of this.parked.values()) if (!v.transit && !this.parkedList.some((q) => q.player === v.name)) this.disposeParked(v.name);
     // Take-off leaves the planet the way world.js points the ship (away from the planet, towards the spawn).
     if (w.planet) this.parkYaw = Math.atan2(w.planet.x, w.planet.z);
-    const seen = new Set();
-    for (const c of w.chests || []) {
-      seen.add(c.id);
-      let v = this.chests.get(c.id);
-      if (!v) {
-        v = chestView();
-        const mound = new THREE.Mesh(this.moundGeo || (this.moundGeo = new THREE.SphereGeometry(1.5, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2)), this.moundMat || (this.moundMat = new THREE.MeshLambertMaterial({ color: 0xc9a46a })));
-        mound.scale.y = 0.5;
-        v.mound = mound;
-        v.x = new THREE.Mesh(this.xGeo, this.xMat);
-        this.scene.add(v.group, mound, v.x);
-        this.chests.set(c.id, v);
-        const id = c.id;
-        loadAsset("chest", c.buried && !(c.dug > 0) ? "buried" : "closed").then((a) => {
-          if (!a) return;
-          if (this.chests.get(id) !== v) return a.dispose();
-          v.group.clear();
-          v.dispose();
-          v.group.scale.setScalar(1);
-          v.group.add(a.object3d);
-          v.asset = a;
-        });
-      }
-      const y = this.height(c.x, c.z);
-      if (c.open && !v.data?.open) {
-        const p = v3(c.x, y + 1, c.z);
-        this.particles.burst(p, new THREE.Color(0xffd34d), 90, 12, 1.6, 0.9, 0.1, { boost: 3, grav: 6, drag: 0.8 });
-        this.rings.spawn(p, 0xffd34d, 10, 1.2, true);
-      }
-      v.data = { ...c, y };
-      v.group.position.set(c.x, y, c.z);
-      v.mound.position.set(c.x, y - 0.05, c.z);
-      // Lay the X on the local slope.
-      const H = this.height, sx = (H(c.x + 1, c.z) - H(c.x - 1, c.z)) / 2, sz = (H(c.x, c.z + 1) - H(c.x, c.z - 1)) / 2;
-      v.x.position.set(c.x, y + 0.04, c.z);
-      v.x.rotation.set(Math.atan(sz), 0, -Math.atan(sx));
-      v.x.visible = c.buried && !(c.dug > 0) && !c.open;
-    }
-    for (const [id, v] of this.chests) if (!seen.has(id)) { v.group.removeFromParent(); v.mound.removeFromParent(); v.x.removeFromParent(); v.dispose(); this.chests.delete(id); }
+    this.chestField.sync(w.chests || [], w.assists);
   }
 
   update(dt, t, snap, ctx, camera) {
     this.glow.begin();
     if (this.waterMat) this.waterMat.uniforms.uTime.value = t;
     this.kit?.update(dt, camera);
-    // Chests: buried = sand mound + glint; dig progress raises the chest; open = lid up and gold glow.
-    for (const v of this.chests.values()) {
-      const c = v.data;
-      if (!c) continue;
-      const dug = c.buried ? clamp(c.dug || 0, 0, 1) : 1;
-      if (v.asset) {
-        // A-006: buried variant until digging starts, then the closed chest rises out of a shrinking mound.
-        const A = v.asset;
-        const want = c.open ? "open" : c.buried && dug <= 0 ? "buried" : "closed";
-        if (want === "open") { if (A.state !== "open" && A.state !== "opening") A.open(); }
-        else if (A.state !== want) A.setState(want);
-        A.update(dt);
-        v.group.position.y = want === "buried" ? c.y : c.y - 1.2 * (1 - dug);
-        v.mound.visible = c.buried && dug > 0 && dug < 1;
-      } else {
-        v.group.position.y = c.y - 1.15 * (1 - dug);
-        v.mound.visible = c.buried && dug < 1;
-        v.lid.rotation.x = damp(v.lid.rotation.x, c.open ? -1.9 : 0, 4, dt);
-      }
-      v.mound.scale.set(1 - dug * 0.6, 0.5 * (1 - dug * 0.8), 1 - dug * 0.6);
-      const gx = c.x, gz = c.z, gy = c.y;
-      if (c.buried && dug < 1) {
-        const tw = Math.max(0, Math.sin(t * 3 + gx)) ** 8;
-        this.glow.add(gx + 0.3, gy + 0.55, gz, 1.2 + tw * 2.5, 3 * tw + 0.4, 2.4 * tw + 0.3, 0.8 * tw + 0.1, 1);
-      } else {
-        const pulse = 0.75 + 0.25 * Math.sin(t * 2.5 + gz);
-        this.glow.add(gx, gy + 0.9, gz, (c.open ? 9 : 4.5) * pulse, 1.6, 1.15, 0.3, 0.9);
-        if (c.open) this.glow.add(gx, gy + 5, gz, 10, 1.2, 0.9, 0.3, 0.5);
-      }
-    }
-    // Explorers.
-    const seen = new Set();
-    const pickup = TUNING.island.pickupRange || 3;
+    this.camPos.copy(camera.position);
+    worldSound.tick(snap, ctx, camera, "planet");
+    this.chestField.update(dt, t, snap);
+    // Explorers: the live planet players, one view each. A view's model is rebuilt only when its (type, drawing) changes,
+    // and only while it is among the meshes (the phone keeps at most 8; the others are glow impostors).
+    try { DRAWN.pump(); } catch (e) { entWarn("drawn cache", e); }
+    this.frame = (this.frame || 0) + 1;
+    const items = this.lodItems || (this.lodItems = []), plist = this.lodPlayers || (this.lodPlayers = []);
+    items.length = 0;
+    plist.length = 0;
+    const subject = ctx.subject ? ctx.subject.name : null;
     for (const p of snap.players) {
-      if (p.mode !== "planet" || p.flags.dead || p.flags.takingOff) continue; // take-off: the explorer is in the ship
-      seen.add(p.name);
+      if (p.mode !== "planet") continue;
       let e = this.explorers.get(p.name);
-      if (!e) e = this.addExplorer(p, ctx);
-      const g = e.group;
-      const prev = e.prev || p;
-      const speed = Math.hypot(p.x - prev.x, p.z - prev.z) / Math.max(dt, 1e-3);
-      e.prev = { x: p.x, y: p.y, z: p.z };
-      g.position.set(p.x, p.y, p.z);
-      g.rotation.set(0, p.yaw, 0);
-      const flick = p.flags.stun && Math.floor(t * 14) % 2 === 0;
-      g.visible = !(ctx.cockpit && p.name === ctx.me) && !flick;
-      const ground = this.groundAt(p.x, p.z);
-      // World hint: standing still on an X, the explorer kneels and pats the ground.
-      let onX = null;
-      if (!p.flags.digging && speed < 0.8 && p.y <= ground + 0.4) {
-        for (const v of this.chests.values()) {
-          const c = v.data;
-          if (c && c.buried && !c.open && (c.dug || 0) < 1 && Math.hypot(c.x - p.x, c.z - p.z) < pickup) { onX = c; break; }
+      if (p.flags.dead || p.flags.takingOff) {
+        // Take-off: the explorer is in the ship; dead: back at the respawn. Hidden meanwhile, the model goes after 20 s.
+        if (e) {
+          e.seen = this.frame;
+          e.group.visible = false;
+          e.hasPrev = false;
+          e.wantMesh = false;
+          if (e.hiddenSince < 0) e.hiddenSince = t; else if (t - e.hiddenSince > 20) e.drop();
         }
+        continue;
       }
-      const hasClip = (n) => (e.model.clips || []).some((c) => c.name === n);
-      const stepping = e.stepOutUntil > t;
-      let clip = p.flags.digging ? "dig" : p.y > ground + 0.4 ? "jump" : speed > TUNING.island.walkSpeed * 1.3 ? "run" : speed > 0.6 ? "walk" : onX ? "kneel" : "idle";
-      if (stepping && clip === "idle") clip = "step_out";
-      if (clip === "kneel" && !hasClip("kneel")) clip = "idle";
-      if (clip === "step_out" && !hasClip("step_out")) clip = "idle";
-      if (clip !== e.clip) { e.clip = clip; try { e.model.play?.(clip, clip === "step_out" ? { loop: false, restart: true } : undefined); } catch { /* clip missing in placeholder */ } }
-      // Without a kneel clip, crouch procedurally (the animator owns the model's own transform, the root is ours).
-      if (onX && !hasClip("kneel")) g.position.y -= 0.35;
-      if (onX && Math.random() < dt * 2.2) {
-        const f = forwardOf(p.yaw, 0, this.tmp);
-        this.particles.burst(v3(p.x + f.x * 0.6, ground + 0.1, p.z + f.z * 0.6), DIRT, 5, 1.6, 0.6, 0.3, 0.1, { boost: 1, grav: 8, drag: 1 });
-      }
-      // Procedural layer (anim.js) on top of the clips; its dt feeds the mixer (hit-stop freezes it).
-      this.ensureExplorerAnim(e, p.name);
-      let animDt = dt;
-      if (e.anim) {
-        if (e.pendingStepOut) { e.pendingStepOut = false; e.anim.trigger("stepOut", {}); }
-        if (e.lastStarted !== undefined && p.startedAt !== e.lastStarted && p.slot && p.slot !== "mount") e.anim.trigger(p.slot, { verb: p.action });
-        if (e.lastHp !== null && p.hp < e.lastHp - 0.5) e.anim.trigger("hit", { intensity: clamp((e.lastHp - p.hp) / 20, 0.4, 1.5) });
-        animDt = e.anim.update(dt, { speed: clamp(speed / (TUNING.island.walkSpeed * TUNING.island.runMultiplier), 0, 1), grounded: p.y <= ground + 0.4, digging: !!p.flags.digging });
-        if (!Number.isFinite(animDt)) animDt = dt;
-      }
-      e.lastStarted = p.startedAt;
-      e.lastHp = p.hp;
-      e.model.update?.(animDt);
-      e.shield.visible = !!(p.flags.spawnShield || p.flags.shield);
-      if (p.flags.digging && Math.random() < dt * 14) {
-        const f = forwardOf(p.yaw, 0, this.tmp);
-        this.particles.emit(p.x + f.x * 0.8, ground + 0.2, p.z + f.z * 0.8, (Math.random() - 0.5) * 3, 3 + Math.random() * 3, (Math.random() - 0.5) * 3, 0.8, 0.35, 0.15, DIRT, 1.0, 0.5, 12);
-      }
-      this.glow.add(p.x, p.y + 2.3, p.z, 0.5, e.color.r * 3, e.color.g * 3, e.color.b * 3, 1);
+      if (!e) { e = new ExplorerView(this, p, ctx); this.explorers.set(p.name, e); }
+      e.hiddenSince = -1;
+      e.seen = this.frame;
+      e.lodDist = camera.position.distanceTo(this.tmp.set(p.x, p.y, p.z));
+      e.forced = p.name === ctx.me || p.name === subject;
+      items.push(e);
+      plist.push(p);
     }
-    for (const [name, e] of this.explorers) if (!seen.has(name)) { e.group.removeFromParent(); e.anim?.dispose?.(); e.model.dispose?.(); this.explorers.delete(name); }
+    entPlanLod(items, this.phone, 8, this.big ? 300 : 220, this.big ? 360 : 260, this.lodOrder || (this.lodOrder = []), t);
+    for (let i = 0; i < items.length; i++) {
+      try { items[i].step(plist[i], dt, t, ctx); } catch (e) { entWarn(`explorer ${items[i].name}`, e); }
+    }
+    for (const e of this.explorers.values()) if (e.seen !== this.frame) { e.dispose(); this.explorers.delete(e.name); }
     this.shieldMat.uniforms.uTime.value = t;
-    // Parked ships: one per world.island.parked entry, on its bay. Someone else's take-off lifts it away.
-    const colorOf = new Map(snap.players.map((p) => [p.name, p]));
-    const want = new Set();
+    // Parked ships: one per world.island.parked entry, on its bay (its owner's drawing, charred and smoking when wrecked;
+    // the phone keeps at most 6 as meshes, the rest are glow impostors). Someone else's take-off lifts it away.
+    const byName = this.byName || (this.byName = new Map());
+    byName.clear();
+    for (const p of snap.players) byName.set(p.name, p);
+    const want = this.wantSet || (this.wantSet = new Set());
+    want.clear();
+    const pitems = this.parkItems || (this.parkItems = []);
+    pitems.length = 0;
     for (const q of this.parkedList) {
       want.add(q.player);
-      const p = colorOf.get(q.player);
       let v = this.parked.get(q.player);
-      if (!v) v = this.makeParked(q.player, p?.color ?? 0x94a3b8);
+      if (!v) v = this.makeParked(q.player, byName.get(q.player)?.color ?? 0x94a3b8);
       if (v.transit) continue;
-      const g = v.group;
-      g.visible = !v.hidden;
-      g.position.set(q.x, this.groundAt(q.x, q.z) + 0.55, q.z);
-      g.rotation.set(0, this.parkYaw, 0);
-      if (p?.flags.takingOff) {
-        const k = clamp((ctx.serverNow - (p.startedAt || 0)) / (TUNING.planet.takeoffSeconds * 1000), 0, 1);
-        g.position.y += k * k * 60;
-        g.rotation.x = k * 0.6;
-        if (k > 0.97) g.visible = false;
-        if (Math.random() < dt * 30) this.particles.emit(g.position.x, g.position.y - 0.4, g.position.z, (Math.random() - 0.5) * 2, -6, (Math.random() - 0.5) * 2, 0.6, 1.0, 0.2, new THREE.Color(p.color), 2.5, 0.5);
-      }
+      v.q = q;
+      v.lodDist = camera.position.distanceTo(this.tmp.set(q.x, this.groundAt(q.x, q.z), q.z));
+      v.forced = q.player === ctx.me || q.player === subject;
+      pitems.push(v);
     }
-    for (const name of [...this.parked.keys()]) if (!want.has(name) && !this.parked.get(name).transit) this.disposeParked(name);
+    entPlanLod(pitems, this.phone, 6, this.big ? 300 : 220, this.big ? 360 : 260, this.lodOrderParked || (this.lodOrderParked = []), t);
+    for (let i = 0; i < pitems.length; i++) {
+      try { pitems[i].step(pitems[i].q, byName.get(pitems[i].q.player), dt, t, ctx); } catch (e) { entWarn(`parked ship ${pitems[i].name}`, e); }
+    }
+    for (const v of this.parked.values()) if (!want.has(v.name) && !v.transit) this.disposeParked(v.name);
     // Island bullets (mode 1).
     writeBullets(this.bullets, this.dummy, snap.bullets, 1);
     this.glow.end();
@@ -1623,50 +4003,14 @@ class IslandWorld {
     this.rings.update(dt, camera);
   }
 
-  addExplorer(p, ctx) {
-    const group = new THREE.Group();
-    const e = { group, model: placeholderExplorer(p.color), color: new THREE.Color(p.color), clip: null, anim: null, modelReady: false, lastStarted: undefined, lastHp: null };
-    e.shield = new THREE.Mesh(this.shieldGeo, this.shieldMat);
-    e.shield.position.y = 0.95;
-    e.shield.scale.set(1, 1.15, 1);
-    e.shield.visible = false;
-    e.shield.renderOrder = 13;
-    // Just landed: the explorer climbs out next to the parked ship (A-008 step_out + the animator's stepOut).
-    if (p.action === "land" && ctx.serverNow - (p.startedAt || 0) < TUNING.planet.landingSeconds * 1000 + 2500) {
-      e.pendingStepOut = true;
-      e.stepOutUntil = ctx.t + 1.5;
-    }
-    group.add(e.model.object3d, e.shield);
-    this.scene.add(group);
-    this.explorers.set(p.name, e);
-    loadAsset("explorer", p.color).then((asset) => {
-      e.modelReady = true;
-      if (!asset || this.explorers.get(p.name) !== e) return asset?.dispose();
-      group.remove(e.model.object3d);
-      const box = new THREE.Box3().setFromObject(asset.object3d);
-      const h = Math.max(box.max.y - box.min.y, 0.01);
-      asset.object3d.scale.setScalar(1.8 / h);
-      group.add(asset.object3d);
-      e.model = asset;
-      e.clip = null;
-    });
-    return e;
-  }
-
-  ensureExplorerAnim(e, name) {
-    if (e.anim || e.anim === false || !Anim || !e.modelReady) return;
-    try {
-      // Root = the explorer group; the animator moves the model (and the bubble) under its own pivot.
-      e.anim = Anim.createAnimator("person", e.group, { anims: animsFor(name, "person"), sockets: e.model.sockets, clips: e.model.clips, play: e.model.play, size: 1.8, fx: false, onFx: animFx(this.particles, e.color) });
-    } catch (err) { console.warn("[render] explorer animator failed:", err?.message || err); e.anim = false; }
-  }
-
   fx(m) {
+    worldSound.fx(m);
     const pos = v3(m.pos.x, m.pos.y, m.pos.z);
     const c = new THREE.Color(m.color ?? 0xffffff);
     const P = this.particles;
     if (m.kind === "dig") P.burst(pos.setY(pos.y + 0.3), DIRT, 18, 5, 0.8, 0.45, 0.15, { boost: 1, grav: 14, drag: 0.6 });
-    else if (m.kind === "treasure") { P.burst(pos.setY(pos.y + 1), new THREE.Color(0xffd34d), 120, 14, 1.8, 1, 0.1, { boost: 3, grav: 5, drag: 0.7 }); this.rings.spawn(pos, 0xffd34d, 14, 1.4, true); }
+    else if (m.kind === "drill") P.burst(pos.setY(pos.y + 1.2), GOLD, 16, 9, 0.5, 0.4, 0.05, { boost: 2.6, grav: 8, drag: 1, spread: 1.6 });
+    else if (m.kind === "treasure") { P.burst(pos.setY(pos.y + 1), new THREE.Color(0xffd34d), 110, 15, 1.7, 0.6, 0.08, { boost: 2.4, grav: 5, drag: 0.7 }); this.rings.spawn(pos, 0xffd34d, 14, 1.4, true); this.rings.spawn(pos.setY(pos.y + 0.6), 0xfff1c2, 7, 1.0, true); }
     else if (m.kind === "land") { P.burst(pos, new THREE.Color(0xe8d4a8), 40, 7, 1.2, 1.4, 0.3, { boost: 0.8, drag: 1.5 }); this.rings.spawn(pos.setY(pos.y + 0.2), 0xffffff, 8, 1, true); }
     else if (m.kind === "explode") {
       // An explorer down (island PvP): flash, smoke and a ring on the ground.
@@ -1819,6 +4163,48 @@ class CameraRig {
     const cs = (game.world?.chests || []).filter((c) => !c.open);
     return cs.length ? Math.min(...cs.map((c) => Math.hypot(c.x - p.x, c.z - p.z))) : 0;
   }
+  // The lobby on the big screen: every ship that has joined (they sit on the spawn grid, 5 x 5, 12 m apart) framed
+  // together from above and in front, about 35 degrees down so the drawings on their tops read, with a slow drift to
+  // both sides. The camera distance follows the box of the ships, so it glides back as players join. On the big screen
+  // the group is fitted into the free middle of the lobby page (x 26-74 %, y 15-70 % of the screen: the player cards
+  // are at the sides, START and the counters below); elsewhere it fills most of the frame.
+  lobbyShot(players, t, desired, look, bigScreen) {
+    let n = 0, x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+    for (let i = 0; i < players.length; i++) {
+      const p = players[i];
+      if (p.mode !== "space" || p.flags.dead) continue;
+      n++;
+      if (p.x < x0) x0 = p.x;
+      if (p.x > x1) x1 = p.x;
+      if (p.y < y0) y0 = p.y;
+      if (p.y > y1) y1 = p.y;
+      if (p.z < z0) z0 = p.z;
+      if (p.z > z1) z1 = p.z;
+    }
+    if (!n) { desired.set(0, 9, 24); look.set(0, 0, 0); return; }
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, cz = (z0 + z1) / 2;
+    // The box of the ships (plus a ship's own size, spin, bob and showcase scale) as the camera sees it: back far enough
+    // for it to fill ~92 % of the free region, whatever the shape of the group (a 5 x 5 wall, a row, one ship).
+    const m = bigScreen ? 6 : 3.2; // the TV shows 2.9x showcase ships (ShipView), the phone 1.7x
+    const hx = (x1 - x0) / 2 + m, hy = (y1 - y0) / 2 + m, hz = (z1 - z0) / 2 + m;
+    // ~35 degrees down on the phone; ~50 on the TV, where 5 rows must not hide each other and the drawings on top read
+    const el = (bigScreen ? 0.86 : 0.62) + Math.sin(t * 0.11) * 0.05, az = Math.sin(t * 0.07) * 0.35; // a slow drift
+    const d = this.lobD || (this.lobD = v3()), f = this.lobF || (this.lobF = v3()), r = this.lobR || (this.lobR = v3()), u = this.lobU || (this.lobU = v3());
+    d.set(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)); // from the centre to the camera
+    f.copy(d).negate();
+    r.set(-f.z, 0, f.x).normalize(); // forward x up
+    u.crossVectors(r, f);
+    const cam = this.camera, tv = Math.tan((cam.fov * Math.PI) / 360), th = tv * (cam.aspect || 1.6);
+    const halfW = (bigScreen ? 0.48 : 0.86) * 0.92, halfH = (bigScreen ? 0.55 : 0.86) * 0.92; // of the NDC half extents
+    const lift = bigScreen ? 0.15 : 0; // the free region's centre sits 15 % of the half height above the screen centre
+    const Rx = Math.abs(r.x) * hx + Math.abs(r.y) * hy + Math.abs(r.z) * hz;
+    const Ry = Math.abs(u.x) * hx + Math.abs(u.y) * hy + Math.abs(u.z) * hz;
+    const Rz = Math.abs(f.x) * hx + Math.abs(f.y) * hy + Math.abs(f.z) * hz;
+    const dist = Math.max(10, Math.max(Rx / (th * halfW), Ry / (tv * halfH)) + Rz);
+    desired.set(cx + d.x * dist, cy + d.y * dist, cz + d.z * dist);
+    // Aim a little below the group so that it appears in the upper middle of the screen.
+    look.set(cx - u.x * lift * tv * dist, cy - u.y * lift * tv * dist, cz - u.z * lift * tv * dist);
+  }
   update(dt, t, game, snap) {
     const cam = this.camera;
     const me = game.player ? snap.players.find((p) => p.name === game.player) : null;
@@ -1832,8 +4218,11 @@ class CameraRig {
     const desired = this.tmp, look = v3();
     let lamPos = 5, lamLook = 8;
     const phase = snap.phase;
-    if (!subject) {
-      // Nobody to follow: slow orbit around the boss nebula (or the spawn area in the lobby).
+    if (!subject && phase === "lobby") {
+      this.lobbyShot(snap.players, t, desired, look, game.screen === "big");
+      lamPos = lamLook = 2.2;
+    } else if (!subject) {
+      // Nobody to follow: slow orbit around the boss nebula.
       const c = game.world?.nebula || { x: 0, y: 0, z: -300, radius: 80 };
       const a = t * 0.05;
       const R = (c.radius || 80) * 2.2;
@@ -1878,10 +4267,9 @@ class CameraRig {
         look.copy(P).addScaledVector(F, 14);
         lamPos = 7; lamLook = 12;
       } else if (phase === "lobby") {
-        const a = t * 0.08;
-        desired.set(P.x + Math.sin(a) * 30, P.y + 10, P.z + Math.cos(a) * 30 + 10);
-        look.set(P.x * 0.3, P.y, P.z - 30);
-        lamPos = lamLook = 1.5;
+        // The big screen: every ship that has joined, framed together.
+        this.lobbyShot(snap.players, t, desired, look, game.screen === "big");
+        lamPos = lamLook = 2.2;
       } else {
         // Cinematic follow: behind and to the side of the subject, the objective in frame beyond it.
         const O = this.objectiveSpace(game, P);
@@ -1989,45 +4377,60 @@ function computeHud(game) {
   const clock = tick ? (phase === "lobby" || phase === "scoreboard" ? Math.max(0, tick.clock - elapsed) : tick.clock + elapsed) : 0;
   const meName = game.screen === "phone" ? game.player : game.followed || game.player;
   const meP = snap.players.find((p) => p.name === meName) || null;
+  const meEntity = (meName && entities.get(meName)) || null;
   const me = meP ? { name: meP.name, color: meP.color, mode: meP.mode, hp: meP.hp, maxHp: TUNING.shipHp, score: meP.score, shieldEnergy: meP.shieldEnergy, boostEnergy: meP.boostEnergy, flags: meP.flags,
-    respawnIn: meP.respawnIn ?? null, drawingsLeft: meP.drawingsLeft || null } : null;
+    respawnIn: meP.respawnIn ?? null, drawingsLeft: meP.drawingsLeft || null, entity: meEntity } : null;
   const boss = world?.targets?.find((t) => t.kind === "boss");
   const bossAlive = boss && !boss.dead;
+  const H = HUD_COPY;
   let objective = null, bar = 0, status = "", objPos = null;
   const dist3 = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+  const pct = (v) => `${Math.round(clamp(v, 0, 1) * 100)}%`;
+  // Chests on the island (buried: DIG; rock: DRILL), for the counter and the planet objective.
+  const allChests = world?.chests || [];
+  const chests = { total: allChests.length, open: 0, buried: 0, rock: 0 };
+  for (const c of allChests) { if (c.open) chests.open++; if (c.kind === "rock") chests.rock++; else chests.buried++; }
+  // A phone whose ship has no weapon is told to redraw it before anything else (nothing is automatic, PLAN.md §0).
+  const armed = !meEntity || !Array.isArray(meEntity.verbs) || meEntity.verbs.some((v) => v === "shoot" || v === "blast" || v === "drill");
   if (phase === "lobby") {
     objective = null;
-    status = "WAITING FOR PLAYERS";
+    status = H.waitStart;
   } else if (meP && meP.mode === "planet") {
-    objective = "chest";
-    const cs = (world?.chests || []).filter((c) => !c.open);
+    objective = "openChests";
+    const cs = allChests.filter((c) => !c.open);
     const near = cs.reduce((best, c) => (!best || Math.hypot(c.x - meP.x, c.z - meP.z) < Math.hypot(best.x - meP.x, best.z - meP.z) ? c : best), null);
     if (near) {
       const d = Math.hypot(near.x - meP.x, near.z - meP.z);
+      const rock = near.kind === "rock";
       objPos = { x: near.x, y: meP.y, z: near.z };
-      if (meP.flags.digging || (near.buried && near.dug > 0 && d < 4)) { bar = near.dug || 0; status = `DIGGING ${Math.round((near.dug || 0) * 100)}%`; }
-      else { bar = clamp(1 - d / 120, 0, 1); status = `${near.buried ? "BURIED CHEST" : "CHEST"} ${Math.round(d)} M`; }
-    }
+      const working = (rock ? meP.flags.drilling : meP.flags.digging) || (near.dug > 0 && d < 4);
+      if (working) { bar = near.dug || 0; status = (rock ? H.drilling : H.digging).replace("{pct}", pct(near.dug || 0)); }
+      else { bar = clamp(1 - d / 120, 0, 1); status = (rock ? H.rockChest : H.buriedChest).replace("{m}", Math.round(d)); }
+    } else status = H.allOpen;
   } else if (bossAlive) {
     const ref = meP && meP.mode === "space" ? meP : null;
     const d = ref ? Math.max(0, dist3(ref, boss) - boss.radius) : null;
     objPos = boss;
-    const near = d !== null && d < (world.nebula?.radius || TUNING.nebula.radius);
-    if (boss.armour <= 0) { objective = "destroyBoss"; bar = boss.hp / (boss.maxHp || 1); status = `BOSS HP ${Math.ceil(boss.hp)} / ${boss.maxHp}`; }
-    else if (near) { objective = "crackBoss"; bar = boss.armour / (TUNING.boss.armour || 100); status = `ARMOUR ${Math.round(bar * 100)}%  ·  HOLD DRILL CLOSE`; }
-    else { objective = "boss"; bar = boss.hp / (boss.maxHp || 1); status = d !== null ? `DISTANCE TO BOSS ${Math.round(d)} M` : "FIND THE BOSS IN THE NEBULA"; }
+    bar = boss.hp / (boss.maxHp || 1);
+    const near = d !== null && d < Math.max(250, world.nebula?.radius || TUNING.nebula.radius);
+    if (game.screen === "phone" && ref && !armed) { objective = "weapon"; status = H.noWeapon; }
+    else if (d === null || near) { objective = "destroyBoss"; status = H.bossHp.replace("{pct}", pct(bar)); }
+    else { objective = "boss"; status = H.bossAway.replace("{m}", Math.round(d)); }
   } else if (world?.planet) {
     objective = "planet";
     const P = world.planet;
     objPos = P;
-    if (meP) {
+    if (meP && meP.mode === "space") {
       const d = Math.max(0, dist3(meP, P) - P.radius);
       bar = clamp(1 - (d - P.landRange) / 250, 0, 1);
-      status = d <= P.landRange ? "IN RANGE: LAND NOW" : `DISTANCE TO PLANET ${Math.round(d)} M`;
-    } else status = "THE PLANET HAS APPEARED";
+      status = d <= P.landRange ? H.landNow : H.planetAway.replace("{m}", Math.round(d));
+    } else status = H.planetOpen;
   }
-  if (phase === "scoreboard") { objective = null; status = "ROUND OVER"; }
-  const objectiveText = objective ? OBJECTIVES[objective] : phase === "lobby" ? "GET READY" : phase === "scoreboard" ? "ROUND OVER" : "";
+  if (phase === "scoreboard") { objective = null; status = world?.result?.reason === "chests" ? H.allChests : H.timeUp; }
+  const objectiveText = objective ? OBJECTIVES[objective] || H.objectives[objective] || "" : phase === "lobby" ? H.getReady : phase === "scoreboard" ? H.roundOver : "";
+  // Time left until the 4:00 cap (tick.left), counting down smoothly between ticks.
+  const playing = phase === "playing" || phase === "assists";
+  const left = tick && playing && Number.isFinite(tick.left) ? Math.max(0, tick.left - elapsed) : 0;
   // Radar, heading-up: dx = metres to my right, dz = metres ahead, dy = metres above.
   const radar = [];
   if (meP) {
@@ -2039,11 +4442,15 @@ function computeHud(game) {
     if (meP.mode === "space") for (const s of snap.bossShots || []) radar.push({ kind: "target", ...rel(s[1], s[2], s[3]) });
     if (objPos) radar.push({ kind: "objective", ...rel(objPos.x, objPos.y, objPos.z) });
   }
-  const scores = (tick?.players || []).map((p) => ({ name: p.name, color: p.color, score: p.score, mode: p.mode, ready: !!p.flags?.ready, bot: !!p.flags?.bot, dead: !!p.flags?.dead, me: p.name === meName })).sort((a, b) => b.score - a.score);
+  const leaderboard = Array.isArray(world?.leaderboard) ? world.leaderboard : [];
+  const stars = new Map(leaderboard.map((r) => [r.name, r.stars || 0]));
+  const scores = (tick?.players || []).map((p) => ({ name: p.name, color: p.color, score: p.score, mode: p.mode, ready: !!p.flags?.ready, bot: !!p.flags?.bot, dead: !!p.flags?.dead, me: p.name === meName, stars: stars.get(p.name) || 0 })).sort((a, b) => b.score - a.score);
   return {
     phase, clock, clockText: formatClock(clock), round: tick?.round ?? world?.round ?? 0,
+    left, leftText: formatClock(Math.ceil(left)),
     objective, objectiveText, bar: clamp(bar, 0, 1), status,
-    assists: phase === "assists", note: phase === "assists" ? "ASSISTS ON" : "",
+    assists: phase === "assists", note: phase === "assists" ? H.assists : "",
+    chests, leaderboard, result: world?.result || null, playerCount: world?.playerCount ?? null, entities,
     me, followed: meName || null, radar, scores, tier: game.perf.tier, scene: game.sceneName,
     // The landing / take-off shot of the camera's subject: the phone fades its controller overlay with overlayAlpha.
     transition: game.shotState ? game.shotState.kind : null,
@@ -2056,6 +4463,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
   if (!canvas) throw new TypeError("startGame needs a canvas");
   const phone = screen === "phone";
   const big = !phone;
+  DRAWN.configure(phone); // drawn-mesh cache: 16 meshes on the phone, 40 on the big screen
   const params = new URLSearchParams(location.search);
   const showPerf = params.has("perf");
   const listeners = {};
@@ -2075,6 +4483,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
   };
   game.space = new SpaceWorld(renderer, { phone, big });
   game.island = new IslandWorld(renderer, { phone, big });
+  game.sfx = sfx; worldSound.attach(game); // World look: sound synth (pages call game.sfx.unlock() in their first tap)
   const rig = new CameraRig(camera);
   const frames = [cockpitFrame(), cockpitFrame()];
   game.space.scene.add(frames[0]);
@@ -2125,7 +4534,8 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     const planet = game.world?.planet;
     const isl = game.island;
     const slot = Math.max(0, (game.snaps.latest?.players || []).findIndex((q) => q.name === p.name));
-    const b = isl.bay(slot);
+    const parkedAt = kind === "takeoff" ? isl.parkedList.find((c) => c.player === p.name) : null; // its own spot, else the bay formula
+    const b = parkedAt || isl.bay(slot);
     const pad = v3(b.x, isl.groundAt(b.x, b.z), b.z);
     let ship, owner, ring;
     if (kind === "land") {
@@ -2146,6 +4556,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
       const out = v3(-planet.x, -planet.y, -planet.z).normalize();
       ring = v3(planet.x, planet.y, planet.z).addScaledVector(out, planet.radius + 15).addScaledVector(forwardOf(isl.parkYaw, 0, v3()), -35);
     }
+    owner.ensureModel?.(); // an impostor (no mesh yet) gets a stand-in at once; its real model arrives meanwhile
     owner.transit = true;
     try {
       const ctl = (kind === "land" ? Transition.playLanding : Transition.playTakeoff)({
@@ -2169,6 +4580,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     if (s.kind === "land") { game.space.scene.add(s.owner.group); s.owner.group.scale.setScalar(1); }
     else { game.island.scene.add(s.owner.group); }
     s.owner.transit = false;
+    if (s.kind === "takeoff") game.island.disposeParked(s.player); // the ship left the pad: free its model now
     // Hand the camera back to the rig without a cut: it glides on from the shot's last pose.
     rig.scene = subject?.mode === "planet" ? "planet" : "space";
     rig.pos.copy(camera.position);
@@ -2211,7 +4623,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
       case "world":
         if (game.world && game.world.round !== m.round) { game.space.clearForRound(); game.island.particles.clear(); }
         // world.entities is only in the message a screen gets on connect: keep the map when the key is absent.
-        if (m.entities) { entities.clear(); for (const [k, v] of Object.entries(m.entities)) entities.set(k, v); }
+        if (m.entities) entReset(m.entities);
         game.world = m;
         if (!warmed) warm();
         game.space.setWorld(m);
@@ -2231,7 +4643,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
         emit("toast", m);
         break;
       case "entity":
-        if (m.player && m.entity) entities.set(m.player, m.entity);
+        if (m.player && m.entity) { entNote(m.player, m.entity); if (m.entity.image && warmed) warmDrawn(); }
         emit("entity", m);
         break;
       default:
@@ -2283,16 +4695,42 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
       holder.removeFromParent();
       for (const a of [ship, chest]) a?.dispose?.();
     });
+    if ([...entities.values()].some((e) => e && e.image)) warmDrawn();
+  }
+  // The drawn bodies' shader (a textured, vertex-coloured plush with a rim) compiled in both scenes before the first
+  // drawing is built, so that build does not hitch. Only when a drawing exists: inflate.js stays lazy otherwise.
+  let drawnWarmed = false;
+  function warmDrawn() {
+    if (drawnWarmed || disposed) return;
+    drawnWarmed = true;
+    entLoadInflate();
+    entInflatePromise.then((inf) => {
+      if (disposed || !inf || !inf.warmMaterial) return;
+      const w = inf.warmMaterial();
+      w.mesh.position.set(0, -500, 0);
+      try {
+        game.island.scene.add(w.mesh);
+        renderer.compile(game.island.scene, camera);
+        game.space.scene.add(w.mesh);
+        renderer.compile(game.space.scene, camera);
+      } catch (e) { /* the first real drawing compiles it instead */ }
+      w.dispose();
+    });
   }
 
   // ---- name tags: screen positions of every visible ship / explorer (bigscreen-extras, phone tags) ----
-  const tagPool = [];
+  const tagPool = [], tagOut = [];
   const tagV = v3();
+  // Item shape { name, color, x, y, hp, maxHp, visible, dist } (CSS px). Visible players come first, nearest first, so a
+  // capped list (8 tags on the phone, 12 on the big screen) shows the nearest. In the lobby every ship is listed.
+  // The returned array and its items are reused: read them before the next call.
   function projectPlayers() {
     const snap = game.lastSnap;
-    const out = [];
+    const out = tagOut;
+    out.length = 0;
     if (!snap) return out;
     const island = game.sceneName === "planet";
+    const lobby = snap.phase === "lobby" && !island;
     const W = canvas.clientWidth || width, H = canvas.clientHeight || height;
     let i = 0;
     for (const p of snap.players) {
@@ -2307,18 +4745,25 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
         if (p.mode !== "space") continue;
         const sv = game.space.ships.get(p.name);
         if (!sv || !sv.group.visible || sv.transit) continue;
-        obj = sv.group; lift = 2.6;
+        obj = sv.group; lift = lobby ? (phone ? 2.9 : 5.2) : 2.6;
       }
       tagV.setFromMatrixPosition(obj.matrixWorld);
       tagV.y += lift;
       const dist = tagV.distanceTo(camera.position);
       tagV.project(camera);
-      const visible = tagV.z < 1 && Math.abs(tagV.x) < 1.1 && Math.abs(tagV.y) < 1.1 && dist < (island ? 120 : 260);
+      const visible = tagV.z < 1 && Math.abs(tagV.x) < 1.1 && Math.abs(tagV.y) < 1.1 && (lobby || dist < (island ? 120 : 260));
       const o = tagPool[i] || (tagPool[i] = {});
       o.name = p.name; o.color = hexColor(p.color); o.hp = p.hp; o.maxHp = TUNING.shipHp; o.visible = visible; o.dist = dist;
       o.x = ((tagV.x + 1) / 2) * W; o.y = ((1 - tagV.y) / 2) * H;
       out.push(o);
       i++;
+    }
+    // Insertion sort (a few dozen items at most, no allocation): visible first, then nearest first.
+    for (let a = 1; a < out.length; a++) {
+      const x = out[a];
+      let b = a - 1;
+      while (b >= 0 && (out[b].visible !== x.visible ? !out[b].visible : out[b].dist > x.dist)) { out[b + 1] = out[b]; b--; }
+      out[b + 1] = x;
     }
     return out;
   }
@@ -2364,9 +4809,12 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     frames[0].visible = frames[1].visible = cam.mode === "cockpit" && !shot;
     const tier = TIERS[game.perf.tier];
     game.space.farRocks = tier.far;
-    renderer.toneMappingExposure = cam.scene === "planet" ? (big ? 0.6 : 0.95) : 1.0;
-    bloom.strength = cam.scene === "planet" ? 0.25 : 0.65;
-    bloom.threshold = cam.scene === "planet" ? 0.95 : 0.82;
+    // World look: bright and saturated without washing out: more exposure, a livelier island, bloom only on what glows.
+    // The island blooms only what is really hot (sun disk, chest glow, sparks): a low threshold veiled the whole island.
+    renderer.toneMappingExposure = cam.scene === "planet" ? (big ? 0.98 : 1.02) : 1.05;
+    bloom.strength = cam.scene === "planet" ? 0.24 : 0.6;
+    bloom.radius = cam.scene === "planet" ? 0.4 : 0.5;
+    bloom.threshold = cam.scene === "planet" ? 1.0 : 0.9;
     renderer.info.reset();
     if (tier.bloom) {
       renderPass.scene = W.scene;
@@ -2400,13 +4848,16 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     setPlayer(name) { game.player = name ? Contract.cleanName(name) || name : null; rig.snapNext = true; },
     on(event, cb) { (listeners[event] = listeners[event] || []).push(cb); return () => { listeners[event] = listeners[event].filter((f) => f !== cb); }; },
     hud: () => computeHud(game),
+    sfx, // World look: the sound synth (same object as the `sfx` export): sfx.unlock() in a first tap, sfx.play("click")
+    // The latest entity message of a player ({ type, rig, verbs, unlocked, parts, source, anims?, image? }) or null.
+    entityOf: (name) => entities.get(name) || null,
     // Integration extras: the live camera and the screen position of every visible ship / explorer (name tags;
     // fresh after each "frame" event).
     camera,
     projectPlayers,
     // Extras for pages and tests (not part of the contract): live perf numbers and the camera's current state.
     perf: () => ({ ...perfSample(), scene: game.sceneName, followed: game.followed }),
-    _internals: { game, renderer, camera, bloom, THREE },
+    _internals: { game, renderer, camera, bloom, THREE, drawn: DRAWN },
     dispose() {
       disposed = true;
       white.remove();
@@ -2419,6 +4870,9 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
       canvas.removeEventListener("webglcontextrestored", onRestored);
       overlay?.remove();
       for (const s of game.space.ships.values()) s.dispose();
+      for (const e of game.island.explorers.values()) e.dispose();
+      for (const v of game.island.parked.values()) v.dispose();
+      DRAWN.clear();
       composer.dispose?.();
       renderer.dispose();
     },
