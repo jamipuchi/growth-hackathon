@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Draw your controller</title>
+<style>
+  * { box-sizing: border-box; margin: 0; -webkit-user-select: none; user-select: none; }
+  html, body { height: 100%; overflow: hidden; font-family: system-ui, sans-serif; touch-action: none; }
+  body { display: flex; flex-direction: column; }
+  header { display: flex; gap: 8px; align-items: center; padding: 10px; border-bottom: 1px solid #ddd; }
+  header strong { margin-right: auto; }
+  button { padding: 10px 14px; border: 1px solid #ccc; border-radius: 8px; background: #fff; font-size: 15px; }
+  button.primary { background: #111; color: #fff; border-color: #111; }
+  #stage { position: relative; flex: 1; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hit { position: absolute; border: 2px dashed rgb(37 99 235 / 0.5); border-radius: 10px; display: grid; place-items: end center; font-size: 11px; color: #2563eb; padding-bottom: 2px; }
+  .hit.down { background: rgb(37 99 235 / 0.25); }
+  #join { position: absolute; inset: 0; display: grid; place-items: center; background: #fff; z-index: 2; }
+  #join form { display: flex; flex-direction: column; gap: 10px; width: 80%; }
+  #join input { padding: 12px; font-size: 18px; border: 1px solid #ccc; border-radius: 8px; }
+  #wait { position: absolute; inset: 0; display: none; place-items: center; background: rgb(255 255 255 / 0.85); font-size: 18px; text-align: center; z-index: 1; }
+</style>
+</head>
+<body>
+<header>
+  <strong id="who">Draw your controller</strong>
+  <button id="clear">Clear</button>
+  <button id="done" class="primary">Done ✓</button>
+</header>
+<div id="stage">
+  <canvas id="pad"></canvas>
+  <div id="wait">✨ Claude is wiring your buttons…</div>
+  <div id="join">
+    <form id="joinForm">
+      <h2>Join the game</h2>
+      <input id="name" placeholder="Your name" autocomplete="off" required>
+      <button class="primary">Join</button>
+      <p>Then draw your controller: arrows, buttons, label them (◀ ▶ ⚔️ jump…)</p>
+    </form>
+  </div>
+</div>
+<script>
+const LAYOUT_POLL_MS = 1000;
+const stage = document.getElementById("stage");
+const canvas = document.getElementById("pad");
+const ctx = canvas.getContext("2d");
+const waitEl = document.getElementById("wait");
+let player = "";
+let isDrawing = false;
+let isPlaying = false;
+
+function resize() {
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+canvas.addEventListener("pointerdown", (e) => {
+  if (isPlaying) return;
+  isDrawing = true;
+  ctx.beginPath();
+  ctx.moveTo(e.offsetX, e.offsetY);
+});
+canvas.addEventListener("pointermove", (e) => {
+  if (!isDrawing) return;
+  ctx.lineCap = "round";
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "#111";
+  ctx.lineTo(e.offsetX, e.offsetY);
+  ctx.stroke();
+});
+window.addEventListener("pointerup", () => { isDrawing = false; });
+
+function send(action, isDown) {
+  fetch("/input", { method: "POST", body: JSON.stringify({ type: "input", player, action, down: isDown }) });
+}
+
+// Claude writes controllers/<player>.json with button rectangles (fractions of the pad) once it has read the drawing.
+async function waitForLayout() {
+  const res = await fetch(`controllers/${player}.json`, { cache: "no-store" });
+  if (!res.ok) return setTimeout(waitForLayout, LAYOUT_POLL_MS);
+  const layout = await res.json();
+  waitEl.style.display = "none";
+  isPlaying = true;
+  layout.buttons.forEach(addButton);
+}
+
+function addButton(b) {
+  const el = document.createElement("div");
+  el.className = "hit";
+  el.textContent = b.action;
+  Object.assign(el.style, { left: b.x * 100 + "%", top: b.y * 100 + "%", width: b.w * 100 + "%", height: b.h * 100 + "%" });
+  const press = (isDown) => (e) => {
+    e.preventDefault();
+    el.classList.toggle("down", isDown);
+    send(b.action, isDown);
+    if (isDown && navigator.vibrate) navigator.vibrate(15);
+  };
+  el.addEventListener("pointerdown", press(true));
+  el.addEventListener("pointerup", press(false));
+  el.addEventListener("pointerleave", press(false));
+  stage.appendChild(el);
+}
+
+function resetPad() {
+  document.querySelectorAll(".hit").forEach((el) => el.remove());
+  isPlaying = false;
+  resize();
+}
+
+document.getElementById("joinForm").onsubmit = (e) => {
+  e.preventDefault();
+  player = document.getElementById("name").value.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20);
+  if (!player) return;
+  document.getElementById("who").textContent = "Player: " + player;
+  document.getElementById("join").remove();
+};
+document.getElementById("clear").onclick = resetPad;
+document.getElementById("done").onclick = async () => {
+  if (!player) return;
+  document.querySelectorAll(".hit").forEach((el) => el.remove());
+  isPlaying = false;
+  waitEl.style.display = "grid";
+  await fetch(`/controller?player=${player}`, { method: "POST", body: canvas.toDataURL("image/png") });
+  waitForLayout();
+};
+
+window.addEventListener("resize", resize);
+resize();
+</script>
+</body>
+</html>

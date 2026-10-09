@@ -1,0 +1,8 @@
+.env
+node_modules/
+.claude/
+.DS_Store
+controllers/
+sketch.png
+annotate.png
+note.txt
