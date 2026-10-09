@@ -24,6 +24,7 @@ Everything runs from one Node server, `node server.js`, on port 8000. Phones joi
 | `controller.html` | Phone: join, draw or photograph a controller or entity, play with your own 3D view |
 | `space.html` | Big screen: spectator view, HUD, round clock, minimap, scoreboard |
 | `controllers/<player>-<kind>.png/.json` | Each player's drawings and their generated layouts and entities. Never served |
+| `perf.log` | Performance samples posted by every screen (section 4, Performance). Never served |
 | `ORCHESTRATE.md`, `assets/` | The channel with the 3D asset model: requests, deliveries and the asset contract. Delivered assets live in `assets/<id>-<slug>/` |
 
 **Flow:** the player draws on the phone. Astra sends the image to the model, checks and wires the answer, writes the `.json` and broadcasts it. The phone and the game pick it up right away.
@@ -153,15 +154,31 @@ Before the clock: a **20 s lobby** to draw your ship and controller (defaults if
 ### Views
 - **Phone:** your own ship, third-person chase by default, with a toggle to a first-person cockpit with a big window and gauges.
   - The drawn controller sits on top, semi-transparent.
-  - The **radar** sits bottom-right and points at the current objective.
-  - The round clock sits top-centre.
+  - The **radar** sits top right and points at the current objective; the round clock and objective sit top centre (section 4, Look and HUD).
 - **Big screen:** a cinematic spectator camera following the action, with a minimap, scoreboard, kill feed, objective and round clock.
 
-### Graphics target: hyper-realistic
+### Look and HUD (reference: `assets/reference/ui-inspiration.png`)
+- **Style:** stylized and saturated, not photoreal. Deep blue to violet and magenta nebula clouds, chunky flat-shaded low-poly rocks in warm grey-brown, bloom on everything that glows.
+- **Colour meaning:** red glow means hostile (boss, boss shots, decoy traps); cyan means yours (shield, meters, your arrow on the radar); each player keeps their own colour on their ship, trail and bullets.
+- **Effects:** long additive engine trails, a translucent cyan hex shield bubble, thin bright laser streaks, a planet with clouds and night-side city lights.
+- **Big screen HUD:** objective title top centre in spaced capitals ("FIND THE BOSS", "LAND ON THE PLANET", "DIG UP A CHEST") with a red-to-orange bar under it (boss health, or progress) and a small status line under that; the round clock next to it; a ring radar bottom left (red = boss and hostiles, blue = other players, cyan arrow = you, a red diamond = the objective); SHIELD and BOOST meters bottom right with icons; scoreboard top left.
+- **Phone HUD:** the bottom of the screen belongs to the drawn controller, so the phone keeps its HUD at the top: objective and clock top centre, a small radar top right, SHIELD and BOOST as thin bars top left. Thin lines and glow, no heavy panels.
+
+### Graphics target
 - Bloom and film-style tone mapping, image-based lighting for reflections.
 - Rocks with displaced shapes, a planet with an atmosphere, nebula volumes.
 - Island: three.js Sky and Water add-ons, shadows, height-coloured terrain, many trees.
 - Drawn entities stay hand-drawn: the contrast with the realistic world is the look.
+
+### Performance: iPhone first
+The game must run perfectly on an iPhone in Safari. That is the target device, and it is measured, not assumed.
+
+- **Targets:** 60 fps on iPhone 12 and newer; never below 30 fps on iPhone XR or 11. The big screen holds 60 fps on the host laptop. Phone frame budget: 12 ms of CPU.
+- **Phone render budget:** at most 80 draw calls and 120k triangles, pixel ratio capped at 2, textures at most 1024 px and 48 MB in total. No shadow maps and no reflection passes on phones: cheap shader water on the phone, the `Water` add-on only on the big screen. Bloom runs at half resolution, or is replaced by additive glow sprites. Rocks are instanced with one material per type; static geometry is merged; fog cuts the far draw distance.
+- **Adaptive quality:** a governor watches the last 60 frames. If the 90th-percentile frame time goes over 18 ms it drops one step (pixel ratio 2 → 1.5 → 1.25 → 1, then bloom off, then far rocks off). Under 12 ms for 5 s, it steps back up.
+- **iOS specifics:** `viewport-fit=cover` with safe-area insets; `touch-action: none` and no double-tap or pinch zoom; `apple-mobile-web-app-capable` for full screen from the home screen; a "rotate to landscape" prompt; motion permission through `DeviceMotionEvent.requestPermission()` on a tap (needs HTTPS); `navigator.vibrate` does nothing on iOS, so never rely on it; handle `webglcontextlost` and restore; stop rendering while the page is hidden.
+- **Measurement is built in:** `?perf` shows an overlay on any screen (fps, 1% low, frame ms, draw calls, triangles, textures, quality step). Every phone also posts a sample to `POST /perf` every 5 s (device from the user agent, average fps, 1% low, 90th-percentile frame ms, draw calls, triangles, quality step). The server appends it to `perf.log`, which is never served, and prints one line per device. `node server.js --bots 8` adds 8 scripted ships to load-test.
+- **Network:** ticks at 15 Hz with compact arrays, under 4 KB per tick for 8 players, one event stream per screen.
 
 ---
 
@@ -340,13 +357,13 @@ Steps 0 and 1 are done by everyone together. After that each lane works on its s
 | **1. Contract** | All | Message formats (section 3), controller layout v2, the extended `verbs.js` format (section 5), the `rigs.js` template shape (section 6), as code and sample JSON files | `verbs.js`, `rigs.js`, `samples/*.json` | Every sample file passes the same checks the server will run |
 | **2. Server and live stream** | Netcode & sim | Static files, `GET /events`, `POST /input`. Broadcast to every connected screen | `server.js` | Two browser tabs: input from one appears on the other within 100 ms |
 | **3. Core simulation** | Netcode & sim | `world.js` at 30 Hz: players, flight physics (turn, pitch, thrust, strafe), rocks, bullets, collisions, shoot, boost and shield. The round clock: lobby, playing, sudden death, scoreboard. Ticks 15 times a second | `world.js` | A scripted player moves, shoots a rock and gets points; a scripted round goes lobby → playing → 3:00 cap → scoreboard → new round |
-| **4. Renderer and big screen** | World & render | Shared three.js scene: ships, rocks, bullets, effects, bloom. Spectator camera, scoreboard, minimap, round clock. Movement between ticks is smoothed | `render.js`, `space.html` | The big screen shows a keyboard-controlled ship flying and shooting smoothly, with the clock counting down |
-| **5. Phone controller** | Phone | Join with a name, draw on a canvas, **Done** → upload. Dashed tap areas, real analog sticks, a tilt toggle. The phone renders its own ship (chase by default, cockpit toggle), with the drawing semi-transparent on top, the radar bottom-right and the clock top-centre | `controller.html` | Using a hand-written layout JSON, a phone flies its ship and sees its own view |
+| **4. Renderer and big screen** | World & render | Shared three.js scene: ships, rocks, bullets, effects, bloom. Spectator camera, scoreboard, minimap, round clock. Movement between ticks is smoothed | `render.js`, `space.html` | The big screen shows a keyboard-controlled ship flying and shooting smoothly, with the clock counting down. With `--bots 8`, `perf.log` shows the big screen at 60 fps |
+| **5. Phone controller** | Phone | Join with a name, draw on a canvas, **Done** → upload. Dashed tap areas, real analog sticks, a tilt toggle. The phone renders its own ship (chase by default, cockpit toggle), with the drawing semi-transparent on top and the HUD along the top (section 4, Look and HUD) | `controller.html` | Using a hand-written layout JSON, a phone flies its ship and sees its own view. With `--bots 8`, an iPhone's samples in `perf.log` average 55 fps or more with a 1% low of 30 or more |
 | **6. Astra: controllers** | Astra | `POST /generate` for controllers: speculative calls, abort, cache by hash, add-a-button mode, checks, "generating…" and "try again" states | `astra.js`, `server.js` | Draw arrows plus FIRE, and working buttons appear in under 3 s. Adding a LAND button mid-round takes under 5 s. Bad model output is rejected cleanly |
 | **7. Open world and boss** | Netcode & sim, World & render | Rock types, PvP with health and respawn, the scoring table. Nebula with FLARE and SCAN, decoys, the armoured boss with DRILL, boss attacks | `world.js`, `render.js` | Four players find the boss, crack it and destroy it by about 1:10; points match the scoring table |
 | **8. Planet and island** | Netcode & sim, World & render, Phone | Planet with LAND, a 15 s prompt to draw your explorer (default if skipped), the island scene, chests and DIG, takeoff, sudden death | `terrain.js`, `world.js`, `render.js`, `controller.html` | A player lands, digs up a chest and the round ends. 4 players finish a round in 1:45–2:30. The 3:00 cap and sudden death fire |
 | **9. Drawn entities** | Astra, Phone, World & render | Entity call (type, joints, parts on sockets, verbs). Inflate or extrude on the device. Rigs for ship and person first, then car and quadruped. Generic binding with re-bind on every switch. Photo upload. Selfie on the head socket | `astra.js`, `rigs.js`, `render.js`, `controller.html` | A drawn ship with wings and a drill gets `fly` and `drill` and looks like the drawing. Landing re-binds the same controller in under 5 ms, with greyed controls and hints |
-| **10. Polish** | All | The other 6 rig types, the hyper-realistic pass (section 4), round twists from section 8, sound, HTTPS for tilt and camera | all | Runs smoothly with 8 players: 60 fps on the big screen, 30 fps or better on a mid-range phone. Median round 2:00, none over 3:00 |
+| **10. Polish** | All | The other 6 rig types, the graphics pass (section 4) within the iPhone budget, round twists from section 8, sound, HTTPS for tilt and camera | all | Runs smoothly with 8 players: 60 fps on the big screen and on an iPhone 12, 30 fps or better on an iPhone XR, all read from `perf.log`. Median round 2:00, none over 3:00 |
 
 **Rule:** get one player through a whole round end to end before adding more verbs, types or twists.
 
@@ -365,7 +382,7 @@ Steps 0 and 1 are done by everyone together. After that each lane works on its s
 - **Round length:** if playtests run long, tighten the distances first, then move sudden death earlier. The 3:00 cap is fixed.
 - Tilt and camera on phones need **HTTPS**, using a self-signed certificate that players accept once. Fallback: a tunnel with an HTTPS URL, and sticks instead of tilt.
 - **Bad joints from the model:** snap to the ink, sanity-check limb lengths, fall back to proportional joints or the blob type.
-- Phone GPU: rendering 3D on the phone needs a lighter setting (less bloom, pixel ratio 1).
+- **iPhone performance** is the main technical risk: every render step is checked against `perf.log` from a real iPhone, not a desktop browser (section 4, Performance).
 - Generation speed and cost: aim for under 3 s per drawing, most of it hidden by the speculative call. Cache by drawing hash, and show a "generating…" state on the phone.
 - No login: anyone on the LAN can join. That's fine for a party game, not for anything public.
 

@@ -49,7 +49,7 @@ Priorities: **P0** is needed for the first full round (build steps 7 and 8 in `P
 
 ### Budgets
 
-Phones are the bottleneck: a mid-range phone must hold 30 fps, the big screen 60 fps.
+**iPhone Safari is the target device:** 60 fps on iPhone 12 and newer, never under 30 fps on iPhone XR. The game measures this on real phones (`perf.log`), and the orchestrator will reject an asset that pushes a phone over budget. No shadow maps or reflection passes on phones.
 
 | Asset | Triangles | Draw calls | Textures |
 | --- | --- | --- | --- |
@@ -64,7 +64,9 @@ Phones are the bottleneck: a mid-range phone must hold 30 fps, the big screen 60
 
 ### Art direction
 
-- Cinematic, not photoreal. Silhouettes must read at phone size; strong rim light; colour carries meaning.
+**Reference image: `assets/reference/ui-inspiration.png`.** Match its feel: stylized and saturated, chunky flat-shaded low-poly rocks in warm grey-brown, blue-to-violet-to-magenta nebula clouds, red emissive accents on everything hostile (the boss especially), bright engine glows with long trails, a cyan hex-pattern shield bubble, a planet with clouds and night-side city lights.
+
+- Cinematic, not photoreal. Silhouettes must read at phone size; strong rim light; colour carries meaning: red = hostile, cyan = the player's own things.
 - Player colours are cyan, pink, lime, yellow, orange, purple, blue and red (`world.js` `COLORS`). Keep world assets out of those hues so players stand out.
 - Players' entities are hand drawings puffed into plush-like 3D with a paper texture. Light the world so they look deliberate inside it, not pasted on.
 - Space: blue-black, the nebula violet and magenta. The current prototype (bloom, glow sprites, engine trails) is the baseline.
