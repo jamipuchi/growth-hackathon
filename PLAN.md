@@ -36,6 +36,10 @@ The owner answered a long round of questions after the first playtest. Where an 
 - Rivals can **steal chest points, steal the boss's last hit, and wreck parked ships** (a wrecked ship must be redrawn to take off).
 - Mischief skills, each unlocked by drawing: **EMP** (a rival's buttons swap places for 5 s), **ink bomb** (ink covers a rival's screen until wiped), **tractor** (pulls rivals into rocks) and **mines**, **decoy** (a fake copy that draws fire).
 
+**Style and copy (owner, 23:55)**
+- **Style like Fortnite:** bright, saturated, cartoony 3D with chunky shapes and soft toon-like lighting (the plush inflated drawings fit right in); the UI is bold and chunky: slanted panels and buttons, heavy condensed italic capitals (Google Fonts "Bebas Neue" or "Barlow Condensed" 800 italic for headings, "Barlow" for body), white text with a dark outline or shadow, blue / purple / gold accents like Fortnite's rarity colours, big readable sizes, playful motion (pop-ins, bounces). This replaces the earlier "thin lines" HUD direction; `assets/reference/world-look.png` still sets the world's composition and palette.
+- **Instructions must be SUPER CLEAR:** every screen answers "what do I do now?" in at most two short lines; numbered steps ("1 · DRAW YOUR SHIP on paper"), plain verbs, one example image per drawing step, the same three words everywhere (SHIP or ENTITY you draw, CONTROLLER, BUTTON), no jargon, no internal names (never "verb", "entity", "slot", "layout"). Every new copy string is checked by the first-timer persona of the playtest panel.
+
 **Presentation**
 - **Big screen = spectator TV:** cinematic camera, session leaderboard, kill feed, map, join QR. Not playable.
 - **Simple synthesized sound effects** in v1. **English** only.
