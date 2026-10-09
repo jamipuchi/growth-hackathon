@@ -1,0 +1,300 @@
+{
+  "mode": "full",
+  "route": "expert",
+  "bots": 4,
+  "port": 8120,
+  "measuredAt": "2026-10-09T21:47:27.562Z",
+  "wallSeconds": 39.8,
+  "roundSeconds": 34.7,
+  "roundClock": 33.73,
+  "winner": "e2e",
+  "pass": false,
+  "gates": {
+    "won": true,
+    "noConsoleErrors": true,
+    "phonePerf": false
+  },
+  "stages": {
+    "playing": {
+      "t": 0,
+      "clock": 0.03
+    },
+    "nebula": {
+      "t": 2.71,
+      "clock": 2.67
+    },
+    "flare": {
+      "t": 2.71,
+      "clock": 2.67
+    },
+    "button-drill": {
+      "t": 3.35,
+      "clock": 3.27,
+      "ms": 305,
+      "actions": [
+        "land"
+      ]
+    },
+    "scan": {
+      "t": 3.72,
+      "clock": 3.67
+    },
+    "boss": {
+      "t": 3.72,
+      "clock": 3.67
+    },
+    "drilling": {
+      "t": 6.62,
+      "clock": 6.47
+    },
+    "cracked": {
+      "t": 11.75,
+      "clock": 11.43
+    },
+    "bossDown": {
+      "t": 14.17,
+      "clock": 13.8
+    },
+    "button-land": {
+      "t": 17.52,
+      "clock": 17.03,
+      "ms": 303,
+      "actions": [
+        "land"
+      ]
+    },
+    "planet": {
+      "t": 18.23,
+      "clock": 17.73
+    },
+    "land-pressed": {
+      "t": 19.23,
+      "clock": 18.73
+    },
+    "landed": {
+      "t": 22.34,
+      "clock": 21.77
+    },
+    "explorer": {
+      "t": 24,
+      "clock": 23.33,
+      "choice": "default"
+    },
+    "chest": {
+      "t": 24.16,
+      "clock": 23.53,
+      "id": 2
+    },
+    "button-dig": {
+      "t": 25.68,
+      "clock": 25,
+      "ms": 303,
+      "actions": [
+        "land"
+      ]
+    },
+    "digging": {
+      "t": 25.72,
+      "clock": 25.07
+    },
+    "takeoff-pressed": {
+      "t": 26.54,
+      "clock": 25.87
+    },
+    "won": {
+      "t": 34.68,
+      "clock": 33.73,
+      "text": "🏆 e2e found the treasure and wins round 1!"
+    }
+  },
+  "generates": [
+    {
+      "gate": "drill",
+      "ok": true,
+      "ms": 305,
+      "status": 200,
+      "actions": [
+        "land"
+      ],
+      "drawingsLeft": {
+        "space": 4,
+        "planet": 5
+      }
+    },
+    {
+      "gate": "land",
+      "ok": true,
+      "ms": 303,
+      "status": 200,
+      "actions": [
+        "land"
+      ],
+      "drawingsLeft": {
+        "space": 3,
+        "planet": 5
+      }
+    },
+    {
+      "gate": "dig",
+      "ok": true,
+      "ms": 303,
+      "status": 200,
+      "actions": [
+        "land"
+      ],
+      "drawingsLeft": {
+        "space": 3,
+        "planet": 4
+      }
+    }
+  ],
+  "deaths": 0,
+  "ticks": 567,
+  "invalidMessages": {
+    "world": 0,
+    "tick": 0
+  },
+  "announces": [
+    {
+      "t": 0,
+      "text": "Round 1: REACH THE BOSS",
+      "big": true
+    },
+    {
+      "t": 11.75,
+      "text": "e2e cracked the boss's armour! DESTROY THE BOSS",
+      "big": false
+    },
+    {
+      "t": 14.17,
+      "text": "💥 e2e destroyed the boss! LAND ON THE PLANET",
+      "big": true
+    },
+    {
+      "t": 22.32,
+      "text": "e2e landed on the planet. DIG UP A CHEST",
+      "big": false
+    },
+    {
+      "t": 31.73,
+      "text": "e2e landed on the planet. DIG UP A CHEST",
+      "big": false
+    },
+    {
+      "t": 34.68,
+      "text": "🏆 e2e found the treasure and wins round 1!",
+      "big": true
+    }
+  ],
+  "issues": [
+    "mock /generate for drill returned land (astra mockLayout always answers LAND); inputs still sent",
+    "mock /generate for dig returned land (astra mockLayout always answers LAND); inputs still sent"
+  ],
+  "readyVia": "tap",
+  "toasts": [
+    {
+      "t": 9.65,
+      "text": "Too tough to shoot through. What breaks rock?",
+      "sketch": null,
+      "ghost": null
+    }
+  ],
+  "perf": {
+    "source": "perf.log",
+    "phone": {
+      "samples": 7,
+      "fps": 56.7,
+      "fpsMin": 54.8,
+      "low1": 11.3,
+      "low1Min": 7.4,
+      "p90ms": 18.5,
+      "calls": 22.2,
+      "callsMax": 28,
+      "tris": 54070,
+      "trisMax": 59366,
+      "tier": 5,
+      "size": "844x390@1",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Apple",
+      "contractErrors": []
+    },
+    "big": {
+      "samples": 7,
+      "fps": 119.9,
+      "fpsMin": 119.6,
+      "low1": 94.3,
+      "low1Min": 81.1,
+      "p90ms": 9.8,
+      "calls": 33.3,
+      "callsMax": 39,
+      "tris": 83886,
+      "trisMax": 148052,
+      "tier": 0,
+      "size": "1440x900@1",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/",
+      "contractErrors": []
+    },
+    "note": "Phone numbers come from WebKit on a desktop Mac emulating an iPhone 13 (844x390 @3x): a proxy only, confirm on a real iPhone."
+  },
+  "consoleErrors": [],
+  "shots": [
+    "dev/int-client/shots/boss-big.png",
+    "dev/int-client/shots/boss-phone.png",
+    "dev/int-client/shots/bossDown-big.png",
+    "dev/int-client/shots/bossDown-phone.png",
+    "dev/int-client/shots/button-dig-big.png",
+    "dev/int-client/shots/button-dig-phone.png",
+    "dev/int-client/shots/button-drill-big.png",
+    "dev/int-client/shots/button-drill-phone.png",
+    "dev/int-client/shots/button-land-big.png",
+    "dev/int-client/shots/button-land-phone.png",
+    "dev/int-client/shots/chest-big.png",
+    "dev/int-client/shots/chest-phone.png",
+    "dev/int-client/shots/cracked-big.png",
+    "dev/int-client/shots/cracked-phone.png",
+    "dev/int-client/shots/digging-big.png",
+    "dev/int-client/shots/digging-phone.png",
+    "dev/int-client/shots/drilling-big.png",
+    "dev/int-client/shots/drilling-phone.png",
+    "dev/int-client/shots/flare-big.png",
+    "dev/int-client/shots/flare-phone.png",
+    "dev/int-client/shots/land-pressed-big.png",
+    "dev/int-client/shots/land-pressed-phone.png",
+    "dev/int-client/shots/landed-big.png",
+    "dev/int-client/shots/landed-phone.png",
+    "dev/int-client/shots/lobby-big.png",
+    "dev/int-client/shots/lobby-phone.png",
+    "dev/int-client/shots/nebula-big.png",
+    "dev/int-client/shots/nebula-phone.png",
+    "dev/int-client/shots/planet-big.png",
+    "dev/int-client/shots/planet-phone.png",
+    "dev/int-client/shots/playing-big.png",
+    "dev/int-client/shots/playing-phone.png",
+    "dev/int-client/shots/scan-big.png",
+    "dev/int-client/shots/scan-phone.png",
+    "dev/int-client/shots/scoreboard-big.png",
+    "dev/int-client/shots/scoreboard-phone.png",
+    "dev/int-client/shots/shot-land-1-big.png",
+    "dev/int-client/shots/shot-land-1-phone.png",
+    "dev/int-client/shots/shot-land-2-big.png",
+    "dev/int-client/shots/shot-land-2-phone.png",
+    "dev/int-client/shots/shot-land-3-big.png",
+    "dev/int-client/shots/shot-land-3-phone.png",
+    "dev/int-client/shots/shot-reland-1-big.png",
+    "dev/int-client/shots/shot-reland-1-phone.png",
+    "dev/int-client/shots/shot-reland-2-big.png",
+    "dev/int-client/shots/shot-reland-2-phone.png",
+    "dev/int-client/shots/shot-reland-3-big.png",
+    "dev/int-client/shots/shot-reland-3-phone.png",
+    "dev/int-client/shots/shot-takeoff-1-big.png",
+    "dev/int-client/shots/shot-takeoff-1-phone.png",
+    "dev/int-client/shots/shot-takeoff-2-big.png",
+    "dev/int-client/shots/shot-takeoff-2-phone.png",
+    "dev/int-client/shots/shot-takeoff-3-big.png",
+    "dev/int-client/shots/shot-takeoff-3-phone.png",
+    "dev/int-client/shots/takeoff-pressed-big.png",
+    "dev/int-client/shots/takeoff-pressed-phone.png",
+    "dev/int-client/shots/won-big.png",
+    "dev/int-client/shots/won-phone.png"
+  ],
+  "video": null
+}

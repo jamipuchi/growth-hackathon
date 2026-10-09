@@ -26,17 +26,39 @@ const ASSETS = {
   boss: async () => {
     const m = await import(assetUrl("A-001-boss-rock/boss.js"));
     const { boss } = await m.createBossEncounter({ decoyCount: 0 });
-    return { object3d: boss, setState: (s) => m.setArmourState(boss, s) };
+    return { object3d: boss, setState: (s) => m.setArmourState(boss, s), update: m.updateBoss ? (dt) => m.updateBoss(boss, dt) : null };
   },
   rocks: async () => {
     const m = await import(assetUrl("A-002-rocks/rocks.js"));
     return { templates: await m.loadRocks(), createRockField: m.createRockField };
   },
   ship: async (color) => (await import(assetUrl("A-009-defaults/defaults.js"))).createDefaultShip({ color }),
-  explorer: async (color) => (await import(assetUrl("A-009-defaults/defaults.js"))).createDefaultExplorer({ color, animation: "idle" }),
+  // A-009 explorer driven by the A-008 person library (33 clips: kneel, step_out, climb_in…); A-009's own 8 clips if
+  // the library fails to load.
+  explorer: async (color) => {
+    const D = await import(assetUrl("A-009-defaults/defaults.js"));
+    try {
+      const P = await import(assetUrl("A-008-rigs/person.js"));
+      const ex = await D.createDefaultExplorer({ color, animation: null });
+      const motion = await P.createPersonAnimator(ex.object3d, { animation: "idle" });
+      return { ...ex, clips: motion.clips, play: motion.play, update: (dt) => motion.update(dt), dispose() { motion.dispose(); ex.dispose(); } };
+    } catch (e) {
+      console.warn("[render] A-008 clips unavailable, using A-009 clips:", e?.message || e);
+      return D.createDefaultExplorer({ color, animation: "idle" });
+    }
+  },
   chest: async (state) => (await import(assetUrl("A-006-chest/chest.js"))).createChest({ state }),
-  planet: null, // A-004 not delivered yet: procedural shader planet below.
-  island: null, // A-005 not delivered yet: procedural terrain, palms and water below.
+  planet: null, // A-004 still in progress: procedural shader planet below.
+  // A-005 island kit: its terrain and instanced props (palms with LOD and breeze, bushes, rocks, cliffs). The game
+  // keeps its own cheap water, sky and lights (the Water add-on stays off the phone, PLAN.md section 4). Phones get
+  // fewer props and a triangle cap that leaves room for players, chests and effects.
+  island: async ({ seed, clearings, phone }) => {
+    const m = await import(assetUrl("A-005-island/island.js"));
+    const counts = phone ? { resolution: 110, palmCount: 110, bushCount: 50, rockCount: 40, cliffCount: 10, triangleBudget: 55000, palmDetailDistance: 40 } : {};
+    const kit = await m.createIsland({ seed, size: Terrain.ISLAND_SIZE, heightAt: (x, z) => Terrain.height(x, z, seed), clearings, ...counts });
+    for (const o of [kit.water, kit.sky, kit.sunlight, kit.ambient]) if (o) o.visible = false;
+    return kit;
+  },
 };
 const assetCache = new Map();
 function loadAsset(name, ...args) {
@@ -52,6 +74,25 @@ function loadAsset(name, ...args) {
   });
   if (shared) assetCache.set(key, p);
   return p;
+}
+
+// Optional modules, loaded lazily so the game still runs without them: anim.js (procedural animation per entity)
+// and transition.js (the landing / take-off shot).
+let Anim = null, Transition = null;
+import("./anim.js").then((m) => (Anim = m)).catch((e) => console.warn("[render] anim.js unavailable:", e?.message || e));
+import("./transition.js").then((m) => (Transition = m)).catch((e) => console.warn("[render] transition.js unavailable:", e?.message || e));
+// Player entities from the `entity` messages ({ [player]: { type, verbs, anims } }), for the animators.
+const entities = new Map();
+const animsFor = (player, type) => {
+  const e = entities.get(player);
+  return e && e.type === type && e.anims ? e.anims : undefined;
+};
+// Particles for the animators' effects (muzzle, sparks, bursts): reuse the scene's own batch, no extra draw calls.
+function animFx(particles, color) {
+  return (kind, socket, k, pos, dir) => {
+    const big = kind === "muzzleBig" || kind === "warp" ? 2 : 1;
+    particles.burst(pos, color, Math.round(6 * k * big), 6 * big, 0.35, 0.5 * big, 0.05, { boost: 2.5, drag: 2 });
+  };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -104,12 +145,12 @@ const BB_VERT = /* glsl */ `
     vUv = uv; vColor = vec4(iColor.rgb, a);
   }`;
 const BB_FRAG = /* glsl */ `
-  uniform sampler2D uMap; uniform float uUseMap;
+  uniform sampler2D uMap; uniform float uUseMap; uniform float uFade;
   varying vec2 vUv; varying vec4 vColor;
   void main() {
     float d = length(vUv - 0.5) * 2.0;
     float g = uUseMap > 0.5 ? texture2D(uMap, vUv).a : exp(-d * d * 3.5) * (1.0 - smoothstep(0.85, 1.0, d)) + 0.6 * exp(-d * d * 40.0);
-    gl_FragColor = vec4(vColor.rgb * g * vColor.a, 1.0);
+    gl_FragColor = vec4(vColor.rgb * g * vColor.a * uFade, 1.0);
   }`;
 class BillboardBatch {
   constructor(capacity, { map = null, nearFade = 0, renderOrder = 10 } = {}) {
@@ -132,7 +173,7 @@ class BillboardBatch {
     this.material = new THREE.ShaderMaterial({
       vertexShader: BB_VERT,
       fragmentShader: BB_FRAG,
-      uniforms: { uMap: { value: map }, uUseMap: { value: map ? 1 : 0 }, uNearFade: { value: nearFade } },
+      uniforms: { uMap: { value: map }, uUseMap: { value: map ? 1 : 0 }, uNearFade: { value: nearFade }, uFade: { value: 1 } },
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
@@ -401,55 +442,44 @@ function placeholderExplorer(color) {
   return { object3d: group, materials: [suit, white, visor], play() {}, update() {}, dispose() {} };
 }
 
-function nameLabel(name, color) {
-  const tex = canvasTexture(256, 64, (g, w, h) => {
-    g.font = "700 34px system-ui, sans-serif";
-    g.textAlign = "center";
-    g.textBaseline = "middle";
-    g.shadowColor = "rgba(0,0,0,0.9)";
-    g.shadowBlur = 8;
-    g.fillStyle = hexColor(color);
-    g.fillText(name.toUpperCase(), w / 2, h / 2);
-  });
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false, sizeAttenuation: false, fog: false }));
-  s.scale.set(0.12, 0.03, 1);
-  s.renderOrder = 20;
-  return s;
-}
-
-// One ship: A-009 default ship (or placeholder) in player colour, engine glow + trail, hex shield, label.
+// One ship: A-009 default ship (or placeholder) in player colour, engine glow + trail, hex shield, animator.
 class ShipView {
   constructor(space, name, color) {
     this.space = space;
     this.name = name;
     this.color = new THREE.Color(color);
     this.group = new THREE.Group();
+    // body: the animator's root (its transform stays identity; the animator moves the model under its own pivot).
+    this.body = new THREE.Group();
+    this.group.add(this.body);
     this.model = placeholderShip(color);
-    this.group.add(this.model.object3d);
+    this.body.add(this.model.object3d);
     this.engines = this.model.engines;
     this.shield = new THREE.Mesh(space.shieldGeo, space.shieldMat);
     this.shield.visible = false;
     this.shield.renderOrder = 13;
     this.group.add(this.shield);
-    if (space.big) {
-      this.label = nameLabel(name, color);
-      space.scene.add(this.label);
-    }
     this.vel = v3();
     this.prev = null;
     this.trailAcc = 0;
     this.opacity = 1;
+    this.transit = false; // true while transition.js owns the group (the landing / take-off shot)
+    this.anim = null;
+    this.modelReady = false;
+    this.lastStarted = undefined;
+    this.lastHp = null;
     space.scene.add(this.group);
     loadAsset("ship", color).then((asset) => {
+      this.modelReady = true;
       if (!asset) return;
       if (this.disposed) return asset.dispose();
-      this.group.remove(this.model.object3d);
+      this.body.remove(this.model.object3d);
       this.model.dispose();
       // Normalise to about 3.2 m long so every ship reads the same.
       const box = new THREE.Box3().setFromObject(asset.object3d);
       const len = Math.max(box.max.z - box.min.z, box.max.x - box.min.x, 0.01);
       asset.object3d.scale.setScalar(3.2 / len);
-      this.group.add(asset.object3d);
+      this.body.add(asset.object3d);
       const s = asset.object3d.scale.x;
       const sock = ["engine_l", "engine_r"].map((k) => asset.sockets[k]).filter(Boolean);
       asset.object3d.updateMatrixWorld(true);
@@ -470,22 +500,56 @@ class ShipView {
       m.needsUpdate = true;
     }
   }
+  ensureAnim() {
+    if (this.anim || !Anim || !this.modelReady || this.disposed) return;
+    try {
+      this.anim = Anim.createAnimator("ship", this.body, { anims: animsFor(this.name, "ship"), sockets: this.model.sockets, size: 3.2, fx: false, onFx: animFx(this.space.particles, this.color) });
+    } catch (e) { console.warn("[render] ship animator failed:", e?.message || e); this.anim = false; }
+  }
   update(p, dt, t, ctx) {
+    if (this.transit) return; // the shot places, reparents and hides it
     const g = this.group;
     const dead = p.flags.dead || p.mode !== "space";
     const hideSelf = ctx.cockpit && p.name === ctx.me;
     const flicker = p.flags.stun && Math.floor(t * 14) % 2 === 0;
     g.visible = !dead && !hideSelf && !flicker;
-    if (this.label) this.label.visible = !dead && !hideSelf;
-    if (dead) { this.prev = null; return; }
+    if (dead) { this.prev = null; this.lastHp = null; return; }
     if (this.prev) this.vel.set(p.x - this.prev.x, p.y - this.prev.y, p.z - this.prev.z).divideScalar(Math.max(dt, 1e-3));
     this.prev = { x: p.x, y: p.y, z: p.z };
     g.position.set(p.x, p.y, p.z);
     g.rotation.set(p.pitch, p.yaw, p.roll, "YXZ");
-    this.shield.visible = !!p.flags.shield;
+    g.scale.setScalar(1);
+    const P = ctx.planet;
+    if (P && p.flags.landing) {
+      // Someone else's landing (the followed player gets the full shot): a dive into the planet.
+      const k = clamp((ctx.serverNow - (p.startedAt || 0)) / (TUNING.planet.landingSeconds * 1000), 0, 1);
+      const e = k * k;
+      g.position.set(lerp(p.x, P.x, e * 0.92), lerp(p.y, P.y, e * 0.92), lerp(p.z, P.z, e * 0.92));
+      g.scale.setScalar(1 - 0.7 * e);
+      if (k > 0.95) g.visible = false;
+    } else if (P) {
+      // World hint: near the planet the ship wobbles above the pulsing landing ring.
+      const d = Math.hypot(p.x - P.x, p.y - P.y, p.z - P.z);
+      const near = clamp(1 - (d - P.radius - P.landRange) / 30, 0, 1);
+      if (near > 0) {
+        g.rotation.z += Math.sin(t * 7.3) * 0.09 * near;
+        g.rotation.x += Math.sin(t * 5.1) * 0.05 * near;
+        g.position.y += Math.sin(t * 3.4) * 0.25 * near;
+      }
+    }
+    this.shield.visible = !!(p.flags.shield || p.flags.spawnShield);
     this.setOpacity(p.flags.invisible ? (p.name === ctx.me ? 0.35 : 0.12) : 1);
     if (this.model.setEnginePower) this.model.setEnginePower(p.flags.boost ? 2.2 : 1);
-    if (this.label) this.label.position.set(p.x, p.y + 2.6, p.z);
+    // Procedural animation (anim.js): triggered by the tick's action / startedAt, hits from health drops.
+    this.ensureAnim();
+    if (this.anim) {
+      if (this.lastStarted !== undefined && p.startedAt !== this.lastStarted && p.slot && p.slot !== "mount") this.anim.trigger(p.slot, { verb: p.action });
+      if (this.lastHp !== null && p.hp < this.lastHp - 0.5) this.anim.trigger("hit", { intensity: clamp((this.lastHp - p.hp) / 20, 0.4, 1.5) });
+      const sp = this.vel.length() / (TUNING.cruiseSpeed * TUNING.boostMultiplier);
+      this.anim.update(dt, { speed: clamp(sp, 0, 1), turn: clamp((p.roll || 0) * 1.5, -1, 1), boost: !!p.flags.boost, drilling: !!p.flags.drilling, grounded: false });
+    }
+    this.lastStarted = p.startedAt;
+    this.lastHp = p.hp;
     if (hideSelf || p.flags.invisible) return;
     // Engine glow and trail.
     const boost = p.flags.boost ? 1 : 0;
@@ -508,9 +572,9 @@ class ShipView {
   }
   dispose() {
     this.disposed = true;
+    this.anim?.dispose?.();
     this.group.removeFromParent();
     this.model.dispose?.();
-    if (this.label) { this.label.removeFromParent(); this.label.material.map.dispose(); this.label.material.dispose(); }
   }
 }
 
@@ -613,7 +677,7 @@ function makePlanet(radius, landRange, phone) {
     fragmentShader: /* glsl */ `uniform float uTime; uniform float uIn; varying vec2 vUv;
       void main(){
         float d = length(vUv - 0.5) * 2.3;
-        float pulse = 0.55 + 0.45 * sin(uTime * 3.0);
+        float pulse = 0.55 + 0.45 * sin(uTime * (3.0 + 4.0 * uIn));
         float ring = exp(-pow((d - 1.0) * 45.0, 2.0)) * (0.8 + uIn) + exp(-pow((d - 1.0) * 10.0, 2.0)) * 0.25;
         gl_FragColor = vec4(mix(vec3(0.2,1.0,1.4), vec3(1.0,1.6,1.4), uIn) * ring * pulse * 1.6, 1.0);
       }`,
@@ -630,10 +694,39 @@ function makePlanet(radius, landRange, phone) {
       body.rotation.y += dt * 0.004;
       cloudMat.uniforms.uTime.value = t;
       ringMat.uniforms.uTime.value = t;
-      ringMat.uniforms.uIn.value = damp(ringMat.uniforms.uIn.value, inRange ? 1 : 0, 4, dt);
+      ringMat.uniforms.uIn.value = damp(ringMat.uniforms.uIn.value, +inRange || 0, 4, dt);
     },
     dispose() { group.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); }); },
   };
+}
+
+// Writes the bullets of one mode (0 = space, 1 = island) into an instanced streak mesh, oriented along their motion.
+const _bulletCol = new THREE.Color();
+function makeBulletMesh(len, thick, capacity) {
+  const m = new THREE.InstancedMesh(new THREE.BoxGeometry(thick, thick, len), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false, fog: false }), capacity);
+  m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  m.setColorAt(0, new THREE.Color());
+  m.count = 0;
+  m.frustumCulled = false;
+  return m;
+}
+function writeBullets(mesh, d, bullets, mode) {
+  let n = 0;
+  const cap = mesh.instanceMatrix.count;
+  for (const b of bullets) {
+    if (n >= cap) break;
+    if ((b[5] || 0) !== mode) continue;
+    d.position.set(b[1], b[2], b[3]);
+    const dx = b[6] || 0, dy = b[7] || 0, dz = b[8] || 0;
+    if (dx * dx + dy * dy + dz * dz > 1e-6) d.lookAt(b[1] + dx, b[2] + dy, b[3] + dz);
+    d.updateMatrix();
+    mesh.setMatrixAt(n, d.matrix);
+    mesh.setColorAt(n, _bulletCol.set(b[4] || 0xffffff).multiplyScalar(3.5));
+    n++;
+  }
+  mesh.count = n;
+  mesh.instanceMatrix.needsUpdate = true;
+  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
 }
 
 class SpaceWorld {
@@ -668,12 +761,7 @@ class SpaceWorld {
     this.shieldGeo = new THREE.SphereGeometry(2.6, 28, 18);
     this.shieldMat = SHIELD_MAT();
     // Bullets: thin bright streaks in the shooter's colour, one instanced draw.
-    const bGeo = new THREE.BoxGeometry(0.14, 0.14, 2.6);
-    this.bullets = new THREE.InstancedMesh(bGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false, fog: false }), 512);
-    this.bullets.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.bullets.setColorAt(0, new THREE.Color());
-    this.bullets.count = 0;
-    this.bullets.frustumCulled = false;
+    this.bullets = makeBulletMesh(2.6, 0.14, 512);
     scene.add(this.bullets);
     this.bossShots = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.7, 1), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xff2a2a).multiplyScalar(4), toneMapped: false, fog: false }), 64);
     this.bossShots.count = 0;
@@ -775,6 +863,8 @@ class SpaceWorld {
         group.add(model.object3d);
         this.boss.model = model;
         this.boss.state = null;
+        this.boss.crack = bossCrack(model.object3d, (b.radius || TUNING.boss.radius) * 1.05);
+        group.add(this.boss.crack.lines);
         this.applyBossState();
       });
     }
@@ -833,25 +923,12 @@ class SpaceWorld {
     }
     for (const [name, s] of this.ships) if (!seen.has(name)) { s.dispose(); this.ships.delete(name); }
     this.shieldMat.uniforms.uTime.value = t;
-    // Bullets (oriented along their motion).
-    const d = this.dummy, col = this.tmpCol || (this.tmpCol = new THREE.Color());
-    let n = 0;
-    for (const b of snap.bullets) {
-      if (n >= 512) break;
-      d.position.set(b[1], b[2], b[3]);
-      const dx = b[5] || 0, dy = b[6] || 0, dz = b[7] || 0;
-      if (dx * dx + dy * dy + dz * dz > 1e-6) d.lookAt(b[1] + dx, b[2] + dy, b[3] + dz);
-      d.updateMatrix();
-      this.bullets.setMatrixAt(n, d.matrix);
-      this.bullets.setColorAt(n, col.set(b[4] || 0xffffff).multiplyScalar(3.5));
-      n++;
-    }
-    this.bullets.count = n;
-    this.bullets.instanceMatrix.needsUpdate = true;
-    if (this.bullets.instanceColor) this.bullets.instanceColor.needsUpdate = true;
+    // Bullets (oriented along their motion): only the space ones (mode 0).
+    writeBullets(this.bullets, this.dummy, snap.bullets, 0);
+    const d = this.dummy;
     // Boss shots: red orbs with a hostile glow.
     const red = this.red || (this.red = new THREE.Color(0xff2a2a));
-    n = 0;
+    let n = 0;
     for (const s of snap.bossShots) {
       if (n >= 64) break;
       d.position.set(s[1], s[2], s[3]);
@@ -885,6 +962,7 @@ class SpaceWorld {
     if (B && !B.dead) {
       const b = B.data;
       B.ring.rotation.z += dt * 0.25;
+      B.model?.update?.(dt);
       B.group.rotation.y += dt * 0.05;
       const hostile = this.red;
       const s = B.scale;
@@ -895,6 +973,22 @@ class SpaceWorld {
       }
       const pulse = 0.6 + 0.4 * Math.sin(t * 2.4);
       this.glow.add(b.x, b.y, b.z, 30 * s, 0.35 * pulse, 0.03, 0.05, 0.5);
+      // World hint: a glowing hairline crack shows where the armour is weakest (brighter once drilling cracks it).
+      if (B.crack) {
+        const on = b.armour > 0;
+        B.crack.lines.visible = on;
+        if (on) {
+          const cracked = b.armour < (TUNING.boss.armour || 100);
+          const k = (cracked ? 1.4 : 0.8) * (0.7 + 0.3 * Math.sin(t * 3.1)) * (0.85 + 0.15 * Math.sin(t * 17));
+          B.crack.mat.color.setRGB(3.2 * k, 1.2 * k, 0.3 * k);
+          B.group.updateMatrixWorld();
+          const pts = B.crack.glowPoints;
+          for (let i = 0; i < pts.length; i++) {
+            const w = this.tmp.copy(pts[i]).applyMatrix4(B.group.matrixWorld);
+            this.glow.add(w.x, w.y, w.z, (cracked ? 2.2 : 1.4) * s, 1.6 * k, 0.55 * k, 0.12 * k, 0.9);
+          }
+        }
+      }
       if (b.armour <= 0) this.glow.add(b.x, b.y, b.z, 18 * s * (0.9 + 0.2 * pulse), 3, 1.3, 0.3, 1);
       if (B.bar) {
         B.bar.position.set(b.x, b.y + 19 * s, b.z);
@@ -908,9 +1002,10 @@ class SpaceWorld {
       const P = this.planet;
       const k = clamp((performance.now() - P.born) / 1500, 0, 1);
       P.view.group.scale.setScalar(0.01 + 0.99 * (1 - Math.pow(1 - k, 3)));
-      const me = ctx.mePlayer;
-      const inRange = me && me.mode === "space" && Math.hypot(me.x - P.x, me.y - P.y, me.z - P.z) < P.radius + P.landRange;
-      P.view.update(dt, t, inRange);
+      // World hint: the landing ring pulses harder as the followed ship (mine on a phone) gets close.
+      const me = ctx.subject;
+      const d = me && me.mode === "space" ? Math.hypot(me.x - P.x, me.y - P.y, me.z - P.z) - P.radius : Infinity;
+      P.view.update(dt, t, d < P.landRange ? 1 : clamp(1 - (d - P.landRange) / 60, 0, 1) * 0.5);
     }
     this.glow.end();
     this.particles.update(dt);
@@ -950,6 +1045,10 @@ class SpaceWorld {
         break;
       case "hit":
         P.burst(pos, c, 10, 10, 0.35, 0.7, 0.05, { boost: 3 });
+        break;
+      case "respawn":
+        P.burst(pos, c, 40, 9, 0.9, 1.2, 0.1, { boost: 3, drag: 1.5 });
+        this.rings.spawn(pos, m.color ?? 0x22d3ee, 9, 0.9);
         break;
       case "land":
       case "spark":
@@ -991,6 +1090,49 @@ function placeholderRockField(records) {
     batches[type] = mesh;
   }
   return { object3d, batches, handles, dispose() { object3d.removeFromParent(); for (const m of Object.values(batches)) { m.geometry.dispose(); m.material.dispose(); } } };
+}
+
+// A jagged hairline crack on the boss's armour: two branching lines laid on the model's real surface (raycast once
+// at load), drawn as additive lines plus a few glow sprites along them. Lives in the boss group (turns with it).
+function bossCrack(model, radius) {
+  const rnd = seeded(4242);
+  model.updateWorldMatrix(true, true);
+  const meshes = [];
+  model.traverse((o) => { if (o.isMesh) meshes.push(o); });
+  const ray = new THREE.Raycaster();
+  const parentInv = new THREE.Matrix4().copy(model.parent ? model.parent.matrixWorld : new THREE.Matrix4()).invert();
+  const centre = v3().setFromMatrixPosition(model.matrixWorld);
+  const onSurface = (lat, lon) => {
+    const dir = v3(Math.cos(lat) * Math.sin(lon), Math.sin(lat), Math.cos(lat) * Math.cos(lon));
+    ray.set(centre.clone().addScaledVector(dir, radius * 3), dir.clone().negate());
+    const hit = meshes.length ? ray.intersectObjects(meshes, false)[0] : null;
+    const w = hit ? hit.point.addScaledVector(dir, 0.12) : centre.clone().addScaledVector(dir, radius);
+    return w.applyMatrix4(parentInv);
+  };
+  const segs = [], glowPoints = [];
+  const path = (lat0, lon0, dLat, dLon, n) => {
+    let lat = lat0, lon = lon0, prev = onSurface(lat, lon);
+    for (let i = 0; i < n; i++) {
+      lat += dLat + (rnd() - 0.5) * 0.09;
+      lon += dLon + (rnd() - 0.5) * 0.16;
+      const p = onSurface(lat, lon);
+      segs.push(prev, p);
+      if (i % 2 === 0) glowPoints.push(p);
+      prev = p;
+    }
+    return { lat, lon };
+  };
+  for (const lon0 of [0.2, Math.PI + 0.4]) {
+    path(-0.85, lon0, 0.11, 0.015, 16);
+    path(-0.2, lon0 + 0.05, 0.05, 0.1, 5);
+    path(0.25, lon0, 0.04, -0.11, 5);
+    path(0.5, lon0 + 0.05, -0.02, 0.09, 4);
+  }
+  const g = new THREE.BufferGeometry().setFromPoints(segs);
+  const mat = new THREE.LineBasicMaterial({ color: new THREE.Color(3, 1.2, 0.3), toneMapped: false, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
+  const lines = new THREE.LineSegments(g, mat);
+  lines.renderOrder = 12;
+  return { lines, mat, glowPoints };
 }
 
 function placeholderBoss(s) {
@@ -1131,12 +1273,82 @@ class IslandWorld {
     this.explorers = new Map();
     this.chests = new Map();
     this.seed = null;
+    // ?island=procedural keeps the procedural island (fallback; the A-005 kit is the default on both screens).
+    this.noKit = new URLSearchParams(location.search).get("island") === "procedural";
     this.tmp = v3();
+    // Island PvP: laser streaks (bullets with mode 1), a spawn-shield bubble per explorer.
+    this.bullets = makeBulletMesh(1.3, 0.07, 128);
+    this.dummy = new THREE.Object3D();
+    scene.add(this.bullets);
+    this.shieldGeo = new THREE.SphereGeometry(1.25, 20, 12);
+    this.shieldMat = SHIELD_MAT();
+    // Parked ships on the landing pad (world.island.parked), keyed by player.
+    this.parked = new Map();
+    this.parkedList = [];
+    this.parkYaw = 0;
+    // X marks on the sand over every buried chest (world hint: they glint).
+    const bar = (rot) => new THREE.BoxGeometry(2.6, 0.06, 0.38).rotateY(rot);
+    this.xGeo = mergeGeometries([bar(Math.PI / 4), bar(-Math.PI / 4)]);
+    this.xMat = new THREE.MeshLambertMaterial({ color: 0x8b2a14, emissive: 0x3a0a02, polygonOffset: true, polygonOffsetFactor: -2 });
+  }
+
+  // A-005 kit over the procedural island (which stays as the fallback and while the kit loads).
+  loadKit(w) {
+    const seed = this.seed;
+    if (this.kitSeed === seed || !Number.isInteger(seed) || this.noKit) return;
+    this.kitSeed = seed;
+    const L = w.island?.landing || { x: 0, z: 0 };
+    const clearings = [{ x: L.x, z: L.z, radius: 16 }, ...(w.chests || []).map((c) => ({ x: c.x, z: c.z, radius: 4 }))];
+    loadAsset("island", { seed, clearings, phone: this.phone }).then((kit) => {
+      if (!kit) return;
+      if (this.seed !== seed) return kit.dispose();
+      this.kit?.object3d.removeFromParent();
+      this.kit?.dispose();
+      this.kit = kit;
+      this.scene.add(kit.object3d);
+      this.terrain.visible = false;
+      this.props?.forEach((m) => (m.visible = false));
+    });
+  }
+
+  // Bay of a player on the pad: same formula as world.js (slot = index in the tick's player list).
+  bay(slot) {
+    const L = this.landing || { x: 0, z: 0 };
+    return { x: L.x + (slot % 4) * 4 - 6, z: L.z + Math.floor(slot / 4) * 4 };
+  }
+  groundAt(x, z) { return this.height ? Math.max(0, this.height(x, z)) : 0; }
+
+  // A parked ship (A-009 or placeholder) in the player's colour, nose pointing the way take-off leaves.
+  makeParked(player, color) {
+    const group = new THREE.Group();
+    const v = { group, model: placeholderShip(color), transit: false };
+    group.add(v.model.object3d);
+    this.scene.add(group);
+    loadAsset("ship", color).then((asset) => {
+      if (!asset) return;
+      if (v.disposed) return asset.dispose();
+      group.remove(v.model.object3d);
+      const box = new THREE.Box3().setFromObject(asset.object3d);
+      asset.object3d.scale.setScalar(3.2 / Math.max(box.max.z - box.min.z, box.max.x - box.min.x, 0.01));
+      group.add(asset.object3d);
+      v.model = asset;
+    });
+    this.parked.set(player, v);
+    return v;
+  }
+  disposeParked(player) {
+    const v = this.parked.get(player);
+    if (!v) return;
+    v.disposed = true;
+    v.group.removeFromParent();
+    v.model.dispose?.();
+    this.parked.delete(player);
   }
 
   build(seed) {
     if (seed === this.seed) return;
     this.seed = seed;
+    if (this.kit) { this.kit.object3d.removeFromParent(); this.kit.dispose(); this.kit = null; }
     this.terrain?.removeFromParent();
     this.terrain?.geometry.dispose();
     this.water?.removeFromParent();
@@ -1242,7 +1454,11 @@ class IslandWorld {
 
   setWorld(w) {
     this.build(w.island?.seed ?? w.seed ?? 1);
+    this.loadKit(w);
     this.landing = w.island?.landing || null;
+    this.parkedList = w.island?.parked || [];
+    // Take-off leaves the planet the way world.js points the ship (away from the planet, towards the spawn).
+    if (w.planet) this.parkYaw = Math.atan2(w.planet.x, w.planet.z);
     const seen = new Set();
     for (const c of w.chests || []) {
       seen.add(c.id);
@@ -1252,7 +1468,8 @@ class IslandWorld {
         const mound = new THREE.Mesh(this.moundGeo || (this.moundGeo = new THREE.SphereGeometry(1.5, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2)), this.moundMat || (this.moundMat = new THREE.MeshLambertMaterial({ color: 0xc9a46a })));
         mound.scale.y = 0.5;
         v.mound = mound;
-        this.scene.add(v.group, mound);
+        v.x = new THREE.Mesh(this.xGeo, this.xMat);
+        this.scene.add(v.group, mound, v.x);
         this.chests.set(c.id, v);
         const id = c.id;
         loadAsset("chest", c.buried && !(c.dug > 0) ? "buried" : "closed").then((a) => {
@@ -1274,13 +1491,19 @@ class IslandWorld {
       v.data = { ...c, y };
       v.group.position.set(c.x, y, c.z);
       v.mound.position.set(c.x, y - 0.05, c.z);
+      // Lay the X on the local slope.
+      const H = this.height, sx = (H(c.x + 1, c.z) - H(c.x - 1, c.z)) / 2, sz = (H(c.x, c.z + 1) - H(c.x, c.z - 1)) / 2;
+      v.x.position.set(c.x, y + 0.04, c.z);
+      v.x.rotation.set(Math.atan(sz), 0, -Math.atan(sx));
+      v.x.visible = c.buried && !(c.dug > 0) && !c.open;
     }
-    for (const [id, v] of this.chests) if (!seen.has(id)) { v.group.removeFromParent(); v.mound.removeFromParent(); v.dispose(); this.chests.delete(id); }
+    for (const [id, v] of this.chests) if (!seen.has(id)) { v.group.removeFromParent(); v.mound.removeFromParent(); v.x.removeFromParent(); v.dispose(); this.chests.delete(id); }
   }
 
   update(dt, t, snap, ctx, camera) {
     this.glow.begin();
     if (this.waterMat) this.waterMat.uniforms.uTime.value = t;
+    this.kit?.update(dt, camera);
     // Chests: buried = sand mound + glint; dig progress raises the chest; open = lid up and gold glow.
     for (const v of this.chests.values()) {
       const c = v.data;
@@ -1313,11 +1536,12 @@ class IslandWorld {
     }
     // Explorers.
     const seen = new Set();
+    const pickup = TUNING.island.pickupRange || 3;
     for (const p of snap.players) {
-      if (p.mode !== "planet" || p.flags.dead) continue;
+      if (p.mode !== "planet" || p.flags.dead || p.flags.takingOff) continue; // take-off: the explorer is in the ship
       seen.add(p.name);
       let e = this.explorers.get(p.name);
-      if (!e) e = this.addExplorer(p);
+      if (!e) e = this.addExplorer(p, ctx);
       const g = e.group;
       const prev = e.prev || p;
       const speed = Math.hypot(p.x - prev.x, p.z - prev.z) / Math.max(dt, 1e-3);
@@ -1326,30 +1550,98 @@ class IslandWorld {
       g.rotation.set(0, p.yaw, 0);
       const flick = p.flags.stun && Math.floor(t * 14) % 2 === 0;
       g.visible = !(ctx.cockpit && p.name === ctx.me) && !flick;
-      const ground = this.height ? Math.max(0, this.height(p.x, p.z)) : 0;
-      const clip = p.flags.digging ? "dig" : p.y > ground + 0.4 ? "jump" : speed > TUNING.island.walkSpeed * 1.3 ? "run" : speed > 0.6 ? "walk" : "idle";
-      if (clip !== e.clip) { e.clip = clip; try { e.model.play?.(clip); } catch { /* clip missing in placeholder */ } }
-      e.model.update?.(dt);
+      const ground = this.groundAt(p.x, p.z);
+      // World hint: standing still on an X, the explorer kneels and pats the ground.
+      let onX = null;
+      if (!p.flags.digging && speed < 0.8 && p.y <= ground + 0.4) {
+        for (const v of this.chests.values()) {
+          const c = v.data;
+          if (c && c.buried && !c.open && (c.dug || 0) < 1 && Math.hypot(c.x - p.x, c.z - p.z) < pickup) { onX = c; break; }
+        }
+      }
+      const hasClip = (n) => (e.model.clips || []).some((c) => c.name === n);
+      const stepping = e.stepOutUntil > t;
+      let clip = p.flags.digging ? "dig" : p.y > ground + 0.4 ? "jump" : speed > TUNING.island.walkSpeed * 1.3 ? "run" : speed > 0.6 ? "walk" : onX ? "kneel" : "idle";
+      if (stepping && clip === "idle") clip = "step_out";
+      if (clip === "kneel" && !hasClip("kneel")) clip = "idle";
+      if (clip === "step_out" && !hasClip("step_out")) clip = "idle";
+      if (clip !== e.clip) { e.clip = clip; try { e.model.play?.(clip, clip === "step_out" ? { loop: false, restart: true } : undefined); } catch { /* clip missing in placeholder */ } }
+      // Without a kneel clip, crouch procedurally (the animator owns the model's own transform, the root is ours).
+      if (onX && !hasClip("kneel")) g.position.y -= 0.35;
+      if (onX && Math.random() < dt * 2.2) {
+        const f = forwardOf(p.yaw, 0, this.tmp);
+        this.particles.burst(v3(p.x + f.x * 0.6, ground + 0.1, p.z + f.z * 0.6), DIRT, 5, 1.6, 0.6, 0.3, 0.1, { boost: 1, grav: 8, drag: 1 });
+      }
+      // Procedural layer (anim.js) on top of the clips; its dt feeds the mixer (hit-stop freezes it).
+      this.ensureExplorerAnim(e, p.name);
+      let animDt = dt;
+      if (e.anim) {
+        if (e.pendingStepOut) { e.pendingStepOut = false; e.anim.trigger("stepOut", {}); }
+        if (e.lastStarted !== undefined && p.startedAt !== e.lastStarted && p.slot && p.slot !== "mount") e.anim.trigger(p.slot, { verb: p.action });
+        if (e.lastHp !== null && p.hp < e.lastHp - 0.5) e.anim.trigger("hit", { intensity: clamp((e.lastHp - p.hp) / 20, 0.4, 1.5) });
+        animDt = e.anim.update(dt, { speed: clamp(speed / (TUNING.island.walkSpeed * TUNING.island.runMultiplier), 0, 1), grounded: p.y <= ground + 0.4, digging: !!p.flags.digging });
+        if (!Number.isFinite(animDt)) animDt = dt;
+      }
+      e.lastStarted = p.startedAt;
+      e.lastHp = p.hp;
+      e.model.update?.(animDt);
+      e.shield.visible = !!(p.flags.spawnShield || p.flags.shield);
       if (p.flags.digging && Math.random() < dt * 14) {
         const f = forwardOf(p.yaw, 0, this.tmp);
         this.particles.emit(p.x + f.x * 0.8, ground + 0.2, p.z + f.z * 0.8, (Math.random() - 0.5) * 3, 3 + Math.random() * 3, (Math.random() - 0.5) * 3, 0.8, 0.35, 0.15, DIRT, 1.0, 0.5, 12);
       }
       this.glow.add(p.x, p.y + 2.3, p.z, 0.5, e.color.r * 3, e.color.g * 3, e.color.b * 3, 1);
     }
-    for (const [name, e] of this.explorers) if (!seen.has(name)) { e.group.removeFromParent(); e.model.dispose?.(); e.label?.removeFromParent(); this.explorers.delete(name); }
+    for (const [name, e] of this.explorers) if (!seen.has(name)) { e.group.removeFromParent(); e.anim?.dispose?.(); e.model.dispose?.(); this.explorers.delete(name); }
+    this.shieldMat.uniforms.uTime.value = t;
+    // Parked ships: one per world.island.parked entry, on its bay. Someone else's take-off lifts it away.
+    const colorOf = new Map(snap.players.map((p) => [p.name, p]));
+    const want = new Set();
+    for (const q of this.parkedList) {
+      want.add(q.player);
+      const p = colorOf.get(q.player);
+      let v = this.parked.get(q.player);
+      if (!v) v = this.makeParked(q.player, p?.color ?? 0x94a3b8);
+      if (v.transit) continue;
+      const g = v.group;
+      g.visible = !v.hidden;
+      g.position.set(q.x, this.groundAt(q.x, q.z) + 0.55, q.z);
+      g.rotation.set(0, this.parkYaw, 0);
+      if (p?.flags.takingOff) {
+        const k = clamp((ctx.serverNow - (p.startedAt || 0)) / (TUNING.planet.takeoffSeconds * 1000), 0, 1);
+        g.position.y += k * k * 60;
+        g.rotation.x = k * 0.6;
+        if (k > 0.97) g.visible = false;
+        if (Math.random() < dt * 30) this.particles.emit(g.position.x, g.position.y - 0.4, g.position.z, (Math.random() - 0.5) * 2, -6, (Math.random() - 0.5) * 2, 0.6, 1.0, 0.2, new THREE.Color(p.color), 2.5, 0.5);
+      }
+    }
+    for (const name of [...this.parked.keys()]) if (!want.has(name) && !this.parked.get(name).transit) this.disposeParked(name);
+    // Island bullets (mode 1).
+    writeBullets(this.bullets, this.dummy, snap.bullets, 1);
     this.glow.end();
     this.particles.update(dt);
     this.rings.update(dt, camera);
   }
 
-  addExplorer(p) {
+  addExplorer(p, ctx) {
     const group = new THREE.Group();
-    const e = { group, model: placeholderExplorer(p.color), color: new THREE.Color(p.color), clip: null };
-    group.add(e.model.object3d);
+    const e = { group, model: placeholderExplorer(p.color), color: new THREE.Color(p.color), clip: null, anim: null, modelReady: false, lastStarted: undefined, lastHp: null };
+    e.shield = new THREE.Mesh(this.shieldGeo, this.shieldMat);
+    e.shield.position.y = 0.95;
+    e.shield.scale.set(1, 1.15, 1);
+    e.shield.visible = false;
+    e.shield.renderOrder = 13;
+    // Just landed: the explorer climbs out next to the parked ship (A-008 step_out + the animator's stepOut).
+    if (p.action === "land" && ctx.serverNow - (p.startedAt || 0) < TUNING.planet.landingSeconds * 1000 + 2500) {
+      e.pendingStepOut = true;
+      e.stepOutUntil = ctx.t + 1.5;
+    }
+    group.add(e.model.object3d, e.shield);
     this.scene.add(group);
     this.explorers.set(p.name, e);
     loadAsset("explorer", p.color).then((asset) => {
-      if (!asset || !this.explorers.has(p.name)) return asset?.dispose();
+      e.modelReady = true;
+      if (!asset || this.explorers.get(p.name) !== e) return asset?.dispose();
       group.remove(e.model.object3d);
       const box = new THREE.Box3().setFromObject(asset.object3d);
       const h = Math.max(box.max.y - box.min.y, 0.01);
@@ -1361,6 +1653,14 @@ class IslandWorld {
     return e;
   }
 
+  ensureExplorerAnim(e, name) {
+    if (e.anim || e.anim === false || !Anim || !e.modelReady) return;
+    try {
+      // Root = the explorer group; the animator moves the model (and the bubble) under its own pivot.
+      e.anim = Anim.createAnimator("person", e.group, { anims: animsFor(name, "person"), sockets: e.model.sockets, clips: e.model.clips, play: e.model.play, size: 1.8, fx: false, onFx: animFx(this.particles, e.color) });
+    } catch (err) { console.warn("[render] explorer animator failed:", err?.message || err); e.anim = false; }
+  }
+
   fx(m) {
     const pos = v3(m.pos.x, m.pos.y, m.pos.z);
     const c = new THREE.Color(m.color ?? 0xffffff);
@@ -1368,7 +1668,17 @@ class IslandWorld {
     if (m.kind === "dig") P.burst(pos.setY(pos.y + 0.3), DIRT, 18, 5, 0.8, 0.45, 0.15, { boost: 1, grav: 14, drag: 0.6 });
     else if (m.kind === "treasure") { P.burst(pos.setY(pos.y + 1), new THREE.Color(0xffd34d), 120, 14, 1.8, 1, 0.1, { boost: 3, grav: 5, drag: 0.7 }); this.rings.spawn(pos, 0xffd34d, 14, 1.4, true); }
     else if (m.kind === "land") { P.burst(pos, new THREE.Color(0xe8d4a8), 40, 7, 1.2, 1.4, 0.3, { boost: 0.8, drag: 1.5 }); this.rings.spawn(pos.setY(pos.y + 0.2), 0xffffff, 8, 1, true); }
-    else P.burst(pos, c, 16, 6, 0.6, 0.6, 0.1, { boost: 2.5 });
+    else if (m.kind === "explode") {
+      // An explorer down (island PvP): flash, smoke and a ring on the ground.
+      const size = m.size || 3;
+      P.burst(pos.setY(pos.y + 1), new THREE.Color(0xffd08a), 14, size * 3, 0.35, size * 1.2, size * 0.3, { boost: 3 });
+      P.burst(pos, c, 40, 8, 1.1, 0.7, 0.1, { boost: 2.5, drag: 1.2, grav: 4 });
+      P.burst(pos, new THREE.Color(0x6b6b6b), 16, 3, 1.6, 1.4, 2.2, { boost: 0.6, drag: 1, grav: -1.5 });
+      this.rings.spawn(pos.setY(pos.y - 0.8), m.color ?? 0xff7a3a, size * 3, 0.9, true);
+    } else if (m.kind === "respawn") {
+      P.burst(pos.setY(pos.y + 1), c, 36, 6, 0.9, 0.6, 0.1, { boost: 3, drag: 1.5, grav: -2 });
+      this.rings.spawn(pos.setY(pos.y - 0.9), m.color ?? 0x22d3ee, 5, 0.9, true);
+    } else P.burst(pos, c, 16, 6, 0.6, 0.6, 0.1, { boost: 2.5 });
   }
 }
 const DIRT = new THREE.Color(0x8a6236);
@@ -1418,11 +1728,12 @@ class Snapshots {
         shieldEnergy: lerp(pa.shieldEnergy, pb.shieldEnergy, u), boostEnergy: lerp(pa.boostEnergy, pb.boostEnergy, u),
       });
     }
+    // Bullets: [id, x, y, z, color, mode, dx, dy, dz] (mode 0 = space, 1 = island; old servers send no mode).
     const track = (listB, mapA, color) => listB.map((q) => {
       const p = mapA.get(q[0]);
-      if (!p) return color ? [q[0], q[1], q[2], q[3], q[4]] : q;
+      if (!p) return color ? [q[0], q[1], q[2], q[3], q[4], q[5] || 0] : q;
       const x = lerp(p[1], q[1], u), y = lerp(p[2], q[2], u), z = lerp(p[3], q[3], u);
-      return [q[0], x, y, z, q[4], q[1] - p[1], q[2] - p[2], q[3] - p[3]];
+      return [q[0], x, y, z, q[4], q[5] || 0, q[1] - p[1], q[2] - p[2], q[3] - p[3]];
     });
     return { players, bullets: track(b.tick.bullets, a.bullets, true), bossShots: track(b.tick.bossShots, a.shots, false), flares: b.tick.flares, phase: b.tick.phase };
   }
@@ -1488,6 +1799,12 @@ class CameraRig {
       const o = this.objectiveSpace(game, p);
       return (game.world?.planet ? 5e5 : 0) + (p.flags.drilling ? 1e4 : 0) - (o ? Math.hypot(o.x - p.x, o.y - p.y, o.z - p.z) : 0);
     };
+    // A landing or take-off is the best shot in the game: follow that player at once (the shot itself is never cut).
+    const shot = live.find((p) => p.flags.landing || p.flags.takingOff);
+    if (shot && shot.name !== this.focus && !live.some((p) => p.name === this.focus && (p.flags.landing || p.flags.takingOff))) {
+      this.focus = shot.name; this.lastCut = t; this.snapNext = true; this.side *= -1;
+      return shot;
+    }
     const best = pool.reduce((a, b) => (score(b) > score(a) ? b : a));
     const current = pool.find((p) => p.name === this.focus);
     const sceneOf = (p) => (p.mode === "planet" ? "planet" : "space");
@@ -1672,7 +1989,8 @@ function computeHud(game) {
   const clock = tick ? (phase === "lobby" || phase === "scoreboard" ? Math.max(0, tick.clock - elapsed) : tick.clock + elapsed) : 0;
   const meName = game.screen === "phone" ? game.player : game.followed || game.player;
   const meP = snap.players.find((p) => p.name === meName) || null;
-  const me = meP ? { name: meP.name, color: meP.color, mode: meP.mode, hp: meP.hp, score: meP.score, shieldEnergy: meP.shieldEnergy, boostEnergy: meP.boostEnergy, flags: meP.flags } : null;
+  const me = meP ? { name: meP.name, color: meP.color, mode: meP.mode, hp: meP.hp, maxHp: TUNING.shipHp, score: meP.score, shieldEnergy: meP.shieldEnergy, boostEnergy: meP.boostEnergy, flags: meP.flags,
+    respawnIn: meP.respawnIn ?? null, drawingsLeft: meP.drawingsLeft || null } : null;
   const boss = world?.targets?.find((t) => t.kind === "boss");
   const bossAlive = boss && !boss.dead;
   let objective = null, bar = 0, status = "", objPos = null;
@@ -1727,6 +2045,9 @@ function computeHud(game) {
     objective, objectiveText, bar: clamp(bar, 0, 1), status,
     assists: phase === "assists", note: phase === "assists" ? "ASSISTS ON" : "",
     me, followed: meName || null, radar, scores, tier: game.perf.tier, scene: game.sceneName,
+    // The landing / take-off shot of the camera's subject: the phone fades its controller overlay with overlayAlpha.
+    transition: game.shotState ? game.shotState.kind : null,
+    overlayAlpha: game.shotState && game.shotState.player === meName ? game.shotState.overlayAlpha : 1,
   };
 }
 
@@ -1746,6 +2067,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
   renderer.shadowMap.enabled = false;
   renderer.info.autoReset = false;
   const camera = new THREE.PerspectiveCamera(phone ? 70 : 60, 1, 0.1, 6000);
+  const baseFov = camera.fov;
 
   const game = {
     screen, player: player ? Contract.cleanName(player) || player : null, view: view || (phone ? "chase" : "spectator"),
@@ -1785,6 +2107,101 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
   ro.observe(canvas);
   applySize(true);
 
+  // ---- the landing / take-off shot (transition.js), one continuous shot on the phone and the big screen ----
+  // Plays for the camera's subject (me on a phone, the followed player on the big screen) from flags.landing /
+  // flags.takingOff + startedAt; everyone else gets a cheap dive or lift-off. The shot owns the camera and the
+  // ship until it ends and the subject's mode has switched, then the camera rig glides on from where it stopped.
+  const white = document.createElement("div");
+  white.style.cssText = "position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none";
+  canvas.after(white);
+  let shot = null, lastShotKey = null;
+  const serverNow = () => Date.now() - (game.snaps.offset || 0);
+  function startShot(p, kind) {
+    lastShotKey = `${p.name}:${p.startedAt}`;
+    if (!Transition) return;
+    const dur = kind === "land" ? TUNING.planet.landingSeconds : TUNING.planet.takeoffSeconds;
+    const elapsed = (serverNow() - INTERP_DELAY_MS - (p.startedAt || 0)) / 1000;
+    if (elapsed > dur - 0.3) return; // joined too late: just cut
+    const planet = game.world?.planet;
+    const isl = game.island;
+    const slot = Math.max(0, (game.snaps.latest?.players || []).findIndex((q) => q.name === p.name));
+    const b = isl.bay(slot);
+    const pad = v3(b.x, isl.groundAt(b.x, b.z), b.z);
+    let ship, owner, ring;
+    if (kind === "land") {
+      owner = game.space.ships.get(p.name);
+      if (!owner || !planet) return;
+      ship = owner.group;
+      const out = v3(p.x - planet.x, p.y - planet.y, p.z - planet.z).normalize();
+      ring = v3(planet.x, planet.y, planet.z).addScaledVector(out, planet.radius + 4);
+      owner.shield.visible = false;
+    } else {
+      if (!planet) return;
+      owner = isl.parked.get(p.name) || isl.makeParked(p.name, p.color);
+      ship = owner.group;
+      ship.visible = true;
+      ship.position.set(pad.x, pad.y + 0.55, pad.z);
+      ship.rotation.set(0, isl.parkYaw, 0, "YXZ");
+      // End where world.js puts the ship: radius + 15 m from the centre, facing away (transition adds 35 m ahead).
+      const out = v3(-planet.x, -planet.y, -planet.z).normalize();
+      ring = v3(planet.x, planet.y, planet.z).addScaledVector(out, planet.radius + 15).addScaledVector(forwardOf(isl.parkYaw, 0, v3()), -35);
+    }
+    owner.transit = true;
+    try {
+      const ctl = (kind === "land" ? Transition.playLanding : Transition.playTakeoff)({
+        renderer, camera, spaceScene: game.space.scene, islandScene: isl.scene, ship, ringPosition: ring, padPosition: pad, duration: dur,
+      });
+      shot = { ctl, kind, player: p.name, owner, finished: false, ended: false };
+      // Late start (a tick behind, or the page joined mid-shot): catch up in 0.1 s steps.
+      for (let k = Math.max(0, elapsed); k > 0.02; k -= 0.1) ctl.update(Math.min(0.1, k));
+    } catch (e) {
+      console.warn("[render] transition failed:", e?.message || e);
+      owner.transit = false;
+      shot = null;
+    }
+  }
+  function endShot(subject) {
+    const s = shot;
+    shot = null;
+    white.style.opacity = 0;
+    game.space.nebula.material.uniforms.uFade.value = 1;
+    s.ctl.cancel?.();
+    if (s.kind === "land") { game.space.scene.add(s.owner.group); s.owner.group.scale.setScalar(1); }
+    else { game.island.scene.add(s.owner.group); }
+    s.owner.transit = false;
+    // Hand the camera back to the rig without a cut: it glides on from the shot's last pose.
+    rig.scene = subject?.mode === "planet" ? "planet" : "space";
+    rig.pos.copy(camera.position);
+    rig.look.copy(camera.position).add(camera.getWorldDirection(v3()).multiplyScalar(12));
+    rig.snapNext = false;
+    rig.lastCut = (performance.now() - t0) / 1000; // keep the focus a while (no cut right after the shot)
+  }
+  function shotSubject(snap) {
+    const subjectName = phone ? game.player : game.followed;
+    const subject = subjectName ? snap.players.find((p) => p.name === subjectName) : null;
+    if (!shot && subject && !subject.flags.dead) {
+      const kind = subject.flags.landing ? "land" : subject.flags.takingOff ? "takeoff" : null;
+      if (kind && `${subject.name}:${subject.startedAt}` !== lastShotKey) {
+        if (camera.fov !== baseFov) { camera.fov = baseFov; camera.updateProjectionMatrix(); }
+        startShot(subject, kind);
+      }
+    }
+    return subject;
+  }
+  function updateShot(dt, subject) {
+    const s = shot;
+    if (!s.finished) s.finished = !s.ctl.update(dt) || s.ctl.progress >= 1;
+    else if (!s.ended) s.ended = !s.ctl.update(dt);
+    white.style.opacity = s.ctl.whiteout || 0;
+    // The sky dome hides the starfield; fade the additive nebula puffs with it (they would glow through the sky).
+    game.space.nebula.material.uniforms.uFade.value = 1 - (s.ctl.skyMix || 0);
+    // Hold the last pose until the dust settles and the server has switched the subject's mode (or 2 s at most).
+    const want = s.kind === "land" ? "planet" : "space";
+    const switched = !subject || subject.flags.dead || (subject.mode === want && !subject.flags.landing && !subject.flags.takingOff);
+    if (s.finished) s.heldFor = (s.heldFor || 0) + dt;
+    if (s.finished && ((s.ended && switched) || s.heldFor > 2)) endShot(subject);
+  }
+
   // ---- events ----
   const es = new EventSource("/events");
   es.onmessage = (e) => {
@@ -1793,7 +2210,10 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     switch (m.type) {
       case "world":
         if (game.world && game.world.round !== m.round) { game.space.clearForRound(); game.island.particles.clear(); }
+        // world.entities is only in the message a screen gets on connect: keep the map when the key is absent.
+        if (m.entities) { entities.clear(); for (const [k, v] of Object.entries(m.entities)) entities.set(k, v); }
         game.world = m;
+        if (!warmed) warm();
         game.space.setWorld(m);
         game.island.setWorld(m);
         emit("world", m);
@@ -1809,6 +2229,10 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
       case "toast":
         if (phone && m.player !== game.player) break;
         emit("toast", m);
+        break;
+      case "entity":
+        if (m.player && m.entity) entities.set(m.player, m.entity);
+        emit("entity", m);
         break;
       default:
         emit(m.type, m);
@@ -1836,6 +2260,69 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     fetch("/perf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(perfSample()) }).catch(() => {});
   }, PERF_POST_SECONDS * 1000);
 
+  // ---- pre-warm (iPhone 1% lows): load the shared assets and compile both scenes once, before play starts ----
+  let warmed = false;
+  function warm() {
+    warmed = true;
+    // The explorer is only prefetched (its rig file), never built here: building and disposing a retargeted A-008
+    // explorer this early crashed WebKit now and then (dev/int-client A/B, 2026-10-09).
+    import(assetUrl("A-008-rigs/person.js")).then((m) => m.loadPersonRig()).catch(() => {});
+    Promise.all([loadAsset("ship", 0xffffff), loadAsset("chest", "closed"), loadAsset("boss"), loadAsset("rocks")]).then(([ship, chest]) => {
+      if (disposed) return;
+      const tmp = [ship, chest].filter(Boolean).map((a) => a.object3d);
+      const holder = new THREE.Group();
+      holder.position.set(0, -500, 0);
+      tmp.forEach((o) => holder.add(o));
+      game.island.scene.add(holder);
+      try {
+        renderer.compile(game.island.scene, camera);
+        game.island.scene.remove(holder);
+        game.space.scene.add(holder);
+        renderer.compile(game.space.scene, camera);
+      } catch (e) { console.warn("[render] pre-warm compile failed:", e?.message || e); }
+      holder.removeFromParent();
+      for (const a of [ship, chest]) a?.dispose?.();
+    });
+  }
+
+  // ---- name tags: screen positions of every visible ship / explorer (bigscreen-extras, phone tags) ----
+  const tagPool = [];
+  const tagV = v3();
+  function projectPlayers() {
+    const snap = game.lastSnap;
+    const out = [];
+    if (!snap) return out;
+    const island = game.sceneName === "planet";
+    const W = canvas.clientWidth || width, H = canvas.clientHeight || height;
+    let i = 0;
+    for (const p of snap.players) {
+      if (p.flags.dead || p.flags.invisible || (phone && p.name === game.player)) continue;
+      let obj = null, lift = 0;
+      if (island) {
+        if (p.mode !== "planet") continue;
+        const e = game.island.explorers.get(p.name);
+        if (!e || !e.group.visible) continue;
+        obj = e.group; lift = 2.5;
+      } else {
+        if (p.mode !== "space") continue;
+        const sv = game.space.ships.get(p.name);
+        if (!sv || !sv.group.visible || sv.transit) continue;
+        obj = sv.group; lift = 2.6;
+      }
+      tagV.setFromMatrixPosition(obj.matrixWorld);
+      tagV.y += lift;
+      const dist = tagV.distanceTo(camera.position);
+      tagV.project(camera);
+      const visible = tagV.z < 1 && Math.abs(tagV.x) < 1.1 && Math.abs(tagV.y) < 1.1 && dist < (island ? 120 : 260);
+      const o = tagPool[i] || (tagPool[i] = {});
+      o.name = p.name; o.color = hexColor(p.color); o.hp = p.hp; o.maxHp = TUNING.shipHp; o.visible = visible; o.dist = dist;
+      o.x = ((tagV.x + 1) / 2) * W; o.y = ((1 - tagV.y) / 2) * H;
+      out.push(o);
+      i++;
+    }
+    return out;
+  }
+
   // ---- loop ----
   let raf = 0, lastT = performance.now(), lost = false, disposed = false, lastHud = 0, lastOverlay = 0;
   const t0 = performance.now();
@@ -1852,13 +2339,29 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     applySize();
     const snap = game.snaps.sample();
     game.lastSnap = snap;
-    const cam = rig.update(dt, t, game, snap);
+    // During the shot transition.js owns the camera; the followed player stays the same.
+    const cam = shot ? { mode: "chase", scene: "space", followed: rig.focus } : rig.update(dt, t, game, snap);
     game.followed = cam.followed;
+    const subject = shotSubject(snap);
+    if (shot) cam.scene = shot.ctl.scene === game.island.scene ? "planet" : "space";
     game.sceneName = cam.scene;
-    const ctx = { me: game.player, mePlayer: game.player ? snap.players.find((p) => p.name === game.player) : null, cockpit: cam.mode === "cockpit", phone, big };
+    const ctx = { me: game.player, mePlayer: game.player ? snap.players.find((p) => p.name === game.player) : null, subject, cockpit: cam.mode === "cockpit", phone, big, t, serverNow: serverNow(), planet: game.space.planet };
     const W = cam.scene === "planet" ? game.island : game.space;
     W.update(dt, t, snap, ctx, camera);
-    frames[0].visible = frames[1].visible = cam.mode === "cockpit";
+    if (shot) updateShot(dt, subject);
+    game.shotState = shot ? { kind: shot.kind, player: shot.player, overlayAlpha: shot.ctl.overlayAlpha } : null;
+    if (!shot) {
+      // Camera shake and fov kick from the subject's animator (anim.js).
+      const a = subject ? (subject.mode === "planet" ? game.island.explorers.get(subject.name)?.anim : game.space.ships.get(subject.name)?.anim) : null;
+      const shake = a ? a.shake || 0 : 0, kick = a ? a.fovKick || 0 : 0;
+      if (shake > 0.001) {
+        camera.position.x += (Math.sin(t * 61) + Math.sin(t * 43)) * 0.06 * shake;
+        camera.position.y += (Math.sin(t * 53) + Math.cos(t * 37)) * 0.06 * shake;
+      }
+      const f = baseFov + kick;
+      if (Math.abs(f - camera.fov) > 0.01) { camera.fov = f; camera.updateProjectionMatrix(); }
+    }
+    frames[0].visible = frames[1].visible = cam.mode === "cockpit" && !shot;
     const tier = TIERS[game.perf.tier];
     game.space.farRocks = tier.far;
     renderer.toneMappingExposure = cam.scene === "planet" ? (big ? 0.6 : 0.95) : 1.0;
@@ -1870,6 +2373,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
       composer.render(dt);
     } else renderer.render(W.scene, camera);
     last = { calls: renderer.info.render.calls, tris: renderer.info.render.triangles };
+    if (listeners.frame?.length) emit("frame", t);
     const workMs = performance.now() - work0;
     if (game.perf.frame(dtMs, workMs, t)) applySize(true);
     if (now - lastHud > 100) {
@@ -1896,11 +2400,16 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     setPlayer(name) { game.player = name ? Contract.cleanName(name) || name : null; rig.snapNext = true; },
     on(event, cb) { (listeners[event] = listeners[event] || []).push(cb); return () => { listeners[event] = listeners[event].filter((f) => f !== cb); }; },
     hud: () => computeHud(game),
+    // Integration extras: the live camera and the screen position of every visible ship / explorer (name tags;
+    // fresh after each "frame" event).
+    camera,
+    projectPlayers,
     // Extras for pages and tests (not part of the contract): live perf numbers and the camera's current state.
     perf: () => ({ ...perfSample(), scene: game.sceneName, followed: game.followed }),
     _internals: { game, renderer, camera, bloom, THREE },
     dispose() {
       disposed = true;
+      white.remove();
       cancelAnimationFrame(raf);
       clearInterval(perfTimer);
       es.close();

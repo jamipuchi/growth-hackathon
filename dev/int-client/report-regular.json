@@ -1,0 +1,263 @@
+{
+  "mode": "full",
+  "route": "regular",
+  "bots": 4,
+  "port": 8124,
+  "measuredAt": "2026-10-09T21:14:16.105Z",
+  "wallSeconds": 123.5,
+  "roundSeconds": 117.7,
+  "roundClock": 116.2,
+  "winner": "e2e",
+  "pass": true,
+  "gates": {
+    "won": true,
+    "noConsoleErrors": true,
+    "phonePerf": true
+  },
+  "stages": {
+    "playing": {
+      "t": 0,
+      "clock": 0.03
+    },
+    "nebula": {
+      "t": 6.28,
+      "clock": 6.2
+    },
+    "flare": {
+      "t": 6.28,
+      "clock": 6.2
+    },
+    "scan": {
+      "t": 7.29,
+      "clock": 7.2
+    },
+    "boss": {
+      "t": 7.29,
+      "clock": 7.2
+    },
+    "hint-drill": {
+      "t": 13.1,
+      "clock": 12.93,
+      "text": "Too tough to shoot through. What breaks rock?",
+      "sketch": null
+    },
+    "button-drill": {
+      "t": 25.43,
+      "clock": 25.07,
+      "ms": 306,
+      "actions": [
+        "land"
+      ]
+    },
+    "drilling": {
+      "t": 27.34,
+      "clock": 27
+    },
+    "cracked": {
+      "t": 32.4,
+      "clock": 31.93
+    },
+    "bossDown": {
+      "t": 35.69,
+      "clock": 35.23
+    },
+    "planet": {
+      "t": 40.83,
+      "clock": 40.3
+    },
+    "button-land": {
+      "t": 93.19,
+      "clock": 91.97,
+      "ms": 303,
+      "actions": [
+        "land"
+      ]
+    },
+    "land-pressed": {
+      "t": 93.22,
+      "clock": 92.03
+    },
+    "landed": {
+      "t": 96.3,
+      "clock": 95.07
+    },
+    "chest": {
+      "t": 97.77,
+      "clock": 96.53,
+      "id": 1
+    },
+    "hint-dig": {
+      "t": 103.85,
+      "clock": 102.53,
+      "text": "X marks the spot. The treasure isn't on top.",
+      "sketch": null
+    },
+    "button-dig": {
+      "t": 116.18,
+      "clock": 114.67,
+      "ms": 303,
+      "actions": [
+        "land"
+      ]
+    },
+    "digging": {
+      "t": 116.21,
+      "clock": 114.73
+    },
+    "won": {
+      "t": 117.73,
+      "clock": 116.2,
+      "text": "🏆 e2e found the treasure and wins round 1!"
+    }
+  },
+  "generates": [
+    {
+      "gate": "drill",
+      "ok": true,
+      "ms": 306,
+      "status": 200,
+      "actions": [
+        "land"
+      ],
+      "drawingsLeft": {
+        "space": 4,
+        "planet": 5
+      }
+    },
+    {
+      "gate": "land",
+      "ok": true,
+      "ms": 303,
+      "status": 200,
+      "actions": [
+        "land"
+      ],
+      "drawingsLeft": {
+        "space": 3,
+        "planet": 5
+      }
+    },
+    {
+      "gate": "dig",
+      "ok": true,
+      "ms": 303,
+      "status": 200,
+      "actions": [
+        "land"
+      ],
+      "drawingsLeft": {
+        "space": 3,
+        "planet": 4
+      }
+    }
+  ],
+  "deaths": 1,
+  "ticks": 1812,
+  "invalidMessages": {
+    "world": 0,
+    "tick": 0
+  },
+  "announces": [
+    {
+      "t": 0,
+      "text": "Round 1: REACH THE BOSS",
+      "big": true
+    },
+    {
+      "t": 14,
+      "text": "e2e was destroyed",
+      "big": false
+    },
+    {
+      "t": 32.4,
+      "text": "e2e cracked the boss's armour! DESTROY THE BOSS",
+      "big": false
+    },
+    {
+      "t": 35.67,
+      "text": "💥 e2e destroyed the boss! LAND ON THE PLANET",
+      "big": true
+    },
+    {
+      "t": 96.27,
+      "text": "e2e landed on the planet. DIG UP A CHEST",
+      "big": false
+    },
+    {
+      "t": 117.73,
+      "text": "🏆 e2e found the treasure and wins round 1!",
+      "big": true
+    }
+  ],
+  "issues": [
+    "mock /generate for drill returned land (astra mockLayout always answers LAND); inputs still sent",
+    "no hint toast for land within 40 s at the gate",
+    "mock /generate for dig returned land (astra mockLayout always answers LAND); inputs still sent"
+  ],
+  "readyVia": "tap",
+  "toasts": [
+    {
+      "t": 13.08,
+      "text": "Too tough to shoot through. What breaks rock?",
+      "sketch": null,
+      "ghost": null
+    },
+    {
+      "t": 26.3,
+      "text": "",
+      "sketch": "drill",
+      "ghost": null
+    },
+    {
+      "t": 103.83,
+      "text": "X marks the spot. The treasure isn't on top.",
+      "sketch": null,
+      "ghost": null
+    },
+    {
+      "t": 113.95,
+      "text": "",
+      "sketch": "shovel",
+      "ghost": null
+    }
+  ],
+  "perf": {
+    "source": "perf.log",
+    "phone": {
+      "samples": 13,
+      "fps": 60,
+      "fpsMin": 60,
+      "low1": 53.6,
+      "low1Min": 49.2,
+      "p90ms": 17.4,
+      "calls": 37,
+      "callsMax": 42,
+      "tris": 54824,
+      "trisMax": 57396,
+      "tier": 2,
+      "size": "844x390@1.25",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Apple",
+      "contractErrors": []
+    },
+    "big": {
+      "samples": 24,
+      "fps": 120,
+      "fpsMin": 120,
+      "low1": 107.4,
+      "low1Min": 106.4,
+      "p90ms": 8.9,
+      "calls": 35.3,
+      "callsMax": 42,
+      "tris": 62803,
+      "trisMax": 94282,
+      "tier": 0,
+      "size": "1440x900@1",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/",
+      "contractErrors": []
+    },
+    "note": "Phone numbers come from WebKit on a desktop Mac emulating an iPhone 13 (844x390 @3x): a proxy only, confirm on a real iPhone."
+  },
+  "consoleErrors": [],
+  "shots": [],
+  "video": null
+}

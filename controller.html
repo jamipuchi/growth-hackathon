@@ -9,6 +9,7 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#05060f">
 <title>Space Party controller</title>
+<link rel="icon" href="data:,">
 <style>
   :root {
     --cyan: #5ee7ff; --ink: #e9f6ff; --dim: rgb(160 200 230 / 0.6); --hot: #ff3b5c; --orange: #ff9a3c;
@@ -87,9 +88,13 @@
     letter-spacing: 0.25em; text-shadow: 0 0 10px #ffb703; animation: pulse 1s ease-in-out infinite alternate; z-index: 3; }
   #area { transition: opacity 0.4s; }
   #area.locked { opacity: 0.2; pointer-events: none; }
-  #sketch { position: absolute; pointer-events: none; opacity: 0; transition: opacity 1.5s; color: #e9f6ff; }
-  #sketch.on { opacity: 0.45; }
+  #area.shot { transition: none; }
+  /* #sketch is the layer phone-extras.js draws the faint hint sketch into (riddle step 2) */
+  #sketch { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1.5s; color: #e9f6ff; }
+  #sketch.on { opacity: 1; }
   #sketch svg { width: 100%; height: 100%; }
+  #vitals { margin-bottom: 2px; }
+  .counter { display: flex; justify-content: center; margin-top: 6px; }
   .badge { position: absolute; right: -4px; top: -4px; min-width: 15px; height: 15px; border-radius: 8px; background: var(--cyan); color: #04121c; font-size: 9px; font-weight: 800; display: grid; place-items: center; padding: 0 3px; }
   .tools button { position: relative; }
   .tools button.empty { opacity: 0.4; }
@@ -181,7 +186,7 @@
     <button id="useDefault" class="pill">Use default</button>
     <button id="done" class="pill primary">Done</button>
   </div>
-  <div class="drawStatus"><span id="drawStatus" class="status"></span></div>
+  <div class="drawStatus"><span id="drawStatus" class="status"></span><div id="drawCount" class="counter"></div></div>
 </div>
 
 <div id="play" class="screen hidden">
@@ -194,8 +199,7 @@
   </div>
   <div id="hud">
     <div class="hl">
-      <div class="meter caps"><span>Shield</span><i><b id="shieldBar"></b></i></div>
-      <div class="meter caps"><span>Boost</span><i><b id="boostBar"></b></i></div>
+      <div id="vitals"></div>
       <div class="tools">
         <button id="tAdd" aria-label="Add a button"><span class="badge" id="leftBadge">5</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
         <button id="tTilt" aria-label="Tilt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="3" width="10" height="18" rx="2" transform="rotate(-20 12 12)"/><path d="M3 8a10 10 0 0 0 0 8M21 8a10 10 0 0 1 0 8"/></svg></button>
@@ -242,7 +246,7 @@
     <p class="hint" id="addHint">Draw the new button on paper with its word (LAND, SCAN…), then photograph it.</p>
     <img id="addPreview" class="preview hidden" alt="">
   </div>
-  <div class="drawStatus"><span id="addStatus" class="status"></span></div>
+  <div class="drawStatus"><span id="addStatus" class="status"></span><div id="addCount" class="counter"></div></div>
 </div>
 
 <div id="explorer" class="sheet hidden">
@@ -265,6 +269,9 @@
 <script src="terrain.js"></script>
 <script type="module">
 const C = window.Contract;
+// HUD extras (vitals, hint sketches, drawings-left counter) and the name tags; the page still works without them.
+const PE = await import("./phone-extras.js").catch((e) => (console.warn("phone-extras.js unavailable", e), null));
+const BX = await import("./bigscreen-extras.js").catch(() => null);
 const $ = (id) => document.getElementById(id);
 const DPR = Math.min(2, window.devicePixelRatio || 1);
 const SPECULATIVE_MS = 1200;
@@ -552,6 +559,7 @@ const padSketch = makeSketch($("drawPad"), { onChange: scheduleSpeculative });
 let specTimer = 0, photo = null;     // photo: { analysis, rendered, key }
 function enterDraw() {
   show("draw");
+  updateCounters();
   setDrawMode(S.drawMode);
   requestAnimationFrame(() => padSketch.resize());
 }
@@ -841,13 +849,21 @@ function fallbackGame({ player }) {
   };
 }
 function wireGame(game) {
+  // Small name tags with health bars over every other ship / explorer in view (projected by render.js each frame).
+  if (BX && typeof game.projectPlayers === "function") {
+    const tags = BX.createNameTags($("play"), { max: 8, offset: 4 });
+    game.on("frame", () => tags.update(game.projectPlayers()));
+  }
   game.on("toast", (m) => { if (!m.player || m.player === S.player) showToast(m); });
   // drawingsLeft is not part of hud().me, so read it from the tick (setLeft does nothing unless it changed)
   game.on("tick", (m) => { const me = m.players && m.players.find((p) => p.name === S.player); if (me && me.drawingsLeft) setLeft(me.drawingsLeft); });
 }
 
 // ---------- HUD ----------
-const hudEls = { obj: $("obj"), status: $("status"), clock: $("clock"), objBar: $("objBar"), shield: $("shieldBar"), boost: $("boostBar") };
+const hudEls = { obj: $("obj"), status: $("status"), clock: $("clock"), objBar: $("objBar") };
+// Health, shield and boost, top left (maxHp = TUNING.shipHp; "RESPAWN n…" while dead).
+const vitals = PE ? PE.createVitals($("vitals")) : null;
+let deadSince = 0;
 const hudCache = {};
 function setText(key, el, v) { if (hudCache[key] !== v) { hudCache[key] = v; el.textContent = v; } }
 function setScale(key, el, v) { v = Math.round(Math.max(0, Math.min(1, v)) * 100) / 100; if (hudCache[key] !== v) { hudCache[key] = v; el.style.transform = `scaleX(${v})`; } }
@@ -866,8 +882,14 @@ function updateHud() {
   if (hudCache.assists !== assists) { hudCache.assists = assists; hudEls.clock.classList.toggle("low", assists); }
   if (assists && !h.status) setText("status", hudEls.status, "ASSISTS ON");
   setScale("bar", hudEls.objBar, typeof h.bar === "number" ? h.bar : 0);
-  setScale("shield", hudEls.shield, me ? me.shieldEnergy : 1);
-  setScale("boost", hudEls.boost, me ? me.boostEnergy : 1);
+  if (vitals) {
+    const dead = !!(me && me.flags && me.flags.dead);
+    if (dead && !deadSince) deadSince = performance.now();
+    if (!dead) deadSince = 0;
+    // The server sends respawnIn while dead; count down locally from TUNING.respawnSeconds if it is missing.
+    const respawnIn = me && Number.isFinite(me.respawnIn) ? me.respawnIn : dead ? Math.max(0, C.TUNING.respawnSeconds - (performance.now() - deadSince) / 1000) : 0;
+    vitals.update({ hp: me ? me.hp : C.TUNING.shipHp, maxHp: C.TUNING.shipHp, shieldEnergy: me ? me.shieldEnergy : 1, boostEnergy: me ? me.boostEnergy : 1, dead, respawnIn });
+  }
   drawRadar(h.radar || []);
   // phases: lobby → "Get ready", scoreboard → scores; the layout is kept across rounds
   if (h.phase !== S.phase) onPhase(h.phase, h);
@@ -877,10 +899,13 @@ function updateHud() {
   const flags = (me && me.flags) || {};
   const locked = !!(flags.landing || flags.takingOff);
   if (hudCache.locked !== locked) { hudCache.locked = locked; $("area").classList.toggle("locked", locked); if (locked) releaseAll(); }
-  // after touchdown ("planet" and no longer landing) the phone asks for the explorer, once per landing
+  // During the shot (render.js + transition.js) the overlay follows its overlayAlpha: 1 → 0.2 on landing, back on take-off.
+  const shotAlpha = h.transition && typeof h.overlayAlpha === "number" ? Math.round(h.overlayAlpha * 100) / 100 : null;
+  if (hudCache.shotAlpha !== shotAlpha) { hudCache.shotAlpha = shotAlpha; $("area").classList.toggle("shot", shotAlpha !== null); $("area").style.opacity = shotAlpha === null ? "" : shotAlpha; }
+  // after touchdown ("planet", no longer landing, the shot over) the phone asks for the explorer, once per landing
   const mode = me ? me.mode : null;
   if (mode === "space") S.explorerAsked = false;
-  if (mode === "planet" && !locked && !S.explorerAsked && S.lastMode !== null) { S.explorerAsked = true; openExplorer(); }
+  if (mode === "planet" && !locked && !h.transition && !S.explorerAsked && S.lastMode !== null) { S.explorerAsked = true; openExplorer(); }
   if (mode) S.lastMode = mode;
   if (S.ghost && S.layout.buttons.some((b) => b.action === S.ghost.action)) clearGhost();
   if (S.sketch && S.layout.buttons.some((b) => b.action === SKETCH_VERB[S.sketch])) clearSketch();
@@ -953,7 +978,15 @@ function setLeft(left, mode) {
   $("leftBadge").textContent = leftHere();
   $("tAdd").classList.toggle("empty", leftHere() <= 0);
   $("tRedraw").classList.toggle("empty", leftHere() <= 0);
+  updateCounters();
+  // Draw mode closes when this world's drawings run out (no drawing in flight: that one already counted).
+  if (leftHere() <= 0 && S.screen === "draw" && $("gen").classList.contains("hidden")) {
+    setTimeout(() => { if (leftHere() <= 0 && S.screen === "draw" && $("gen").classList.contains("hidden")) { if (!S.layout) $("useDefault").onclick(); else enterPlay(); } }, 1500);
+  }
 }
+// "N OF 5 LEFT" with pips in draw mode and add-a-button; "NO DRAWINGS LEFT …" at 0.
+const counters = PE ? [PE.createDrawCounter($("drawCount")), PE.createDrawCounter($("addCount"))] : [];
+function updateCounters() { for (const c of counters) c.update({ left: leftHere(), max: C.TUNING.drawings[world()], world: world() }); }
 function noneLeft() {
   if (leftHere() > 0) return false;
   showToast({ text: `No drawings left ${world() === "planet" ? "on the planet" : "in space"} this round` });
@@ -967,24 +1000,30 @@ const SKETCHES = {
   landing: '<path d="M30 30q20-16 40 0v10H30z"/><path d="M36 40l-10 22M64 40l10 22M20 62h14M66 62h14"/><path d="M6 64h88" stroke-dasharray="3 4"/>',
   shovel: '<path d="M50 8v50"/><path d="M42 8h16"/><path d="M38 58h24l-4 22q-8 8-16 0z"/><path d="M28 86q22 6 44 0" stroke-dasharray="3 4"/>',
 };
+const sketchHint = PE ? PE.createSketchHint($("sketch")) : null;
 function showSketch(name) {
   if (!SKETCHES[name] || (S.layout && S.layout.buttons.some((b) => b.action === SKETCH_VERB[name]))) return;
   S.sketch = name;
   const el = $("sketch"), r = largestFree();
-  Object.assign(el.style, { left: r.x * 100 + "%", top: r.y * 100 + "%", width: r.w * 100 + "%", height: r.h * 100 + "%" });
-  el.innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${SKETCHES[name]}</svg>`;
   el.dataset.sketch = name;
+  if (sketchHint) sketchHint.show(name, r);   // hand-drawn pencil strokes on the largest empty area of the pad
+  else {
+    el.innerHTML = `<div style="position:absolute;left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%;opacity:.45"><svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${SKETCHES[name]}</svg></div>`;
+  }
   requestAnimationFrame(() => el.classList.add("on"));
 }
-function clearSketch() { S.sketch = null; $("sketch").classList.remove("on"); }
+function clearSketch() { S.sketch = null; if (sketchHint) sketchHint.hide(); $("sketch").classList.remove("on"); }
 
 // ---------- toasts and the ghost box ----------
 let toastTimer = 0;
 function showToast(m) {
-  $("toast").textContent = m.text || "";
-  $("toast").classList.remove("off");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => $("toast").classList.add("off"), TOAST_MS);
+  // Step 2 of the hint ladder has an empty text and only a sketch: no text bubble for it.
+  if (m.text) {
+    $("toast").textContent = m.text;
+    $("toast").classList.remove("off");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $("toast").classList.add("off"), TOAST_MS);
+  }
   if (m.sketch) showSketch(m.sketch);
   if (m.ghost && m.ghost.action) { clearSketch(); S.ghost = { ...m.ghost, action: C.normaliseAction(m.ghost.action) }; placeGhost(); }
 }
@@ -1025,6 +1064,7 @@ function openAdd(ghost) {
   const region = ghost ? { x: ghost.x, y: ghost.y, w: ghost.w, h: ghost.h } : largestFree();
   addState = { region, action: ghost ? ghost.action : null, photo: null };
   $("add").classList.remove("hidden");
+  updateCounters();
   const r = areaRect();
   Object.assign($("addRegion").style, { left: r.left + region.x * r.width + "px", top: r.top + region.y * r.height + "px", width: region.w * r.width + "px", height: region.h * r.height + "px" });
   $("addRegion").textContent = addState.action ? addState.action.toUpperCase() : "";

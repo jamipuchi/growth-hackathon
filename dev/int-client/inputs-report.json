@@ -1,0 +1,61 @@
+{
+  "measuredAt": "2026-10-09T21:46:47.747Z",
+  "pass": true,
+  "results": [
+    {
+      "name": "keyboard player joined from the big screen",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "phone player joined (default controller)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "both ready → round starts",
+      "pass": true,
+      "detail": "playing"
+    },
+    {
+      "name": "keyboard space shoots",
+      "pass": true,
+      "detail": "80 bullet sightings"
+    },
+    {
+      "name": "keyboard arrow turns",
+      "pass": true,
+      "detail": "yaw -3.12 → 1.06"
+    },
+    {
+      "name": "phone stick steers",
+      "pass": true,
+      "detail": "yaw -3.12 → 0.58"
+    },
+    {
+      "name": "phone SHOOT (held) shoots",
+      "pass": true,
+      "detail": "172 bullet sightings"
+    },
+    {
+      "name": "phone BOOST boosts",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "phone vitals: health, shield, boost",
+      "pass": true,
+      "detail": "{\"vitals\":3,\"tags\":8}"
+    },
+    {
+      "name": "big screen: name tags + kill feed + projectPlayers()",
+      "pass": true,
+      "detail": "{\"tags\":12,\"feed\":true,\"proj\":2}"
+    },
+    {
+      "name": "no console errors",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

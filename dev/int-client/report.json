@@ -1,0 +1,74 @@
+{
+  "mode": "full",
+  "route": "expert",
+  "bots": 4,
+  "port": 8120,
+  "measuredAt": "2026-10-09T21:23:35.747Z",
+  "wallSeconds": 366.3,
+  "roundSeconds": null,
+  "roundClock": null,
+  "winner": null,
+  "pass": false,
+  "gates": {
+    "won": false,
+    "noConsoleErrors": true,
+    "phonePerf": true
+  },
+  "stages": {},
+  "generates": [],
+  "deaths": 0,
+  "ticks": 5440,
+  "invalidMessages": {
+    "world": 0,
+    "tick": 0
+  },
+  "announces": [],
+  "issues": [
+    "no win within 330 s of play"
+  ],
+  "readyVia": "tap",
+  "toasts": [],
+  "perf": {
+    "source": "perf.log",
+    "phone": {
+      "samples": 6,
+      "fps": 60,
+      "fpsMin": 60,
+      "low1": 55,
+      "low1Min": 52.6,
+      "p90ms": 17,
+      "calls": 31,
+      "callsMax": 31,
+      "tris": 80890,
+      "trisMax": 80890,
+      "tier": 0,
+      "size": "844x390@2",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Apple",
+      "contractErrors": []
+    },
+    "big": {
+      "samples": 72,
+      "fps": 120,
+      "fpsMin": 120,
+      "low1": 107.2,
+      "low1Min": 102,
+      "p90ms": 8.8,
+      "calls": 34.2,
+      "callsMax": 42,
+      "tris": 81663,
+      "trisMax": 85176,
+      "tier": 0,
+      "size": "1440x900@1",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/",
+      "contractErrors": []
+    },
+    "note": "Phone numbers come from WebKit on a desktop Mac emulating an iPhone 13 (844x390 @3x): a proxy only, confirm on a real iPhone."
+  },
+  "consoleErrors": [],
+  "shots": [
+    "dev/int-client/shots/lobby-big.png",
+    "dev/int-client/shots/lobby-phone.png",
+    "dev/int-client/shots/scoreboard-big.png"
+  ],
+  "video": null
+}
