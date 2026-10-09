@@ -72,7 +72,7 @@ Phone to server, `POST /input`:
 Server to every screen, over the event stream:
 - `world`: rocks (id, position, size, type, health), the decorative nebula, the boss, planet, island seed, chests. Sent on connect and whenever any of it changes.
 - `tick`: 15 times a second. Round `phase` (`lobby`, `playing`, `assists`, `scoreboard`) and `clock` (seconds left in lobby and scoreboard, seconds since the start while playing). Players (position, yaw, pitch, roll, health, mode `space`/`planet`, status flags, score, current `action` + `slot` + `startedAt` for animation), bullets, boss shots, flares.
-- `fx`: explosions, sparks, blasts. `announce`: kill feed, treasure found, win. `toast`: a message to one player ("Draw a LAND button"), with an optional `ghost: {action, x, y, w, h}` for the trace-it hint (section 4, Hints).
+- `fx`: explosions, sparks, blasts. `announce`: kill feed, treasure found, win. `toast`: a message to one player, with an optional `sketch` and, only once assists are on, a `ghost: {action, x, y, w, h}` box to trace (section 4, Hints).
 - `generated`: `{player, kind}` once a layout or entity is ready. `entity`: a player's wired entity (type, rig joints, parts on sockets, verbs, bindings).
 
 ### Generation (`POST /generate`, handled by Astra)
@@ -124,18 +124,19 @@ Server to every screen, over the event stream:
 
 FLARE and SCAN stay as abilities (a bright flare others can see; a scan that adds extras to your radar), but no gate needs them.
 
-### Hints: nobody gets stuck
-Every gate (DRILL, LAND, DIG) has a three-step hint ladder. Each hint is a `toast` to that player only, shown on the phone above the drawing pad. Hints never fire in the lobby, and once assists are on (3:00) they skip straight to step 3.
+### Hints: make people think
+Hints guide without giving the answer away. The world hints first; words come later as riddles; nobody is told the button's name until assists switch on at 3:00. A player who knows the route never sees a hint.
 
-| Obstacle | 1. Nudge (when it starts) | 2. Name the button (8 s later) | 3. Trace it (8 s after that) |
-| --- | --- | --- | --- |
-| **LAND** | Entering landing range of the planet without a LAND control: "Get closer and land. How do you land?" The planet's landing ring pulses | "Draw a LAND button" | A dashed ghost box with the word LAND appears on the pad where a button fits; trace it and tap Done |
-| DRILL | Your first laser bounces off the boss: "Lasers bounce off the armour." | "Draw a DRILL button" | Ghost DRILL box on the pad |
-| DIG | Standing on a buried chest: "Something is buried here." | "Draw a DIG button" | Ghost DIG box on the pad |
+| Gate | The world hints (always on) | 1. A riddle (stuck about 15 s) | 2. A sketch (stuck about 30 s more) | 3. The answer (only once assists are on) |
+| --- | --- | --- | --- | --- |
+| **DRILL** | Lasers clang off the armour with sparks; a glowing hairline crack shows where it is weakest | "Too tough to shoot through. What breaks rock?" | A faint pencil sketch of a drill bit fades in on an empty corner of the pad | "Draw DRILL" and a ghost box to trace |
+| **LAND** | The planet's landing ring pulses as you get close; your ship slows and wobbles above it | "So close you could touch down." | A faint sketch of landing legs touching a line | "Draw LAND" and a ghost box to trace |
+| **DIG** | Each X on the sand glints; your explorer kneels and pats the ground when standing on one | "X marks the spot. The treasure isn't on top." | A faint sketch of a shovel | "Draw DIG" and a ghost box to trace |
 
-- The ghost box sits in the largest empty area of the player's pad, so tracing it never covers an existing control.
-- A hint stops as soon as the player has a control bound to that verb.
-- The server owns the ladder (it knows positions and bindings); the phone only shows the toast and the ghost box (`toast` carries an optional `ghost: { action, x, y, w, h }`).
+- Riddles and sketches never write the button's name: the word comes from the player. Any drawing or label that means the right thing works (`synonyms`: SHOVEL, SPADE or a drawn shovel all mean dig).
+- A hint stops the moment the player has a control for that verb. Never in the lobby.
+- The ghost box (step 3) sits in the largest empty area of the pad, so tracing it never covers an existing control.
+- The server owns the ladder (it knows positions, time stuck and bindings). A `toast` carries `text`, an optional `sketch` (`drill`, `landing`, `shovel`) the phone draws faintly on the pad, and `ghost` only in step 3.
 
 ### Round clock: about 2:00 for a player who knows the route, 4 to 5 minutes for anyone
 Before the clock: a **20 s lobby** to draw your ship and controller (defaults if you skip).
@@ -147,7 +148,7 @@ Before the clock: a **20 s lobby** to draw your ship and controller (defaults if
 | 0:45–1:10 | Fly to the planet, add LAND, land | 25 s |
 | 1:10–1:25 | Draw your explorer (15 s timer, default if skipped) | 15 s |
 | 1:25–1:50 | Walk to an X, add DIG, dig up the chest | 25 s |
-| 3:00 | **Assists on** (phase `assists`): the boss loses its armour, the buried chests come up and glow, hints jump to step 3 | |
+| 3:00 | **Assists on** (phase `assists`): the boss loses its armour, the buried chests come up and glow, and hints may finally name the button (step 3) | |
 | No cap | The round ends only when someone collects a chest; a weak player finishes in 4 to 5 minutes | |
 
 - After a win: an 8 s scoreboard, then a new round. Everyone keeps their drawings.

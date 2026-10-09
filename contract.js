@@ -98,9 +98,10 @@
    * fx         { type, kind, mode, pos: { x, y, z }, color, size }       // kind: explode, blast, spark, flare, scan,
    *                                                                      // drill, crack, land, dig, treasure, hit
    * announce   { type, text, big }                                       // kill feed, boss down, winner
-   * toast      { type, player, text, ghost }                             // one player only: "Draw a LAND button".
-   *                                                                      // ghost: null | { action, x, y, w, h } on the pad
-   *                                                                      // for the trace-it hint (PLAN.md section 4, Hints)
+   * toast      { type, player, text, sketch, ghost }                     // one player only. Hints are riddles first:
+   *                                                                      // sketch: null | "drill"|"landing"|"shovel", drawn faintly
+   *                                                                      // on the pad; ghost: null | { action, x, y, w, h }, only
+   *                                                                      // once assists are on (PLAN.md section 4, Hints)
    * generated  { type, player, kind, layout }                            // a controller layout is ready
    *
    * Phone → server:
