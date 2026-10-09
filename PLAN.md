@@ -117,8 +117,9 @@ Server to every screen, over the event stream:
 1. **The boss rock** (the "super final boss") floats in a colourful nebula about 300 m from spawn, big, glowing red and visible from far away; the radar points at it. It is armoured, and lasers bounce off.
    - Draw **DRILL** and hold it close to crack the armour. One player can do it alone; several drill faster.
    - Then shoot it down. It fires back at the nearest ship.
-2. **The planet appears** next to it. Fly close and press **LAND**, which you must have drawn.
-   - On landing, the phone asks you to **draw your explorer**, the second entity (default if you skip).
+2. **The planet appears** next to it. **The treasure is on the planet's island**, so to reach it you must land your ship and dig. Fly close and press **LAND**, which you must have drawn.
+   - **Landing is a predefined animation, about 3 s, with no control:** the ship glides onto the pulsing landing ring, drops through the atmosphere with a heat glow, touches down on the island's landing pad in a burst of dust, and the explorer steps out. You are invulnerable while it plays. Take-off plays the same animation in reverse.
+   - After touchdown, the phone asks you to **draw your explorer**, the second entity (default if you skip).
 3. **The island**, in full 3D: sky, ocean and terrain. Three chests are buried near the landing spot, each marked with an X; **DIG** one up.
    - **The first chest collected wins the round.**
 

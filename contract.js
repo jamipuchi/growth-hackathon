@@ -38,7 +38,7 @@
     scan: { range: 250, seconds: 8 },
     // v1 keeps the world simple: plain rocks plus bonus crystals. The other types stay defined for later.
     rockTypesInPlay: ["stone", "crystal"],
-    planet: { offset: 150, radius: 40, landRange: 25 },
+    planet: { offset: 150, radius: 40, landRange: 25, landingSeconds: 3, takeoffSeconds: 2 },
     island: { chests: 4, buried: 2, chestSpread: 40, walkSpeed: 8, runMultiplier: 2, jumpSpeed: 9, gravity: 24, digSeconds: 1.5, pickupRange: 3, explorerDrawSeconds: 15 },
   };
 
@@ -88,7 +88,8 @@
    * tick       { type, t, round, phase, clock,                           // lobby/scoreboard: seconds left; playing/assists: seconds since the start
    *              players: [{ name, color, mode: "space"|"planet", x, y, z, yaw, pitch, roll, hp, score,
    *                          shieldEnergy, boostEnergy,                  // 0..1, drive the HUD meters
-   *                          flags: { boost, shield, stun, dead, invisible, drilling, digging, ready, bot },
+   *                          flags: { boost, shield, stun, dead, invisible, drilling, digging, ready, bot,
+   *                                   landing, takingOff },        // landing/takingOff: the predefined animation plays, no control
    *                          action, slot, startedAt }],                 // last verb + animation slot + server ms
    *              bullets: [[id, x, y, z, color]],
    *              bossShots: [[id, x, y, z]],
