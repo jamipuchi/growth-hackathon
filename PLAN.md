@@ -190,6 +190,14 @@ Before the clock: a **20 s lobby** to draw your ship and controller (defaults if
 - **Big screen HUD:** objective title top centre in spaced capitals ("REACH THE BOSS", "LAND ON THE PLANET", "DIG UP A CHEST") with a red-to-orange bar under it (boss health, or progress) and a small status line under that; the round clock next to it; a ring radar bottom left (red = boss and hostiles, blue = other players, cyan arrow = you, a red diamond = the objective); SHIELD and BOOST meters bottom right with icons; scoreboard top left.
 - **Phone HUD:** the bottom of the screen belongs to the drawn controller, so the phone keeps its HUD at the top: objective and clock top centre, a small radar top right, SHIELD and BOOST as thin bars top left. Thin lines and glow, no heavy panels.
 
+### World look (reference: `assets/reference/world-look.png`)
+The world should look like the reference: a dense, deep, saturated space battle scene.
+- **Depth:** hundreds of small chunky flat-shaded rocks in the mid and far distance, plus a few huge low-poly rocks drifting close to the camera in the foreground. The asteroid field is dense around the boss and thins out toward open space.
+- **The boss is huge:** mothership-scale against the ships, grey armour with red glowing lights, seams and a pulsing red core. It reads as THE enemy from anywhere in the map.
+- **The planet is in view from the start:** a big Earth-like planet with clouds, oceans and night-side city lights, low in the frame; it is locked until the boss dies (a faint shield shimmer), then the landing ring lights up.
+- **Light and colour:** blue, violet and magenta nebula clouds filling the background, bloom on every engine, red laser streaks for hostile fire, long bright engine trails (orange for hostile, the player's colour for players), a cyan hex shield bubble.
+- **Later (not v1):** small hostile drones with red engines flying around the boss, for PvE.
+
 ### Graphics target
 - Bloom and film-style tone mapping, image-based lighting for reflections.
 - Rocks with displaced shapes, a planet with an atmosphere, colourful nebula clouds.
