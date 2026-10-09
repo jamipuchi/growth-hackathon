@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>render.js phone view test</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; touch-action: none; color: #e2e8f0; font: 600 12px system-ui, sans-serif; }
+  #c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  #top { position: fixed; top: max(6px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); text-align: center; letter-spacing: .22em; text-shadow: 0 1px 4px #000; pointer-events: none; }
+  #top .bar { width: 220px; height: 5px; margin: 4px auto; background: rgba(255,255,255,.15); border-radius: 3px; overflow: hidden; }
+  #top .bar i { display: block; height: 100%; background: linear-gradient(90deg, #ef4444, #f97316); }
+</style>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+<script src="/contract.js"></script>
+<script src="/terrain.js"></script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="top"><div id="obj"></div><div class="bar"><i id="fill"></i></div><div id="st"></div></div>
+<script type="module">
+// Minimal phone harness for render.js (the real phone page is controller.html, owned by the phone lane).
+import { startGame } from "/render.js";
+const q = new URLSearchParams(location.search);
+const game = startGame({ canvas: document.getElementById("c"), screen: "phone", view: q.get("view") || "chase", player: q.get("player") || "ana" });
+window.__game = game;
+game.on("hud", (h) => {
+  document.getElementById("obj").textContent = `${h.objectiveText}  ${h.clockText}`;
+  document.getElementById("fill").style.width = `${h.bar * 100}%`;
+  document.getElementById("st").textContent = h.status;
+});
+</script>
+</body>
+</html>
