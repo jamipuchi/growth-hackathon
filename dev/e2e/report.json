@@ -1,0 +1,142 @@
+{
+  "mode": "mock",
+  "route": "expert",
+  "bots": 8,
+  "port": 8105,
+  "measuredAt": "2026-10-09T20:43:04.754Z",
+  "wallSeconds": 32.2,
+  "pass": true,
+  "checks": [
+    {
+      "name": "phone joins and reaches play",
+      "pass": true,
+      "detail": "e2e"
+    },
+    {
+      "name": "big screen posts perf",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "phone posts perf",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "big renders (draw calls and triangles > 0)",
+      "pass": true,
+      "detail": "last 27 calls, 89680 tris"
+    },
+    {
+      "name": "big perf samples match the contract",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "big has a sized canvas",
+      "pass": true,
+      "detail": "#c 1440x900 #radar 420x420"
+    },
+    {
+      "name": "phone renders (draw calls and triangles > 0)",
+      "pass": true,
+      "detail": "last 30 calls, 44532 tris"
+    },
+    {
+      "name": "phone perf samples match the contract",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "phone has a sized canvas",
+      "pass": true,
+      "detail": "#drawPad 1x1 #game 1688x780 #ink 1688x780 #radar 148x148 #addPad 300x150 #expPad 300x150"
+    }
+  ],
+  "stages": {
+    "lobby": {
+      "t": 3.8
+    },
+    "fly": {
+      "t": 7.3
+    },
+    "flare": {
+      "t": 10.8
+    },
+    "boss": {
+      "t": 14.3
+    },
+    "broken": {
+      "t": 17.8
+    },
+    "planet": {
+      "t": 21.3
+    },
+    "island": {
+      "t": 24.8
+    },
+    "assists": {
+      "t": 28.3
+    }
+  },
+  "phonePerfGate": {
+    "pass": false,
+    "rule": "fps avg >= 55 and 1% low avg >= 30 (informational in --mock)"
+  },
+  "perf": {
+    "source": "browser POST /perf",
+    "phone": {
+      "samples": 5,
+      "fps": 58.1,
+      "fpsMin": 57.5,
+      "low1": 13.6,
+      "low1Min": 10.8,
+      "p90ms": 17.8,
+      "calls": 44.5,
+      "callsMax": 51,
+      "tris": 56882,
+      "trisMax": 62558,
+      "tier": 0,
+      "size": "844x390@2",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Apple",
+      "contractErrors": []
+    },
+    "big": {
+      "samples": 5,
+      "fps": 119.9,
+      "fpsMin": 119.6,
+      "low1": 101.6,
+      "low1Min": 85.2,
+      "p90ms": 8.9,
+      "calls": 47.3,
+      "callsMax": 58,
+      "tris": 67666,
+      "trisMax": 89680,
+      "tier": 0,
+      "size": "1440x900@1",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/",
+      "contractErrors": []
+    },
+    "note": "Phone numbers come from WebKit on a desktop Mac emulating an iPhone 13 (844x390 @3x): a proxy only, confirm on a real iPhone."
+  },
+  "consoleErrors": [],
+  "shots": [
+    "dev/e2e/shots/assists-big.png",
+    "dev/e2e/shots/assists-phone.png",
+    "dev/e2e/shots/boss-big.png",
+    "dev/e2e/shots/boss-phone.png",
+    "dev/e2e/shots/broken-big.png",
+    "dev/e2e/shots/broken-phone.png",
+    "dev/e2e/shots/flare-big.png",
+    "dev/e2e/shots/flare-phone.png",
+    "dev/e2e/shots/fly-big.png",
+    "dev/e2e/shots/fly-phone.png",
+    "dev/e2e/shots/island-big.png",
+    "dev/e2e/shots/island-phone.png",
+    "dev/e2e/shots/lobby-big.png",
+    "dev/e2e/shots/lobby-phone.png",
+    "dev/e2e/shots/planet-big.png",
+    "dev/e2e/shots/planet-phone.png"
+  ],
+  "video": null
+}
