@@ -17,3 +17,11 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
 - Then a long Q&A fixed the design: see `PLAN.md` section 0.
 - First real generation test (23:15): the owner drew a ship in the controller step → one giant button, and added
   buttons failed (output token limit). Hotfixed on the play server; generation-quality task queued.
+
+## Decisions taken overnight while the owner slept (overrule any in the morning)
+| When | Decision | Why |
+| --- | --- | --- |
+| 23:45 | Bots count as 0.25 of a player for boss HP and the chest count; bots shoot the boss and only fight back against humans who hit them | With boss HP scaled for 25 and 24 low-damage bots, the boss never died in a 24-bot test round |
+| 23:45 | "At least a minute to the rock": cruise ≈ 60 s; boost reduced so a full-boost run is ≈ 40 s (was 18 s) | The owner asked for at least a minute; boost is a reward for drawing an exhaust, not a skip |
+| 23:45 | Wrecking a rival's parked ship scores +150 | The owner chose "ruthless" mischief; it should pay |
+| 23:30 | Watchdog cleanup restricted to Playwright test browsers and our own test servers | The first version matched the owner's own Chrome and app crash reporters (likely closed Chrome at 23:10; reopen it to restore tabs) |
