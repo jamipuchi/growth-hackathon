@@ -2,133 +2,1197 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Draw your controller</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#05060f">
+<title>Space Party controller</title>
 <style>
-  * { box-sizing: border-box; margin: 0; -webkit-user-select: none; user-select: none; }
-  html, body { height: 100%; overflow: hidden; font-family: system-ui, sans-serif; touch-action: none; }
-  body { display: flex; flex-direction: column; }
-  header { display: flex; gap: 8px; align-items: center; padding: 10px; border-bottom: 1px solid #ddd; }
-  header strong { margin-right: auto; }
-  button { padding: 10px 14px; border: 1px solid #ccc; border-radius: 8px; background: #fff; font-size: 15px; }
-  button.primary { background: #111; color: #fff; border-color: #111; }
-  #stage { position: relative; flex: 1; }
-  canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .hit { position: absolute; border: 2px dashed rgb(37 99 235 / 0.5); border-radius: 10px; display: grid; place-items: end center; font-size: 11px; color: #2563eb; padding-bottom: 2px; }
-  .hit.down { background: rgb(37 99 235 / 0.25); }
-  #join { position: absolute; inset: 0; display: grid; place-items: center; background: #fff; z-index: 2; }
-  #join form { display: flex; flex-direction: column; gap: 10px; width: 80%; }
-  #join input { padding: 12px; font-size: 18px; border: 1px solid #ccc; border-radius: 8px; }
-  #wait { position: absolute; inset: 0; display: none; place-items: center; background: rgb(255 255 255 / 0.85); font-size: 18px; text-align: center; z-index: 1; }
+  :root {
+    --cyan: #5ee7ff; --ink: #e9f6ff; --dim: rgb(160 200 230 / 0.6); --hot: #ff3b5c; --orange: #ff9a3c;
+    --me: #22d3ee;
+    --st: env(safe-area-inset-top, 0px); --sr: env(safe-area-inset-right, 0px);
+    --sb: env(safe-area-inset-bottom, 0px); --sl: env(safe-area-inset-left, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; overscroll-behavior: none; touch-action: none; background: #05060f; color: var(--ink);
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif; }
+  input { -webkit-user-select: text; user-select: text; }
+  button, label.btn { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+  .hidden { display: none !important; }
+  .caps { text-transform: uppercase; letter-spacing: 0.22em; font-weight: 600; }
+  .area { position: fixed; top: var(--st); right: var(--sr); bottom: var(--sb); left: var(--sl); }
+  .screen { position: fixed; inset: 0; }
+
+  /* Buttons in the thin-line glow style of the reference */
+  .pill { border: 1px solid rgb(94 231 255 / 0.55); background: rgb(5 12 30 / 0.55); border-radius: 999px; padding: 10px 16px;
+    font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; box-shadow: 0 0 12px rgb(94 231 255 / 0.25), inset 0 0 8px rgb(94 231 255 / 0.12);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); white-space: nowrap; }
+  .pill.primary { background: rgb(94 231 255 / 0.9); color: #04121c; border-color: transparent; box-shadow: 0 0 18px rgb(94 231 255 / 0.6); }
+  .pill.hot { border-color: rgb(255 120 80 / 0.7); box-shadow: 0 0 14px rgb(255 100 80 / 0.35); }
+  .pill:active { transform: scale(0.96); }
+  .seg { display: inline-flex; border: 1px solid rgb(94 231 255 / 0.55); border-radius: 999px; overflow: hidden; background: rgb(5 12 30 / 0.55); }
+  .seg button { border: 0; background: none; padding: 9px 14px; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; color: var(--dim); }
+  .seg button.on { background: rgb(94 231 255 / 0.9); color: #04121c; }
+
+  /* Join */
+  #join { display: grid; place-items: center; background: radial-gradient(ellipse at 30% 20%, #3b1d7a 0%, #0b0b2a 45%, #05060f 100%); padding: calc(var(--st) + 16px) 20px calc(var(--sb) + 16px); }
+  #join form { width: min(360px, 90vw); display: flex; flex-direction: column; gap: 14px; text-align: center; }
+  #join h1 { font-size: 22px; letter-spacing: 0.3em; text-shadow: 0 0 18px var(--cyan); }
+  #join input { padding: 14px; font-size: 18px; border-radius: 12px; border: 1px solid rgb(94 231 255 / 0.5); background: rgb(0 0 0 / 0.4); color: #fff; text-align: center; outline: none; }
+  #join p { font-size: 13px; color: var(--dim); line-height: 1.4; }
+
+  /* Draw screen (lobby) */
+  #draw { background: #f4f1e8; color: #111; }
+  #draw.camera { background: radial-gradient(ellipse at 30% 20%, #2b1a63 0%, #0b0b2a 50%, #05060f 100%); color: var(--ink); }
+  #drawPad, #addPad { position: fixed; top: var(--st); left: var(--sl); width: calc(100% - var(--sl) - var(--sr)); height: calc(100% - var(--st) - var(--sb)); touch-action: none; }
+  label.btn { position: relative; }
+  label.btn input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .toolbar { position: fixed; top: calc(var(--st) + 8px); left: calc(var(--sl) + 8px); right: calc(var(--sr) + 8px); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; z-index: 5; pointer-events: none; }
+  .toolbar > * { pointer-events: auto; }
+  .toolbar .grow { flex: 1; pointer-events: none; }
+  #draw:not(.camera) .pill { color: #111; background: rgb(255 255 255 / 0.85); border-color: #999; box-shadow: none; }
+  #draw:not(.camera) .pill.primary { background: #111; color: #fff; }
+  #draw:not(.camera) .seg { background: #fff; border-color: #999; }
+  #draw:not(.camera) .seg button { color: #666; }
+  #draw:not(.camera) .seg button.on { background: #111; color: #fff; }
+  .camcard { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: calc(var(--st) + 64px) calc(var(--sr) + 20px) calc(var(--sb) + 16px) calc(var(--sl) + 20px); text-align: center; }
+  .camcard .hint { font-size: 14px; color: var(--dim); max-width: 420px; line-height: 1.4; }
+  .bigshot { display: grid; place-items: center; gap: 4px; width: 168px; height: 112px; border-radius: 22px; border: 1.5px solid var(--cyan); background: rgb(94 231 255 / 0.12);
+    box-shadow: 0 0 26px rgb(94 231 255 / 0.4), inset 0 0 18px rgb(94 231 255 / 0.2); font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; }
+  .bigshot svg { width: 40px; height: 40px; }
+  .preview { max-width: min(560px, 86vw); max-height: 42vh; border-radius: 10px; background: #fff; box-shadow: 0 0 22px rgb(94 231 255 / 0.35); object-fit: contain; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .status { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); min-height: 1em; }
+  #draw:not(.camera) .status { color: #555; }
+  .drawStatus { position: fixed; bottom: calc(var(--sb) + 8px); left: 0; right: 0; text-align: center; pointer-events: none; }
+
+  /* Play */
+  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #placeholder { position: fixed; inset: 0; background: radial-gradient(ellipse at 60% 30%, #3a1c78 0%, #11103a 45%, #05060f 100%); }
+  #placeholder.plain::after { content: none; }
+  #placeholder::after { content: "3D VIEW LOADING"; position: absolute; left: 0; right: 0; top: 55%; text-align: center; font-size: 11px; letter-spacing: 0.3em; color: rgb(255 255 255 / 0.25); }
+  #ink { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.35; pointer-events: none; }
+  #hits { position: absolute; inset: 0; touch-action: none; }
+  .hit { position: absolute; border: 2px dashed rgb(94 231 255 / 0.55); border-radius: 14px; pointer-events: none; display: grid; place-items: end center;
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; color: rgb(190 245 255 / 0.85); padding-bottom: 4px; text-shadow: 0 0 6px rgb(94 231 255 / 0.9); }
+  .hit.down { background: rgb(94 231 255 / 0.28); border-style: solid; box-shadow: 0 0 18px rgb(94 231 255 / 0.6); }
+  .hit.toggle.on { background: rgb(255 154 60 / 0.25); border-color: var(--orange); }
+  .hit.stick { border-radius: 50%; }
+  .knob { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; border: 2px solid rgb(94 231 255 / 0.85);
+    background: rgb(94 231 255 / 0.18); box-shadow: 0 0 14px rgb(94 231 255 / 0.6); will-change: transform; }
+  #ghost { position: absolute; border: 2.5px dashed #ffd166; border-radius: 14px; display: grid; place-items: center; color: #ffd166; font-weight: 800; font-size: 18px;
+    letter-spacing: 0.25em; text-shadow: 0 0 10px #ffb703; animation: pulse 1s ease-in-out infinite alternate; z-index: 3; }
+  #area { transition: opacity 0.4s; }
+  #area.locked { opacity: 0.2; pointer-events: none; }
+  #sketch { position: absolute; pointer-events: none; opacity: 0; transition: opacity 1.5s; color: #e9f6ff; }
+  #sketch.on { opacity: 0.45; }
+  #sketch svg { width: 100%; height: 100%; }
+  .badge { position: absolute; right: -4px; top: -4px; min-width: 15px; height: 15px; border-radius: 8px; background: var(--cyan); color: #04121c; font-size: 9px; font-weight: 800; display: grid; place-items: center; padding: 0 3px; }
+  .tools button { position: relative; }
+  .tools button.empty { opacity: 0.4; }
+  @keyframes pulse { from { opacity: 0.45; box-shadow: 0 0 6px #ffb703; } to { opacity: 1; box-shadow: 0 0 22px #ffb703; } }
+
+  /* HUD along the top */
+  #hud { position: fixed; top: 0; left: 0; right: 0; padding: calc(var(--st) + 6px) calc(var(--sr) + 10px) 0 calc(var(--sl) + 10px); display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; pointer-events: none; z-index: 4; }
+  #hud .hl { display: flex; flex-direction: column; gap: 5px; }
+  .meter { display: grid; grid-template-columns: 54px 92px; align-items: center; gap: 6px; font-size: 9px; letter-spacing: 0.22em; font-weight: 700; text-shadow: 0 0 6px var(--cyan); }
+  .meter i { display: block; height: 5px; border: 1px solid rgb(94 231 255 / 0.6); border-radius: 3px; overflow: hidden; box-shadow: 0 0 8px rgb(94 231 255 / 0.35); }
+  .meter b { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #1aa8ff, var(--cyan)); box-shadow: 0 0 8px var(--cyan); transform-origin: left; will-change: transform; }
+  .tools { display: flex; gap: 6px; margin-top: 3px; pointer-events: auto; }
+  .tools button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgb(94 231 255 / 0.55); background: rgb(5 12 30 / 0.45); color: var(--cyan);
+    display: grid; place-items: center; box-shadow: 0 0 10px rgb(94 231 255 / 0.25); }
+  .tools button.on { background: rgb(94 231 255 / 0.85); color: #04121c; }
+  .tools svg { width: 18px; height: 18px; }
+  #hud .hc { text-align: center; min-width: 220px; }
+  #obj { font-size: 13px; letter-spacing: 0.26em; font-weight: 700; text-shadow: 0 0 10px rgb(255 255 255 / 0.6); white-space: nowrap; }
+  .objbar { height: 4px; margin: 5px auto 3px; width: 220px; border-radius: 3px; background: rgb(255 255 255 / 0.12); overflow: hidden; }
+  .objbar b { display: block; height: 100%; background: linear-gradient(90deg, var(--hot), var(--orange)); box-shadow: 0 0 10px var(--hot); transform-origin: left; will-change: transform; }
+  .sub { font-size: 9px; letter-spacing: 0.22em; color: rgb(230 240 255 / 0.85); font-weight: 600; }
+  #clock { font-variant-numeric: tabular-nums; color: #fff; margin-left: 8px; font-size: 11px; }
+  #clock.low { color: var(--hot); text-shadow: 0 0 8px var(--hot); }
+  #hud .hr { justify-self: end; }
+  #radar { width: 74px; height: 74px; display: block; }
+
+  #toast { position: fixed; left: 50%; top: calc(var(--st) + 70px); transform: translateX(-50%); max-width: 80vw; padding: 9px 16px; border-radius: 999px; z-index: 6; pointer-events: none;
+    border: 1px solid rgb(255 209 102 / 0.7); background: rgb(20 10 0 / 0.6); color: #ffe7a8; font-size: 13px; letter-spacing: 0.08em; font-weight: 600; text-align: center;
+    box-shadow: 0 0 18px rgb(255 183 3 / 0.35); transition: opacity 0.25s; }
+  #toast.off { opacity: 0; }
+
+  #banner { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+    padding: 16px 22px; border-radius: 18px; border: 1px solid rgb(94 231 255 / 0.4); background: rgb(5 8 25 / 0.6); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 0 26px rgb(94 231 255 / 0.2); }
+  #banner h2 { font-size: 18px; letter-spacing: 0.32em; text-shadow: 0 0 14px var(--cyan); }
+  #banner .sub { font-size: 11px; }
+  #scores { list-style: none; font-size: 13px; letter-spacing: 0.12em; min-width: 200px; }
+  #scores li { display: flex; justify-content: space-between; gap: 18px; padding: 3px 0; border-bottom: 1px solid rgb(255 255 255 / 0.08); }
+
+  /* Overlays: generating, add a button, explorer */
+  .sheet { position: fixed; inset: 0; z-index: 8; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center;
+    background: rgb(4 6 20 / 0.82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); padding: calc(var(--st) + 12px) calc(var(--sr) + 16px) calc(var(--sb) + 12px) calc(var(--sl) + 16px); }
+  .sheet h2 { font-size: 16px; letter-spacing: 0.3em; text-shadow: 0 0 14px var(--cyan); }
+  .spinner { width: 34px; height: 34px; border-radius: 50%; border: 2px solid rgb(94 231 255 / 0.2); border-top-color: var(--cyan); animation: spin 0.8s linear infinite; box-shadow: 0 0 14px rgb(94 231 255 / 0.35); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #add { background: rgb(4 6 20 / 0.35); -webkit-backdrop-filter: none; backdrop-filter: none; justify-content: flex-start; }
+  #add.camera { background: rgb(4 6 20 / 0.86); }
+  #addRegion { position: fixed; border: 2.5px dashed #ffd166; border-radius: 14px; pointer-events: none; color: #ffd166; display: grid; place-items: center; font-weight: 800; letter-spacing: 0.25em; text-shadow: 0 0 10px #ffb703; }
+  #explorer .count { font-size: 34px; font-weight: 300; color: var(--cyan); text-shadow: 0 0 16px var(--cyan); font-variant-numeric: tabular-nums; }
+  #expPad { width: min(300px, 60vw, 46vh); aspect-ratio: 1; background: #f4f1e8; border-radius: 12px; touch-action: none; }
+
+  #rotate { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; text-align: center; background: #05060f; padding: 30px; }
+  #rotate div { font-size: 14px; letter-spacing: 0.25em; text-transform: uppercase; font-weight: 600; text-shadow: 0 0 12px var(--cyan); line-height: 2; }
+  #rotate svg { width: 70px; height: 70px; color: var(--cyan); animation: tilt 1.6s ease-in-out infinite; }
+  @keyframes tilt { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
+  @media (orientation: portrait) { body.landscape #rotate { display: grid; } }
 </style>
 </head>
 <body>
-<header>
-  <strong id="who">Draw your controller</strong>
-  <button id="clear">Clear</button>
-  <button id="done" class="primary">Done ✓</button>
-</header>
-<div id="stage">
-  <canvas id="pad"></canvas>
-  <div id="wait">✨ Claude is wiring your buttons…</div>
-  <div id="join">
-    <form id="joinForm">
-      <h2>Join the game</h2>
-      <input id="name" placeholder="Your name" autocomplete="off" required>
-      <button class="primary">Join</button>
-      <p>Then draw your controller: arrows, buttons, label them (◀ ▶ ⚔️ jump…)</p>
-    </form>
-  </div>
+<div id="join" class="screen">
+  <form id="joinForm">
+    <h1 class="caps">SPACE PARTY</h1>
+    <input id="name" placeholder="Your name" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="20" required>
+    <button class="pill primary">Join</button>
+    <p>Then draw your controller on paper: a joystick, buttons, write a word on each (FIRE, BOOST…)</p>
+    <p id="joinErr" class="status"></p>
+  </form>
 </div>
-<script>
-const LAYOUT_POLL_MS = 1000;
-const stage = document.getElementById("stage");
-const canvas = document.getElementById("pad");
-const ctx = canvas.getContext("2d");
-const waitEl = document.getElementById("wait");
-let player = "";
-let isDrawing = false;
-let isPlaying = false;
 
-function resize() {
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+<div id="draw" class="screen hidden">
+  <canvas id="drawPad"></canvas>
+  <div id="camCard" class="camcard">
+    <div id="camIntro" class="camcard" style="position:static;padding:0">
+      <label class="bigshot btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.6"/></svg>Take photo
+        <input id="camInput" type="file" accept="image/*" capture="environment"></label>
+      <p class="hint">Draw your controller on paper, big and dark, then photograph it. Turn the page sideways (landscape).</p>
+    </div>
+    <img id="camPreview" class="preview hidden" alt="">
+    <div id="camActions" class="row hidden">
+      <button id="camUse" class="pill primary">Use it</button>
+      <label class="pill btn">Retake<input id="camInput2" type="file" accept="image/*" capture="environment"></label>
+      <button id="camRotate" class="pill" aria-label="Rotate">↻</button>
+    </div>
+  </div>
+  <div class="toolbar">
+    <div class="seg" id="drawSeg"><button data-mode="camera">Camera</button><button data-mode="draw">Draw</button></div>
+    <button id="undo" class="pill">Undo</button>
+    <button id="clear" class="pill">Clear</button>
+    <span class="grow"></span>
+    <button id="useDefault" class="pill">Use default</button>
+    <button id="done" class="pill primary">Done</button>
+  </div>
+  <div class="drawStatus"><span id="drawStatus" class="status"></span></div>
+</div>
+
+<div id="play" class="screen hidden">
+  <div id="placeholder"></div>
+  <canvas id="game"></canvas>
+  <div id="area" class="area">
+    <canvas id="ink"></canvas>
+    <div id="sketch"></div>
+    <div id="hits"></div>
+  </div>
+  <div id="hud">
+    <div class="hl">
+      <div class="meter caps"><span>Shield</span><i><b id="shieldBar"></b></i></div>
+      <div class="meter caps"><span>Boost</span><i><b id="boostBar"></b></i></div>
+      <div class="tools">
+        <button id="tAdd" aria-label="Add a button"><span class="badge" id="leftBadge">5</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button id="tTilt" aria-label="Tilt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="3" width="10" height="18" rx="2" transform="rotate(-20 12 12)"/><path d="M3 8a10 10 0 0 0 0 8M21 8a10 10 0 0 1 0 8"/></svg></button>
+        <button id="tView" aria-label="View"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button id="tRedraw" aria-label="Redraw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg></button>
+      </div>
+    </div>
+    <div class="hc">
+      <div id="obj" class="caps">GET READY</div>
+      <div class="objbar"><b id="objBar"></b></div>
+      <div class="sub caps"><span id="status"></span><span id="clock">0:00</span></div>
+    </div>
+    <div class="hr"><canvas id="radar"></canvas></div>
+  </div>
+  <div id="banner" class="hidden">
+    <h2 id="bannerTitle" class="caps">GET READY</h2>
+    <div id="bannerSub" class="sub caps"></div>
+    <ol id="scores" class="hidden"></ol>
+    <div class="row" id="bannerActions"><button id="readyBtn" class="pill primary">Ready</button><button id="redrawBtn" class="pill">Redraw</button></div>
+  </div>
+  <div id="toast" class="off"></div>
+</div>
+
+<div id="gen" class="sheet hidden">
+  <div id="genSpin" class="spinner"></div>
+  <h2 id="genTitle" class="caps">generating…</h2>
+  <p id="genErr" class="status"></p>
+  <div id="genActions" class="row hidden"><button id="genRetry" class="pill primary">Try again</button><button id="genBack" class="pill">Back</button></div>
+</div>
+
+<div id="add" class="sheet hidden">
+  <canvas id="addPad"></canvas>
+  <div id="addRegion"></div>
+  <div class="toolbar">
+    <div class="seg" id="addSeg"><button data-mode="camera">Camera</button><button data-mode="draw">Draw</button></div>
+    <button id="addUndo" class="pill">Undo</button>
+    <span class="grow"></span>
+    <button id="addCancel" class="pill">Cancel</button>
+    <button id="addDone" class="pill primary">Done</button>
+  </div>
+  <div id="addCam" class="camcard">
+    <label class="bigshot btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.6"/></svg>Take photo
+      <input id="addInput" type="file" accept="image/*" capture="environment"></label>
+    <p class="hint" id="addHint">Draw the new button on paper with its word (LAND, SCAN…), then photograph it.</p>
+    <img id="addPreview" class="preview hidden" alt="">
+  </div>
+  <div class="drawStatus"><span id="addStatus" class="status"></span></div>
+</div>
+
+<div id="explorer" class="sheet hidden">
+  <h2 class="caps">Draw your explorer</h2>
+  <div class="count" id="expCount">15</div>
+  <div class="seg" id="expSeg"><button data-mode="camera">Camera</button><button data-mode="draw">Draw</button></div>
+  <label id="expShot" class="bigshot btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.6"/></svg>Take photo
+    <input id="expInput" type="file" accept="image/*" capture="environment"></label>
+  <canvas id="expPad" class="hidden"></canvas>
+  <div class="row"><button id="expDone" class="pill primary hidden">Done</button><button id="expDefault" class="pill">Use default explorer</button></div>
+  <p id="expStatus" class="status"></p>
+</div>
+
+<div id="probe" class="area" style="visibility:hidden;pointer-events:none;z-index:-1"></div>
+<div id="rotate"><div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><br>Rotate to landscape</div></div>
+
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+<script src="contract.js"></script>
+<script src="verbs.js"></script>
+<script src="terrain.js"></script>
+<script type="module">
+const C = window.Contract;
+const $ = (id) => document.getElementById(id);
+const DPR = Math.min(2, window.devicePixelRatio || 1);
+const SPECULATIVE_MS = 1200;
+const AXIS_MS = 50;           // at most 20 axis messages per second
+const HUD_MS = 100;           // DOM HUD at most 10 times a second
+const TOAST_MS = 4000;
+const IMAGE_PX = 512;
+const MAX_BUTTONS = 16;
+
+// ---------- storage (Safari private mode can throw) ----------
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem("sp." + k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem("sp." + k, JSON.stringify(v)); } catch {} },
+};
+
+const S = {
+  player: "", color: "#22d3ee",
+  layout: null,              // contract layout v2
+  inkBase: null,             // PNG data URL of the drawing, stretched over the whole pad
+  inkButtons: {},            // action -> PNG data URL drawn inside that button's rectangle
+  drawMode: store.get("drawMode") === "draw" ? "draw" : "camera",
+  screen: "join",
+  game: null, ghost: null, tilt: null, view: "chase",
+  lastMode: null, phase: null, explorerAsked: false, sketch: null,
+  left: { space: C.TUNING.drawings.space, planet: C.TUNING.drawings.planet },   // drawings left per world this round
+};
+
+// ---------- iOS: no pinch, no double-tap zoom, no callouts ----------
+for (const ev of ["gesturestart", "gesturechange", "dblclick", "contextmenu"]) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false });
+document.addEventListener("touchmove", (e) => { if (e.touches.length > 1 || e.target.tagName !== "INPUT") e.preventDefault(); }, { passive: false });
+
+// ---------- network ----------
+async function post(path, body) {
+  const res = await fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const text = await res.text();
+  try { return JSON.parse(text); } catch { return { ok: res.ok, error: text.slice(0, 120) }; }
+}
+function fire(path, body) { fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => {}); }
+// Messages for one action go out in order (a quick tap must never arrive as up-before-down); different actions
+// stay parallel. An axis keeps one request in flight and sends only its latest value after it.
+const chains = {};
+function sendInput(action, down) {
+  const body = JSON.stringify({ type: "input", player: S.player, action, down });
+  chains[action] = (chains[action] || Promise.resolve()).then(() => fetch("/input", { method: "POST", headers: { "content-type": "application/json" }, body })).catch(() => {});
+}
+function postAxis(a, axis) {
+  if (a.busy) { a.dirty = true; return; }
+  a.busy = true; a.dirty = false;
+  fetch("/input", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ type: "axis", player: S.player, axis, x: a.x, y: a.y }) })
+    .catch(() => {}).finally(() => { a.busy = false; if (a.dirty) postAxis(a, axis); });
 }
 
-canvas.addEventListener("pointerdown", (e) => {
-  if (isPlaying) return;
-  isDrawing = true;
-  ctx.beginPath();
-  ctx.moveTo(e.offsetX, e.offsetY);
-});
-canvas.addEventListener("pointermove", (e) => {
-  if (!isDrawing) return;
-  ctx.lineCap = "round";
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = "#111";
-  ctx.lineTo(e.offsetX, e.offsetY);
-  ctx.stroke();
-});
-window.addEventListener("pointerup", () => { isDrawing = false; });
-
-function send(action, isDown) {
-  fetch("/input", { method: "POST", body: JSON.stringify({ type: "input", player, action, down: isDown }) });
+const axes = {};             // axis -> { x, y, sentAt, timer, busy, dirty }
+function sendAxis(axis, x, y, force) {
+  const a = axes[axis] || (axes[axis] = { x: 0, y: 0, sentAt: 0, timer: 0 });
+  a.x = Math.round(x * 1000) / 1000; a.y = Math.round(y * 1000) / 1000;
+  const flush = () => { a.timer = 0; a.sentAt = performance.now(); postAxis(a, axis); };
+  const wait = AXIS_MS - (performance.now() - a.sentAt);
+  if (force || wait <= 0) { clearTimeout(a.timer); flush(); }
+  else if (!a.timer) a.timer = setTimeout(flush, wait);
 }
 
-// Claude writes controllers/<player>.json with button rectangles (fractions of the pad) once it has read the drawing.
-async function waitForLayout() {
-  const res = await fetch(`controllers/${player}.json`, { cache: "no-store" });
-  if (!res.ok) return setTimeout(waitForLayout, LAYOUT_POLL_MS);
-  const layout = await res.json();
-  waitEl.style.display = "none";
-  isPlaying = true;
-  layout.buttons.forEach(addButton);
+// ---------- screens ----------
+function show(screen) {
+  S.screen = screen;
+  for (const id of ["join", "draw", "play"]) $(id).classList.toggle("hidden", id !== screen);
+  syncLandscape();
 }
-
-function addButton(b) {
-  const el = document.createElement("div");
-  el.className = "hit";
-  el.textContent = b.action;
-  Object.assign(el.style, { left: b.x * 100 + "%", top: b.y * 100 + "%", width: b.w * 100 + "%", height: b.h * 100 + "%" });
-  const press = (isDown) => (e) => {
-    e.preventDefault();
-    el.classList.toggle("down", isDown);
-    send(b.action, isDown);
-    if (isDown && navigator.vibrate) navigator.vibrate(15);
-  };
-  el.addEventListener("pointerdown", press(true));
-  el.addEventListener("pointerup", press(false));
-  el.addEventListener("pointerleave", press(false));
-  stage.appendChild(el);
+function syncLandscape() {
+  const drawing = S.screen === "draw" && S.drawMode === "draw";
+  document.body.classList.toggle("landscape", S.screen === "play" || drawing || !$("add").classList.contains("hidden"));
 }
+function setStatus(el, text) { $(el).textContent = text || ""; }
+function areaRect() { return $("probe").getBoundingClientRect(); }   // the play area, measurable from any screen
+const colorCss = (c) => typeof c === "number" ? "#" + c.toString(16).padStart(6, "0") : (c || "#22d3ee");
 
-function resetPad() {
-  document.querySelectorAll(".hit").forEach((el) => el.remove());
-  isPlaying = false;
-  resize();
-}
-
-document.getElementById("joinForm").onsubmit = (e) => {
+// ---------- join ----------
+$("joinForm").onsubmit = async (e) => {
   e.preventDefault();
-  player = document.getElementById("name").value.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20);
-  if (!player) return;
-  document.getElementById("who").textContent = "Player: " + player;
-  document.getElementById("join").remove();
+  const name = C.cleanName($("name").value);
+  if (!name) return setStatus("joinErr", "letters and numbers only");
+  await join(name);
 };
-document.getElementById("clear").onclick = resetPad;
-document.getElementById("done").onclick = async () => {
-  if (!player) return;
-  document.querySelectorAll(".hit").forEach((el) => el.remove());
-  isPlaying = false;
-  waitEl.style.display = "grid";
-  await fetch(`/controller?player=${player}`, { method: "POST", body: canvas.toDataURL("image/png") });
-  waitForLayout();
+async function join(name) {
+  try {
+    const res = await post("/join", { player: name });
+    S.player = res.player || C.cleanName(name);
+    S.color = colorCss(res.color);
+  } catch {
+    S.player = name;   // offline: keep going, inputs will retry with the same name
+  }
+  document.documentElement.style.setProperty("--me", S.color);
+  store.set("player", S.player); store.set("color", S.color);
+  if (S.layout) { enterPlay(); } else { enterDraw(); }
+}
+
+// ---------- sketch pads (finger drawing) ----------
+// Strokes are kept in pad fractions so they can be re-rendered at any size (undo, export, overlay).
+function makeSketch(canvas, { ink = "#111", width = 5, onChange } = {}) {
+  const sk = { canvas, strokes: [], version: 0, ink, width, onChange };
+  const ctx = canvas.getContext("2d");
+  let cur = null;
+  sk.resize = () => {
+    const r = canvas.getBoundingClientRect();
+    canvas.width = Math.max(1, Math.round(r.width * DPR)); canvas.height = Math.max(1, Math.round(r.height * DPR));
+    sk.redraw();
+  };
+  sk.redraw = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawStrokes(ctx, sk.strokes, canvas.width, canvas.height, sk.ink, sk.width * DPR);
+  };
+  const pt = (e) => { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
+  canvas.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    if (cur) return;                      // one finger draws
+    try { canvas.setPointerCapture(e.pointerId); } catch {}
+    cur = { id: e.pointerId, pts: [pt(e)] };
+    sk.strokes.push(cur.pts);
+    sk.redraw();
+  });
+  canvas.addEventListener("pointermove", (e) => {
+    if (!cur || e.pointerId !== cur.id) return;
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    const last = cur.pts.length;
+    for (const ce of (evs.length ? evs : [e])) cur.pts.push(pt(ce));
+    // draw only the new segment: tiny work per move
+    const w = canvas.width, h = canvas.height;
+    ctx.strokeStyle = sk.ink; ctx.lineWidth = sk.width * DPR; ctx.lineCap = ctx.lineJoin = "round";
+    ctx.beginPath(); ctx.moveTo(cur.pts[last - 1][0] * w, cur.pts[last - 1][1] * h);
+    for (let i = last; i < cur.pts.length; i++) ctx.lineTo(cur.pts[i][0] * w, cur.pts[i][1] * h);
+    ctx.stroke();
+  });
+  const end = (e) => { if (!cur || e.pointerId !== cur.id) return; cur = null; sk.version++; sk.onChange && sk.onChange(); };
+  canvas.addEventListener("pointerup", end);
+  canvas.addEventListener("pointercancel", end);
+  sk.undo = () => { sk.strokes.pop(); sk.version++; sk.redraw(); sk.onChange && sk.onChange(); };
+  sk.clear = () => { sk.strokes = []; sk.version++; sk.redraw(); sk.onChange && sk.onChange(); };
+  return sk;
+}
+function drawStrokes(ctx, strokes, w, h, color, lw, ox = 0, oy = 0, fw = w, fh = h) {
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = lw; ctx.lineCap = ctx.lineJoin = "round";
+  for (const s of strokes) {
+    ctx.beginPath();
+    ctx.moveTo(ox + s[0][0] * fw, oy + s[0][1] * fh);
+    if (s.length === 1) ctx.lineTo(ox + s[0][0] * fw + 0.1, oy + s[0][1] * fh);
+    for (let i = 1; i < s.length; i++) ctx.lineTo(ox + s[i][0] * fw, oy + s[i][1] * fh);
+    ctx.stroke();
+  }
+}
+function strokesBox(strokes) {
+  let x0 = 1, y0 = 1, x1 = 0, y1 = 0;
+  for (const s of strokes) for (const [x, y] of s) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  return x1 >= x0 ? { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } : null;
+}
+// Export strokes as a PNG: either the whole pad (controller) or cropped to the ink (button, explorer).
+function strokesPNG(strokes, aspect, { crop = false, bg = "#fff", color = "#111", px = IMAGE_PX, lw = 5 / 390 } = {}) {
+  let box = { x: 0, y: 0, w: 1, h: 1 };
+  if (crop) {
+    const b = strokesBox(strokes);
+    const m = 0.04 * Math.max(b.w * aspect, b.h);
+    box = { x: b.x - m / aspect, y: b.y - m, w: b.w + 2 * m / aspect, h: b.h + 2 * m };
+  }
+  const bw = box.w * aspect, bh = box.h;
+  const k = px / Math.max(bw, bh);
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, Math.round(bw * k)); c.height = Math.max(1, Math.round(bh * k));
+  const ctx = c.getContext("2d");
+  if (bg) { ctx.fillStyle = bg; ctx.fillRect(0, 0, c.width, c.height); }
+  const fw = c.width / box.w, fh = c.height / box.h;
+  drawStrokes(ctx, strokes, c.width, c.height, color, Math.max(2, lw * fh), -box.x * fw, -box.y * fh, fw, fh);
+  return c.toDataURL("image/png");
+}
+
+// ---------- photo processing: find the ink on the paper ----------
+async function loadBitmap(file) {
+  try { return await createImageBitmap(file, { imageOrientation: "from-image" }); } catch {}
+  const url = URL.createObjectURL(file);
+  try { const img = new Image(); img.src = url; await img.decode(); return img; } finally { setTimeout(() => URL.revokeObjectURL(url), 1000); }
+}
+async function analysePhoto(file) {
+  const t0 = performance.now();
+  const bmp = await loadBitmap(file);
+  const bw = bmp.width || bmp.naturalWidth, bh = bmp.height || bmp.naturalHeight;
+  const s = Math.min(1, 1024 / Math.max(bw, bh));
+  const W = Math.max(1, Math.round(bw * s)), H = Math.max(1, Math.round(bh * s));
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(bmp, 0, 0, W, H);
+  if (bmp.close) bmp.close();
+  const px = ctx.getImageData(0, 0, W, H).data;
+  const N = W * H;
+  // V = max(r,g,b) drops light coloured rules and margins; L (luminance) is what the model sees.
+  const V = new Uint8Array(N), L = new Uint8Array(N);
+  for (let i = 0, j = 0; i < N; i++, j += 4) {
+    const r = px[j], g = px[j + 1], b = px[j + 2];
+    V[i] = r > g ? (r > b ? r : b) : (g > b ? g : b);
+    L[i] = (r * 77 + g * 150 + b * 29) >> 8;
+  }
+  // Integral image for the local mean: adaptive threshold against the paper, so shadows drop out.
+  const IW = W + 1, I = new Float64Array(IW * (H + 1));
+  for (let y = 0; y < H; y++) {
+    let row = 0;
+    for (let x = 0; x < W; x++) { row += V[y * W + x]; I[(y + 1) * IW + x + 1] = I[y * IW + x + 1] + row; }
+  }
+  const R = Math.max(8, Math.round(Math.max(W, H) / 24));
+  const mean = new Uint8Array(N), alpha = new Uint8Array(N), ink = new Uint8Array(N);
+  for (let y = 0; y < H; y++) {
+    const y0 = Math.max(0, y - R), y1 = Math.min(H, y + R + 1);
+    for (let x = 0; x < W; x++) {
+      const x0 = Math.max(0, x - R), x1 = Math.min(W, x + R + 1);
+      const sum = I[y1 * IW + x1] - I[y0 * IW + x1] - I[y1 * IW + x0] + I[y0 * IW + x0];
+      const m = sum / ((y1 - y0) * (x1 - x0));
+      const i = y * W + x;
+      mean[i] = m;
+      const t = m * 0.66;
+      if (m > 50 && V[i] < t) { ink[i] = 1; alpha[i] = Math.min(255, 90 + ((t - V[i]) / (t * 0.3)) * 165); }
+    }
+  }
+  // Drop ink that touches the photo border (table edge, page edge, fingers).
+  const stack = new Int32Array(N); let sp = 0;
+  const seed = (i) => { if (ink[i]) { ink[i] = 0; alpha[i] = 0; stack[sp++] = i; } };
+  for (let x = 0; x < W; x++) { seed(x); seed((H - 1) * W + x); }
+  for (let y = 0; y < H; y++) { seed(y * W); seed(y * W + W - 1); }
+  while (sp) {
+    const i = stack[--sp], x = i % W;
+    if (x > 0) seed(i - 1); if (x < W - 1) seed(i + 1);
+    if (i >= W) seed(i - W); if (i < N - W) seed(i + W);
+  }
+  // Bounding box from rows and columns with at least 2 ink pixels (ignores lone specks).
+  const cols = new Uint16Array(W), rows = new Uint16Array(H);
+  let count = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (ink[y * W + x]) { cols[x]++; rows[y]++; count++; }
+  const first = (a) => a.findIndex((v) => v >= 2), last = (a) => a.length - 1 - [...a].reverse().findIndex((v) => v >= 2);
+  const x0 = first(cols), y0 = first(rows);
+  if (x0 < 0 || y0 < 0 || count < 40) throw new Error("No drawing found. Draw big and dark, then try again");
+  const box = { x: x0, y: y0, w: last(cols) - x0 + 1, h: last(rows) - y0 + 1 };
+  // Shading-corrected greyscale (L / local paper brightness) and the ink-only layer.
+  const grey = new ImageData(W, H), inkImg = new ImageData(W, H);
+  for (let i = 0, j = 0; i < N; i++, j += 4) {
+    const g = Math.min(255, (L[i] / Math.max(40, mean[i])) * 265);
+    grey.data[j] = grey.data[j + 1] = grey.data[j + 2] = g; grey.data[j + 3] = 255;
+    inkImg.data[j] = inkImg.data[j + 1] = inkImg.data[j + 2] = 255; inkImg.data[j + 3] = alpha[i];
+  }
+  const gc = document.createElement("canvas"); gc.width = W; gc.height = H; gc.getContext("2d").putImageData(grey, 0, 0);
+  const ic = document.createElement("canvas"); ic.width = W; ic.height = H; ic.getContext("2d").putImageData(inkImg, 0, 0);
+  return { W, H, box, grey: gc, ink: ic, turns: box.h > box.w ? 3 : 0, ms: Math.round(performance.now() - t0) };
+}
+// Crop to the ink box + 4 % margin, rotate by quarter turns, scale so the longest side is 512 px.
+function renderPhoto(a) {
+  const m = Math.round(0.04 * Math.max(a.box.w, a.box.h));
+  const x = Math.max(0, a.box.x - m), y = Math.max(0, a.box.y - m);
+  const w = Math.min(a.W, a.box.x + a.box.w + m) - x, h = Math.min(a.H, a.box.y + a.box.h + m) - y;
+  const odd = a.turns % 2 === 1;
+  const rw = odd ? h : w, rh = odd ? w : h;
+  const k = IMAGE_PX / Math.max(rw, rh);
+  const out = (src) => {
+    const c = document.createElement("canvas"); c.width = Math.round(rw * k); c.height = Math.round(rh * k);
+    const ctx = c.getContext("2d");
+    ctx.translate(c.width / 2, c.height / 2); ctx.rotate((a.turns * Math.PI) / 2); ctx.scale(k, k);
+    ctx.drawImage(src, x, y, w, h, -w / 2, -h / 2, w, h);
+    return c.toDataURL("image/png");
+  };
+  return { image: out(a.grey), ink: out(a.ink), aspect: rw / rh };
+}
+
+// ---------- generation: newest request wins ----------
+let reqSeq = 0;
+const latest = {};           // kind -> { requestId, key, promise }
+function generate(kind, image, { source = "draw", speculative = false, key = null, region } = {}) {
+  const requestId = `${S.player}-${Date.now().toString(36)}-${++reqSeq}`;
+  const body = { player: S.player, kind, image, source, speculative, requestId };
+  if (region) body.region = region;
+  const promise = post("/generate", body).catch((e) => ({ ok: false, error: e.message || "network" })).then((r) => {
+    if (r.drawingsLeft) setLeft(r.drawingsLeft);
+    if (r.error === "no drawings left") r.error = `No drawings left ${world() === "planet" ? "on the planet" : "in space"} this round`;
+    return { ...r, requestId };
+  });
+  latest[kind] = { requestId, key, promise };
+  return latest[kind];
+}
+const isLatest = (kind, r) => latest[kind] && latest[kind].requestId === r.requestId;
+
+// ---------- lobby draw mode ----------
+const padSketch = makeSketch($("drawPad"), { onChange: scheduleSpeculative });
+let specTimer = 0, photo = null;     // photo: { analysis, rendered, key }
+function enterDraw() {
+  show("draw");
+  setDrawMode(S.drawMode);
+  requestAnimationFrame(() => padSketch.resize());
+}
+function setDrawMode(mode) {
+  S.drawMode = mode; store.set("drawMode", mode);
+  $("draw").classList.toggle("camera", mode === "camera");
+  for (const b of $("drawSeg").children) b.classList.toggle("on", b.dataset.mode === mode);
+  $("drawPad").classList.toggle("hidden", mode !== "draw");
+  $("camCard").classList.toggle("hidden", mode !== "camera");
+  $("undo").classList.toggle("hidden", mode !== "draw");
+  $("clear").classList.toggle("hidden", mode !== "draw");
+  $("done").classList.toggle("hidden", mode === "camera");
+  setStatus("drawStatus", (mode === "draw" ? "draw arrows and buttons, write a word on each · " : "") + leftText());
+  syncLandscape();
+  if (mode === "draw") requestAnimationFrame(() => padSketch.resize());
+}
+$("drawSeg").onclick = (e) => { if (e.target.dataset.mode) setDrawMode(e.target.dataset.mode); };
+$("undo").onclick = () => padSketch.undo();
+$("clear").onclick = () => padSketch.clear();
+function padAspect() { const r = areaRect(); return r.width / Math.max(1, r.height); }
+function scheduleSpeculative() {
+  clearTimeout(specTimer);
+  if (!padSketch.strokes.length) return;
+  specTimer = setTimeout(() => {
+    const image = strokesPNG(padSketch.strokes, padAspect());
+    generate("controller", image, { source: "draw", speculative: true, key: "draw:" + padSketch.version });
+    setStatus("drawStatus", "reading your drawing…");
+  }, SPECULATIVE_MS);
+}
+async function onPhoto(file, ui) {
+  if (!file) return;
+  setStatus(ui.status, "reading the photo…");
+  try {
+    const analysis = await analysePhoto(file);
+    const rendered = renderPhoto(analysis);
+    window.__lastPhotoMs = analysis.ms;
+    return { analysis, rendered };
+  } catch (e) {
+    setStatus(ui.status, e.message);
+    return null;
+  }
+}
+async function onControllerPhoto(file) {
+  const p = await onPhoto(file, { status: "drawStatus" });
+  if (!p) return;
+  photo = { ...p, key: "photo:" + (++reqSeq) };
+  showPhoto();
+}
+function showPhoto() {
+  $("camPreview").src = photo.rendered.image;
+  $("camPreview").classList.remove("hidden");
+  $("camActions").classList.remove("hidden");
+  $("camIntro").classList.add("hidden");
+  setStatus("drawStatus", `found the drawing in ${photo.analysis.ms} ms`);
+  // A photo is sent as soon as it is processed; "Use it" waits for that answer.
+  generate("controller", photo.rendered.image, { source: "photo", speculative: true, key: photo.key });
+}
+$("camInput").onchange = (e) => { onControllerPhoto(e.target.files[0]); e.target.value = ""; };
+$("camInput2").onchange = (e) => { onControllerPhoto(e.target.files[0]); e.target.value = ""; };
+$("camRotate").onclick = () => {
+  if (!photo) return;
+  photo.analysis.turns = (photo.analysis.turns + 1) % 4;
+  photo.rendered = renderPhoto(photo.analysis);
+  photo.key = "photo:" + (++reqSeq);
+  showPhoto();
+};
+$("camUse").onclick = () => photo && finishController("photo");
+$("done").onclick = () => {
+  if (!padSketch.strokes.length) return setStatus("drawStatus", "draw something first, or use the default");
+  finishController("draw");
+};
+$("useDefault").onclick = () => { applyLayout(defaultLayout(), defaultInk(), {}); enterPlay(); };
+
+let lastFinish = null;
+async function finishController(source) {
+  clearTimeout(specTimer);
+  let key, image, inkURL;
+  if (source === "photo") { key = photo.key; image = photo.rendered.image; inkURL = photo.rendered.ink; }
+  else {
+    key = "draw:" + padSketch.version; image = strokesPNG(padSketch.strokes, padAspect());
+    inkURL = strokesPNG(padSketch.strokes, padAspect(), { bg: null, color: "#fff", px: 1024 });
+  }
+  lastFinish = source;
+  showGen();
+  // Wait for the speculative answer on the same image, then confirm it non-speculatively: Astra answers from its
+  // hash cache at once, and only this finished call counts against the drawing budget.
+  const spec = latest.controller && latest.controller.key === key ? latest.controller : null;
+  if (spec) { await spec.promise; if (latest.controller !== spec) return; }
+  const res = await generate("controller", image, { source, speculative: false, key }).promise;
+  if (!isLatest("controller", res)) return;                 // superseded by a newer request
+  const errors = res.ok && res.layout ? C.CHECKS.layout(res.layout) : [res.error || "generation failed"];
+  if (errors.length) return showGenError(errors[0]);
+  hideGen();
+  applyLayout(res.layout, inkURL, {});
+  enterPlay();
+}
+function showGen() {
+  $("gen").classList.remove("hidden"); $("genSpin").classList.remove("hidden");
+  $("genTitle").textContent = "generating…"; setStatus("genErr", ""); $("genActions").classList.add("hidden");
+}
+function showGenError(msg) {
+  $("genSpin").classList.add("hidden"); $("genTitle").textContent = "That did not work";
+  setStatus("genErr", msg); $("genActions").classList.remove("hidden");
+}
+function hideGen() { $("gen").classList.add("hidden"); }
+$("genRetry").onclick = () => { latest.controller = null; finishController(lastFinish); };
+$("genBack").onclick = () => { hideGen(); if (S.layout) enterPlay(); };   // "try again" keeps the old layout
+
+function defaultLayout() {
+  return { source: "default", buttons: [
+    { type: "stick", action: "steer", label: "STEER", x: 0.04, y: 0.4, w: 0.3, h: 0.55 },
+    { type: "button", action: "boost", label: "BOOST", x: 0.56, y: 0.62, w: 0.17, h: 0.32 },
+    { type: "button", action: "shoot", label: "SHOOT", x: 0.76, y: 0.5, w: 0.21, h: 0.44 },
+  ] };
+}
+function defaultInk() {
+  const c = document.createElement("canvas"); const r = areaRect();
+  c.width = 1024; c.height = Math.round(1024 / Math.max(1, r.width / Math.max(1, r.height)));
+  const ctx = c.getContext("2d"); ctx.strokeStyle = ctx.fillStyle = "#fff"; ctx.lineWidth = 5; ctx.lineCap = "round";
+  for (const b of defaultLayout().buttons) {
+    const x = b.x * c.width, y = b.y * c.height, w = b.w * c.width, h = b.h * c.height;
+    ctx.beginPath();
+    if (b.type === "stick") { const rr = Math.min(w, h) / 2 - 6; ctx.arc(x + w / 2, y + h / 2, rr, 0, 7); ctx.moveTo(x + w / 2 + 20, y + h / 2); ctx.arc(x + w / 2, y + h / 2, 20, 0, 7); }
+    else { ctx.roundRect ? ctx.roundRect(x + 6, y + 6, w - 12, h - 12, 22) : ctx.rect(x + 6, y + 6, w - 12, h - 12); }
+    ctx.stroke();
+    if (b.type !== "stick") { ctx.font = "bold 34px 'Marker Felt', 'Chalkboard SE', 'Comic Sans MS', cursive"; ctx.textAlign = "center"; ctx.fillText(b.label, x + w / 2, y + h / 2 + 12); }
+  }
+  return c.toDataURL("image/png");
+}
+
+// ---------- layout + overlay ----------
+function applyLayout(layout, inkBase, inkButtons) {
+  S.layout = { source: layout.source || "model", buttons: layout.buttons.map((b) => ({ type: b.type || "button", ...b, action: C.normaliseAction(b.action) })) };
+  S.inkBase = inkBase; S.inkButtons = inkButtons || {};
+  store.set("layout", S.layout); store.set("inkBase", S.inkBase); store.set("inkButtons", S.inkButtons);
+  buildHits(); paintInk();
+}
+const images = new Map();
+function loadImg(url) {
+  if (!url) return Promise.resolve(null);
+  if (!images.has(url)) images.set(url, new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = url; }));
+  return images.get(url);
+}
+async function paintInk() {
+  const c = $("ink"), r = areaRect();
+  c.width = Math.round(r.width * DPR); c.height = Math.round(r.height * DPR);
+  const ctx = c.getContext("2d");
+  ctx.clearRect(0, 0, c.width, c.height);
+  const base = await loadImg(S.inkBase);
+  if (base) ctx.drawImage(base, 0, 0, c.width, c.height);
+  for (const b of S.layout ? S.layout.buttons : []) {
+    const img = await loadImg(S.inkButtons[b.action]);
+    if (!img) continue;
+    const bw = b.w * c.width, bh = b.h * c.height, k = Math.min(bw / img.width, bh / img.height);
+    ctx.drawImage(img, b.x * c.width + (bw - img.width * k) / 2, b.y * c.height + (bh - img.height * k) / 2, img.width * k, img.height * k);
+  }
+}
+
+// ---------- play: hit areas, multi-touch ----------
+const controls = [];         // { b, el, knob, down, on, presses }
+function buildHits() {
+  $("hits").replaceChildren();
+  controls.length = 0;
+  for (const b of S.layout.buttons) {
+    const el = document.createElement("div");
+    el.className = "hit " + b.type;
+    Object.assign(el.style, { left: b.x * 100 + "%", top: b.y * 100 + "%", width: b.w * 100 + "%", height: b.h * 100 + "%" });
+    el.textContent = b.label || b.action;
+    const ctl = { b, el, presses: 0, on: false };
+    if (b.type === "stick") { ctl.knob = document.createElement("div"); ctl.knob.className = "knob"; el.appendChild(ctl.knob); }
+    $("hits").appendChild(el);
+    controls.push(ctl);
+  }
+  if (S.ghost) placeGhost();
+}
+const inside = (b, fx, fy) => fx >= b.x && fx <= b.x + b.w && fy >= b.y && fy <= b.y + b.h;
+function controlAt(fx, fy) {
+  // smallest containing control wins, so a button drawn inside a big stick zone still works
+  let best = null;
+  for (const c of controls) if (inside(c.b, fx, fy) && (!best || c.b.w * c.b.h < best.b.w * best.b.h)) best = c;
+  return best;
+}
+const pointers = new Map();  // pointerId -> control
+let hitRect = null;
+function frac(e) { const r = hitRect || (hitRect = $("hits").getBoundingClientRect()); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height, r]; }
+function press(ctl, down) {
+  ctl.presses += down ? 1 : -1;
+  if (down && ctl.presses === 1) { ctl.el.classList.add("down"); sendInput(ctl.b.action, true); }
+  if (!down && ctl.presses === 0) { ctl.el.classList.remove("down"); sendInput(ctl.b.action, false); }
+}
+function moveStick(ctl, e) {
+  const [fx, fy, r] = frac(e);
+  const b = ctl.b, w = b.w * r.width, h = b.h * r.height, rad = Math.max(10, Math.min(w, h) / 2 - 10);
+  let dx = (fx - b.x - b.w / 2) * r.width / rad, dy = (fy - b.y - b.h / 2) * r.height / rad;
+  const len = Math.hypot(dx, dy);
+  if (len > 1) { dx /= len; dy /= len; }
+  ctl.knob.style.transform = `translate(${dx * rad}px, ${dy * rad}px)`;
+  sendAxis(b.action, dx, -dy, false);    // y up = +1
+}
+function release(id) {
+  const ctl = pointers.get(id);
+  if (!ctl) return;
+  pointers.delete(id);
+  if (ctl.b.type === "stick") {
+    ctl.el.classList.remove("down"); ctl.knob.style.transform = "";
+    sendAxis(ctl.b.action, 0, 0, true);
+  } else press(ctl, false);
+}
+function releaseAll() { for (const id of [...pointers.keys()]) release(id); }
+const hits = $("hits");
+hits.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  hitRect = hits.getBoundingClientRect();
+  const [fx, fy] = frac(e);
+  const ctl = controlAt(fx, fy);
+  if (!ctl) return;
+  try { hits.setPointerCapture(e.pointerId); } catch {}
+  if (ctl.b.type === "toggle") { ctl.on = !ctl.on; ctl.el.classList.toggle("on", ctl.on); sendInput(ctl.b.action, ctl.on); return; }
+  pointers.set(e.pointerId, ctl);
+  if (ctl.b.type === "stick") { ctl.el.classList.add("down"); moveStick(ctl, e); }
+  else press(ctl, true);
+});
+hits.addEventListener("pointermove", (e) => {
+  const ctl = pointers.get(e.pointerId);
+  if (!ctl) return;
+  if (ctl.b.type === "stick") return moveStick(ctl, e);
+  const [fx, fy] = frac(e);
+  if (!inside(ctl.b, fx, fy)) release(e.pointerId);   // sliding off a button releases it
+});
+hits.addEventListener("pointerup", (e) => release(e.pointerId));
+hits.addEventListener("lostpointercapture", (e) => release(e.pointerId));
+hits.addEventListener("pointercancel", releaseAll);
+window.addEventListener("blur", releaseAll);
+
+// ---------- play screen ----------
+let hudTimer = 0;
+async function enterPlay() {
+  show("play");
+  hitRect = null;
+  if (S.layout) { buildHits(); paintInk(); }
+  if (!S.game) S.game = await startRenderer();
+  startHud();
+}
+async function startRenderer() {
+  const opts = { canvas: $("game"), screen: "phone", view: S.view, player: S.player };
+  try {
+    const mod = await import("./render.js");
+    const game = await mod.startGame(opts);
+    $("placeholder").classList.add("hidden");
+    wireGame(game);
+    return game;
+  } catch (e) {
+    console.warn("render.js unavailable, using the plain view", e);
+    $("placeholder").classList.add("plain");
+    const game = fallbackGame(opts);
+    wireGame(game);
+    return game;
+  }
+}
+// Without render.js the controller still works: a plain background and the HUD fed straight from /events.
+function fallbackGame({ player }) {
+  const handlers = {};
+  let tick = null, world = null;
+  const emit = (t, m) => (handlers[t] || []).forEach((cb) => cb(m));
+  const es = new EventSource("/events");
+  es.onmessage = (ev) => {
+    let m; try { m = JSON.parse(ev.data); } catch { return; }
+    if (m.type === "tick") tick = m;
+    if (m.type === "world") world = m;
+    emit(m.type, m);
+  };
+  return {
+    fallback: true,
+    on(t, cb) { (handlers[t] || (handlers[t] = [])).push(cb); },
+    setView() {}, setPlayer(n) { player = n; }, dispose() { es.close(); },
+    hud() {
+      if (!tick) return { phase: null };
+      const me = tick.players.find((p) => p.name === player) || null;
+      const boss = world && world.targets.find((t) => t.kind === "boss");
+      const radar = [];
+      if (me) for (const p of tick.players) if (p !== me) radar.push({ kind: "player", dx: p.x - me.x, dz: p.z - me.z, dy: p.y - me.y });
+      if (me && boss && me.mode === "space") radar.push({ kind: "boss", dx: boss.x - me.x, dz: boss.z - me.z, dy: boss.y - me.y });
+      const objective = me && me.mode === "planet" ? "chest" : world && world.planet ? "planet" : "boss";
+      return { phase: tick.phase, clock: tick.clock, objective, objectiveText: C.OBJECTIVES[objective], bar: boss ? boss.hp / boss.maxHp : 1, status: "",
+        me, radar, scores: tick.players.map((p) => ({ name: p.name, score: p.score, color: p.color })).sort((a, b) => b.score - a.score), tier: 0 };
+    },
+  };
+}
+function wireGame(game) {
+  game.on("toast", (m) => { if (!m.player || m.player === S.player) showToast(m); });
+  // drawingsLeft is not part of hud().me, so read it from the tick (setLeft does nothing unless it changed)
+  game.on("tick", (m) => { const me = m.players && m.players.find((p) => p.name === S.player); if (me && me.drawingsLeft) setLeft(me.drawingsLeft); });
+}
+
+// ---------- HUD ----------
+const hudEls = { obj: $("obj"), status: $("status"), clock: $("clock"), objBar: $("objBar"), shield: $("shieldBar"), boost: $("boostBar") };
+const hudCache = {};
+function setText(key, el, v) { if (hudCache[key] !== v) { hudCache[key] = v; el.textContent = v; } }
+function setScale(key, el, v) { v = Math.round(Math.max(0, Math.min(1, v)) * 100) / 100; if (hudCache[key] !== v) { hudCache[key] = v; el.style.transform = `scaleX(${v})`; } }
+function startHud() { clearInterval(hudTimer); hudTimer = setInterval(updateHud, HUD_MS); updateHud(); }
+function stopHud() { clearInterval(hudTimer); hudTimer = 0; }
+const fmt = (s) => { s = Math.max(0, Math.ceil(s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+function updateHud() {
+  if (!S.game || S.screen !== "play") return;
+  let h; try { h = S.game.hud() || {}; } catch { return; }
+  const me = h.me || null;
+  setText("obj", hudEls.obj, h.phase === "lobby" ? "GET READY" : (h.objectiveText || "").toUpperCase());
+  setText("status", hudEls.status, (h.status || "").toUpperCase());
+  // lobby and scoreboard count down; playing and assists count up (no time cap)
+  setText("clock", hudEls.clock, fmt(h.clock));
+  const assists = h.phase === "assists";
+  if (hudCache.assists !== assists) { hudCache.assists = assists; hudEls.clock.classList.toggle("low", assists); }
+  if (assists && !h.status) setText("status", hudEls.status, "ASSISTS ON");
+  setScale("bar", hudEls.objBar, typeof h.bar === "number" ? h.bar : 0);
+  setScale("shield", hudEls.shield, me ? me.shieldEnergy : 1);
+  setScale("boost", hudEls.boost, me ? me.boostEnergy : 1);
+  drawRadar(h.radar || []);
+  // phases: lobby → "Get ready", scoreboard → scores; the layout is kept across rounds
+  if (h.phase !== S.phase) onPhase(h.phase, h);
+  if (h.phase === "lobby") setText("bsub", $("bannerSub"), "Round starts in " + fmt(h.clock));
+  if (h.phase === "scoreboard") renderScores(h.scores || []);
+  // landing and take-off are a predefined animation with no control: the overlay fades to 20 %
+  const flags = (me && me.flags) || {};
+  const locked = !!(flags.landing || flags.takingOff);
+  if (hudCache.locked !== locked) { hudCache.locked = locked; $("area").classList.toggle("locked", locked); if (locked) releaseAll(); }
+  // after touchdown ("planet" and no longer landing) the phone asks for the explorer, once per landing
+  const mode = me ? me.mode : null;
+  if (mode === "space") S.explorerAsked = false;
+  if (mode === "planet" && !locked && !S.explorerAsked && S.lastMode !== null) { S.explorerAsked = true; openExplorer(); }
+  if (mode) S.lastMode = mode;
+  if (S.ghost && S.layout.buttons.some((b) => b.action === S.ghost.action)) clearGhost();
+  if (S.sketch && S.layout.buttons.some((b) => b.action === SKETCH_VERB[S.sketch])) clearSketch();
+}
+function onPhase(phase, h) {
+  S.phase = phase;
+  const lobby = phase === "lobby", board = phase === "scoreboard";
+  $("banner").classList.toggle("hidden", !(lobby || board));
+  $("bannerTitle").textContent = lobby ? "GET READY" : board ? "SCORES" : "";
+  $("scores").classList.toggle("hidden", !board);
+  $("bannerActions").classList.toggle("hidden", !lobby);
+  if (!lobby) $("bannerSub").textContent = "";
+  hudCache.bsub = null; hudCache.scores = null;
+  if (lobby) { $("readyBtn").textContent = "Ready"; $("readyBtn").classList.add("primary"); }
+}
+function renderScores(scores) {
+  const key = scores.map((s) => s.name + s.score).join();
+  if (hudCache.scores === key) return;
+  hudCache.scores = key;
+  $("scores").replaceChildren(...scores.slice(0, 8).map((s) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<span></span><b></b>`;
+    li.firstChild.textContent = s.name; li.firstChild.style.color = colorCss(s.color); li.lastChild.textContent = s.score;
+    return li;
+  }));
+}
+$("readyBtn").onclick = () => { sendInput("ready", true); setTimeout(() => sendInput("ready", false), 120); $("readyBtn").textContent = "Ready ✓"; $("readyBtn").classList.remove("primary"); };
+$("redrawBtn").onclick = () => { if (!noneLeft()) enterDraw(); };
+$("tRedraw").onclick = () => { if (!noneLeft()) enterDraw(); };
+
+const radar = $("radar"), rctx = radar.getContext("2d");
+radar.width = radar.height = Math.round(74 * DPR);
+let radarKey = "";
+function drawRadar(items) {
+  const key = items.map((i) => `${i.kind}${Math.round(i.dx / 4)},${Math.round(i.dz / 4)}`).join("|");
+  if (key === radarKey) return;
+  radarKey = key;
+  const s = radar.width, c = s / 2, R = c - 3 * DPR, RANGE = 300;
+  rctx.clearRect(0, 0, s, s);
+  rctx.strokeStyle = "rgba(94,231,255,0.55)"; rctx.lineWidth = DPR; rctx.shadowColor = "#5ee7ff"; rctx.shadowBlur = 6 * DPR;
+  rctx.beginPath(); rctx.arc(c, c, R, 0, 7); rctx.stroke();
+  rctx.shadowBlur = 0; rctx.strokeStyle = "rgba(94,231,255,0.2)";
+  rctx.beginPath(); rctx.arc(c, c, R * 0.5, 0, 7); rctx.moveTo(c - R, c); rctx.lineTo(c + R, c); rctx.moveTo(c, c - R); rctx.lineTo(c, c + R); rctx.stroke();
+  for (const it of items) {
+    if (it.kind === "you") continue;
+    const d = Math.hypot(it.dx, it.dz), k = Math.min(1, d / RANGE) * (R - 4 * DPR) / (d || 1);
+    const x = c + it.dx * k, y = c + it.dz * k;     // forward (-z) is up
+    rctx.fillStyle = it.kind === "player" ? "#60a5fa" : "#ff3b5c";
+    rctx.beginPath();
+    const z = (it.kind === "objective" || it.kind === "boss" ? 4.5 : 2.5) * DPR;
+    if (it.kind === "objective" || it.kind === "boss") { rctx.moveTo(x, y - z); rctx.lineTo(x + z, y); rctx.lineTo(x, y + z); rctx.lineTo(x - z, y); }
+    else rctx.arc(x, y, z, 0, 7);
+    rctx.fill();
+  }
+  rctx.fillStyle = "#5ee7ff"; rctx.shadowBlur = 6 * DPR;
+  rctx.beginPath(); rctx.moveTo(c, c - 6 * DPR); rctx.lineTo(c + 4 * DPR, c + 4 * DPR); rctx.lineTo(c - 4 * DPR, c + 4 * DPR); rctx.fill();
+  rctx.shadowBlur = 0;
+}
+
+// ---------- drawing budget: 5 finished drawings per world per round ----------
+const world = () => (S.lastMode === "planet" ? "planet" : "space");
+const leftHere = () => (S.left[world()] ?? 5);
+const leftText = () => `${leftHere()} of ${C.TUNING.drawings[world()]} drawings left`;
+function setLeft(left, mode) {
+  if (!left) return;
+  const changed = left.space !== S.left.space || left.planet !== S.left.planet;
+  S.left = { space: left.space, planet: left.planet };
+  if (!changed && hudCache.leftWorld === world()) return;
+  hudCache.leftWorld = world();
+  $("leftBadge").textContent = leftHere();
+  $("tAdd").classList.toggle("empty", leftHere() <= 0);
+  $("tRedraw").classList.toggle("empty", leftHere() <= 0);
+}
+function noneLeft() {
+  if (leftHere() > 0) return false;
+  showToast({ text: `No drawings left ${world() === "planet" ? "on the planet" : "in space"} this round` });
+  return true;
+}
+
+// ---------- faint sketch hints (riddle step 2) ----------
+const SKETCH_VERB = { drill: "drill", landing: "land", shovel: "dig" };
+const SKETCHES = {
+  drill: '<path d="M10 50h22l8-8v16l-8-8M40 42l46 8-46 8M50 44l-4 12M60 46l-4 10M70 47l-3 7"/><path d="M14 44v12M22 44v12"/>',
+  landing: '<path d="M30 30q20-16 40 0v10H30z"/><path d="M36 40l-10 22M64 40l10 22M20 62h14M66 62h14"/><path d="M6 64h88" stroke-dasharray="3 4"/>',
+  shovel: '<path d="M50 8v50"/><path d="M42 8h16"/><path d="M38 58h24l-4 22q-8 8-16 0z"/><path d="M28 86q22 6 44 0" stroke-dasharray="3 4"/>',
+};
+function showSketch(name) {
+  if (!SKETCHES[name] || (S.layout && S.layout.buttons.some((b) => b.action === SKETCH_VERB[name]))) return;
+  S.sketch = name;
+  const el = $("sketch"), r = largestFree();
+  Object.assign(el.style, { left: r.x * 100 + "%", top: r.y * 100 + "%", width: r.w * 100 + "%", height: r.h * 100 + "%" });
+  el.innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${SKETCHES[name]}</svg>`;
+  el.dataset.sketch = name;
+  requestAnimationFrame(() => el.classList.add("on"));
+}
+function clearSketch() { S.sketch = null; $("sketch").classList.remove("on"); }
+
+// ---------- toasts and the ghost box ----------
+let toastTimer = 0;
+function showToast(m) {
+  $("toast").textContent = m.text || "";
+  $("toast").classList.remove("off");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $("toast").classList.add("off"), TOAST_MS);
+  if (m.sketch) showSketch(m.sketch);
+  if (m.ghost && m.ghost.action) { clearSketch(); S.ghost = { ...m.ghost, action: C.normaliseAction(m.ghost.action) }; placeGhost(); }
+}
+function placeGhost() {
+  let el = $("ghost");
+  if (!el) { el = document.createElement("div"); el.id = "ghost"; $("area").appendChild(el); el.addEventListener("pointerdown", (e) => { e.stopPropagation(); e.preventDefault(); openAdd(S.ghost); }); }
+  const g = S.ghost;
+  Object.assign(el.style, { left: g.x * 100 + "%", top: g.y * 100 + "%", width: g.w * 100 + "%", height: g.h * 100 + "%" });
+  el.textContent = g.action.toUpperCase();
+}
+function clearGhost() { S.ghost = null; const el = $("ghost"); if (el) el.remove(); }
+
+// Largest free area of the pad (below the HUD band), as a fraction rectangle.
+function largestFree() {
+  const GX = 12, GY = 8, TOP = 2;    // the top two rows belong to the HUD
+  const busy = (gx, gy) => (S.layout ? S.layout.buttons : []).concat(S.ghost ? [S.ghost] : []).some((b) => (gx + 1) / GX > b.x && gx / GX < b.x + b.w && (gy + 1) / GY > b.y && gy / GY < b.y + b.h);
+  const free = []; for (let y = 0; y < GY; y++) for (let x = 0; x < GX; x++) free[y * GX + x] = y >= TOP && !busy(x, y);
+  let best = null;
+  for (let y0 = TOP; y0 < GY; y0++) for (let x0 = 0; x0 < GX; x0++) for (let y1 = y0; y1 < GY; y1++) for (let x1 = x0; x1 < GX; x1++) {
+    let ok = true;
+    for (let y = y0; y <= y1 && ok; y++) for (let x = x0; x <= x1 && ok; x++) ok = free[y * GX + x];
+    if (!ok) break;
+    const a = Math.min(x1 - x0 + 1, 3) * Math.min(y1 - y0 + 1, 3);    // a button-sized box is enough
+    if (!best || a > best.a) best = { a, x0, y0, x1, y1 };
+  }
+  if (!best) return { x: 0.4, y: 0.3, w: 0.2, h: 0.3 };
+  const w = Math.min(best.x1 - best.x0 + 1, 3) / GX, h = Math.min(best.y1 - best.y0 + 1, 3) / GY;
+  const cx = (best.x0 + best.x1 + 1) / 2 / GX, cy = (best.y0 + best.y1 + 1) / 2 / GY;
+  return { x: cx - w / 2, y: cy - h / 2, w, h };
+}
+
+// ---------- add a button ----------
+const addSketch = makeSketch($("addPad"), { ink: "#5ee7ff", width: 6 });
+let addState = null;          // { region, action, photo }
+function openAdd(ghost) {
+  if (noneLeft()) return;
+  releaseAll();
+  const region = ghost ? { x: ghost.x, y: ghost.y, w: ghost.w, h: ghost.h } : largestFree();
+  addState = { region, action: ghost ? ghost.action : null, photo: null };
+  $("add").classList.remove("hidden");
+  const r = areaRect();
+  Object.assign($("addRegion").style, { left: r.left + region.x * r.width + "px", top: r.top + region.y * r.height + "px", width: region.w * r.width + "px", height: region.h * r.height + "px" });
+  $("addRegion").textContent = addState.action ? addState.action.toUpperCase() : "";
+  $("addHint").textContent = addState.action ? `Draw a ${addState.action.toUpperCase()} button on paper, then photograph it.` : "Draw the new button on paper with its word (LAND, SCAN…), then photograph it.";
+  $("addPreview").classList.add("hidden");
+  addSketch.strokes = []; addSketch.version++;
+  setAddMode(S.drawMode);
+  setStatus("addStatus", "");
+}
+function setAddMode(mode) {
+  S.drawMode = mode; store.set("drawMode", mode);
+  $("add").classList.toggle("camera", mode === "camera");
+  for (const b of $("addSeg").children) b.classList.toggle("on", b.dataset.mode === mode);
+  $("addPad").classList.toggle("hidden", mode !== "draw");
+  $("addRegion").classList.toggle("hidden", mode !== "draw");
+  $("addCam").classList.toggle("hidden", mode !== "camera");
+  $("addUndo").classList.toggle("hidden", mode !== "draw");
+  $("addDone").classList.toggle("hidden", mode === "camera" && !(addState && addState.photo));
+  setStatus("addStatus", (mode === "draw" ? "trace the box, write the word · " : "") + leftText());
+  if (mode === "draw") requestAnimationFrame(() => addSketch.resize());
+  syncLandscape();
+}
+function closeAdd() { addState = null; $("add").classList.add("hidden"); syncLandscape(); }
+$("addSeg").onclick = (e) => { if (e.target.dataset.mode) setAddMode(e.target.dataset.mode); };
+$("addUndo").onclick = () => addSketch.undo();
+$("addCancel").onclick = closeAdd;
+$("addInput").onchange = async (e) => {
+  const file = e.target.files[0]; e.target.value = "";
+  const p = await onPhoto(file, { status: "addStatus" });
+  if (!p || !addState) return;
+  addState.photo = p;
+  $("addPreview").src = p.rendered.image; $("addPreview").classList.remove("hidden");
+  $("addDone").classList.remove("hidden");
+  setStatus("addStatus", "looks good? tap Done");
+};
+$("addDone").onclick = async () => {
+  if (!addState) return;
+  let image, inkURL, source;
+  if (S.drawMode === "camera") {
+    if (!addState.photo) return;
+    ({ image, ink: inkURL } = addState.photo.rendered); source = "photo";
+  } else {
+    if (!addSketch.strokes.length) return setStatus("addStatus", "draw the button first");
+    const aspect = padAspect();
+    image = strokesPNG(addSketch.strokes, aspect, { crop: true });
+    inkURL = strokesPNG(addSketch.strokes, aspect, { crop: true, bg: null, color: "#fff" });
+    source = "draw";
+  }
+  const region = addState.region;
+  setStatus("addStatus", "generating…");
+  $("addDone").disabled = true;
+  const res = await generate("button", image, { source, region }).promise;
+  $("addDone").disabled = false;
+  if (!isLatest("button", res)) return;
+  const b = res.ok && res.layout && res.layout.buttons && res.layout.buttons[0];
+  if (!b || C.CHECKS.layout({ buttons: [b] }).length) return setStatus("addStatus", (res.error || "could not read that button") + " · try again");
+  mergeButton(b, inkURL);
+  closeAdd();
+  showToast({ text: `${(b.label || b.action).toUpperCase()} added` });
+};
+function mergeButton(b, inkURL) {
+  const nb = { type: b.type || "button", ...b, action: C.normaliseAction(b.action) };
+  const buttons = S.layout.buttons.filter((x) => x.action !== nb.action);
+  buttons.push(nb);
+  while (buttons.length > MAX_BUTTONS) buttons.shift();
+  const inks = { ...S.inkButtons, [nb.action]: inkURL };
+  applyLayout({ ...S.layout, buttons }, S.inkBase, inks);
+  if (S.ghost && S.ghost.action === nb.action) clearGhost();
+}
+$("tAdd").onclick = () => openAdd(null);
+
+// ---------- tilt ----------
+$("tTilt").onclick = async () => {
+  if (S.tilt) return stopTilt();
+  if (!window.isSecureContext) return showToast({ text: "Tilt needs HTTPS. Sticks stay on." });
+  try {
+    const DOE = window.DeviceOrientationEvent;
+    if (DOE && typeof DOE.requestPermission === "function" && (await DOE.requestPermission()) !== "granted") return showToast({ text: "Tilt permission denied" });
+  } catch { return showToast({ text: "Tilt needs HTTPS. Sticks stay on." }); }
+  S.tilt = { neutral: null };
+  window.addEventListener("deviceorientation", onTilt);
+  $("tTilt").classList.add("on");
+  showToast({ text: "Tilt on: hold the phone how you like, that is neutral" });
+};
+function stopTilt() { window.removeEventListener("deviceorientation", onTilt); S.tilt = null; $("tTilt").classList.remove("on"); sendAxis("steer", 0, 0, true); }
+function onTilt(e) {
+  if (!S.tilt || e.beta == null) return;
+  if ([...pointers.values()].some((c) => c.b.action === "steer")) return;   // a held stick wins
+  const angle = (screen.orientation && screen.orientation.angle) ?? window.orientation ?? 90;
+  // landscape: beta tilts like a steering wheel, gamma pitches
+  let roll = e.beta, pitch = e.gamma;
+  if (angle === 0 || angle === 180) { roll = e.gamma; pitch = e.beta; }
+  if (!S.tilt.neutral) { S.tilt.neutral = { roll, pitch }; return; }     // calibrate on enable
+  const sign = angle === 270 || angle === -90 ? -1 : 1;
+  const x = Math.max(-1, Math.min(1, ((roll - S.tilt.neutral.roll) / 25) * sign));
+  const y = Math.max(-1, Math.min(1, ((pitch - S.tilt.neutral.pitch) / 25) * -sign));
+  sendAxis("steer", Math.abs(x) < 0.08 ? 0 : x, Math.abs(y) < 0.08 ? 0 : y, false);
+}
+
+// ---------- view toggle ----------
+$("tView").onclick = () => {
+  S.view = S.view === "chase" ? "cockpit" : "chase";
+  $("tView").classList.toggle("on", S.view === "cockpit");
+  if (S.game) S.game.setView(S.view);
 };
 
-window.addEventListener("resize", resize);
-resize();
+// ---------- explorer prompt on landing ----------
+const expSketch = makeSketch($("expPad"), { width: 5 });
+let expTimer = 0, expEnds = 0;
+function openExplorer() {
+  releaseAll();
+  $("explorer").classList.remove("hidden");
+  expEnds = performance.now() + C.TUNING.island.explorerDrawSeconds * 1000;
+  expSketch.strokes = [];
+  setExpMode(S.drawMode);
+  setStatus("expStatus", leftText());
+  clearInterval(expTimer);
+  expTimer = setInterval(() => {
+    const left = Math.max(0, Math.ceil((expEnds - performance.now()) / 1000));
+    $("expCount").textContent = left;
+    if (!left) closeExplorer();
+  }, 250);
+  $("expCount").textContent = C.TUNING.island.explorerDrawSeconds;
+}
+function setExpMode(mode) {
+  for (const b of $("expSeg").children) b.classList.toggle("on", b.dataset.mode === mode);
+  $("expShot").classList.toggle("hidden", mode !== "camera");
+  $("expPad").classList.toggle("hidden", mode !== "draw");
+  $("expDone").classList.toggle("hidden", mode !== "draw");
+  if (mode === "draw") requestAnimationFrame(() => expSketch.resize());
+}
+function closeExplorer() { clearInterval(expTimer); $("explorer").classList.add("hidden"); }
+$("expSeg").onclick = (e) => { if (e.target.dataset.mode) { S.drawMode = e.target.dataset.mode; store.set("drawMode", S.drawMode); setExpMode(S.drawMode); } };
+$("expDefault").onclick = closeExplorer;
+// v1: the explorer image is posted, play continues with the default explorer either way
+function sendExplorer(image, source) { generate("explorer", image, { source }); setStatus("expStatus", "sent! your explorer is on the way"); setTimeout(closeExplorer, 900); }
+$("expInput").onchange = async (e) => {
+  const file = e.target.files[0]; e.target.value = "";
+  const p = await onPhoto(file, { status: "expStatus" });
+  if (p) sendExplorer(p.rendered.image, "photo");
+};
+$("expDone").onclick = () => {
+  if (!expSketch.strokes.length) return setStatus("expStatus", "draw something first");
+  sendExplorer(strokesPNG(expSketch.strokes, 1, { crop: true }), "draw");
+};
+
+// ---------- lifecycle ----------
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { releaseAll(); stopHud(); if (S.game && S.game.pause) S.game.pause(true); }
+  else { if (S.screen === "play") startHud(); if (S.game && S.game.pause) S.game.pause(false); }
+});
+let resizeTimer = 0;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    hitRect = null;
+    if (S.screen === "play" && S.layout) paintInk();
+    if (S.screen === "draw" && S.drawMode === "draw") padSketch.resize();
+    if (!$("add").classList.contains("hidden") && addState) openAdd(addState.action ? { ...addState.region, action: addState.action } : null);
+  }, 120);
+});
+
+// A refresh rejoins with the same name and keeps the layout.
+const saved = store.get("player");
+const savedLayout = store.get("layout");
+if (savedLayout && !C.CHECKS.layout(savedLayout).length) { S.layout = savedLayout; S.inkBase = store.get("inkBase"); S.inkButtons = store.get("inkButtons") || {}; }
+if (saved) { $("name").value = saved; join(saved); } else show("join");
+window.__sp = S;   // for tests
 </script>
 </body>
 </html>

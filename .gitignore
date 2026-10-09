@@ -10,3 +10,5 @@ perf.log
 .playwright-cli/
 .orch/
 .orch-certs/
+dev/**/shots/
+dev/**/*.log

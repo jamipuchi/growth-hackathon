@@ -1,0 +1,59 @@
+<!doctype html>
+<!-- Makes the fake notebook photos the phone tests feed to the file input: lined paper, a red margin,
+     a shadow gradient across the page, and a hand-drawn controller (or a single LAND button) in dark pen.
+     Open /dev/phone/sample.html on the mock server; it saves sample-notebook.jpg and sample-button.jpg next to it. -->
+<meta charset="utf-8">
+<body style="margin:0;background:#222">
+<canvas id="c"></canvas>
+<script>
+function rnd(seed) { return () => ((seed = (seed * 16807) % 2147483647) / 2147483647); }
+function paper(ctx, W, H, r) {
+  ctx.fillStyle = "#c9b79a"; ctx.fillRect(0, 0, W, H);                  // wooden table showing at the edges
+  const px = W * 0.04, py = H * 0.05;
+  ctx.fillStyle = "#f7f5ef"; ctx.fillRect(px, py, W - 2 * px, H - 2 * py);
+  ctx.strokeStyle = "rgba(90,150,220,0.55)"; ctx.lineWidth = 2;
+  for (let y = py + 60; y < H - py; y += 38) { ctx.beginPath(); ctx.moveTo(px, y); ctx.lineTo(W - px, y); ctx.stroke(); }
+  ctx.strokeStyle = "rgba(220,70,70,0.6)"; ctx.beginPath(); ctx.moveTo(px + 110, py); ctx.lineTo(px + 110, H - py); ctx.stroke();
+  for (let i = 0; i < 4000; i++) { ctx.fillStyle = `rgba(0,0,0,${r() * 0.04})`; ctx.fillRect(r() * W, r() * H, 2, 2); }
+}
+function shadow(ctx, W, H) {
+  const g = ctx.createLinearGradient(0, 0, W, H * 0.6);
+  g.addColorStop(0, "rgba(0,0,0,0.45)"); g.addColorStop(0.45, "rgba(0,0,0,0.12)"); g.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+function pen(ctx, r, pts, w = 7) {
+  ctx.strokeStyle = "#1b1b24"; ctx.lineWidth = w; ctx.lineCap = ctx.lineJoin = "round";
+  ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x + r() * 3, y + r() * 3) : ctx.moveTo(x, y))); ctx.stroke();
+}
+function circle(ctx, r, cx, cy, rad) { const p = []; for (let a = 0; a <= 6.4; a += 0.15) p.push([cx + Math.cos(a) * rad, cy + Math.sin(a) * rad]); pen(ctx, r, p); }
+function box(ctx, r, x, y, w, h) { pen(ctx, r, [[x, y], [x + w, y + 2], [x + w - 2, y + h], [x + 2, y + h - 2], [x, y]]); }
+function word(ctx, text, x, y, size) { ctx.fillStyle = "#1b1b24"; ctx.font = `bold ${size}px 'Marker Felt', 'Comic Sans MS', cursive`; ctx.textAlign = "center"; ctx.fillText(text, x, y); }
+
+function controllerPhoto() {
+  const W = 1600, H = 1200, c = document.getElementById("c"); c.width = W; c.height = H;
+  const ctx = c.getContext("2d"), r = rnd(42);
+  paper(ctx, W, H, r);
+  // the drawing: a stick on the left, FIRE and BOOST on the right (landscape, like the phone)
+  circle(ctx, r, 470, 700, 170); circle(ctx, r, 470, 700, 50);
+  pen(ctx, r, [[470, 560], [440, 600], [500, 600], [470, 560]]); pen(ctx, r, [[470, 840], [440, 800], [500, 800], [470, 840]]);
+  box(ctx, r, 1080, 560, 300, 260); word(ctx, "FIRE", 1230, 715, 80);
+  box(ctx, r, 820, 680, 210, 170); word(ctx, "BOOST", 925, 785, 46);
+  shadow(ctx, W, H);
+  return c.toDataURL("image/jpeg", 0.88);
+}
+function buttonPhoto() {
+  const W = 1200, H = 1600, c = document.getElementById("c"); c.width = W; c.height = H;   // portrait photo of one button
+  const ctx = c.getContext("2d"), r = rnd(7);
+  paper(ctx, W, H, r);
+  box(ctx, r, 380, 640, 440, 300); word(ctx, "LAND", 600, 820, 110);
+  shadow(ctx, W, H);
+  return c.toDataURL("image/jpeg", 0.88);
+}
+async function save(name, dataUrl) { await fetch("/mock", { method: "POST", body: JSON.stringify({ save: name, dataUrl }) }); }
+(async () => {
+  await save("sample-notebook.jpg", controllerPhoto());
+  await save("sample-button.jpg", buttonPhoto());
+  document.title = "saved";
+})();
+</script>
+</body>
