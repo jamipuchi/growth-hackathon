@@ -5,8 +5,11 @@
 //   generate({ player, kind, image, speculative, requestId, region?, source? })
 //     → Promise<{ ok: true, layout } | { ok: false, error }>
 //   kind "controller": the whole pad. kind "button": one new control inside `region` ({x, y, w, h}, fractions).
-//   kind "ship" | "explorer": no model call in v1. Answers at once { ok: true, entity: { type: "ship"|"person", verbs,
-//   anims } } with that world's default verbs, and keeps the drawing at controllers/<player>-<kind>.png (finished only).
+//   kind "ship" | "explorer": one vision call (same request style, strict JSON) reads the drawn entity →
+//   { ok: true, entity: { type, rig, verbs, unlocked: [{verb, part}], parts: [{name, x, y}], source, anims } }.
+//   Skills come ONLY from drawn parts (PLAN.md "Unlockable skills"); verbs = Verbs.entityVerbs(type, drawn skills).
+//   ASTRA_MOCK=1, no key, a timeout or a failed call: the generous dev kit (Verbs.DEV_KIT, source "devkit").
+//   Keeps the drawing at controllers/<player>-<kind>.png (finished only).
 //
 // Env: OPENAI_API_KEY (else a .env next to this file), OPENAI_MODEL, OPENAI_SERVICE_TIER ("" or "none" omits it),
 // OPENAI_REASONING_EFFORT, ASTRA_MOCK=1 (no network, deterministic layouts after 300 ms).
@@ -24,7 +27,8 @@ const TIMEOUT_MS = 4000;
 const MOCK_MS = 300;
 const MAX_BUTTONS = 16;
 const MAX_IMAGE_CHARS = 4 * 1024 * 1024;
-const MAX_OUTPUT_TOKENS = { controller: 900, button: 200 };
+const MAX_OUTPUT_TOKENS = { controller: 900, button: 200, ship: 500, explorer: 500 };
+const MAX_PARTS = 12;
 
 const ACTIONS = [...Object.keys(Verbs.VERBS), ...Verbs.MOVES, ...Verbs.STICKS, ...Contract.META_ACTIONS];
 
@@ -128,16 +132,52 @@ const SCHEMAS = {
     },
   },
   button: { type: "object", additionalProperties: false, required: ["type", "label", "action"], properties: controlProps },
+  ship: entitySchema("space", ["ship"]),
+  explorer: entitySchema("planet", Verbs.PLANET_TYPES),
 };
+
+function entitySchema(world, types) {
+  const skill = { type: "string", enum: Verbs.SKILLS[world] };
+  return {
+    type: "object",
+    additionalProperties: false,
+    required: ["type", "parts", "verbs", "unlocked"],
+    properties: {
+      type: { type: "string", enum: types },
+      parts: { type: "array", items: { type: "object", additionalProperties: false, required: ["name", "x", "y"], properties: { name: { type: "string" }, x: { type: "number" }, y: { type: "number" } } } },
+      verbs: { type: "array", items: skill },
+      unlocked: { type: "array", items: { type: "object", additionalProperties: false, required: ["verb", "part"], properties: { verb: skill, part: { type: "string" } } } },
+    },
+  };
+}
+
+// The entity prompt: what each drawn part unlocks, generous when a part is unclear.
+function entityPrompt(kind, source) {
+  const world = kind === "ship" ? "space" : "planet";
+  const input = source === "draw"
+    ? "The image is a finger drawing made on the phone screen."
+    : "The image is usually a PHOTO of a notebook page, cropped to the drawing. Ignore paper lines, grids, shadows and fingers.";
+  const table = Verbs.SKILLS[world].map((v) => `${v}: ${Verbs.PARTS[v]}`).join("; ");
+  return [
+    kind === "ship"
+      ? "You read a hand-drawn SPACESHIP for a party game. type is always \"ship\"."
+      : "You read a hand-drawn EXPLORER that walks or drives on a planet. type: person (a person, astronaut, robot on legs), car, bike, quadruped (any four-legged animal) or blob (anything else).",
+    input,
+    "parts: every distinct part that was deliberately drawn on it (cannon, exhaust flames, wheels, shovel, legs...), each with the centre of the part as x, y fractions of the image (origin top left). At most 12.",
+    `Skills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still move). Part → skill: ${table}.`,
+    "Be generous: when a part is unclear or only roughly fits, unlock the closest skill. Never unlock a skill with no part on the drawing that could mean it.",
+    "verbs: the unlocked skills. unlocked: one entry per skill, with the part that unlocks it (its name as in parts).",
+  ].join("\n");
+}
 
 function buildRequest(kind, image, region, source, useTier = true) {
   const req = {
     model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
     input: [{ role: "user", content: [
-      { type: "input_text", text: promptFor(kind, source, region) },
+      { type: "input_text", text: ENTITY_KINDS[kind] ? entityPrompt(kind, source) : promptFor(kind, source, region) },
       { type: "input_image", image_url: image, detail: "low" },
     ] }],
-    text: { format: { type: "json_schema", name: "layout", schema: SCHEMAS[kind], strict: true } },
+    text: { format: { type: "json_schema", name: ENTITY_KINDS[kind] ? "entity" : "layout", schema: SCHEMAS[kind], strict: true } },
     max_output_tokens: MAX_OUTPUT_TOKENS[kind],
     store: false,
   };
@@ -249,7 +289,8 @@ async function callModel(kind, image, region, source, signal) {
   const data = await res.json().catch(() => {
     throw new Error("bad response: not JSON");
   });
-  return layoutFromModel(kind, parseJson(extractText(data)), region);
+  const answer = parseJson(extractText(data));
+  return ENTITY_KINDS[kind] ? entityFromModel(kind, answer) : layoutFromModel(kind, answer, region);
 }
 
 const sleep = (ms, signal) => new Promise((resolve, reject) => {
@@ -266,12 +307,14 @@ function startEntry(hash, kind, image, region, source) {
   entry.promise = (async () => {
     try {
       const layout = process.env.ASTRA_MOCK === "1"
-        ? (await sleep(MOCK_MS, controller.signal), mockLayout(kind, hash, region))
+        ? (await sleep(ENTITY_KINDS[kind] ? 0 : MOCK_MS, controller.signal), ENTITY_KINDS[kind] ? devKitEntity(kind) : mockLayout(kind, hash, region))
         : await callModel(kind, image, region, source, controller.signal);
       cache.set(hash, layout);
-      return { ok: true, layout, ms: Date.now() - t0, outcome: `ok ${layout.buttons.length} control(s)` };
+      return { ok: true, layout, ms: Date.now() - t0, outcome: outcomeOf(layout) };
     } catch (err) {
       const ms = Date.now() - t0;
+      // An entity always comes back: the dev kit keeps the game playable without a key or when the call fails.
+      if (ENTITY_KINDS[kind] && !entry.superseded) return { ok: true, layout: devKitEntity(kind), ms, outcome: `${entry.timedOut ? "timeout" : `error: ${err && err.message}`} → dev kit` };
       if (entry.timedOut) {
         if (kind === "controller") return { ok: true, layout: defaultLayout(), ms, outcome: "timeout → default layout" };
         return { ok: false, error: "timeout", ms, outcome: "timeout" };
@@ -297,20 +340,38 @@ function save(player, kind, image, result) {
     .catch((err) => console.log(`astra: could not save ${player}-${kind}: ${err.message}`));
 }
 
-// Drawn ship / explorer (PLAN.md section 6): the look is the drawing itself, inflated on every screen (inflate.js), so
-// v1 needs no model call: the default rig for the world, its default verbs, and the animations wired for them.
-// A parts/verbs model call is a later step.
+// Drawn ship / explorer (PLAN.md section 0, "Unlockable skills"): the look is the drawing itself, inflated on every
+// screen (inflate.js); the model reads which parts are drawn and which skills they unlock.
 const ENTITY_KINDS = { ship: { type: "ship", world: "space" }, explorer: { type: "person", world: "planet" } };
-const V1_VERBS = ["shoot", "boost", "shield", "drill", "dig", "blast", "flare", "scan", "land", "takeoff", "jump", "invisible", "teleport", "heal"];
-const defaultVerbs = (world) => V1_VERBS.filter((v) => Verbs.VERBS[v] && Verbs.VERBS[v].modes.includes(world));
 
-function drawnEntity(player, kind, image, speculative) {
+// Model answer → entity. Only skills of that world, each unlocked by a named part; type checked against the kind.
+function entityFromModel(kind, data) {
+  if (!data || typeof data !== "object") throw new Error("bad model output: not an object");
+  const { world } = ENTITY_KINDS[kind];
+  const type = kind === "ship" ? "ship" : Verbs.PLANET_TYPES.includes(data.type) ? data.type : "blob";
+  const parts = (Array.isArray(data.parts) ? data.parts : []).filter((p) => p && typeof p.name === "string" && p.name.trim())
+    .slice(0, MAX_PARTS).map((p) => ({ name: p.name.trim().toLowerCase().slice(0, 24), x: round3(clamp01(p.x)), y: round3(clamp01(p.y)) }));
+  const skills = Verbs.SKILLS[world];
+  const unlocked = [];
+  for (const u of Array.isArray(data.unlocked) ? data.unlocked : []) {
+    if (u && skills.includes(u.verb) && !unlocked.some((x) => x.verb === u.verb)) unlocked.push({ verb: u.verb, part: String(u.part || "drawing").trim().toLowerCase().slice(0, 24) || "drawing" });
+  }
+  for (const v of Array.isArray(data.verbs) ? data.verbs : []) {
+    if (skills.includes(v) && !unlocked.some((x) => x.verb === v)) unlocked.push({ verb: v, part: (parts[0] && parts[0].name) || "drawing" });
+  }
+  return finishEntity(type, unlocked, parts, "model");
+}
+
+function finishEntity(type, unlocked, parts, source) {
+  const verbs = Verbs.entityVerbs(type, unlocked.map((u) => u.verb));
+  return { type, rig: Verbs.RIG_OF[type] || "blob", verbs, unlocked: unlocked.filter((u) => verbs.includes(u.verb)), parts, source };
+}
+
+// The generous development kit: every gate skill (ASTRA_MOCK=1, no key, a timeout or a failed call).
+function devKitEntity(kind) {
   const { type, world } = ENTITY_KINDS[kind];
-  const verbs = defaultVerbs(world);
-  const entity = { type, verbs, anims: wireAnimations(type, verbs) };
-  log(kind, player, "-", 0, `ok ${type}, ${verbs.length} verbs`, speculative);
-  if (!speculative) save(player, kind, image, { ok: true, layout: entity });
-  return { ok: true, entity };
+  const unlocked = Verbs.DEV_KIT[world].map((u) => ({ ...u }));
+  return finishEntity(type, unlocked, unlocked.map((u, i) => ({ name: u.part, x: round3(0.2 + 0.1 * i), y: 0.5 })), "devkit");
 }
 
 const log = (kind, player, hit, ms, outcome, speculative) =>
@@ -325,8 +386,6 @@ async function generate(body) {
   const image = body.image;
   if (typeof image !== "string" || !/^data:image\/(png|jpe?g|webp);base64,/.test(image)) return { ok: false, error: "image must be an image data URL" };
   if (image.length > MAX_IMAGE_CHARS) return { ok: false, error: "image too large" };
-  if (ENTITY_KINDS[kind]) return drawnEntity(player, kind, image, body.speculative);
-
   const region = kind === "button" ? cleanRegion(body.region) : null;
   const source = body.source === "draw" ? "draw" : "photo";
   const hash = sha1(kind + image + (region ? JSON.stringify(region) : ""));
@@ -351,15 +410,21 @@ async function generate(body) {
   if (previous) release(previous);
 
   const result = cached
-    ? { ok: true, layout: cached, ms: 0, outcome: `ok ${cached.buttons.length} control(s)` }
+    ? { ok: true, layout: cached, ms: 0, outcome: outcomeOf(cached) }
     : await Promise.race([entry.promise, token.superseded]);
   if (slots.get(slotKey) === token) slots.delete(slotKey);
   if (entry) entry.owners.delete(token);
 
   log(kind, player, hit, result.ms, result.outcome, body.speculative);
-  if (result.error !== "superseded") save(player, kind, image, result);
-  return result.ok ? { ok: true, layout: structuredClone(result.layout) } : { ok: false, error: result.error };
+  // A speculative ship / explorer is not kept (the drawing on disk is the finished one; controllers keep theirs).
+  if (result.error !== "superseded" && !(ENTITY_KINDS[kind] && body.speculative)) save(player, kind, image, result);
+  if (!result.ok) return { ok: false, error: result.error };
+  if (ENTITY_KINDS[kind]) return { ok: true, entity: withAnims(structuredClone(result.layout)) };
+  return { ok: true, layout: structuredClone(result.layout) };
 }
+
+const outcomeOf = (v) => (v.buttons ? `ok ${v.buttons.length} control(s)` : `ok ${v.type} [${v.verbs.join(" ")}] (${v.source})`);
+const withAnims = (entity) => ({ ...entity, anims: wireAnimations(entity.rig, entity.verbs) });
 
 // Resolve a superseded call, and abort its model request if nobody else is waiting for that image.
 function release(token) {
@@ -417,7 +482,7 @@ const _internals = {
     timeoutMs = TIMEOUT_MS;
   },
   state: () => ({ cache: cache.size, inflight: inflight.size, slots: slots.size, defaultTierOnly }),
-  TIMEOUT_MS, MOCK_MS, SCHEMAS, ACTIONS, ENTITY_KINDS, defaultVerbs,
+  TIMEOUT_MS, MOCK_MS, SCHEMAS, ACTIONS, ENTITY_KINDS, entityFromModel, devKitEntity, entityPrompt,
   buildRequest, promptFor, extractText, parseJson, cleanControl, layoutFromModel, mockLayout, cleanRegion, sha1,
 };
 

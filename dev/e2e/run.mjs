@@ -1,8 +1,12 @@
 // End-to-end test of the integrated game: one phone (WebKit, iPhone 13 landscape) plus the big screen (Chromium)
 // play a whole round against the real server with ASTRA_MOCK=1. A Node driver reads /events itself and steers the
-// phone's player through POST /input along the v1 route: nebula → FLARE and SCAN → DRILL the boss → planet → LAND →
-// island → DIG a chest → win.
-//   node dev/e2e/run.mjs [--port 8105] [--bots 8] [--route expert|regular] [--video] [--mock] [--headed] [--no-shots]
+// phone's player through POST /input along the v1.1 route (PLAN.md section 0): lobby → START (the big screen's button,
+// else POST /start) → draw the ship (unlocks its skills; the mock answers the dev kit) → nebula → FLARE and SCAN →
+// shoot the boss → planet → LAND → island → draw the explorer → DIG buried chests and DRILL rock chests → the round
+// ends (every chest open, or the 4:00 cap) → scoreboard; most points wins.
+//   expert: draws the ship and explorer in the lobby and every button as the route needs it.
+//   regular: draws nothing up front; waits at each gate for the hint (part first, then button), then DRAW_S drawing.
+//   node dev/e2e/run.mjs [--port 8162] [--bots 24] [--route expert|regular] [--video] [--mock] [--headed] [--no-shots]
 //   --mock   run dev/render/mock-server.js instead of server.js: only checks that both pages load, render and post perf
 // Writes dev/e2e/report.json, dev/e2e/shots/<stage>-{big,phone}.png, dev/e2e/perf.log, dev/e2e/server.log and with
 // --video dev/e2e/video/*.webm. Exit code 0 only when the report passes.
@@ -28,8 +32,8 @@ const { TUNING: T } = Contract;
 const argv = process.argv.slice(2);
 const flag = (name) => argv.includes(`--${name}`);
 const opt = (name, def) => { const i = argv.indexOf(`--${name}`); return i >= 0 && argv[i + 1] && !argv[i + 1].startsWith("--") ? argv[i + 1] : def; };
-const PORT = Number(opt("port", 8105));
-const BOTS = Number(opt("bots", 8));
+const PORT = Number(opt("port", 8162));
+const BOTS = Number(opt("bots", 24));
 const ROUTE = opt("route", "expert");
 const MOCK = flag("mock");
 const VIDEO = flag("video");
@@ -37,7 +41,7 @@ const HEADED = flag("headed");
 const NO_SHOTS = flag("no-shots");   // WebKit screenshots stall the phone for a frame or two: use for a clean 1% low
 const ME = "e2e";
 const BASE = `http://127.0.0.1:${PORT}`;
-const ROUND_LIMIT_S = Number(opt("limit", 330));                    // fail the round after 5:30 of play
+const ROUND_LIMIT_S = Number(opt("limit", 270));                    // the round ends by 4:00; fail after 4:30 of play
 const DRAW_S = Number(opt("draw-seconds", ROUTE === "regular" ? 12 : 3)); // time "spent drawing" a button (PLAN.md step 8)
 if (!["expert", "regular"].includes(ROUTE)) { console.error("--route is expert or regular"); process.exit(2); }
 
@@ -175,6 +179,17 @@ async function phoneJoin(phone) {
   return player;
 }
 
+// The host's START: the big screen's button when the client track has one, else POST /start.
+async function hostStart(big) {
+  for (const sel of ["#startBtn", "#start", "button:has-text('START')"]) {
+    const btn = big.locator(sel).first();
+    try { await btn.waitFor({ state: "visible", timeout: 1500 }); await btn.click({ timeout: 2000 }); log(`big screen: clicked START (${sel})`); return `click ${sel}`; } catch {}
+  }
+  const r = await post("/start", {});
+  log(`no START button on the big screen: POST /start → ${r.status}`);
+  return `post ${r.status}`;
+}
+
 async function phoneReady(phone) {
   const btn = phone.locator("#readyBtn");
   try { await btn.waitFor({ state: "visible", timeout: 4000 }); } catch {
@@ -280,14 +295,18 @@ const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const clamp = (v, lo = -1, hi = 1) => Math.max(lo, Math.min(hi, v));
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
-const GATE_SKETCH = { drill: "drill", land: "landing", dig: "shovel" };
+const GATE_SKETCH = { drill: "drill", land: "landing", dig: "shovel", ship: "gun", explorer: "shovel" };
 const GATE_REGION = { drill: { x: 0.38, y: 0.08, w: 0.18, h: 0.2 }, land: { x: 0.58, y: 0.08, w: 0.18, h: 0.2 }, dig: { x: 0.38, y: 0.3, w: 0.18, h: 0.2 } };
+// Which hint (rules.js gate + need) a drawing answers: the ship and explorer are "part" hints, buttons "button" hints.
+const GATE_HINT = { ship: ["weapon", "part"], explorer: [null, "part"], land: ["land", "button"], dig: ["dig", "button"], drill: ["drill", "button"] };
+const ENTITY_GATES = ["ship", "explorer"];
 
 function createDriver(pages) {
   const D = {
     world: null, tick: null, me: null, playingAt: null, wonAt: null, wonClock: null, winner: null, lastPhase: null,
     stages: {}, toasts: [], announces: [], generates: [], issues: [], ticks: 0, invalid: { world: 0, tick: 0 },
     held: {}, queue: [], axes: {}, pressedAt: {}, gates: {}, deaths: 0, wasDead: false,
+    endedAt: null, result: null, entities: [], refused: 0, chestsOpened: 0,
   };
 
   const playT = () => (D.playingAt ? +((Date.now() - D.playingAt) / 1000).toFixed(2) : 0);
@@ -334,9 +353,24 @@ function createDriver(pages) {
       else if (here) { g.state = "waiting"; g.armedAt = now; g.toastsBefore = D.toasts.length; }
     }
     if (g.state === "waiting") {
-      const hint = D.toasts.slice(g.toastsBefore).find((t) => !t.sketch || t.sketch === GATE_SKETCH[name] || (t.ghost && t.ghost.action === name) || new RegExp(name, "i").test(t.text || ""));
+      const [hg, need] = GATE_HINT[name];
+      const hint = D.toasts.slice(g.toastsBefore).find((t) => t.kind === "hint" && t.need === need && (!hg || t.gate === hg) && (hg || ["dig", "drill"].includes(t.gate)));
       if (hint) { g.state = "drawing"; g.from = now; g.hint = hint; stage(`hint-${name}`, { text: hint.text || "", sketch: hint.sketch || null }); }
       else if (now - g.armedAt > 40000) { g.state = "drawing"; g.from = now; D.issues.push(`no hint toast for ${name} within 40 s at the gate`); }
+    }
+    if (g.state === "drawing" && now - g.from >= DRAW_S * 1000 && ENTITY_GATES.includes(name)) {
+      // A full redraw of the ship / explorer: Astra reads its parts (the mock answers the dev kit).
+      g.state = "requested";
+      const sent = Date.now();
+      post("/generate", { player: ME, kind: name, image: pngDataUrl(`${name}-${sent}`, 128, 96), source: "draw", speculative: false, requestId: `e2e-${name}-${sent}` }).then((r) => {
+        const ms = Date.now() - sent;
+        const ok = !!(r.json && r.json.ok && r.json.entity);
+        const verbs = ok ? r.json.entity.verbs : [];
+        D.generates.push({ gate: name, ok, ms, status: r.status, actions: verbs, error: r.json && r.json.error, drawingsLeft: r.json && r.json.drawingsLeft, source: ok ? r.json.entity.source : null });
+        if (!ok) D.issues.push(`POST /generate ${name} failed: ${r.status} ${r.json && r.json.error}`);
+        g.state = "done";
+        stage(`drew-${name}`, { ms, verbs: verbs.join(" ") });
+      });
     }
     if (g.state === "drawing" && now - g.from >= DRAW_S * 1000) {
       g.state = "requested";
@@ -370,33 +404,20 @@ function createDriver(pages) {
       key("shoot", false);
       if (w.nebula && dist(p, w.nebula) < w.nebula.radius) {
         stage("nebula");
-        if (!D.pressedAt.flare) { press("flare"); stage("flare"); }
-        else if (!D.pressedAt.scan && Date.now() - D.pressedAt.flare > 1000) { press("scan"); stage("scan"); }
+        if (can("flare") && !D.pressedAt.flare) { press("flare"); stage("flare"); }
+        else if (can("scan") && D.pressedAt.flare && !D.pressedAt.scan && Date.now() - D.pressedAt.flare > 1000) { press("scan"); stage("scan"); }
       }
       const d = dist(p, boss) - boss.radius;
-      if (d < 40) stage("boss");
+      if (d < 60) stage("boss");
       const err = aim(boss);
-      key("boost", expert && d > 80 && err < 0.3);
-      key("forward", d > 45);
-      if (boss.armour > 0) {
-        if (!gate("drill", d < 40)) {
-          // Waiting for the button: shoot at it from 30 m, then circle out of reach of its shots.
-          key("back", d < 30);
-          key("shoot", err < 0.05 && d < 60);
-          if (d < 25) axis("steer", 1, 0);
-          key("drill", false);
-        } else {
-          key("back", d < 15);
-          key("drill", d < T.boss.drillRange - 2);
-          key("shield", p.hp < 50);
-          if (D.held.drill) stage("drilling");
-        }
-      } else {
-        stage("cracked");
-        key("drill", false); key("shield", false);
-        key("back", d < 40);
-        key("shoot", err < 0.06);
-      }
+      key("boost", can("boost") && expert && d > 120 && err < 0.3);
+      key("forward", d > 55);
+      key("back", d < 40);
+      // No armour any more: any weapon hurts it. A plain ship has none: draw one (the part hint for regular).
+      const armed = gate("ship", d < 150);
+      key("shoot", armed && can("shoot") && err < 0.06 && d < 150);
+      key("shield", can("shield") && p.hp < 40);
+      if (armed && D.held.shoot) stage("shooting");
     } else if (p.mode === "space") {
       stage("bossDown");
       key("shoot", false); key("shield", false); key("drill", false);
@@ -404,39 +425,55 @@ function createDriver(pages) {
       if (!planet) { releaseAll(); return; }
       const d = dist(p, planet), within = planet.radius + planet.landRange;
       const err = aim(planet);
-      key("boost", expert && d > within + 40 && err < 0.3);
+      key("boost", can("boost") && expert && d > within + 40 && err < 0.3);
       key("forward", d > within + 3);
       key("back", d <= within + 3);
       if (d < within) stage("planet");
       if (gate("land", d < within) && d < within - 2 && (!D.pressedAt.land || Date.now() - D.pressedAt.land > 1500)) { press("land"); stage("land-pressed"); }
     } else {
       stage("landed");
-      for (const k of ["forward", "back", "shoot", "drill", "shield"]) key(k, false);
+      for (const k of ["forward", "back", "shoot", "shield"]) key(k, false);
       const chests = (w.chests || []).filter((c) => !c.open);
-      const buried = chests.filter((c) => c.buried);
-      const pool = buried.length ? buried : chests;
-      if (!pool.length) { releaseAll(); return; }
-      const chest = pool.slice().sort((a, b) => dist2(a, p) - dist2(b, p))[0];
+      if (!chests.length) { releaseAll(); return; }
+      const chest = chests.slice().sort((a, b) => dist2(a, p) - dist2(b, p))[0];
       const dd = dist2(chest, p);
       const near = dd <= 1.5;
       const err = aim({ x: chest.x, y: 0, z: chest.z });
       axis("move", 0, !near && err < 0.5 ? 1 : 0);
       if (near) axis("steer", 0, 0);
-      key("boost", expert && dd > 6);
-      if (dd < T.island.pickupRange + 2) stage("chest", { id: chest.id });
-      const hasDig = gate("dig", dd < T.island.pickupRange + 2);
-      key("dig", near && chest.buried && hasDig);
+      key("boost", can("boost") && expert && dd > 6);
+      const here = dd < T.island.pickupRange + 2;
+      if (here) stage("chest", { id: chest.id, kind: chest.kind });
+      // The explorer first (the default one can't dig or drill), then the button for this chest's kind.
+      const verb = chest.kind === "rock" ? "drill" : "dig";
+      const tool = gate("explorer", here) && gate(verb, here);
+      key("dig", near && chest.buried && verb === "dig" && tool);
+      key("drill", near && chest.buried && verb === "drill" && tool);
       if (D.held.dig) stage("digging");
-      if (!chest.buried) stage("dug", { id: chest.id });
+      if (D.held.drill) stage("drilling");
+      if (!chest.buried) stage(`dug-${chest.kind}`, { id: chest.id });
     }
   }
+  const can = (verb) => !!(D.myEntity && D.myEntity.verbs.includes(verb));
 
   function onMessage(m) {
     if (m.type === "world") {
       D.world = m;
       if (Contract.CHECKS.world(m).length) D.invalid.world++;
-      const boss = (m.targets || []).find((t) => t.kind === "boss");
-      if (D.playingAt && boss && boss.cracked) stage("cracked");
+      if (m.entities && m.entities[ME]) D.myEntity = m.entities[ME];
+      const opened = (m.chests || []).filter((c) => c.open && c.by === ME).length;
+      if (opened > D.chestsOpened) { D.chestsOpened = opened; stage(`chest-${opened}`); }
+      if (D.playingAt && !D.endedAt && m.result) {
+        D.endedAt = Date.now(); D.wonAt = D.endedAt; D.wonClock = D.tick && D.tick.clock;
+        D.result = m.result; D.winner = m.result.winner; D.leaderboard = m.leaderboard;
+        stage("ended", { reason: m.result.reason, winner: m.result.winner, top: m.result.scores.slice(0, 3) });
+        releaseAll(); flush();
+      }
+    } else if (m.type === "entity") {
+      if (Contract.cleanName(m.player) !== ME) return;
+      D.myEntity = m.entity;
+      D.entities.push({ t: playT(), type: m.entity.type, verbs: m.entity.verbs, source: m.entity.source, assisted: m.entity.assisted || [] });
+      log(`entity ${m.entity.type} [${m.entity.verbs.join(" ")}] (${m.entity.source})`);
     } else if (m.type === "tick") {
       D.tick = m; D.ticks++;
       if (Contract.CHECKS.tick(m).length) D.invalid.tick++;
@@ -447,16 +484,11 @@ function createDriver(pages) {
       if (!D.wonAt) { think(); flush(); }
     } else if (m.type === "toast") {
       if (Contract.cleanName(m.player) !== ME) return;
-      D.toasts.push({ t: playT(), text: m.text || "", sketch: m.sketch || null, ghost: m.ghost || null });
+      if (m.kind === "refused") D.refused++;
+      D.toasts.push({ t: playT(), text: m.text || "", sketch: m.sketch || null, ghost: m.ghost || null, kind: m.kind || null, need: m.need || null, gate: m.gate || null });
       log(`toast "${m.text || ""}"${m.sketch ? ` sketch ${m.sketch}` : ""}${m.ghost ? ` ghost ${m.ghost.action}` : ""}`);
     } else if (m.type === "announce") {
       D.announces.push({ t: playT(), text: m.text, big: !!m.big });
-      if (D.playingAt && !D.wonAt && /wins/i.test(m.text || "")) {
-        D.wonAt = Date.now(); D.wonClock = D.tick && D.tick.clock;
-        D.winner = (m.text.match(/(\S+) found the treasure/) || [])[1] || null;
-        stage("won", { text: m.text });
-        releaseAll(); flush();
-      }
     }
   }
   return { D, onMessage };
@@ -511,14 +543,23 @@ async function runRound(pages) {
   await sleep(500);
   shoot(pages, "lobby");
   D.readyVia = await phoneReady(pages.phone);
+  // expert: draws the ship and the explorer in the lobby (two of the space five), then the host presses START.
+  if (ROUTE === "expert") {
+    D.gates.ship = { state: "drawing", from: 0 }; D.gates.explorer = { state: "drawing", from: 0 };
+    D.me = D.me || { flags: {} };
+    for (const k of ["ship", "explorer"]) { const r = await post("/generate", { player: ME, kind: k, image: pngDataUrl(`${k}-lobby`, 128, 96), source: "draw", speculative: false, requestId: `e2e-${k}-lobby` }); D.generates.push({ gate: k, ok: !!(r.json && r.json.ok), ms: 0, status: r.status, actions: (r.json && r.json.entity && r.json.entity.verbs) || [], source: r.json && r.json.entity && r.json.entity.source }); D.gates[k].state = "done"; }
+    log(`lobby: drew ship and explorer → ${D.generates.map((g) => `${g.gate} [${g.actions.join(" ")}]`).join(", ")}`);
+  }
+  await sleep(1500);
+  D.startVia = await hostStart(pages.big);
   // The explorer prompt after touchdown: v1 uses the default explorer.
   const explorerWatch = setInterval(async () => {
     const vis = await pages.phone.evaluate(() => { const e = document.getElementById("explorer"); return !!e && !e.classList.contains("hidden"); }).catch(() => false);
     if (vis) { await pages.phone.locator("#expDefault").tap({ timeout: 2000 }).catch(() => {}); if (!D.stages.explorer) { D.stages.explorer = { t: D.playingAt ? +((Date.now() - D.playingAt) / 1000).toFixed(2) : 0, clock: D.tick && D.tick.clock, choice: "default" }; log("phone: Use default explorer"); } }
   }, 1000);
-  const limit = Date.now() + (ROUND.lobbySeconds + ROUND_LIMIT_S + 10) * 1000;
-  while (!D.wonAt && Date.now() < limit) await sleep(250);
-  if (!D.wonAt) D.issues.push(`no win within ${ROUND_LIMIT_S} s of play`);
+  const limit = Date.now() + (ROUND_LIMIT_S + 20) * 1000;
+  while (!D.endedAt && Date.now() < limit) await sleep(250);
+  if (!D.endedAt) D.issues.push(`the round did not end within ${ROUND_LIMIT_S} s of play`);
   await sleep(2500); // scoreboard shot and one more perf post
   shoot(pages, "scoreboard");
   clearInterval(explorerWatch);
@@ -555,12 +596,20 @@ async function main() {
       phonePerfGate: { pass: phonePerfOk, rule: "fps avg >= 55 and 1% low avg >= 30 (informational in --mock)" } });
   } else {
     const D = result;
-    const won = !!D.wonAt && D.winner === ME;
-    report.roundSeconds = D.wonAt ? +((D.wonAt - D.playingAt) / 1000).toFixed(1) : null;
+    const won = !!D.endedAt && D.winner === ME;
+    const ended = !!D.endedAt && D.wonClock <= ROUND.maxSeconds + 1;
+    const unlocked = D.entities.some((e) => e.source === "devkit" && e.verbs.includes("shoot"));
+    report.roundSeconds = D.endedAt ? +((D.endedAt - D.playingAt) / 1000).toFixed(1) : null;
     report.roundClock = D.wonClock;
     report.winner = D.winner;
-    report.pass = won && consoleErrors.length === 0 && phonePerfOk;
-    report.gates = { won, noConsoleErrors: consoleErrors.length === 0, phonePerf: phonePerfOk };
+    report.result = D.result;
+    report.leaderboard = D.leaderboard;
+    report.chestsOpened = D.chestsOpened;
+    report.startVia = D.startVia;
+    report.entities = D.entities;
+    report.refusedToasts = D.refused;
+    report.pass = ended && won && D.chestsOpened > 0 && unlocked && D.invalid.world + D.invalid.tick === 0 && consoleErrors.length === 0 && phonePerfOk;
+    report.gates = { ended, won, openedAChest: D.chestsOpened > 0, unlockedByDrawing: unlocked, validMessages: D.invalid.world + D.invalid.tick === 0, noConsoleErrors: consoleErrors.length === 0, phonePerf: phonePerfOk };
     report.stages = D.stages;
     report.generates = D.generates;
     report.deaths = D.deaths;
@@ -586,7 +635,9 @@ function printReport(r) {
   const pf = (x) => (x ? `${x.fps} fps (min ${x.fpsMin}), 1% low ${x.low1} (min ${x.low1Min}), p90 ${x.p90ms} ms, ${x.calls} calls (max ${x.callsMax}), ${Math.round(x.tris / 1000)}k tris (max ${Math.round(x.trisMax / 1000)}k), tier ${x.tier}, ${x.size}, ${x.samples} samples` : "no samples");
   line(); line(`==== Space Party e2e (${r.mode}${r.mode === "full" ? `, ${r.route}` : ""}, ${r.bots} bots) ${r.pass ? "PASS" : "FAIL"} ====`);
   if (r.mode === "full") {
-    line(`round: ${r.roundSeconds == null ? "not won" : `${r.roundSeconds} s (clock ${r.roundClock})`}, winner ${r.winner || "-"}, deaths ${r.deaths}`);
+    line(`round: ${r.roundSeconds == null ? "did not end" : `ended after ${r.roundSeconds} s (clock ${r.roundClock}, ${r.result && r.result.reason})`}, winner ${r.winner || "-"}, my chests ${r.chestsOpened}, deaths ${r.deaths}, start via ${r.startVia}`);
+    line(`scores: ${r.result ? r.result.scores.slice(0, 5).map(([n, s]) => `${n} ${s}`).join(", ") : "-"}; gates ${JSON.stringify(r.gates)}`);
+    line(`entities: ${r.entities.map((e) => `${e.t}s ${e.type} [${e.verbs.join(" ")}] ${e.source}`).join(" | ")}`);
     line(`stages: ${Object.entries(r.stages).map(([k, v]) => `${k} ${v.t}`).join(" · ")}`);
     line(`toasts (${r.toasts.length}): ${r.toasts.map((t) => `${t.t}s "${t.text}"${t.sketch ? `[${t.sketch}]` : ""}`).join(" | ") || "-"}`);
     line(`generate: ${r.generates.map((g) => `${g.gate} ${g.ok ? "ok" : "FAIL"} ${g.ms} ms → ${g.actions.join(",")}`).join(" · ") || "-"}`);

@@ -1,117 +1,534 @@
 {
-  "mode": "mock",
+  "mode": "full",
   "route": "expert",
-  "bots": 8,
-  "port": 8105,
-  "measuredAt": "2026-10-09T20:43:04.754Z",
-  "wallSeconds": 32.2,
-  "pass": true,
-  "checks": [
+  "bots": 24,
+  "port": 8162,
+  "measuredAt": "2026-10-09T21:29:23.145Z",
+  "wallSeconds": 255.1,
+  "roundSeconds": 243.8,
+  "roundClock": 240,
+  "winner": "bot23",
+  "result": {
+    "round": 1,
+    "reason": "time",
+    "winner": "bot23",
+    "scores": [
+      [
+        "bot23",
+        1410
+      ],
+      [
+        "bot17",
+        740
+      ],
+      [
+        "bot16",
+        360
+      ],
+      [
+        "bot15",
+        310
+      ],
+      [
+        "bot20",
+        300
+      ],
+      [
+        "bot21",
+        230
+      ],
+      [
+        "bot8",
+        220
+      ],
+      [
+        "bot9",
+        190
+      ],
+      [
+        "bot12",
+        180
+      ],
+      [
+        "bot24",
+        120
+      ],
+      [
+        "bot4",
+        110
+      ],
+      [
+        "bot10",
+        80
+      ],
+      [
+        "bot6",
+        70
+      ],
+      [
+        "bot7",
+        60
+      ],
+      [
+        "bot18",
+        60
+      ],
+      [
+        "bot19",
+        60
+      ],
+      [
+        "bot1",
+        50
+      ],
+      [
+        "bot2",
+        40
+      ],
+      [
+        "bot22",
+        30
+      ],
+      [
+        "bot5",
+        10
+      ],
+      [
+        "bot14",
+        0
+      ],
+      [
+        "bot3",
+        -20
+      ],
+      [
+        "bot11",
+        -30
+      ],
+      [
+        "bot13",
+        -30
+      ],
+      [
+        "e2e",
+        -200
+      ]
+    ]
+  },
+  "leaderboard": [
     {
-      "name": "phone joins and reaches play",
-      "pass": true,
-      "detail": "e2e"
+      "name": "bot23",
+      "stars": 1,
+      "total": 1410
     },
     {
-      "name": "big screen posts perf",
-      "pass": true,
-      "detail": ""
+      "name": "bot17",
+      "stars": 0,
+      "total": 740
     },
     {
-      "name": "phone posts perf",
-      "pass": true,
-      "detail": ""
+      "name": "bot16",
+      "stars": 0,
+      "total": 360
     },
     {
-      "name": "big renders (draw calls and triangles > 0)",
-      "pass": true,
-      "detail": "last 27 calls, 89680 tris"
+      "name": "bot15",
+      "stars": 0,
+      "total": 310
     },
     {
-      "name": "big perf samples match the contract",
-      "pass": true,
-      "detail": ""
+      "name": "bot20",
+      "stars": 0,
+      "total": 300
     },
     {
-      "name": "big has a sized canvas",
-      "pass": true,
-      "detail": "#c 1440x900 #radar 420x420"
+      "name": "bot21",
+      "stars": 0,
+      "total": 230
     },
     {
-      "name": "phone renders (draw calls and triangles > 0)",
-      "pass": true,
-      "detail": "last 30 calls, 44532 tris"
+      "name": "bot8",
+      "stars": 0,
+      "total": 220
     },
     {
-      "name": "phone perf samples match the contract",
-      "pass": true,
-      "detail": ""
+      "name": "bot9",
+      "stars": 0,
+      "total": 190
     },
     {
-      "name": "phone has a sized canvas",
-      "pass": true,
-      "detail": "#drawPad 1x1 #game 1688x780 #ink 1688x780 #radar 148x148 #addPad 300x150 #expPad 300x150"
+      "name": "bot12",
+      "stars": 0,
+      "total": 180
+    },
+    {
+      "name": "bot24",
+      "stars": 0,
+      "total": 120
+    },
+    {
+      "name": "bot4",
+      "stars": 0,
+      "total": 110
+    },
+    {
+      "name": "bot10",
+      "stars": 0,
+      "total": 80
+    },
+    {
+      "name": "bot6",
+      "stars": 0,
+      "total": 70
+    },
+    {
+      "name": "bot7",
+      "stars": 0,
+      "total": 60
+    },
+    {
+      "name": "bot18",
+      "stars": 0,
+      "total": 60
+    },
+    {
+      "name": "bot19",
+      "stars": 0,
+      "total": 60
+    },
+    {
+      "name": "bot1",
+      "stars": 0,
+      "total": 50
+    },
+    {
+      "name": "bot2",
+      "stars": 0,
+      "total": 40
+    },
+    {
+      "name": "bot22",
+      "stars": 0,
+      "total": 30
+    },
+    {
+      "name": "bot5",
+      "stars": 0,
+      "total": 10
+    },
+    {
+      "name": "bot14",
+      "stars": 0,
+      "total": 0
+    },
+    {
+      "name": "bot3",
+      "stars": 0,
+      "total": -20
+    },
+    {
+      "name": "bot11",
+      "stars": 0,
+      "total": -30
+    },
+    {
+      "name": "bot13",
+      "stars": 0,
+      "total": -30
+    },
+    {
+      "name": "e2e",
+      "stars": 0,
+      "total": -200
     }
   ],
-  "stages": {
-    "lobby": {
-      "t": 3.8
+  "chestsOpened": 0,
+  "startVia": "post 200",
+  "entities": [
+    {
+      "t": 0,
+      "type": "ship",
+      "verbs": [],
+      "source": "plain",
+      "assisted": []
     },
-    "fly": {
-      "t": 7.3
+    {
+      "t": 0,
+      "type": "ship",
+      "verbs": [
+        "shoot",
+        "boost",
+        "shield",
+        "drill",
+        "land",
+        "scan",
+        "flare"
+      ],
+      "source": "devkit",
+      "assisted": []
+    }
+  ],
+  "refusedToasts": 0,
+  "pass": false,
+  "gates": {
+    "ended": true,
+    "won": false,
+    "openedAChest": false,
+    "unlockedByDrawing": true,
+    "validMessages": true,
+    "noConsoleErrors": true,
+    "phonePerf": true
+  },
+  "stages": {
+    "playing": {
+      "t": 0,
+      "clock": 0
+    },
+    "nebula": {
+      "t": 14.49,
+      "clock": 14.33
     },
     "flare": {
-      "t": 10.8
+      "t": 14.49,
+      "clock": 14.33
+    },
+    "shooting": {
+      "t": 15.16,
+      "clock": 15
+    },
+    "scan": {
+      "t": 15.5,
+      "clock": 15.33
     },
     "boss": {
-      "t": 14.3
-    },
-    "broken": {
-      "t": 17.8
-    },
-    "planet": {
-      "t": 21.3
-    },
-    "island": {
-      "t": 24.8
+      "t": 17.37,
+      "clock": 17.17
     },
     "assists": {
-      "t": 28.3
+      "t": 182.48,
+      "clock": 180.07
+    },
+    "ended": {
+      "t": 243.82,
+      "clock": 240,
+      "reason": "time",
+      "winner": "bot23",
+      "top": [
+        [
+          "bot23",
+          1410
+        ],
+        [
+          "bot17",
+          740
+        ],
+        [
+          "bot16",
+          360
+        ]
+      ]
     }
   },
-  "phonePerfGate": {
-    "pass": false,
-    "rule": "fps avg >= 55 and 1% low avg >= 30 (informational in --mock)"
+  "generates": [
+    {
+      "gate": "ship",
+      "ok": true,
+      "ms": 0,
+      "status": 200,
+      "actions": [
+        "shoot",
+        "boost",
+        "shield",
+        "drill",
+        "land",
+        "scan",
+        "flare"
+      ],
+      "source": "devkit"
+    },
+    {
+      "gate": "explorer",
+      "ok": true,
+      "ms": 0,
+      "status": 200,
+      "actions": [
+        "shoot",
+        "shield",
+        "dig",
+        "drill",
+        "jump",
+        "scan",
+        "flare",
+        "takeoff"
+      ],
+      "source": "devkit"
+    }
+  ],
+  "deaths": 4,
+  "ticks": 3784,
+  "invalidMessages": {
+    "world": 0,
+    "tick": 0
   },
+  "announces": [
+    {
+      "t": 0,
+      "text": "Round 1: REACH THE BOSS",
+      "big": true
+    },
+    {
+      "t": 27.8,
+      "text": "e2e was destroyed",
+      "big": false
+    },
+    {
+      "t": 29.59,
+      "text": "bot8 ✕ bot2",
+      "big": false
+    },
+    {
+      "t": 29.73,
+      "text": "bot12 ✕ bot1",
+      "big": false
+    },
+    {
+      "t": 31.31,
+      "text": "bot21 ✕ bot6",
+      "big": false
+    },
+    {
+      "t": 32.42,
+      "text": "bot17 ✕ bot7",
+      "big": false
+    },
+    {
+      "t": 33.58,
+      "text": "bot17 ✕ bot11",
+      "big": false
+    },
+    {
+      "t": 33.78,
+      "text": "bot23 ✕ bot3",
+      "big": false
+    },
+    {
+      "t": 35.2,
+      "text": "bot15 ✕ bot5",
+      "big": false
+    },
+    {
+      "t": 35.94,
+      "text": "bot23 ✕ bot8",
+      "big": false
+    },
+    {
+      "t": 36.28,
+      "text": "bot17 ✕ bot21",
+      "big": false
+    },
+    {
+      "t": 37.02,
+      "text": "bot23 ✕ bot12",
+      "big": false
+    },
+    {
+      "t": 38.27,
+      "text": "bot20 ✕ bot14",
+      "big": false
+    },
+    {
+      "t": 39.17,
+      "text": "bot23 ✕ bot13",
+      "big": false
+    },
+    {
+      "t": 41.33,
+      "text": "bot23 ✕ bot17",
+      "big": false
+    },
+    {
+      "t": 43.48,
+      "text": "bot23 ✕ bot22",
+      "big": false
+    },
+    {
+      "t": 78,
+      "text": "e2e was destroyed",
+      "big": false
+    },
+    {
+      "t": 90.28,
+      "text": "bot19 was destroyed",
+      "big": false
+    },
+    {
+      "t": 111.63,
+      "text": "bot21 was destroyed",
+      "big": false
+    },
+    {
+      "t": 123.74,
+      "text": "e2e was destroyed",
+      "big": false
+    },
+    {
+      "t": 167,
+      "text": "bot21 was destroyed",
+      "big": false
+    },
+    {
+      "t": 174,
+      "text": "bot19 was destroyed",
+      "big": false
+    },
+    {
+      "t": 182.44,
+      "text": "Assists on: every gate skill is unlocked and the chests glow!",
+      "big": true
+    },
+    {
+      "t": 189.37,
+      "text": "e2e was destroyed",
+      "big": false
+    },
+    {
+      "t": 243.82,
+      "text": "🏆 Time's up! bot23 wins round 1 with 1410 points",
+      "big": true
+    }
+  ],
+  "issues": [],
+  "readyVia": "tap",
+  "toasts": [],
   "perf": {
-    "source": "browser POST /perf",
+    "source": "perf.log",
     "phone": {
-      "samples": 5,
-      "fps": 58.1,
-      "fpsMin": 57.5,
-      "low1": 13.6,
-      "low1Min": 10.8,
-      "p90ms": 17.8,
-      "calls": 44.5,
-      "callsMax": 51,
-      "tris": 56882,
-      "trisMax": 62558,
-      "tier": 0,
-      "size": "844x390@2",
+      "samples": 12,
+      "fps": 59.7,
+      "fpsMin": 56.7,
+      "low1": 47.9,
+      "low1Min": 10.6,
+      "p90ms": 17.3,
+      "calls": 41.8,
+      "callsMax": 83,
+      "tris": 88101,
+      "trisMax": 106418,
+      "tier": 1,
+      "size": "844x390@1.5",
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Apple",
       "contractErrors": []
     },
     "big": {
-      "samples": 5,
-      "fps": 119.9,
+      "samples": 50,
+      "fps": 120,
       "fpsMin": 119.6,
-      "low1": 101.6,
-      "low1Min": 85.2,
+      "low1": 104.2,
+      "low1Min": 84.7,
       "p90ms": 8.9,
-      "calls": 47.3,
-      "callsMax": 58,
-      "tris": 67666,
-      "trisMax": 89680,
+      "calls": 86.2,
+      "callsMax": 104,
+      "tris": 108489,
+      "trisMax": 117146,
       "tier": 0,
       "size": "1440x900@1",
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/",
@@ -122,21 +539,22 @@
   "consoleErrors": [],
   "shots": [
     "dev/e2e/shots/assists-big.png",
-    "dev/e2e/shots/assists-phone.png",
     "dev/e2e/shots/boss-big.png",
     "dev/e2e/shots/boss-phone.png",
-    "dev/e2e/shots/broken-big.png",
-    "dev/e2e/shots/broken-phone.png",
+    "dev/e2e/shots/ended-big.png",
     "dev/e2e/shots/flare-big.png",
     "dev/e2e/shots/flare-phone.png",
-    "dev/e2e/shots/fly-big.png",
-    "dev/e2e/shots/fly-phone.png",
-    "dev/e2e/shots/island-big.png",
-    "dev/e2e/shots/island-phone.png",
     "dev/e2e/shots/lobby-big.png",
     "dev/e2e/shots/lobby-phone.png",
-    "dev/e2e/shots/planet-big.png",
-    "dev/e2e/shots/planet-phone.png"
+    "dev/e2e/shots/nebula-big.png",
+    "dev/e2e/shots/nebula-phone.png",
+    "dev/e2e/shots/playing-big.png",
+    "dev/e2e/shots/playing-phone.png",
+    "dev/e2e/shots/scan-big.png",
+    "dev/e2e/shots/scan-phone.png",
+    "dev/e2e/shots/scoreboard-big.png",
+    "dev/e2e/shots/shooting-big.png",
+    "dev/e2e/shots/shooting-phone.png"
   ],
   "video": null
 }

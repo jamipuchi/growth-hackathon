@@ -1,7 +1,8 @@
 // Space Party server: an allowlist of public files, the live event stream to every screen, phone input, generation
 // through Astra (within each player's drawing budget), and perf samples. The game itself runs in world.js.
 // HTTPS (https.js, self-signed for the LAN) runs next to HTTP with the same handler so phones get tilt and camera.
-// Usage: PORT=8000 HTTPS_PORT=8443 node server.js [--bots N]      (HTTPS_PORT=0 turns HTTPS off)
+// Usage: PORT=8000 HTTPS_PORT=8443 node server.js [--bots N] [--autostart S]      (HTTPS_PORT=0 turns HTTPS off)
+//   The lobby lasts until the big screen's START (POST /start); --autostart S starts every lobby after S seconds.
 const crypto = require("crypto");
 const http = require("http");
 const fs = require("fs");
@@ -32,6 +33,8 @@ const ASSET_EXTS = new Set([".png", ".jpg", ".webp", ".glb", ".gltf", ".bin", ".
 
 const botsArg = process.argv.indexOf("--bots");
 const BOTS = botsArg > 0 ? Math.max(0, Math.min(32, Number(process.argv[botsArg + 1]) || 0)) : 0;
+const autoArg = process.argv.indexOf("--autostart");
+const AUTOSTART = autoArg > 0 && Number.isFinite(Number(process.argv[autoArg + 1])) ? Math.max(0, Number(process.argv[autoArg + 1])) : null;
 
 // ---- Event stream ------------------------------------------------------------------------------------------------
 
@@ -57,7 +60,8 @@ function wireAnimations(type, verbs) {
 // read-only at /drawings/<player>-<kind>.png; every entity message for that player and type carries its URL as
 // `image` (with ?v=<hash>), so every screen, late joiners included, inflates the same drawing (inflate.js).
 const CONTROLLERS = path.join(ROOT, "controllers");
-const DRAWING_KINDS = { ship: "ship", explorer: "person" };   // drawing kind → entity type
+const DRAWING_KINDS = { ship: "ship", explorer: "explorer" };   // drawing kind → the drawnImages key
+const kindOfEntity = (entity) => (entity && entity.type === "ship" ? "ship" : "explorer"); // any planet type is the explorer
 const DRAWING_PATH = /^\/drawings\/([a-z0-9]{1,20})-(ship|explorer)\.png$/;
 const drawingFiles = new Map();   // "<player>-<kind>" → PNG buffer
 const drawnImages = {};           // player → { [entity type]: "/drawings/<player>-<kind>.png?v=<hash>" }
@@ -75,7 +79,7 @@ function keepDrawing(player, kind, dataUrl) {
 
 // Adds the drawing URL to an entity (mutating the world's own entity, so the next connect's world message has it).
 function drawnEntity(player, entity) {
-  const url = entity && drawnImages[player] && drawnImages[player][entity.type];
+  const url = entity && drawnImages[player] && drawnImages[player][kindOfEntity(entity)];
   if (!url || entity.image === url) return entity;
   const p = world.players[player];
   if (p && p.entity === entity) { entity.image = url; return entity; }
@@ -102,7 +106,7 @@ function serveDrawing(req, res, url) {
   res.end(req.method === "HEAD" ? undefined : buf);
 }
 
-const world = createWorld({ broadcast, autoStart: true, wireAnimations });
+const world = createWorld({ broadcast, autoStart: true, wireAnimations, autostartSeconds: AUTOSTART });
 for (let i = 1; i <= BOTS; i++) world.addBot(`bot${i}`);
 
 setInterval(() => { if (streams.size) writeAll(sse(world.tickMessage())); }, 1000 / Contract.TICK_HZ);
@@ -202,6 +206,10 @@ async function handlePost(req, res, url) {
     (Array.isArray(body) ? body : [body]).forEach(input);
     return res.writeHead(204).end();
   }
+  if (url.pathname === "/start") {
+    // The big screen's START button: lobby → playing. Anything else is a no-op.
+    return world.start() ? json(res, 200, { ok: true, round: world.round }) : json(res, 409, { ok: false, error: "not in the lobby", phase: world.phase });
+  }
   if (url.pathname === "/join") {
     const joined = world.join(body.player);
     return joined ? json(res, 200, joined) : json(res, 400, { error: "player name required" });
@@ -222,14 +230,15 @@ async function handlePost(req, res, url) {
       broadcast({ type: "generated", player, kind: body.kind, layout: result.layout });
     }
     if (result && result.ok && finished && player && DRAWING_KINDS[body.kind] && result.entity) {
-      // The drawn look applies to the world's entity of that type: now if the player drives one, else at the next
-      // mode switch (an explorer drawn in space shows up on landing).
+      // A full redraw: the drawn parts replace that world's entity and its skills (world.setEntity), now if the
+      // player drives one, else at the next mode switch (an explorer drawn in space shows up on landing). The drawn
+      // look rides along as `image`.
       const image = keepDrawing(player, body.kind, body.image);
-      if (image) {
-        result = { ...result, entity: { ...result.entity, image } };
-        const p = world.players[player];
-        if (p && p.entity && p.entity.type === result.entity.type) broadcast({ type: "entity", player, entity: p.entity });
-      }
+      const before = world.players[player] && world.players[player].entity;
+      const now = world.setEntity(player, body.kind, result.entity);
+      result = { ...result, entity: image ? { ...result.entity, image } : result.entity };
+      // setEntity already broadcast when the skills changed; else the new look alone still has to go out.
+      if (image && now && now === before && kindOfEntity(now) === body.kind) broadcast({ type: "entity", player, entity: now });
     }
     return json(res, status, player && result ? { ...result, drawingsLeft: world.drawingsLeft(player) } : result);
   }

@@ -292,14 +292,61 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     }
   });
 
-  await test("ship and explorer: an entity with default verbs, answered without the network", async () => {
+  await test("ship and explorer: one strict-JSON vision call → type, parts, verbs from drawn parts only", async () => {
+    fakeFetch((req) => {
+      const text = req.input[0].content[0].text;
+      if (text.includes("SPACESHIP")) return answer({ type: "ship", parts: [{ name: "Cannon", x: 0.8, y: 0.4 }, { name: "flames", x: 0.1, y: 0.5 }], verbs: ["shoot", "boost", "dig"], unlocked: [{ verb: "shoot", part: "cannon" }, { verb: "boost", part: "flames" }] });
+      return answer({ type: "bike", parts: [{ name: "shovel", x: 0.5, y: 0.2 }], verbs: ["dig"], unlocked: [{ verb: "dig", part: "shovel" }] });
+    });
+    const ship = await Astra.generate({ player: "ana", kind: "ship", image: image("ship") });
+    assert.strictEqual(calls.length, 1);
+    const req = calls[0].req;
+    assert.strictEqual(req.model, "gpt-6.1-sol"); assert.strictEqual(req.service_tier, "ultrafast");
+    assert.strictEqual(req.text.format.strict, true); assert.strictEqual(req.text.format.name, "entity");
+    assert.deepStrictEqual(req.text.format.schema.required, ["type", "parts", "verbs", "unlocked"]);
+    assert.strictEqual(req.input[0].content[1].detail, "low");
+    assert.strictEqual(ship.ok, true);
+    assert.strictEqual(ship.entity.type, "ship"); assert.strictEqual(ship.entity.rig, "ship"); assert.strictEqual(ship.entity.source, "model");
+    assert.deepStrictEqual(ship.entity.verbs, ["shoot", "boost"], "dig is not a ship skill");
+    assert.deepStrictEqual(ship.entity.unlocked, [{ verb: "shoot", part: "cannon" }, { verb: "boost", part: "flames" }]);
+    assert.deepStrictEqual(ship.entity.parts[0], { name: "cannon", x: 0.8, y: 0.4 });
+    assert.ok(ship.entity.anims && ship.entity.anims.primary, "animations wired for its verbs");
+    const ex = await Astra.generate({ player: "ana", kind: "explorer", image: image("explorer") });
+    assert.strictEqual(ex.entity.type, "bike"); assert.strictEqual(ex.entity.rig, "car");
+    assert.deepStrictEqual(ex.entity.verbs, ["dig", "drive", "takeoff"], "bike: innate drive + take-off, no jump");
+  });
+
+  await test("a plain drawing unlocks nothing; junk types fall back to blob", async () => {
+    fakeFetch(() => answer({ type: "dragon", parts: [], verbs: [], unlocked: [] }));
+    const ex = await Astra.generate({ player: "bo", kind: "explorer", image: image("plain") });
+    assert.strictEqual(ex.entity.type, "blob");
+    assert.deepStrictEqual(ex.entity.verbs, ["jump", "takeoff"]);
+    fakeFetch(() => answer({ type: "ship", parts: [], verbs: [], unlocked: [] }));
+    const sh = await Astra.generate({ player: "bo", kind: "ship", image: image("plain-ship") });
+    assert.deepStrictEqual(sh.entity.verbs, [], "a plain ship only flies");
+  });
+
+  await test("dev kit: ASTRA_MOCK=1, no key, a failed call → every gate skill", async () => {
     _internals.setFetch(() => { throw new Error("network used"); });
-    for (const [kind, type] of [["ship", "ship"], ["explorer", "person"]]) {
-      const r = await Astra.generate({ player: "ana", kind, image: image(kind) });
-      assert.strictEqual(r.ok, true);
-      assert.strictEqual(r.entity.type, type);
-      assert.ok(Array.isArray(r.entity.verbs));
-    }
+    process.env.ASTRA_MOCK = "1";
+    try {
+      const r = await Astra.generate({ player: "cy", kind: "ship", image: image("mock-ship") });
+      assert.strictEqual(r.entity.source, "devkit");
+      for (const v of ["shoot", "land", "drill"]) assert.ok(r.entity.verbs.includes(v));
+      const e = await Astra.generate({ player: "cy", kind: "explorer", image: image("mock-ex") });
+      for (const v of ["dig", "drill", "jump", "takeoff"]) assert.ok(e.entity.verbs.includes(v));
+    } finally { delete process.env.ASTRA_MOCK; }
+    fakeFetch(() => ({ status: 500, text: "boom" }));
+    const f = await Astra.generate({ player: "cy", kind: "ship", image: image("fail") });
+    assert.strictEqual(f.ok, true); assert.strictEqual(f.entity.source, "devkit");
+    const key = process.env.OPENAI_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+    _internals.setFetch(() => { throw new Error("network used"); });
+    try {
+      // apiKey() may still find a .env: only assert when it really has none.
+      const r = await Astra.generate({ player: "cy", kind: "explorer", image: image("nokey") });
+      assert.strictEqual(r.ok, true); assert.strictEqual(r.entity.source, "devkit");
+    } finally { process.env.OPENAI_API_KEY = key; }
   });
 
   await test("saves controllers/<player>-<kind>.png/.json; defaultLayout is valid; logs carry no key or image", async () => {

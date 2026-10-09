@@ -38,7 +38,7 @@
       requires: {}, slot: "use", synonyms: ["SCAN", "RADAR", "EYE", "SONAR", "SEARCH", "BINOCULARS", "DETECT", "PING"], tags: ["reveal"], cost: 1 },
     flare: { modes: ["space", "planet"], params: { duration: [5, 20, 14] }, hint: "lights, lamps, torches, flares",
       requires: { sockets: ANY }, slot: "use", synonyms: ["FLARE", "LIGHT", "TORCH", "LAMP", "FLASH", "FLASHLIGHT", "SUN", "BRIGHT"], tags: ["light"], cost: 1 },
-    drill: { modes: ["space"], hold: true, params: { power: [10, 40, 20] }, hint: "drills, saws, picks",
+    drill: { modes: ["space", "planet"], hold: true, params: { power: [10, 40, 20] }, hint: "drills, saws, picks",
       requires: { sockets: ["nose", "front"] }, slot: "primary", synonyms: ["DRILL", "SAW", "PICK", "PICKAXE", "BORE", "CRACK", "MINE"], tags: ["drill"], cost: 2 },
     dig: { modes: ["planet"], hold: true, params: { speed: [0.5, 2, 1] }, hint: "shovels, spades, claws",
       requires: { sockets: ["hand_r", "hand_l", "mouth", "front"] }, slot: "use", synonyms: ["DIG", "SHOVEL", "SPADE", "CLAW", "SCOOP", "EXCAVATE"], tags: ["dig"], cost: 2 },
@@ -61,6 +61,42 @@
     ship: [{ verb: "shoot", label: "Laser" }, { verb: "boost", label: "Boost" }],
     person: [{ verb: "jump", label: "Jump" }, { verb: "takeoff", label: "Back to ship" }],
   };
+
+  // ---- Unlockable skills (PLAN.md section 0 and "Unlockable skills") -----------------------------------------------
+  // An entity's verbs come ONLY from its drawn parts, plus what its type does by itself (INNATE). A plain ship only flies.
+  const ENTITY_TYPES = ["ship", "person", "car", "bike", "quadruped", "blob"];
+  const PLANET_TYPES = ["person", "car", "bike", "quadruped", "blob"];
+  const RIG_OF = { ship: "ship", person: "person", car: "car", bike: "car", quadruped: "quadruped", blob: "blob" };
+  // Movement is free: flying, walking, driving. Take-off is free (a wrecked ship needs a redraw, world.js).
+  const INNATE = { ship: [], person: ["jump", "takeoff"], car: ["drive", "takeoff"], bike: ["drive", "takeoff"], quadruped: ["jump", "takeoff"], blob: ["jump", "takeoff"] };
+  // The skills a drawing can unlock, per world, and what to draw for each (the refusal toast and the hint riddles).
+  const SKILLS = {
+    space: ["shoot", "boost", "shield", "drill", "land", "scan", "flare", "invisible", "heal", "blast", "teleport"],
+    planet: ["shoot", "boost", "shield", "dig", "drill", "jump", "scan", "flare", "invisible", "heal", "blast", "teleport"],
+  };
+  const PARTS = {
+    shoot: "a gun, cannon or laser", boost: "an exhaust with fire", shield: "a shield or a bubble", drill: "a drill or a saw",
+    land: "landing legs or a parachute", dig: "a shovel or claws", drive: "wheels", jump: "legs or springs",
+    scan: "an antenna, a radar dish or an eye", flare: "a lamp or a torch", invisible: "a cape or a ghost", heal: "a red cross",
+    blast: "a bomb", teleport: "a portal or a magic wand", takeoff: "rockets",
+  };
+  // The skills that gate a round (assists hand them out at 3:00). Any weapon hurts the boss.
+  const GATE_SKILLS = { space: ["shoot", "land"], planet: ["dig", "drill"] };
+  const WEAPONS = ["shoot", "blast", "drill"];
+  // ASTRA_MOCK=1, no key or a failed call: every gate skill plus the basics, so development stays playable.
+  const DEV_KIT = {
+    space: [{ verb: "shoot", part: "cannon" }, { verb: "boost", part: "exhaust flames" }, { verb: "shield", part: "bubble" }, { verb: "drill", part: "nose drill" }, { verb: "land", part: "landing legs" }, { verb: "scan", part: "antenna" }, { verb: "flare", part: "lamp" }],
+    planet: [{ verb: "dig", part: "shovel" }, { verb: "drill", part: "drill" }, { verb: "shoot", part: "blaster" }, { verb: "shield", part: "shield" }, { verb: "scan", part: "antenna" }, { verb: "flare", part: "torch" }],
+  };
+  const worldOf = (type) => (type === "ship" ? "space" : "planet");
+  // Everything the entity can do: innate ∪ drawn (filtered to its world) ∪ extra (assists). Ordered as SKILLS.
+  function entityVerbs(type, drawn, extra) {
+    const world = worldOf(type);
+    const set = new Set([...(INNATE[type] || []), ...(drawn || []).filter((v) => SKILLS[world].includes(v)), ...(extra || [])]);
+    if (type === "car" || type === "bike") set.delete("jump");
+    const order = [...SKILLS[world], ...(INNATE[type] || [])];
+    return [...new Set([...order.filter((v) => set.has(v)), ...set])];
+  }
 
   function clampParams(verb, params) {
     const spec = VERBS[verb].params;
@@ -123,7 +159,10 @@
     return okMoves || okSockets;
   }
 
-  const Verbs = { VERBS, MOVES, STICKS, META, SLOTS, POWER_BUDGET, DEFAULT_ABILITIES, LABELS, clampParams, resolveLabel, supports };
+  const Verbs = {
+    VERBS, MOVES, STICKS, META, SLOTS, POWER_BUDGET, DEFAULT_ABILITIES, LABELS, clampParams, resolveLabel, supports,
+    ENTITY_TYPES, PLANET_TYPES, RIG_OF, INNATE, SKILLS, PARTS, GATE_SKILLS, WEAPONS, DEV_KIT, worldOf, entityVerbs,
+  };
   root.Verbs = Verbs;
   if (typeof module !== "undefined") module.exports = Verbs;
 })(typeof globalThis !== "undefined" ? globalThis : this);

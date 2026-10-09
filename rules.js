@@ -3,10 +3,30 @@
 
 const Contract = require("./contract.js");
 
+// v1.1 (PLAN.md section 0): a gate needs a SKILL drawn on the entity and a BUTTON on the controller. While the skill
+// is missing the ladder points at the drawing (need "part"); once it is unlocked, at the button (need "button").
+// Riddles never write the button's name; only the last step does.
 const GATES = {
-  drill: { riddle: "Too tough to shoot through. What breaks rock?", sketch: "drill", answer: "Draw DRILL", action: "drill" },
-  land: { riddle: "So close you could touch down.", sketch: "landing", answer: "Draw LAND", action: "land" },
-  dig: { riddle: "X marks the spot. The treasure isn't on top.", sketch: "shovel", answer: "Draw DIG", action: "dig" },
+  weapon: {
+    part: { riddle: "Your ship can't shoot. What would let it?", sketch: "gun", answer: "Draw a gun or a cannon on your ship" },
+    button: { riddle: "Your ship has a gun. Where's the trigger?", sketch: "gun", answer: "Draw SHOOT" },
+    action: "shoot",
+  },
+  land: {
+    part: { riddle: "So close you could touch down. What would your ship stand on?", sketch: "landing", answer: "Draw landing legs or a parachute on your ship" },
+    button: { riddle: "So close you could touch down.", sketch: "landing", answer: "Draw LAND" },
+    action: "land",
+  },
+  dig: {
+    part: { riddle: "X marks the spot. Your explorer has nothing to dig with.", sketch: "shovel", answer: "Draw a shovel or claws on your explorer" },
+    button: { riddle: "X marks the spot. The treasure isn't on top.", sketch: "shovel", answer: "Draw DIG" },
+    action: "dig",
+  },
+  drill: {
+    part: { riddle: "The chest is locked inside the rock. What breaks rock?", sketch: "drill", answer: "Draw a drill on your explorer" },
+    button: { riddle: "Your drill is ready. What starts it?", sketch: "drill", answer: "Draw DRILL" },
+    action: "drill",
+  },
 };
 
 const STEP_MS = [6000, 16000, 31000]; // stuck time at which riddle, sketch, answer are due
@@ -53,18 +73,22 @@ function createHints({ now = Date.now } = {}) {
   const stateFor = (player, gate) => {
     let perPlayer = states.get(player);
     if (!perPlayer) states.set(player, (perPlayer = {}));
-    return perPlayer[gate] || (perPlayer[gate] = { stuck: 0, last: null, sent: 0, done: false });
+    return perPlayer[gate] || (perPlayer[gate] = { stuck: 0, last: null, sent: 0, done: false, need: null });
   };
 
-  function update(player, { gate, active, hasControl, assists, layout } = {}) {
+  // hasSkill: the entity has the gate's skill (default true: button-only ladders, as in v1). action: the ghost box's
+  // action when it differs from the gate's (the weapon gate traces the weapon the player has).
+  function update(player, { gate, active, hasSkill = true, hasControl, assists, layout, action } = {}) {
     const def = GATES[gate];
     if (!def) return null;
     const st = stateFor(player, gate);
-    if (hasControl) {
+    if (hasSkill && hasControl) {
       st.done = true;
       st.last = null;
       return null;
     }
+    const need = hasSkill ? "button" : "part";
+    if (st.need !== need) Object.assign(st, { need, stuck: 0, last: null, sent: 0, done: false });
     if (st.done) return null;
     const t = now();
     if (!active) {
@@ -80,9 +104,11 @@ function createHints({ now = Date.now } = {}) {
     if (step === 3 && !assists && st.stuck < STEP_MS[2]) return null;
 
     st.sent = step;
-    if (step === 1) return { type: "toast", player, text: def.riddle, sketch: null, ghost: null };
-    if (step === 2) return { type: "toast", player, text: "", sketch: def.sketch, ghost: null };
-    return { type: "toast", player, text: def.answer, sketch: null, ghost: ghostBox(layout, def.action) };
+    const text = def[need];
+    const base = { type: "toast", player, kind: "hint", need, gate };
+    if (step === 1) return { ...base, text: text.riddle, sketch: null, ghost: null };
+    if (step === 2) return { ...base, text: "", sketch: text.sketch, ghost: null };
+    return { ...base, text: text.answer, sketch: null, ghost: need === "button" ? ghostBox(layout, action || def.action) : null };
   }
 
   function reset(player) {

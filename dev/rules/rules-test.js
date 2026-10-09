@@ -31,7 +31,7 @@ test("ladder timings: 6s riddle, +10s sketch, +15s answer with ghost", () => {
     if (toast) seen.push({ at: t, toast });
   }
   assert.deepStrictEqual(seen.map((s) => s.at), [6000, 16000, 31000]);
-  assert.strictEqual(seen[0].toast.text, "Too tough to shoot through. What breaks rock?");
+  assert.strictEqual(seen[0].toast.text, "Your drill is ready. What starts it?");
   assert.strictEqual(seen[0].toast.sketch, null);
   assert.strictEqual(seen[1].toast.sketch, "drill");
   assert.strictEqual(seen[2].toast.text, "Draw DRILL");
@@ -42,9 +42,10 @@ test("ladder timings: 6s riddle, +10s sketch, +15s answer with ghost", () => {
 
 test("riddles and sketches per gate", () => {
   for (const [gate, riddle, sketch, answer] of [
-    ["drill", "Too tough to shoot through. What breaks rock?", "drill", "Draw DRILL"],
+    ["drill", "Your drill is ready. What starts it?", "drill", "Draw DRILL"],
     ["land", "So close you could touch down.", "landing", "Draw LAND"],
     ["dig", "X marks the spot. The treasure isn't on top.", "shovel", "Draw DIG"],
+    ["weapon", "Your ship has a gun. Where's the trigger?", "gun", "Draw SHOOT"],
   ]) {
     let t = 0;
     const hints = createHints({ now: () => t });
@@ -54,6 +55,38 @@ test("riddles and sketches per gate", () => {
     assert.strictEqual(out[1].sketch, sketch);
     assert.strictEqual(out[2].text, answer);
   }
+});
+
+test("v1.1: a missing skill points at the drawing (no ghost), then the button ladder starts over", () => {
+  for (const [gate, riddle, sketch, answer] of [
+    ["weapon", "Your ship can't shoot. What would let it?", "gun", "Draw a gun or a cannon on your ship"],
+    ["land", "So close you could touch down. What would your ship stand on?", "landing", "Draw landing legs or a parachute on your ship"],
+    ["dig", "X marks the spot. Your explorer has nothing to dig with.", "shovel", "Draw a shovel or claws on your explorer"],
+    ["drill", "The chest is locked inside the rock. What breaks rock?", "drill", "Draw a drill on your explorer"],
+  ]) {
+    let t = 0;
+    const hints = createHints({ now: () => t });
+    const out = [];
+    for (t = 0; t <= 32000; t += 1000) { const x = hints.update("p", { ...A, gate, hasSkill: false }); if (x) out.push({ t, x }); }
+    assert.deepStrictEqual(out.map((o) => o.t), [6000, 16000, 31000]);
+    assert.deepStrictEqual(out.map((o) => o.x.need), ["part", "part", "part"]);
+    assert.strictEqual(out[0].x.text, riddle); assert.strictEqual(out[1].x.sketch, sketch); assert.strictEqual(out[2].x.text, answer);
+    assert.strictEqual(out[2].x.ghost, null);
+    assert.strictEqual(out[2].x.kind, "hint");
+    // The skill arrives: the button ladder restarts from the riddle, 6 s later.
+    const after = [];
+    for (t = 33000; t <= 70000; t += 1000) { const x = hints.update("p", { ...A, gate, hasSkill: true }); if (x) after.push({ t, x }); }
+    assert.deepStrictEqual(after.map((o) => o.t), [39000, 49000, 64000]);
+    assert.strictEqual(after[0].x.need, "button");
+    assert.ok(after[2].x.ghost);
+  }
+});
+
+test("weapon gate traces the weapon the player has", () => {
+  let t = 0;
+  const hints = createHints({ now: () => t });
+  const x = hints.update("p", { ...A, gate: "weapon", assists: true, action: "blast" });
+  assert.strictEqual(x.ghost.action, "blast");
 });
 
 test("leaving the gate pauses the stuck time", () => {
@@ -118,7 +151,7 @@ test("a long gap between active ticks does not skip steps", () => {
   const hints = createHints({ now: () => t });
   hints.update("p", A);
   t = 100000;
-  assert.strictEqual(hints.update("p", A).text, "Too tough to shoot through. What breaks rock?");
+  assert.strictEqual(hints.update("p", A).text, "Your drill is ready. What starts it?");
   assert.strictEqual(hints.update("p", A).sketch, "drill");
   assert.strictEqual(hints.update("p", A).text, "Draw DRILL");
   assert.strictEqual(hints.update("p", A), null);

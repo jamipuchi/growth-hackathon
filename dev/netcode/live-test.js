@@ -1,4 +1,4 @@
-// Live test of server.js: starts it on port 8101 (HTTPS 8441) with --bots 8, reads /events for 3 s, checks the
+// Live test of server.js: starts it on port 8160 (HTTPS 8161) with --bots 24 (25 players with the test), reads /events for 3 s, checks the
 // allowlist, the POST endpoints, the drawing budget, entity messages and HTTPS, then kills it. Astra runs in mock mode
 // (ASTRA_MOCK=1, no network, no API key).
 // Run: node dev/netcode/live-test.js
@@ -10,8 +10,8 @@ const path = require("path");
 const { spawn } = require("child_process");
 const Contract = require("../../contract");
 
-const PORT = 8101;
-const HTTPS_PORT = 8441;
+const PORT = 8160;
+const HTTPS_PORT = 8161;
 const HAS_HTTPS = fs.existsSync(path.join(__dirname, "..", "..", "https.js"));
 const ROOT = path.join(__dirname, "..", "..");
 const PERF_LOG = path.join(__dirname, "perf-test.log");
@@ -19,7 +19,7 @@ const BASE = `http://localhost:${PORT}`;
 
 const env = { ...process.env, PORT: String(PORT), HTTPS_PORT: String(HTTPS_PORT), ASTRA_MOCK: "1", PERF_LOG };
 delete env.OPENAI_API_KEY;
-const server = spawn(process.execPath, ["server.js", "--bots", "8"], { cwd: ROOT, env, stdio: ["ignore", "pipe", "pipe"] });
+const server = spawn(process.execPath, ["server.js", "--bots", "24"], { cwd: ROOT, env, stdio: ["ignore", "pipe", "pipe"] });
 let serverOut = "";
 server.stdout.on("data", (d) => (serverOut += d));
 server.stderr.on("data", (d) => (serverOut += d));
@@ -73,10 +73,20 @@ async function main() {
   await waitForServer();
   const report = [];
 
-  // Event stream with 8 bots in play (the only human is ready, so the lobby ends): ticks per second and bytes.
+  // Event stream with 24 bots in play: the lobby waits for START (POST /start, the big screen's button).
   const posted = JSON.parse((await request("POST", "/join", { player: "Live Test!" })).body);
   await request("POST", "/input", { type: "input", player: "livetest", action: "ready", down: true });
-  await new Promise((r) => setTimeout(r, 100)); // the next sim step ends the lobby
+  await new Promise((r) => setTimeout(r, 300));
+  const lobbyTick = (await readEvents(300)).find((x) => x.m.type === "tick");
+  assert.strictEqual(lobbyTick.m.phase, "lobby", "ready alone no longer starts the round");
+  // A drawn ship (Astra mock → the dev kit) unlocks shoot; a plain ship could not fire.
+  const shipPng = "data:image/png;base64," + Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.from("live-ship")]).toString("base64");
+  const ship = JSON.parse((await request("POST", "/generate", { player: "livetest", kind: "ship", image: shipPng })).body);
+  assert(ship.ok && ship.entity.verbs.includes("shoot") && ship.entity.source === "devkit" && ship.entity.unlocked.length > 0, `ship → ${JSON.stringify(ship).slice(0, 160)}`);
+  const started = await request("POST", "/start", {});
+  assert.strictEqual(started.status, 200, "START from the lobby");
+  const again = await request("POST", "/start", {});
+  assert.strictEqual(again.status, 409, "START during play → 409");
   const msgs = await readEvents(3000, async () => {
     await request("POST", "/input", { type: "input", player: "livetest", action: "FIRE", down: true });
     await request("POST", "/input", { type: "axis", player: "livetest", axis: "steer", x: 0.5, y: 0 });
@@ -92,16 +102,16 @@ async function main() {
   const maxBytes = Math.max(...ticks.map((t) => t.bytes));
   const players = ticks[ticks.length - 1].m.players;
   assert(tps > 13.5 && tps < 16.5, `ticks per second ${tps.toFixed(2)}`);
-  assert(maxBytes < 4096, `max tick ${maxBytes} bytes`);
-  assert(players.filter((p) => p.flags.bot).length === 8, "8 bots in the tick");
+  assert(maxBytes < 8192, `max tick ${maxBytes} bytes`);
+  assert(players.filter((p) => p.flags.bot).length === 24, "24 bots in the tick");
   assert(ticks.every((t) => t.m.phase === "playing"), "in play");
-  assert.deepStrictEqual(posted, { player: "livetest", color: Contract.COLORS[8 % Contract.COLORS.length] }, "join cleans the name");
+  assert.deepStrictEqual(posted, { player: "livetest", color: Contract.COLORS[24 % Contract.COLORS.length] }, "join cleans the name");
   const me = players.find((p) => p.name === "livetest");
   assert(me && me.action === "shoot" && me.slot === "primary", "input normalised FIRE → shoot");
-  assert.deepStrictEqual(me.drawingsLeft, { space: 5, planet: 5 }, "tick drawingsLeft");
+  assert.deepStrictEqual(me.drawingsLeft, { space: 4, planet: 5 }, "tick drawingsLeft: the lobby ship counts toward space");
   assert(players.filter((p) => p.flags.bot).every((p) => p.drawingsLeft === undefined), "bots carry no drawingsLeft");
   const ents = worlds[0].m.entities;
-  assert(ents && ents.livetest && ents.livetest.type === "ship" && Array.isArray(ents.livetest.verbs) && Object.keys(ents).length === 9, "world.entities for every player");
+  assert(ents && ents.livetest && ents.livetest.type === "ship" && Array.isArray(ents.livetest.verbs) && Object.keys(ents).length === 25, "world.entities for every player");
   assert(ticks.every((t) => t.m.bullets.every((b) => b.length === 6 && (b[5] === 0 || b[5] === 1))), "bullets carry their mode");
   assert(worlds.slice(1).every((w) => w.m.entities === undefined), "broadcast world updates leave entities out");
   report.push(`${ticks.length} ticks in ${span.toFixed(2)} s = ${tps.toFixed(2)}/s, max tick ${maxBytes} B (avg ${Math.round(ticks.reduce((s, t) => s + t.bytes, 0) / ticks.length)} B), ${players.length} players, max ${Math.max(...ticks.map((t) => t.m.bullets.length))} bullets, ${worlds.length} world msgs (connect ${worlds[0].bytes} B with entities, broadcast max ${Math.max(0, ...worlds.slice(1).map((w) => w.bytes))} B)`);
@@ -150,18 +160,18 @@ async function main() {
   ]);
   const g = JSON.parse(gen.body);
   assert(gen.status === 200 && g.ok && g.layout.buttons[0].action === "land", `generate → ${gen.body.slice(0, 120)}`);
-  assert.deepStrictEqual(g.drawingsLeft, { space: 4, planet: 5 }, "a finished drawing spends one");
+  assert.deepStrictEqual(g.drawingsLeft, { space: 3, planet: 5 }, "a finished drawing spends one (the ship was the first)");
   assert(genMsgs.some((x) => x.m.type === "generated" && x.m.player === "livetest" && x.m.kind === "button"), "generated broadcast");
 
-  // Budget: speculative calls are free and never broadcast; 4 more finished drawings, then "no drawings left"
+  // Budget: speculative calls are free and never broadcast; 3 more finished drawings, then "no drawings left"
   // before Astra is called.
   const img = (i) => "data:image/png;base64," + Buffer.from(`drawing ${i}`).toString("base64");
   const genBody = (i, speculative) => ({ player: "livetest", kind: "button", image: img(i), region: { x: 0.1, y: 0.05, w: 0.2, h: 0.2 }, speculative, requestId: `r${i}` });
   const spec = JSON.parse((await request("POST", "/generate", genBody(100, true))).body);
-  assert(spec.ok && spec.drawingsLeft.space === 4, "speculative not counted");
-  for (let i = 1; i <= 4; i++) {
+  assert(spec.ok && spec.drawingsLeft.space === 3, "speculative not counted");
+  for (let i = 1; i <= 3; i++) {
     const r = JSON.parse((await request("POST", "/generate", genBody(i, false))).body);
-    assert(r.ok && r.drawingsLeft.space === 4 - i, `drawing ${i + 1}: ${JSON.stringify(r).slice(0, 120)}`);
+    assert(r.ok && r.drawingsLeft.space === 3 - i, `drawing ${i + 1}: ${JSON.stringify(r).slice(0, 120)}`);
   }
   const astraLines = () => (serverOut.match(/^astra button livetest/gm) || []).length;
   const linesBefore = astraLines();
@@ -182,7 +192,8 @@ async function main() {
     new Promise((r) => setTimeout(r, 150)).then(() => request("POST", "/join", { player: "late" })),
   ]);
   const ent = entMsgs.find((x) => x.m.type === "entity" && x.m.player === "late");
-  assert(ent && ent.m.entity.type === "ship" && ent.m.entity.verbs.includes("drill"), "entity on join");
+  assert(ent && ent.m.entity.type === "ship" && ent.m.entity.source === "plain" && ent.m.entity.verbs.length === 0, "entity on join: a plain ship only flies");
+  assert(entMsgs[0].m.entities.livetest.verbs.includes("shoot") && /\/drawings\/livetest-ship\.png\?v=/.test(entMsgs[0].m.entities.livetest.image), "the drawn ship: unlocked skills + image");
   assert(entMsgs[0].m.type === "world" && entMsgs[0].m.entities.livetest.type === "ship", "world.entities for late screens");
   report.push(`entity: on join ${JSON.stringify(ent.m.entity).slice(0, 80)}…, anims ${ent.m.entity.anims ? "wired" : "omitted (no astra.wireAnimations)"}`);
   if (HAS_HTTPS) {
