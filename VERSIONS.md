@@ -28,3 +28,7 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
 | 00:31 | Ordinary eyes and helmet visors unlock nothing; only an antenna, a radar dish or one big special eye unlocks SCAN | Otherwise every astronaut and animal got SCAN for free |
 | 00:31 | "Sol is generous": an ambiguous part unlocks both candidate skills (a pointed tool → drill + shoot) | The owner chose "generous" |
 | 00:31 | A blank or near-blank ship/explorer drawing is refused ("nothing to read") and costs no drawing | Better than silently giving a plain ship |
+| 00:48 | Bots never land or open chests; a bot's final blow on the boss pays the +1000 to the human with the most boss damage; killing a bot pays 0 | Bots are fillers for testing and small groups; humans must not farm them |
+| 00:48 | FORWARD is a small throttle (+3 m/s) and BACK a strong brake; BOOST is the real speed-up (≈46 s to the boss, ≈39 s with FORWARD too, ≈60 s cruising) | Matches "at least a minute" while rewarding a drawn exhaust |
+| 00:48 | Kept: the first player to reach the boss soaks its fire and may die once before others arrive (to revisit in playtests) | Pressure for the leader; easy to soften later |
+| 00:48 | The ship drill will be removed in v1.2 (drill is a planet skill per the owner); today world.js still lets a drawn ship drill grind the boss | Owner answer: "the drill makes sense on the planet" |
