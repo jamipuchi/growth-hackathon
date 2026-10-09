@@ -33,21 +33,28 @@ async function test(name, fn) {
     assert.ok(ms < 20, `took ${ms} ms`);
     assert.strictEqual(r.ok, true);
     assert.strictEqual(r.entity.type, "ship");
-    assert.ok(r.entity.verbs.includes("drill") && r.entity.verbs.includes("land") && r.entity.verbs.includes("shoot"));
+    // The space gate skills (Verbs.GATE_SKILLS.space: a weapon and LAND) come with the dev kit; no planet-only skills.
+    for (const v of Verbs.GATE_SKILLS.space) assert.ok(r.entity.verbs.includes(v), `ship has ${v}`);
     assert.ok(!r.entity.verbs.includes("dig") && !r.entity.verbs.includes("takeoff"));
     assert.ok(r.entity.verbs.every((v) => Verbs.VERBS[v].modes.includes("space")));
     for (const slot of ["idle", "move", "hit", "die", "respawn", "primary"]) assert.ok(r.entity.anims[slot], `anims.${slot}`);
-    assert.ok(r.entity.anims.primary.byVerb && r.entity.anims.primary.byVerb.drill, "drill wired in primary");
+    // PLAN.md section 0: the drill belongs to planet entities. If a ship still carries one, it is wired in primary.
+    if (r.entity.verbs.includes("drill")) assert.ok(r.entity.anims.primary.byVerb && r.entity.anims.primary.byVerb.drill, "drill wired in primary");
     assert.deepStrictEqual(r.entity.anims, Astra.wireAnimations("ship", r.entity.verbs));
   });
 
-  await test("explorer → type person with planet verbs (dig, takeoff; no drill, land)", async () => {
+  // PLAN.md section 0: drill is a planet skill now. Buried chests need DIG, chests locked in rocks need DRILL, so the
+  // explorer's dev kit carries both planet gate skills (Verbs.GATE_SKILLS.planet); LAND stays a ship skill.
+  await test("explorer → type person with planet verbs (dig, drill, takeoff; no land)", async () => {
     const r = await Astra.generate({ player: "Ana", kind: "explorer", image: png("exp") });
     assert.strictEqual(r.ok, true);
     assert.strictEqual(r.entity.type, "person");
-    assert.ok(r.entity.verbs.includes("dig") && r.entity.verbs.includes("takeoff"));
-    assert.ok(!r.entity.verbs.includes("drill") && !r.entity.verbs.includes("land"));
+    for (const v of [...Verbs.GATE_SKILLS.planet, "dig", "drill", "takeoff"]) assert.ok(r.entity.verbs.includes(v), `explorer has ${v}`);
+    assert.ok(!r.entity.verbs.includes("land"), "no LAND on the planet");
+    assert.ok(r.entity.verbs.every((v) => Verbs.VERBS[v].modes.includes("planet")));
     assert.ok(r.entity.anims.use && r.entity.anims.use.byVerb.dig, "dig wired (use slot)");
+    assert.ok(r.entity.anims.primary, "drill has its slot (primary)");
+    assert.deepStrictEqual(r.entity.anims, Astra.wireAnimations(r.entity.rig, r.entity.verbs));
   });
 
   await test("finished drawing saved as controllers/<player>-<kind>.png (+ .json); speculative is not saved", async () => {

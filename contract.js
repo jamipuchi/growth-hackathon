@@ -16,14 +16,17 @@
   const TUNING = {
     // The boss is about a minute of cruise flight from spawn (bossDistance / cruiseSpeed ≈ 61 s), the planet
     // planetBeyond m further on along the same line; the rocks are dense around the boss and thin out.
+    // Holding BOOST all the way (drain/recharge below) takes about 40 s; FORWARD adds only thrustSpeed, BACK brakes by
+    // brakeSpeed (cruise − brakeSpeed ≈ hovering), so nothing makes the minute to the rock much shorter.
     worldRadius: 2000,
     bossDistance: 1100,
     rockCount: 320,
     rockCluster: { share: 0.6, radius: 320 },   // share of the rocks within radius m of the boss
     spawnSpacing: 12,                           // 5 × 5 grid for 25 players
     cruiseSpeed: 18,
-    thrustSpeed: 16,
-    boostMultiplier: 2.5,
+    thrustSpeed: 3,
+    brakeSpeed: 15,
+    boostMultiplier: 1.7,
     strafeSpeed: 14,
     turnRate: 1.8,
     maxPitch: 1.4,
@@ -35,13 +38,15 @@
     respawnSeconds: 3,
     stunSeconds: 1.5,
     shield: { drainPerSecond: 0.35, rechargePerSecond: 0.15 },
-    boost: { drainPerSecond: 0.25, rechargePerSecond: 0.2 },
+    boost: { drainPerSecond: 0.3, rechargePerSecond: 0.2 },
     // The boss floats in a colourful (decorative) nebula at bossDistance, visible from far away.
     nebula: { distance: 1100, radius: 220 },
     flare: { seconds: 14, radius: 120 },
     // No armour gate any more (armour is always 0 on the wire; TUNING.boss.armour stays for old readers). Any weapon
-    // hurts it. maxHp = hp × (1 + hpPerExtraPlayer × (players − 1)), players counted at START: solo ≈ 30 s of
-    // steady fire (one gun lands ≈ 80 dps), 25 players ≈ 16 s all firing. A ship's drill does drillPerSecond within drillRange.
+    // hurts it. maxHp = hp × (1 + hpPerExtraPlayer × (players − 1)), players counted at START as humans + botWeight ×
+    // bots (bots are fillers, not players; the chest count uses the same number): solo ≈ 30 s of steady fire (one gun
+    // lands ≈ 80 dps), 25 players ≈ 16 s all firing. A ship's drill does drillPerSecond within drillRange.
+    botWeight: 0.25,
     // It shoots back: every shotEverySeconds / √(ships in shotRange), at a random one of them. A ship destroyed in
     // space respawns where it died, but at least respawnDistance m from a living boss.
     boss: { radius: 20, armour: 100, hp: 2400, hpPerExtraPlayer: 0.5, drillRange: 14, drillPerSecond: 100, shotEverySeconds: 1.2, shotRange: 260, shotSpeed: 70, shotDamage: 10, shotLife: 4, respawnDistance: 300 },
@@ -72,7 +77,8 @@
   const ROCK_TYPE_NAMES = Object.keys(ROCK_TYPES);
 
   // Most points wins the round; the winner gets a star on the session leaderboard. Scores reset every round.
-  const SCORING = { rock: 10, crystal: 50, bossLastHit: 1000, chest: 1500, kill: 200, killed: -50, hitByRock: -30 };
+  // wreck: wrecking a rival's parked ship on the landing pad (ruthless, announced in the kill feed).
+  const SCORING = { rock: 10, crystal: 50, bossLastHit: 1000, chest: 1500, kill: 200, killed: -50, hitByRock: -30, wreck: 150 };
 
   const COLORS = [0x22d3ee, 0xf472b6, 0xa3e635, 0xfacc15, 0xfb923c, 0xc084fc, 0x60a5fa, 0xf87171, 0x34d399, 0xe879f9, 0xfbbf24, 0x38bdf8];
 

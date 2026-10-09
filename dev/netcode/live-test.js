@@ -1,7 +1,7 @@
-// Live test of server.js: starts it on port 8160 (HTTPS 8161) with --bots 24 (25 players with the test), reads /events for 3 s, checks the
+// Live test of server.js: starts it on port LIVE_PORT (default 8160; HTTPS on the next port) with --bots 24 (25 players with the test), reads /events for 3 s, checks the
 // allowlist, the POST endpoints, the drawing budget, entity messages and HTTPS, then kills it. Astra runs in mock mode
 // (ASTRA_MOCK=1, no network, no API key).
-// Run: node dev/netcode/live-test.js
+// Run: node dev/netcode/live-test.js            (LIVE_PORT=8190 node dev/netcode/live-test.js on another lane's port)
 const assert = require("assert");
 const http = require("http");
 const https = require("https");
@@ -10,8 +10,8 @@ const path = require("path");
 const { spawn } = require("child_process");
 const Contract = require("../../contract");
 
-const PORT = 8160;
-const HTTPS_PORT = 8161;
+const PORT = Number(process.env.LIVE_PORT) || 8160;
+const HTTPS_PORT = PORT + 1;
 const HAS_HTTPS = fs.existsSync(path.join(__dirname, "..", "..", "https.js"));
 const ROOT = path.join(__dirname, "..", "..");
 const PERF_LOG = path.join(__dirname, "perf-test.log");
@@ -124,7 +124,7 @@ async function main() {
   }
   const types = { "/space.html": "text/html", "/controller.html": "text/html", "/contract.js": "text/javascript", "/verbs.js": "text/javascript", "/terrain.js": "text/javascript", "/assets/A-001-boss-rock/boss.glb": "model/gltf-binary", "/assets/A-001-boss-rock/boss.js": "text/javascript" };
   // The new public modules: 200 when the file exists (other lanes may not have written it yet), else 404.
-  const extras = ["transition.js", "anim.js", "anims.js", "rigs.js", "phone-extras.js", "bigscreen-extras.js"];
+  const extras = ["transition.js", "anim.js", "anims.js", "rigs.js", "phone-extras.js", "bigscreen-extras.js", "inflate.js"];
   let extrasServed = 0;
   for (const f of extras) {
     const r = await request("GET", "/" + f);

@@ -18,10 +18,11 @@ const ASSETS = path.join(ROOT, "assets");
 const PERF_LOG = process.env.PERF_LOG || path.join(ROOT, "perf.log");
 const BODY_LIMIT = 2 * 1024 * 1024;
 const KEEPALIVE_MS = 15000;
-// rules.js, astra.js, world.js and the server stay private.
+// rules.js, astra.js, world.js and the server stay private. inflate.js (a drawing becomes a 3D body on the device) is
+// loaded by render.js on demand when a drawn ship or explorer arrives.
 const PUBLIC_FILES = new Set([
   "space.html", "controller.html", "render.js", "contract.js", "verbs.js", "terrain.js", "rigs.js",
-  "transition.js", "anim.js", "anims.js", "phone-extras.js", "bigscreen-extras.js",
+  "transition.js", "anim.js", "anims.js", "phone-extras.js", "bigscreen-extras.js", "inflate.js",
 ]);
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".json": "application/json",
