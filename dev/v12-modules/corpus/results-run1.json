@@ -1,0 +1,112 @@
+{
+  "at": "2026-10-09T22:12:42.606Z",
+  "tag": "run1",
+  "n": 9,
+  "model": 9,
+  "template": 0,
+  "medianMs": 5400,
+  "maxMs": 8894,
+  "medianBytes": 4756,
+  "callsUsedTotal": 10,
+  "results": [
+    {
+      "name": "c02-dpad",
+      "ok": true,
+      "source": "model",
+      "ms": 4342,
+      "bytes": 4432,
+      "controls": 4,
+      "drawn": 4,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c03-twosticks",
+      "ok": true,
+      "source": "model",
+      "ms": 4875,
+      "bytes": 4756,
+      "controls": 4,
+      "drawn": 4,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c04-arrows",
+      "ok": true,
+      "source": "model",
+      "ms": 8894,
+      "bytes": 4145,
+      "controls": 5,
+      "drawn": 5,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c05-gates",
+      "ok": true,
+      "source": "model",
+      "ms": 5502,
+      "bytes": 5068,
+      "controls": 5,
+      "drawn": 5,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c06-planet",
+      "ok": true,
+      "source": "model",
+      "ms": 5053,
+      "bytes": 4586,
+      "controls": 4,
+      "drawn": 4,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c07-many",
+      "ok": true,
+      "source": "model",
+      "ms": 5631,
+      "bytes": 6327,
+      "controls": 7,
+      "drawn": 7,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c08-toggle",
+      "ok": true,
+      "source": "model",
+      "ms": 5933,
+      "bytes": 4776,
+      "controls": 4,
+      "drawn": 4,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c09-messy",
+      "ok": true,
+      "source": "model",
+      "ms": 5400,
+      "bytes": 5161,
+      "controls": 4,
+      "drawn": 4,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c10-drawmode",
+      "ok": true,
+      "source": "model",
+      "ms": 5224,
+      "bytes": 3672,
+      "controls": 2,
+      "drawn": 2,
+      "error": null,
+      "warnings": null
+    }
+  ]
+}

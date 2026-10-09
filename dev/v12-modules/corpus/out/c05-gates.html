@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Space Party Controller</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent;user-select:none;-webkit-user-select:none}
+body{font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif}
+.control{position:absolute;left:clamp(calc(var(--w)/2 + 6px),var(--cx),calc(100vw - var(--w)/2 - 6px));top:clamp(calc(var(--h)/2 + 6px),var(--cy),calc(100vh - var(--h)/2 - 10px));width:var(--w);height:var(--h);margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);opacity:.93;animation:arrive .42s both;animation-delay:var(--delay,0ms);touch-action:none}
+.btn{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;border:3px solid white;border-radius:9px;transform:skewX(-9deg);background:linear-gradient(180deg,#86dcff 0%,#2f8bff 49%,#1647c8 100%);box-shadow:inset 0 3px 0 #ffffff88,inset 0 -3px 0 #0002,0 5px 0 #0b1033;transition:transform .2s cubic-bezier(.2,1.6,.4,1),scale .2s cubic-bezier(.2,1.6,.4,1),box-shadow .15s,filter .15s}
+.gold{background:linear-gradient(180deg,#ffe36e 0%,#ffb21f 49%,#d26a06 100%)}
+.purple{background:linear-gradient(180deg,#d49bff 0%,#9d4dff 49%,#5a1bc4 100%)}
+.face{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transform:skewX(9deg)}
+.label{font-size:clamp(14px,3vw,24px);font-weight:900;letter-spacing:.04em;line-height:1;color:#fff;text-shadow:-1px -1px 0 #0b1033,1px -1px 0 #0b1033,-1px 1px 0 #0b1033,1px 1px 0 #0b1033,0 3px 2px #0b1033}
+.icon{width:clamp(22px,5vh,35px);height:clamp(22px,5vh,35px);fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 #0b1033)}
+.round{border-radius:50%;transform:none}
+.round .face{transform:none}
+.btn.is-down{transform:skewX(-9deg) translateY(4px);scale:.95;box-shadow:inset 0 2px 0 #ffffff88,0 1px 0 #0b1033;filter:brightness(1.18)}
+.btn.round.is-down{transform:translateY(4px)}
+.control.is-on{background:linear-gradient(180deg,#ffe36e,#ffb21f 49%,#d26a06)}
+.control.is-disabled{opacity:.35;filter:grayscale(.7)}
+.stick{border-radius:50%;border:4px solid #fff;background:radial-gradient(circle,#23396270 0%,#0b1033a8 78%);box-shadow:inset 0 3px 0 #ffffff44,0 5px 0 #0b1033}
+.chevrons{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:white;stroke-width:4;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 2px 0 #0b1033)}
+.knob{position:absolute;width:40%;height:40%;left:30%;top:30%;border:3px solid white;border-radius:50%;background:linear-gradient(155deg,#a5e7ff 0%,#2f8bff 48%,#1647c8 100%);box-shadow:inset 0 3px 0 #ffffff77,0 5px 0 #0b1033;transition:filter .15s}
+.stick.is-down .knob{filter:brightness(1.2)}
+@keyframes arrive{0%{scale:.35;opacity:0}72%{scale:1.07;opacity:.93}100%{scale:1;opacity:.93}}
+@media(prefers-reduced-motion:reduce){.control{animation:none}}
+</style>
+</head>
+<body>
+<div class="control stick" data-stick="steer" aria-label="Steer" style="--cx:17.5vw;--cy:64vh;--w:max(110px,min(27vw,60vh));--h:max(110px,min(27vw,60vh))">
+<svg class="chevrons" viewBox="0 0 200 200" aria-hidden="true"><path d="M90 30 100 15 110 30 M170 90 185 100 170 110 M90 170 100 185 110 170 M30 90 15 100 30 110"/></svg>
+<div class="knob" data-knob></div>
+</div>
+<div class="control btn gold" data-action="drill" data-label="DRILL" style="--cx:51vw;--cy:27vh;--w:max(56px,18vw);--h:max(56px,30vh);--delay:50ms">
+<div class="face">
+<svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M12 5h16l-8 31z M13 11h14 M15 18h10 M17 25h6"/></svg>
+<span class="label">DRILL</span>
+</div>
+</div>
+<div class="control btn" data-action="land" data-label="LAND" style="--cx:74vw;--cy:27vh;--w:max(56px,16vw);--h:max(56px,30vh);--delay:100ms">
+<div class="face">
+<svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M13 5v14l-5 10h8 M27 5v14l5 10h-8 M5 35h30 M20 8v14 M16 18l4 4 4-4"/></svg>
+<span class="label">LAND</span>
+</div>
+</div>
+<div class="control btn purple round" data-action="scan" data-label="SCAN" style="--cx:51vw;--cy:76vh;--w:max(56px,min(16vw,32vh));--h:max(56px,min(16vw,32vh));--delay:150ms">
+<div class="face">
+<svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 20 31 9 M20 5a15 15 0 1 0 15 15 M20 12a8 8 0 1 0 8 8"/><circle cx="20" cy="20" r="2"/></svg>
+<span class="label">SCAN</span>
+</div>
+</div>
+<div class="control btn gold" data-action="shoot" data-label="FIRE" style="--cx:83vw;--cy:73vh;--w:max(56px,22vw);--h:max(56px,36vh);--delay:200ms">
+<div class="face">
+<svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="12"/><path d="M20 3v9 M20 28v9 M3 20h9 M28 20h9"/><circle cx="20" cy="20" r="2"/></svg>
+<span class="label">FIRE</span>
+</div>
+</div>
+</body>
+</html>

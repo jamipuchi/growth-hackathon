@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Controller</title><style>
+:root{--k:#2f8bff;--k2:#1a4c8c;--ol:#0b1033}
+html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Bebas Neue","Barlow Condensed","Arial Narrow",Impact,system-ui,sans-serif;color:#fff}
+.ctl{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transform-origin:0 0;transform:translate(-50%,-50%);animation:kpop .46s cubic-bezier(.26,1.5,.48,1) both;animation-delay:var(--d,0s);transition:transform .14s cubic-bezier(.34,1.56,.64,1),box-shadow .1s,filter .1s}
+.btn{transform:skewX(-9deg) translate(-50%,-50%);border-radius:12px;border:3px solid rgba(255,255,255,.94);opacity:.92;background:linear-gradient(180deg,var(--t1) 0%,var(--t2) 50%,var(--t3) 100%);box-shadow:0 5px 0 #0b1033,0 9px 16px rgba(0,0,0,.35),inset 0 3px 0 rgba(255,255,255,.38),inset 0 -4px 0 rgba(0,0,0,.18)}
+.btn.is-down{transform:skewX(-9deg) translateY(4px) scale(.95) translate(-50%,-50%);filter:brightness(1.2) saturate(1.1);box-shadow:0 1px 0 #0b1033,0 3px 8px rgba(0,0,0,.3),inset 0 3px 0 rgba(255,255,255,.28),inset 0 -2px 0 rgba(0,0,0,.18)}
+.ico{width:min(34px,46%);max-height:46%;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;overflow:visible;filter:drop-shadow(0 2px 0 #0b1033)}
+.ico .f{fill:#fff}.ico .d{stroke-dasharray:2 2.4;opacity:.8}
+.only .ico{width:min(46px,62%);max-height:66%}
+.lab{font-size:var(--fs,16px);font-weight:900;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;line-height:.95;color:#fff;text-shadow:0 2px 0 #0b1033,1.5px 0 0 #0b1033,-1.5px 0 0 #0b1033,0 -1.5px 0 #0b1033,0 4px 7px rgba(0,0,0,.45)}
+.tog{flex-direction:row;gap:9px;border-radius:999px}
+.led{width:13px;height:13px;border-radius:50%;border:3px solid #fff;box-sizing:border-box;flex:none;background:rgba(11,16,51,.6)}
+.tog.is-on{--t1:#ffe36e;--t2:#ffb21f;--t3:#d26a06}
+.tog.is-on .led{background:#fff;box-shadow:0 0 10px #fff}
+.stick{border-radius:50%;border:4px solid rgba(255,255,255,.8);background:radial-gradient(circle,rgba(47,139,255,.3) 0,rgba(11,16,51,.42) 64%,rgba(11,16,51,.3) 100%);box-shadow:0 5px 0 rgba(11,16,51,.55),inset 0 0 0 9px rgba(255,255,255,.07)}
+.chev{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:rgba(255,255,255,.88);stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round;overflow:visible;filter:drop-shadow(0 2px 0 rgba(11,16,51,.65))}
+.knob{position:absolute;left:30%;top:30%;width:40%;height:40%;box-sizing:border-box;border-radius:50%;border:3px solid #fff;display:grid;place-items:center;background:radial-gradient(circle at 38% 30%,#d4f1ff 0,var(--k) 42%,var(--k2) 100%);box-shadow:0 5px 0 #0b1033,0 8px 14px rgba(0,0,0,.35),inset 0 3px 0 rgba(255,255,255,.42);transition:transform .14s cubic-bezier(.34,1.56,.64,1),filter .1s}
+.knob .lab{--fs:13px}
+.stick.is-down{border-color:#fff}
+.stick.is-down .knob{transform:scale(1.1);filter:brightness(1.15)}
+@keyframes kpop{0%{opacity:0;scale:.35}62%{opacity:1;scale:1.08}100%{opacity:1;scale:1}}
+#k0{--d:0.000s;width:max(110px,min(28vw,62vh));height:max(110px,min(28vw,62vh));left:clamp(max(55px,min(14vw,31vh)),18vw,calc(100vw - max(55px,min(14vw,31vh))));top:clamp(max(55px,min(14vw,31vh)),61vh,calc(100vh - max(55px,min(14vw,31vh))))}
+#k1{--d:0.055s;--t1:#ffe36e;--t2:#ffb21f;--t3:#d26a06;--fs:clamp(12px,6.29vw,24px);width:max(56px,22vw);height:max(56px,42vh);left:clamp(max(28px,11vw),83vw,calc(100vw - max(28px,11vw)));top:clamp(max(28px,21vh),71vh,calc(100vh - max(28px,21vh)))}
+#k2{--d:0.110s;--t1:#d49bff;--t2:#9d4dff;--t3:#5a1bc4;--fs:clamp(12px,4.76vw,24px);width:max(56px,20vw);height:max(56px,26vh);left:clamp(max(28px,10vw),55vw,calc(100vw - max(28px,10vw)));top:clamp(max(28px,13vh),75vh,calc(100vh - max(28px,13vh)))}
+#k3{--d:0.165s;--t1:#86dcff;--t2:#2f8bff;--t3:#1647c8;--fs:clamp(12px,6vw,24px);width:max(56px,18vw);height:max(56px,26vh);left:clamp(max(28px,9vw),85vw,calc(100vw - max(28px,9vw)));top:clamp(max(28px,13vh),20vh,calc(100vh - max(28px,13vh)))}
+</style></head><body>
+<div class="ctl stick" id="k0" data-stick="steer" data-label="STEER"><svg class="chev" viewBox="0 0 100 100" aria-hidden="true"><path d="M43 13l7-6 7 6M43 87l7 6 7-6M13 43l-6 7 6 7M87 43l6 7-6 7"/></svg><div class="knob" data-knob></div></div>
+<div class="ctl btn" id="k1" data-action="shoot" data-label="SHOOT"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v4.2M12 17.3v4.2M2.5 12h4.2M17.3 12h4.2"/><circle cx="12" cy="12" r="1.3" class="f"/></svg><span class="lab">SHOOT</span></div>
+<div class="ctl btn" id="k2" data-action="shield" data-label="SHIELD"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l7.2 3v5.6c0 4.4-3 8-7.2 9.8-4.2-1.8-7.2-5.4-7.2-9.8V5.8z"/><path d="M12 7v10" class="d"/></svg><span class="lab">SHIELD</span></div>
+<div class="ctl btn" id="k3" data-action="land" data-label="LAND"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8v8.4M8.4 7.8L12 11.4l3.6-3.6"/><path d="M5 15.6h14M7.6 15.6l-2.2 4.6M16.4 15.6l2.2 4.6M3.4 20.2h4M16.6 20.2h4"/></svg><span class="lab">LAND</span></div>
+</body></html>

@@ -1,0 +1,47 @@
+PASS  emp/dom: the demo has 4 buttons and 1 stick  ["steer","shoot","boost","shield","land"]
+PASS  emp/dom: the overlay exists in the same task as the call (visible within one frame)  1
+PASS  emp/dom: until is about now + 1500 ms  1498
+PASS  emp/dom: after 400 ms every button's centre moved more than 20 px  [{"key":"shoot","movedPx":105,"landedOn":"boost"},{"key":"boost","movedPx":115,"landedOn":"shield"},{"key":"shield","movedPx":92,"landedOn":"land"},{"key":"land","movedPx":109,"landedOn":"shoot"}]
+PASS  emp/dom: every button sits on another button's old centre (within 3 px)  [{"key":"shoot","movedPx":105,"landedOn":"boost"},{"key":"boost","movedPx":115,"landedOn":"shield"},{"key":"shield","movedPx":92,"landedOn":"land"},{"key":"land","movedPx":109,"landedOn":"shoot"}]
+PASS  emp/dom: the destinations are all different (a real permutation)  ["boost","shield","land","shoot"]
+PASS  emp/dom: permutation maps each place to the control now there  {"boost":"shoot","shield":"boost","land":"shield","shoot":"land"}
+PASS  emp/dom: a lone stick mirrors to the other side (the kit's rule)  {"home":{"key":"steer","kind":"stick","x":98,"y":292},"mid":{"key":"steer","kind":"stick","x":746,"y":292}}
+PASS  emp/dom: a real tap at FIRE's old centre presses the control that moved there  {"expected":"land","presses":["land"]}
+PASS  emp/dom: 1.5 s + 400 ms later every control is back (within 2 px)  0
+PASS  emp/dom: the overlay is gone
+PASS  emp/dom: a real tap at FIRE's centre logs shoot again  ["shoot"]
+PASS  emp/dom: onSwap(permutation) at the start, onSwap(null) at the restore  ["perm:{\"boost\":\"shoot\",\"shield\":\"boost\",\"land\":\"shield\",\"shoot\":\"land\"}","null"]
+PASS  emp/dom: no inline translate or transition is left on the controls  0
+PASS  emp/dom: a second emp() restarts (one overlay, same promise, total about 0.4 + 1.5 s)  {"overlays":1,"same":true,"totalMs":2194,"left":0}
+PASS  emp/dom: cancel() removes the overlay at once  0
+PASS  ink: coverage() is above 0.35 right after the bomb  0.5813802083333334
+PASS  ink: one root with 72 blocker cells  {"seed":3,"cov":0.5813802083333334,"cells":72,"roots":1,"fireInked":true}
+PASS  ink: a real tap on the inked cell over FIRE does not press FIRE  []
+PASS  ink: the wipe lowers coverage by a measurable amount (more than 0.015)  {"before":0.58,"after":0.541}
+PASS  ink: the cell over FIRE now has pointer-events none and nothing blocks FIRE's centre  {"before":0.5804268875055842,"after":0.5410647247697651,"cellPointerEvents":"none","blockerAtFire":false,"region":{"l":703.328125,"t":260,"r":796,"b":350}}
+PASS  ink: a real tap on FIRE now logs shoot  ["shoot"]
+PASS  ink: cancel() removes the root at once
+PASS  ink: two fingers wipe two far-apart cells at once (both open)  {"closedBefore":52,"before":0.5813802083333334,"after":0.5540584362022654,"aOpen":true,"bOpen":true,"apart":774}
+PASS  ink: a bomb with seconds 1 removes its root within 1.6 s  {"ms":1399,"onClear":{"wiped":false,"ms":1000},"done":{"wiped":false,"ms":1000},"coverage":0.556640625}
+PASS  ink: onClear reports { wiped: false, ms } for a timeout  {"wiped":false,"ms":1000}
+PASS  tractor: adds its overlay (toast + tractor) and removes everything by duration + 0.6 s  {"ms":1914,"peak":2,"kinds":["toast","tractor"],"limitMs":2200}
+PASS  mine: adds its overlay (mine + toast) and removes everything by duration + 0.6 s  {"ms":1795,"peak":2,"kinds":["mine","toast"],"limitMs":2100}
+PASS  decoy: adds its overlay (decoy + toast) and removes everything by duration + 0.6 s  {"ms":2009,"peak":2,"kinds":["decoy","toast"],"limitMs":2300}
+PASS  decoyMine: adds its overlay (decoy + toast) and removes everything by duration + 0.6 s  {"ms":2013,"peak":2,"kinds":["decoy","toast"],"limitMs":2300}
+PASS  toast: adds its overlay (toast) and removes everything by duration + 0.6 s  {"ms":2470,"peak":1,"kinds":["toast"],"limitMs":2800}
+PASS  tractor: overlay on screen at its peak (screenshot taken)  2
+PASS  mine: overlay on screen at its peak (screenshot taken)  2
+PASS  decoy: overlay on screen at its peak (screenshot taken)  2
+PASS  decoy-mine: overlay on screen at its peak (screenshot taken)  2
+PASS  toast: overlay on screen at its peak (screenshot taken)  1
+PASS  toast: four quick toasts leave three, newest (D) on top, oldest (A) gone  [{"text":"TOAST B","top":198},{"text":"TOAST C","top":134},{"text":"TOAST D","top":70}]
+PASS  cancel(): every effect leaves nothing behind and its promise resolves  {"tractor":{"during":2,"after":0,"cancelled":true},"mine":{"during":2,"after":0,"cancelled":true},"decoy":{"during":2,"after":0,"cancelled":true},"toast":{"during":1,"after":0,"cancelled":true},"ink":{"during":2,"after":0,"cancelled":true},"emp":{"during":1,"after":0,"cancelled":true},"styleTags":1,"inlineLeft":0}
+PASS  bad input never throws and always returns { done, cancel }  ["ok","ok","ok","ok","ok","ok","ok","ok","ok"]
+PASS  no overlay left after the bad-input calls
+PASS  sandbox: the controller is mounted (window.__ready)
+PASS  sandbox: the EMP overlay appears at once over the controller frame  {"overlays":1,"handle":true}
+PASS  sandbox: the frame element gets the jitter animation  1
+PASS  sandbox: the promise from emp() resolves (about 1.2 s plus the fade)  1492
+PASS  sandbox: the overlay is gone afterwards
+PASS  sandbox: empPermutation() equals the kit's own scramble for the same seed  {"equal":true,"mine":{"move":"steer","steer":"move","drill":"shoot","land":"boost","boost":"shield","shield":"drill","view":"land","shoot":"view"},"kit":{"move":"steer","steer":"move","drill":"shoot","land":"boost","boost":"shield","shield":"drill","view":"land","shoot":"view"}}
+PASS  no uncaught page errors  []

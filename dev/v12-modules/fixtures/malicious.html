@@ -1,0 +1,61 @@
+<!doctype html>
+<!-- Hostile controller for test-sandbox.mjs: every escape it tries must be contained. Beacons go to the dev server
+     on 127.0.0.1:8210, which records any request that gets out. Only FIRE (shoot) and the steer stick are allowed. -->
+<html><head>
+<link rel="stylesheet" href="http://127.0.0.1:8210/beacon/link-css">
+<link rel="prefetch" href="http://127.0.0.1:8210/beacon/prefetch">
+<style>
+  @import url("http://127.0.0.1:8210/beacon/css-import");
+  body { background: url("http://127.0.0.1:8210/beacon/css-bg") !important; }
+  .b { position: absolute; border: 1.5px solid #5ee7ff; color: #5ee7ff; font: 700 12px system-ui; letter-spacing: .2em; display: grid; place-items: center; border-radius: 14px; }
+</style>
+</head><body>
+<img src="http://127.0.0.1:8210/beacon/img" alt="">
+<div class="b" id="fire" data-action="shoot" data-label="FIRE" style="left:72vw;top:55vh;width:150px;height:90px">FIRE</div>
+<div class="b" id="nuke" data-action="nuke" data-label="NUKE" style="left:40vw;top:62vh;width:100px;height:70px">NUKE</div>
+<div class="b" id="stick" data-stick="steer" style="left:4vw;top:40vh;width:200px;height:200px;border-radius:50%"><div data-knob style="position:absolute;left:35%;top:35%;width:30%;height:30%;border-radius:50%;border:2px solid #5ee7ff"></div></div>
+<iframe src="http://127.0.0.1:8210/beacon/iframe"></iframe>
+<form action="http://127.0.0.1:8210/beacon/form" method="post"><input name="a" value="b"></form>
+<script>
+  const B = "http://127.0.0.1:8210/beacon/";
+  const tryIt = (f) => { try { const r = f(); if (r && r.catch) r.catch(() => {}); } catch (e) {} };
+  tryIt(() => fetch(B + "fetch"));
+  tryIt(() => { const x = new XMLHttpRequest(); x.open("GET", B + "xhr"); x.send(); });
+  tryIt(() => new WebSocket("ws://127.0.0.1:8210/beacon/ws"));
+  tryIt(() => navigator.sendBeacon(B + "sendbeacon", "x"));
+  tryIt(() => { new Image().src = B + "image-js"; });
+  tryIt(() => new EventSource(B + "sse"));
+  tryIt(() => import(B + "import.js"));
+  tryIt(() => new Worker(URL.createObjectURL(new Blob(["fetch('" + B + "worker')"]))));
+  tryIt(() => { top.location = B + "top-nav"; });
+  tryIt(() => { parent.location.href = B + "parent-nav"; });
+  tryIt(() => window.open(B + "popup"));
+  tryIt(() => localStorage.setItem("x", "y"));
+  tryIt(() => { document.cookie = "a=b"; });
+  tryIt(() => { parent.document.body.innerHTML = "pwned"; });
+  tryIt(() => document.forms[0].submit());
+  tryIt(() => eval("1"));
+  tryIt(() => { Object.defineProperty(window, "game", { value: { press() {} } }); });
+  tryIt(() => game.press("nuke"));
+  // The strongest attacker reads the mount nonce out of the kit's script text and talks to the page directly.
+  const CH = (document.scripts[0].textContent.match(/"ch":"([^"]+)"/) || [])[1];
+  window.__ch = CH;
+  const P = (m) => parent.postMessage(m, "*");
+  P({ ch: CH, type: "press", action: "nuke" });
+  P({ ch: CH, type: "press", action: "steer" });
+  P({ ch: CH, type: "axis", axis: "move", x: 0.5, y: 0.5 });
+  P({ ch: CH, type: "axis", axis: "steer", x: 50, y: -1e9 });
+  P({ ch: CH, type: "axis", axis: "steer", x: NaN, y: 0 });
+  P({ ch: CH, type: "eval", code: "alert(1)" });
+  P("just a string");
+  P({ ch: "wrong", type: "press", action: "shoot" });
+  P({ ch: CH, type: "ready", controls: [{ action: "nuke", kind: "button", x: 0, y: 0, w: 1, h: 1 }] });
+  // Burst flood: 5000 press/release cycles and 5000 axis messages, then one last axis value that must still arrive.
+  setTimeout(() => {
+    for (let i = 0; i < 5000; i++) { P({ ch: CH, type: "press", action: "shoot" }); P({ ch: CH, type: "release", action: "shoot" }); }
+    for (let i = 0; i < 5000; i++) P({ ch: CH, type: "axis", axis: "steer", x: Math.sin(i), y: Math.cos(i) });
+    P({ ch: CH, type: "axis", axis: "steer", x: 0.25, y: -0.5 });
+    P({ ch: CH, type: "flooded" });
+  }, 600);
+</script>
+</body></html>

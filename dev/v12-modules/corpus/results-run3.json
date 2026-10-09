@@ -1,0 +1,123 @@
+{
+  "at": "2026-10-09T22:26:51.970Z",
+  "tag": "run3",
+  "n": 10,
+  "model": 10,
+  "template": 0,
+  "medianMs": 5380,
+  "maxMs": 9417,
+  "medianBytes": 5007,
+  "callsUsedTotal": 30,
+  "results": [
+    {
+      "name": "c01-basic",
+      "ok": true,
+      "source": "model",
+      "ms": 4345,
+      "bytes": 4239,
+      "controls": 3,
+      "drawn": 3,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c02-dpad",
+      "ok": true,
+      "source": "model",
+      "ms": 5413,
+      "bytes": 5207,
+      "controls": 4,
+      "drawn": 4,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c03-twosticks",
+      "ok": true,
+      "source": "model",
+      "ms": 4652,
+      "bytes": 4770,
+      "controls": 4,
+      "drawn": 4,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c04-arrows",
+      "ok": true,
+      "source": "model",
+      "ms": 4624,
+      "bytes": 4171,
+      "controls": 5,
+      "drawn": 5,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c05-gates",
+      "ok": true,
+      "source": "model",
+      "ms": 5864,
+      "bytes": 5037,
+      "controls": 5,
+      "drawn": 5,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c06-planet",
+      "ok": true,
+      "source": "model",
+      "ms": 6501,
+      "bytes": 4697,
+      "controls": 4,
+      "drawn": 4,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c07-many",
+      "ok": true,
+      "source": "model",
+      "ms": 5165,
+      "bytes": 5486,
+      "controls": 7,
+      "drawn": 7,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c08-toggle",
+      "ok": true,
+      "source": "model",
+      "ms": 5380,
+      "bytes": 5007,
+      "controls": 4,
+      "drawn": 4,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c09-messy",
+      "ok": true,
+      "source": "model",
+      "ms": 9417,
+      "bytes": 5991,
+      "controls": 4,
+      "drawn": 4,
+      "error": null,
+      "warnings": null
+    },
+    {
+      "name": "c10-drawmode",
+      "ok": true,
+      "source": "model",
+      "ms": 3671,
+      "bytes": 3330,
+      "controls": 2,
+      "drawn": 2,
+      "error": null,
+      "warnings": null
+    }
+  ]
+}

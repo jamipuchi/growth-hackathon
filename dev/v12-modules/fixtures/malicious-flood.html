@@ -1,0 +1,13 @@
+<!doctype html>
+<!-- Floods the page for 5 s: the page must drop it, report "flood" and swap in the fallback controller. -->
+<html><head><style>.b{position:absolute;border:1.5px solid #ff3b5c;color:#ff3b5c;font:700 12px system-ui;display:grid;place-items:center;border-radius:14px}</style></head><body>
+<div class="b" data-action="shoot" data-label="FIRE" style="left:72vw;top:55vh;width:150px;height:90px">FLOOD</div>
+<script>
+  const CH = (document.scripts[0].textContent.match(/"ch":"([^"]+)"/) || [])[1];
+  const t0 = Date.now();
+  const id = setInterval(() => {
+    for (let i = 0; i < 400; i++) { parent.postMessage({ ch: CH, type: "press", action: "shoot" }, "*"); parent.postMessage({ ch: CH, type: "release", action: "shoot" }, "*"); }
+    if (Date.now() - t0 > 5000) clearInterval(id);
+  }, 20);
+</script>
+</body></html>

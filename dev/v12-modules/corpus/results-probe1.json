@@ -1,0 +1,24 @@
+{
+  "at": "2026-10-09T22:09:34.512Z",
+  "tag": "probe1",
+  "n": 1,
+  "model": 1,
+  "template": 0,
+  "medianMs": 5448,
+  "maxMs": 5448,
+  "medianBytes": 4508,
+  "callsUsedTotal": 1,
+  "results": [
+    {
+      "name": "c01-basic",
+      "ok": true,
+      "source": "model",
+      "ms": 5448,
+      "bytes": 4508,
+      "controls": 3,
+      "drawn": 3,
+      "error": null,
+      "warnings": null
+    }
+  ]
+}

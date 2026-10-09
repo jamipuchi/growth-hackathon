@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Space Party Controller</title>
+<style>
+:root {
+  font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif;
+  color:white;
+}
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { margin:0; width:100%; height:100%; overflow:hidden; background:transparent; }
+body { user-select:none; -webkit-user-select:none; touch-action:none; }
+.control {
+  position:absolute;
+  margin:0;
+  opacity:.93;
+  animation:arrive .44s cubic-bezier(.2,.85,.3,1.2) backwards;
+  transition:scale .19s cubic-bezier(.2,.9,.3,1.5),filter .15s,box-shadow .15s,translate .15s;
+}
+.tile {
+  width:var(--w); height:var(--h);
+  left:clamp(calc(var(--w)/2 + 3vw),17vw,calc(100vw - var(--w)/2 - 3vw));
+  top:clamp(calc(var(--h)/2 + 2vh),var(--cy),calc(100vh - var(--h)/2 - 3vh));
+  transform:translate(-50%,-50%) skewX(-9deg);
+  border:3px solid white;
+  border-radius:9px;
+  background:linear-gradient(180deg,#86dcff 0%,#2f8bff 49%,#1647c8 100%);
+  box-shadow:inset 0 4px 0 #ffffff65,inset 0 -5px 0 #122b7560,0 5px 0 #0b1033;
+  display:flex; align-items:center; justify-content:center;
+}
+.content {
+  transform:skewX(9deg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px;
+}
+.label {
+  font-weight:900;
+  font-size:clamp(14px,3vw,24px);
+  letter-spacing:.04em;
+  line-height:1.05;
+  text-shadow:-1px -1px 0 #0b1033,1px -1px 0 #0b1033,-1px 1px 0 #0b1033,1px 1px 0 #0b1033,0 3px 2px #0b103399;
+}
+.icon {
+  width:clamp(22px,4vw,36px);
+  height:clamp(22px,6vh,30px);
+  fill:none; stroke:white; stroke-width:4; stroke-linecap:round; stroke-linejoin:round;
+  filter:drop-shadow(0 2px 0 #0b1033);
+}
+.go { --w:max(56px,18vw); --h:max(56px,30vh); --cy:27vh; animation-delay:0s; }
+.brake { --w:max(56px,22vw); --h:max(56px,30vh); --cy:73vh; animation-delay:.05s; }
+.blast {
+  --w:max(90px,20vw); --h:max(90px,40vh);
+  width:var(--w); height:var(--h);
+  left:clamp(calc(var(--w)/2 + 1vw),46vw,calc(100vw - var(--w)/2 - 1vw));
+  top:clamp(calc(var(--h)/2 + 1vh),52vh,calc(100vh - var(--h)/2 - 3vh));
+  transform:translate(-50%,-50%);
+  display:flex; align-items:center; justify-content:center;
+  animation-delay:.1s;
+  filter:drop-shadow(0 5px 0 #0b1033);
+}
+.star { position:absolute; width:100%; height:100%; overflow:visible; }
+.blast .label { position:relative; font-size:clamp(14px,2.8vw,23px); margin-top:2%; }
+.stick {
+  --d:max(110px,min(27vw,60vh));
+  width:var(--d); height:var(--d);
+  left:clamp(calc(var(--d)/2 + 1vw),81.5vw,calc(100vw - var(--d)/2 - 1vw));
+  top:clamp(calc(var(--d)/2 + 1vh),60vh,calc(100vh - var(--d)/2 - 3vh));
+  transform:translate(-50%,-50%);
+  border:4px solid white;
+  border-radius:50%;
+  background:radial-gradient(circle at 45% 25%,#395b8473,#0b1033a8 75%);
+  box-shadow:inset 0 3px 0 #ffffff40,0 5px 0 #0b1033;
+  animation-delay:.15s;
+}
+.stick::before {
+  content:""; position:absolute; inset:5%;
+  background:center/100% 100% no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%230b1033' stroke-width='5' stroke-linecap='round' stroke-linejoin='round' transform='translate(0 2)'%3E%3Cpath d='M44 14L50 6L56 14M44 86L50 94L56 86M14 44L6 50L14 56M86 44L94 50L86 56'/%3E%3C/g%3E%3Cpath d='M44 14L50 6L56 14M44 86L50 94L56 86M14 44L6 50L14 56M86 44L94 50L86 56' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.knob {
+  position:absolute; width:41%; height:41%; left:29.5%; top:29.5%;
+  border:3px solid white; border-radius:50%;
+  background:linear-gradient(160deg,#86dcff 0%,#2f8bff 50%,#1647c8 100%);
+  box-shadow:inset 0 4px 0 #ffffff60,0 5px 0 #0b1033;
+}
+.tile.is-down { translate:0 4px; scale:.95; filter:brightness(1.18); box-shadow:inset 0 3px 0 #ffffff65,0 1px 0 #0b1033; }
+.blast.is-down { translate:0 4px; scale:.95; filter:brightness(1.18) drop-shadow(0 1px 0 #0b1033); }
+.stick.is-down .knob { background:linear-gradient(160deg,#c0efff,#2f8bff 58%,#1647c8); box-shadow:inset 0 3px 0 #ffffff80,0 2px 0 #0b1033; }
+.control.is-on { background:linear-gradient(#ffe36e,#ffb21f 50%,#d26a06); }
+.blast.is-on .star path { fill:url(#gold); }
+.stick.is-on .knob { background:linear-gradient(#ffe36e,#ffb21f 50%,#d26a06); }
+.control.is-disabled { opacity:.35; filter:grayscale(.7); }
+@keyframes arrive {
+  0% { opacity:0; scale:.35; }
+  75% { opacity:.93; scale:1.07; }
+  100% { opacity:.93; scale:1; }
+}
+</style>
+</head>
+<body>
+<div class="control tile go" data-action="forward" data-label="GO">
+  <div class="content">
+    <svg class="icon" viewBox="0 0 40 32" aria-hidden="true"><path d="M9 18L20 7L31 18M20 8V28"/></svg>
+    <span class="label">GO</span>
+  </div>
+</div>
+<div class="control tile brake" data-action="back" data-label="BRAKE">
+  <div class="content">
+    <svg class="icon" viewBox="0 0 40 32" aria-hidden="true"><path d="M20 4V23M9 15L20 26L31 15M8 30H32"/></svg>
+    <span class="label">BRAKE</span>
+  </div>
+</div>
+<div class="control blast" data-action="blast" data-label="BOOM">
+  <svg class="star" viewBox="0 0 160 160" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffe36e"/><stop offset=".5" stop-color="#ffb21f"/><stop offset="1" stop-color="#d26a06"/></linearGradient></defs>
+    <path d="M80 5L101 53L154 56L114 92L126 150L80 122L32 150L43 93L6 57L60 52Z" fill="url(#gold)" stroke="white" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M16 60L63 56L80 17L98 57L144 60" fill="none" stroke="#ffffff80" stroke-width="3" stroke-linejoin="round"/>
+  </svg>
+  <span class="label">BOOM</span>
+</div>
+<div class="control stick" data-stick="move" aria-label="Move">
+  <div class="knob" data-knob></div>
+</div>
+</body>
+</html>

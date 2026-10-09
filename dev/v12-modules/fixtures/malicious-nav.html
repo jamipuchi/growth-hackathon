@@ -1,0 +1,7 @@
+<!doctype html>
+<!-- Navigates itself away after 400 ms (the one thing the frame's own CSP cannot stop): the page must notice the
+     second load and swap in the fallback; with frame-src 'none' on the page the request never leaves. -->
+<html><head><style>.b{position:absolute;border:1.5px solid #ff3b5c;color:#ff3b5c;font:700 12px system-ui;display:grid;place-items:center;border-radius:14px}</style></head><body>
+<div class="b" data-action="shoot" data-label="FIRE" style="left:72vw;top:55vh;width:150px;height:90px">NAV</div>
+<script>setTimeout(() => { location.href = "http://127.0.0.1:8210/beacon-page/self-nav"; }, 400);</script>
+</body></html>

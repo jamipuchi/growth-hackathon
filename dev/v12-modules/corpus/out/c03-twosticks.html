@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Space Party Controller</title>
+<style>
+:root{font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif;color:white;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;margin:0;background:transparent;overflow:hidden;user-select:none;-webkit-user-select:none}
+.control{position:absolute;opacity:.93;animation:arrive .48s cubic-bezier(.2,.8,.3,1.2) both;transition:scale .2s cubic-bezier(.2,1.6,.4,1),filter .15s,box-shadow .15s;touch-action:none}
+.stick{--size:max(110px,min(26vw,58vh));width:var(--size);height:var(--size);margin-left:calc(var(--size)/-2);margin-top:calc(var(--size)/-2);border:4px solid #fff;border-radius:50%;background:radial-gradient(circle at 40% 25%,#3462a64d,#101a3b99 65%);box-shadow:0 5px 0 #0b1033,inset 0 3px 0 #ffffff44}
+.left{left:clamp(calc(var(--size)/2 + 7px),17vw,calc(100vw - var(--size)/2 - 7px));top:clamp(calc(var(--size)/2 + 7px),65vh,calc(100vh - var(--size)/2 - 9px))}
+.right{left:clamp(calc(var(--size)/2 + 7px),83vw,calc(100vw - var(--size)/2 - 7px));top:clamp(calc(var(--size)/2 + 7px),65vh,calc(100vh - var(--size)/2 - 9px));animation-delay:.05s}
+.arrows{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:white;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 #0b1033);pointer-events:none}
+.knob{position:absolute;width:40%;height:40%;left:30%;top:30%;border:3px solid white;border-radius:50%;background:linear-gradient(160deg,#b8edff 0%,#2f8bff 48%,#1647c8 100%);box-shadow:0 5px 0 #0b1033,inset 0 3px 0 #ffffff66;transition:filter .15s}
+.btn{--w:max(56px,15vw);--h:max(56px,32vh);width:var(--w);height:var(--h);left:clamp(calc(var(--w)/2 + 8px),49.5vw,calc(100vw - var(--w)/2 - 8px));top:clamp(calc(var(--h)/2 + 8px),28vh,calc(100vh - var(--h)/2 - 10px));margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);border:3px solid #fff;box-shadow:0 5px 0 #0b1033,inset 0 3px 0 #ffffff80;display:flex;align-items:center;justify-content:center;gap:5px;animation-delay:.1s}
+.shoot{--w:max(56px,min(15vw,32vh));--h:var(--w);border-radius:50%;background:linear-gradient(#ffe36e,#ffb21f 55%,#d26a06);flex-direction:column}
+.boost{--w:max(56px,21vw);--h:max(56px,24vh);top:clamp(calc(var(--h)/2 + 8px),74vh,calc(100vh - var(--h)/2 - 10px));background:linear-gradient(#86dcff,#2f8bff 55%,#1647c8);border-radius:9px;transform:skewX(-9deg);animation-delay:.15s}
+.content{display:flex;align-items:center;justify-content:center;gap:8px;transform:skewX(9deg)}
+.label{font-size:clamp(14px,3vw,24px);font-weight:900;letter-spacing:.04em;line-height:1;text-shadow:2px 0 #0b1033,-2px 0 #0b1033,0 2px #0b1033,0 -2px #0b1033,0 3px 2px #0b1033}
+.icon{width:clamp(20px,4vw,34px);height:clamp(20px,4vw,34px);fill:none;stroke:white;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 #0b1033)}
+.btn.is-down{transform:translateY(4px);scale:.95;box-shadow:0 1px 0 #0b1033,inset 0 3px 0 #ffffff80;filter:brightness(1.2)}
+.boost.is-down{transform:skewX(-9deg) translateY(4px)}
+.stick.is-down .knob{filter:brightness(1.25)}
+.control.is-on{background:linear-gradient(#ffe36e,#ffb21f 55%,#d26a06)}
+.control.is-disabled{opacity:.35;filter:grayscale(.8)}
+@keyframes arrive{0%{opacity:0;scale:.35}75%{opacity:.93;scale:1.07}100%{opacity:.93;scale:1}}
+@media(prefers-reduced-motion:reduce){.control{animation:none}}
+</style>
+</head>
+<body>
+<div class="control stick left" data-stick="steer" aria-label="Steer">
+<svg class="arrows" viewBox="0 0 200 200" aria-hidden="true"><path d="M91 34 100 20 109 34M91 166 100 180 109 166M34 91 20 100 34 109M166 91 180 100 166 109"/></svg>
+<div class="knob" data-knob></div>
+</div>
+<div class="control stick right" data-stick="move" aria-label="Move">
+<svg class="arrows" viewBox="0 0 200 200" aria-hidden="true"><path d="M91 34 100 20 109 34M91 166 100 180 109 166M34 91 20 100 34 109M166 91 180 100 166 109"/></svg>
+<div class="knob" data-knob></div>
+</div>
+<div class="control btn shoot" data-action="shoot" data-label="PEW">
+<svg class="icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="9"/><path d="M16 2v7m0 14v7M2 16h7m14 0h7"/><circle cx="16" cy="16" r="2" fill="white" stroke="none"/></svg>
+<span class="label">PEW</span>
+</div>
+<div class="control btn boost" data-action="boost" data-label="TURBO">
+<div class="content">
+<svg class="icon" viewBox="0 0 32 32" aria-hidden="true"><path d="m5 7 9 9-9 9M17 7l9 9-9 9"/></svg>
+<span class="label">TURBO</span>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Space Party Controller</title>
+<style>
+:root{color-scheme:dark;font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;user-select:none;-webkit-user-select:none}
+.control{position:absolute;touch-action:none;animation:arrive .48s cubic-bezier(.22,.9,.32,1.2) both;transition:scale .2s cubic-bezier(.18,1.6,.4,1),filter .15s,box-shadow .15s;opacity:.92}
+.stick{--size:max(110px,min(30vw,64vh));width:var(--size);height:var(--size);left:clamp(calc(var(--size)/2 + 5px),21vw,calc(100vw - var(--size)/2 - 5px));top:clamp(calc(var(--size)/2 + 5px),60vh,calc(100vh - var(--size)/2 - 10px));margin-left:calc(var(--size)/-2);margin-top:calc(var(--size)/-2);border:4px solid white;border-radius:50%;background:radial-gradient(circle at 42% 25%,#33498499,#111c3caf 70%);box-shadow:0 5px 0 #0b1033,inset 0 3px 0 #ffffff35}
+.arrows{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 2px 0 #0b1033);pointer-events:none}
+.knob{position:absolute;width:40%;height:40%;left:30%;top:30%;border:3px solid #fff;border-radius:50%;background:linear-gradient(165deg,#86dcff 0%,#2f8bff 48%,#1647c8 100%);box-shadow:0 5px 0 #0b1033,inset 0 3px 0 #ffffff7a;transition:filter .15s}
+.button{--size:max(56px,min(22vw,46vh));width:var(--size);height:var(--size);left:clamp(calc(var(--size)/2 + 5px),81vw,calc(100vw - var(--size)/2 - 5px));top:clamp(calc(var(--size)/2 + 5px),63vh,calc(100vh - var(--size)/2 - 10px));margin-left:calc(var(--size)/-2);margin-top:calc(var(--size)/-2);border:3px solid #fff;border-radius:50%;background:linear-gradient(165deg,#ffe36e 0%,#ffb21f 52%,#d26a06 100%);box-shadow:0 5px 0 #0b1033,inset 0 4px 0 #ffffff80;display:flex;align-items:center;justify-content:center;animation-delay:50ms}
+.label{font-size:24px;font-weight:900;letter-spacing:.04em;color:#fff;text-shadow:-2px 0 #0b1033,2px 0 #0b1033,0 -2px #0b1033,0 2px #0b1033,0 4px 2px #0b103380}
+.button.is-down{transform:translateY(4px);scale:.95;filter:brightness(1.18);box-shadow:0 1px 0 #0b1033,inset 0 2px 0 #ffffff80}
+.stick.is-down{box-shadow:0 3px 0 #0b1033,inset 0 3px 0 #ffffff60}
+.stick.is-down .knob{filter:brightness(1.2)}
+.control.is-on{background:linear-gradient(165deg,#ffe36e,#ffb21f 52%,#d26a06)}
+.control.is-disabled{opacity:.38;filter:grayscale(.7)}
+@keyframes arrive{0%{opacity:0;scale:.35}75%{opacity:.92;scale:1.07}100%{opacity:.92;scale:1}}
+@media(prefers-reduced-motion:reduce){.control{animation:none}}
+</style>
+</head>
+<body>
+<div class="control stick" data-stick="steer" aria-label="Steer">
+<svg class="arrows" viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="white" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M44 18 50 10 56 18M82 44 90 50 82 56M44 82 50 90 56 82M18 44 10 50 18 56"/></g></svg>
+<div class="knob" data-knob></div>
+</div>
+<div class="control button" data-action="shoot" data-label="X" aria-label="X"><span class="label">X</span></div>
+</body>
+</html>

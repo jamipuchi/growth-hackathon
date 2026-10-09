@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05060f">
+<title>Space Party SFX lab</title>
+<style>
+:root { --cyan: #5ee7ff; --navy: #05060f; --dim: rgba(94,231,255,.55); --faint: rgba(94,231,255,.2); --glow: 0 0 10px rgba(94,231,255,.28); --warn: #ff9d8a; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: radial-gradient(120% 90% at 50% 0%, #0b1230 0%, var(--navy) 62%) var(--navy);
+  color: #bff4ff; overflow: hidden;
+  font: 600 10px/1.25 -apple-system, "SF Pro Text", system-ui, sans-serif; letter-spacing: .22em; text-transform: uppercase;
+}
+.app {
+  display: grid; grid-template-columns: 236px 1fr; grid-template-rows: auto 1fr; gap: 8px; height: 100%;
+  padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+}
+header { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--faint); padding-bottom: 6px; }
+h1 { margin: 0; font-size: 12px; letter-spacing: .32em; color: var(--cyan); text-shadow: 0 0 8px rgba(94,231,255,.5); white-space: nowrap; }
+h1 span { color: #8fdcf0; font-weight: 500; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.chip { border: 1px solid var(--faint); padding: 4px 8px; color: #6fa8b8; white-space: nowrap; }
+.chip.ok { border-color: var(--dim); color: var(--cyan); box-shadow: var(--glow); }
+.panel { border: 1px solid var(--dim); box-shadow: var(--glow), inset 0 0 14px rgba(94,231,255,.05); padding: 10px; display: flex; flex-direction: column; gap: 6px; min-height: 0; overflow: auto; }
+.panel label { display: block; color: #8fdcf0; }
+.panel label b { float: right; color: var(--cyan); font-weight: 600; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.readout { border-top: 1px solid var(--faint); padding-top: 6px; color: #8fdcf0; letter-spacing: .14em; line-height: 1.5; min-height: 30px; }
+.readout.good { color: var(--cyan); }
+.readout.bad { color: var(--warn); }
+main { min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 2px; }
+h2 { margin: 2px 0 6px; font-size: 9px; font-weight: 600; letter-spacing: .3em; color: #6fa8b8; }
+section + section { margin-top: 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+.btn {
+  min-height: 56px; padding: 8px 6px; background: rgba(94,231,255,.025); color: var(--cyan); text-align: center; text-transform: uppercase;
+  border: 1px solid var(--dim); border-radius: 2px; box-shadow: var(--glow); font: inherit; letter-spacing: .2em; touch-action: manipulation; cursor: pointer;
+  transition: background .12s, box-shadow .12s, border-color .12s;
+}
+.btn:active, .btn.hit, .btn.on { background: rgba(94,231,255,.2); border-color: var(--cyan); box-shadow: 0 0 18px rgba(94,231,255,.55), inset 0 0 12px rgba(94,231,255,.25); }
+.btn.hold { touch-action: none; border-style: dashed; }
+.btn.wide { grid-column: span 1; }
+.btn small { display: block; margin-top: 3px; font-size: 8px; opacity: .6; letter-spacing: .18em; }
+.btn.muted { color: var(--warn); border-color: var(--warn); box-shadow: 0 0 10px rgba(255,157,138,.25); }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; margin: 0; background: transparent; touch-action: pan-y; }
+input[type=range]::-webkit-slider-runnable-track { height: 1px; background: var(--dim); box-shadow: var(--glow); }
+input[type=range]::-moz-range-track { height: 1px; background: var(--dim); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -11px; border-radius: 50%; border: 1px solid var(--cyan); background: var(--navy); box-shadow: 0 0 10px rgba(94,231,255,.6); }
+input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--cyan); background: var(--navy); box-shadow: 0 0 10px rgba(94,231,255,.6); }
+#unlock {
+  position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; text-align: center; cursor: pointer;
+  background: radial-gradient(80% 80% at 50% 50%, rgba(11,18,48,.94), rgba(5,6,15,.97)); transition: opacity .25s;
+}
+#unlock.gone { opacity: 0; pointer-events: none; }
+#unlock .ring { width: 104px; height: 104px; margin: 0 auto 16px; border: 1px solid var(--cyan); border-radius: 50%; box-shadow: 0 0 24px rgba(94,231,255,.5), inset 0 0 24px rgba(94,231,255,.2); animation: pulse 1.6s ease-in-out infinite; position: relative; }
+#unlock .ring::after { content: ""; position: absolute; inset: 38px; border-radius: 50%; border: 1px solid var(--dim); }
+#unlock p { margin: 0; font-size: 14px; letter-spacing: .34em; color: var(--cyan); text-shadow: 0 0 10px rgba(94,231,255,.6); }
+#unlock small { display: block; margin-top: 10px; font-size: 9px; letter-spacing: .22em; color: #6fa8b8; }
+@keyframes pulse { 50% { transform: scale(1.08); opacity: .65; } }
+@media (max-width: 700px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; }
+  .panel { overflow: visible; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>SPACE PARTY <span>/ SFX LAB</span></h1>
+    <div class="chips"><span id="chipAudio" class="chip">AUDIO LOCKED</span><span id="chipRender" class="chip">RENDERING</span></div>
+  </header>
+
+  <aside class="panel">
+    <label for="vol">VOLUME <b id="volOut">0.80</b></label>
+    <input id="vol" type="range" min="0" max="1" step="0.01" value="0.8">
+    <label for="pan">PAN <b id="panOut">0.00</b></label>
+    <input id="pan" type="range" min="-1" max="1" step="0.01" value="0">
+    <div class="row"><button id="mute" class="btn" type="button">MUTE</button><button id="bench" class="btn" type="button">BENCH</button></div>
+    <div id="benchOut" class="readout">BENCH PLAYS 500 SOUNDS AND TIMES EVERY play() CALL</div>
+    <div id="last" class="readout">LAST: -</div>
+  </aside>
+
+  <main>
+    <section><h2>ONE SHOTS</h2><div id="shots" class="grid"></div></section>
+    <section><h2>HOLD TO LOOP</h2><div id="loops" class="grid"></div></section>
+  </main>
+</div>
+
+<div id="unlock" role="button" aria-label="Tap to enable sound">
+  <div><div class="ring"></div><p id="unlockText">TAP TO ENABLE SOUND</p><small>SYNTHESIZED IN YOUR BROWSER, NO AUDIO FILES</small></div>
+</div>
+
+<script type="module">
+import { createSfx, SOUNDS, LOOPS } from "../../sfx.js";
+
+const $ = (id) => document.getElementById(id);
+const sfx = createSfx({ volume: 0.8 });
+window.__sfx = sfx;
+window.__sounds = SOUNDS.slice();
+window.__loops = LOOPS.slice();
+
+let pan = 0;
+const last = $("last");
+const held = new Map();
+
+function mk(tag, cls, parent, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  parent.appendChild(e);
+  return e;
+}
+const label = (s) => s.replace(/-/g, " ").toUpperCase();
+
+// ---- one shots: fire on pointerdown (no click delay); explosion has its three sizes
+function addShot(parent, text, name, opts) {
+  const b = mk("button", "btn", parent, text);
+  b.type = "button";
+  b.dataset.sound = name;
+  b.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    const t0 = performance.now();
+    const ok = sfx.play(name, Object.assign({ pan }, opts));
+    const dt = performance.now() - t0;
+    last.textContent = "LAST: " + text + (ok ? "  " + dt.toFixed(2) + " MS" : "  NOT PLAYED");
+    last.className = "readout " + (ok ? "good" : "bad");
+    b.classList.add("hit");
+    setTimeout(() => b.classList.remove("hit"), 170);
+  });
+}
+const shots = $("shots");
+for (const name of SOUNDS) {
+  if (name === "explosion") for (const size of ["small", "medium", "large"]) addShot(shots, "EXPLOSION " + size[0].toUpperCase(), "explosion", { size });
+  else if (!name.startsWith("explosion-")) addShot(shots, label(name), name);
+}
+
+// ---- hold to loop: the loop runs while the finger is down
+for (const name of LOOPS) {
+  const b = mk("button", "btn hold", $("loops"), label(name));
+  b.type = "button";
+  b.dataset.loop = name;
+  const stop = (e) => {
+    const h = held.get(b);
+    if (!h) return;
+    held.delete(b);
+    h.stop();
+    b.classList.remove("on");
+    try { b.releasePointerCapture(e.pointerId); } catch { /* already released */ }
+  };
+  b.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    try { b.setPointerCapture(e.pointerId); } catch { /* not supported */ }
+    if (held.has(b)) return;
+    held.set(b, sfx.loop(name, { pan }));
+    b.classList.add("on");
+  });
+  b.addEventListener("pointerup", stop);
+  b.addEventListener("pointercancel", stop);
+  b.addEventListener("lostpointercapture", stop);
+  b.addEventListener("contextmenu", (e) => e.preventDefault());
+}
+
+// ---- controls
+$("vol").addEventListener("input", (e) => { sfx.setVolume(+e.target.value); $("volOut").textContent = sfx.volume.toFixed(2); });
+$("pan").addEventListener("input", (e) => {
+  pan = +e.target.value;
+  $("panOut").textContent = (pan > 0 ? "+" : "") + pan.toFixed(2);
+  for (const h of held.values()) h.setPan(pan);
+});
+const muteBtn = $("mute");
+muteBtn.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  sfx.mute(!sfx.muted);
+  muteBtn.textContent = sfx.muted ? "MUTED" : "MUTE";
+  muteBtn.classList.toggle("muted", sfx.muted);
+});
+
+// ---- bench: 500 play() calls with pan and volume, each timed with performance.now(). Safari rounds the timer to 1 ms,
+// so on a coarse clock calls are timed in batches of 20 and the per-call mean of each batch is the sample.
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function timerResolution() {
+  let best = Infinity;
+  for (let k = 0; k < 8; k++) {
+    const t0 = performance.now();
+    let t1 = t0, guard = 0;
+    while (t1 === t0 && guard++ < 2e6) t1 = performance.now();
+    if (t1 > t0 && t1 - t0 < best) best = t1 - t0;
+  }
+  return best === Infinity ? 1 : best;
+}
+window.__bench = async (n = 500) => {
+  const res = timerResolution(), batched = res > 0.1, B = batched ? 20 : 1;
+  const names = SOUNDS.filter((s) => s !== "explosion"); // distinct sounds: the per-name 30 ms throttle must not decide the result
+  const samples = [];
+  let played = 0, i = 0;
+  while (i < n) {
+    const k = Math.min(B, n - i);
+    const t0 = performance.now();
+    for (let j = 0; j < k; j++) {
+      const idx = i + j;
+      if (sfx.play(names[idx % names.length], { pan: ((idx * 37) % 200) / 100 - 1, volume: 0.25 })) played++;
+    }
+    samples.push((performance.now() - t0) / k);
+    i += k;
+    await sleep(batched ? 36 : 4); // longer than the 30 ms per-name throttle, so a repeated name always plays
+  }
+  const sorted = samples.slice().sort((a, b) => a - b);
+  const out = {
+    avgMs: samples.reduce((s, v) => s + v, 0) / samples.length,
+    p95Ms: sorted[Math.floor(0.95 * (sorted.length - 1))],
+    maxMs: sorted[sorted.length - 1],
+    played, n, mode: batched ? "batched x" + B : "per call", resolutionMs: +res.toFixed(4),
+  };
+  const ok = out.avgMs <= 0.2 && out.p95Ms <= 0.5;
+  const el = $("benchOut");
+  el.textContent = "BENCH " + played + "/" + n + " PLAYED  AVG " + out.avgMs.toFixed(3) + " MS  P95 " + out.p95Ms.toFixed(3) + " MS  MAX " + out.maxMs.toFixed(3) + " MS  (" + out.mode + ")";
+  el.className = "readout " + (ok && played > 0 ? "good" : "bad");
+  return out;
+};
+$("bench").addEventListener("pointerdown", async (e) => {
+  e.preventDefault();
+  const b = $("bench");
+  if (b.classList.contains("on")) return;
+  b.classList.add("on");
+  $("benchOut").textContent = "BENCH RUNNING...";
+  try { await window.__bench(500); } finally { b.classList.remove("on"); }
+});
+
+// ---- status chips and the unlock overlay
+const unlock = $("unlock");
+sfx.ready.then(() => { $("chipRender").textContent = "SOUNDS READY"; $("chipRender").classList.add("ok"); window.__ready = true; });
+unlock.addEventListener("pointerdown", async () => {
+  await sfx.unlock();
+  if (!sfx.unlocked) $("unlockText").textContent = "STILL LOCKED, TAP AGAIN";
+});
+setInterval(() => {
+  const state = sfx.ctx ? sfx.ctx.state : "no webaudio";
+  const chip = $("chipAudio");
+  chip.textContent = sfx.unlocked ? "AUDIO RUNNING" : "AUDIO LOCKED / " + state;
+  chip.classList.toggle("ok", sfx.unlocked);
+  if (sfx.unlocked) unlock.classList.add("gone");
+  if (!sfx.ctx) $("unlockText").textContent = "NO WEBAUDIO IN THIS BROWSER";
+}, 150);
+window.__demoReady = true;
+</script>
+</body>
+</html>

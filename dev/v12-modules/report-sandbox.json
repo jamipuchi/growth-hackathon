@@ -1,0 +1,212 @@
+{
+  "at": "2026-10-09T22:37:59.601Z",
+  "browser": "webkit",
+  "viewport": "844x390@3 touch",
+  "pass": true,
+  "results": [
+    {
+      "name": "A1 ready reports every drawn control",
+      "ok": true,
+      "controls": 8,
+      "pageLoadToReadyMs": 899
+    },
+    {
+      "name": "A2 layout: centres where drawn, buttons >= 56 px, sticks >= 110 px",
+      "ok": true,
+      "maxCentreOffset": 0.0005,
+      "minButtonPx": 56.2,
+      "minStickPx": 210.6
+    },
+    {
+      "name": "A3 real touch tap → press + release shoot (10 taps)",
+      "ok": true,
+      "taps": 10,
+      "medianTapToPressMs": 1,
+      "maxMs": 3
+    },
+    {
+      "name": "A4 toggle: tap on → press view, tap off → release view",
+      "ok": true,
+      "seq": [
+        "press",
+        "release"
+      ]
+    },
+    {
+      "name": "A5 stick drag → steer axis (x > 0.6, y > 0.4 up), then 0,0 on release",
+      "ok": true,
+      "axisMessages": 8,
+      "peak": [
+        0.83,
+        0.557
+      ],
+      "last": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "A6 multi-touch: stick + two held buttons at once, all released",
+      "ok": true,
+      "heldTogether": [
+        "shoot",
+        "boost"
+      ],
+      "axisWhileHeld": [
+        -1,
+        0
+      ]
+    },
+    {
+      "name": "A7 slide off FIRE → release before lift",
+      "ok": true,
+      "seq": [
+        "press:shoot",
+        "release:shoot"
+      ]
+    },
+    {
+      "name": "A8 release on visibility change and on destroy",
+      "ok": true,
+      "visibility": true,
+      "destroySeq": [
+        "press:boost",
+        "release:boost"
+      ],
+      "frameRemoved": true
+    },
+    {
+      "name": "A9 EMP: every control moved, tap at FIRE's old place presses the one now there, restored after",
+      "ok": true,
+      "moved": 8,
+      "of": 8,
+      "tapAtOldFire": "view",
+      "map": {
+        "move": "steer",
+        "steer": "move",
+        "drill": "shoot",
+        "land": "boost",
+        "boost": "shield",
+        "shield": "drill",
+        "view": "land",
+        "shoot": "view"
+      },
+      "restored": true
+    },
+    {
+      "name": "A10 56 px hit minimum (a 20 px dot, tap 24 px off-centre), greyed controls still press, 50 px off misses",
+      "ok": true,
+      "hitAt24px": true,
+      "greyed": true,
+      "pressWhileGreyed": true,
+      "missAt50px": true
+    },
+    {
+      "name": "A11 replace(): waits while FIRE is held, swaps right after release, one frame left, new FIRE works",
+      "ok": true,
+      "heldNoSwap": true,
+      "framesWhileLoading": 2,
+      "swapAfterReleaseMs": 40,
+      "framesAfter": 1,
+      "newTap": [
+        "press:shoot",
+        "release:shoot"
+      ]
+    },
+    {
+      "name": "A12 replace() with a document missing drawn controls is discarded; the live one stays",
+      "ok": true,
+      "result": false,
+      "frames": 1
+    },
+    {
+      "name": "B1 no request leaves the frame (fetch, XHR, WebSocket, beacon, img, css, link, import, worker, iframe, form, popup)",
+      "ok": true,
+      "beaconHits": 0,
+      "hits": []
+    },
+    {
+      "name": "B2 no escape: page URL, page DOM and page count unchanged",
+      "ok": true,
+      "url": true,
+      "dom": true,
+      "pages": 1
+    },
+    {
+      "name": "B3 forged messages: unknown action, stick press, disallowed axis, NaN, bad type, wrong channel all dropped",
+      "ok": true,
+      "attackerReadNonce": true,
+      "violations": [
+        "action:nuke",
+        "action:nuke",
+        "action:steer",
+        "action:move",
+        "action:control nuke",
+        "action:control nuke"
+      ],
+      "dropped": {
+        "origin": 0,
+        "type": 4,
+        "action": 4,
+        "rate": 9882,
+        "shape": 1
+      }
+    },
+    {
+      "name": "B4 flood: ≤ 60 presses per second, every press released, nothing stuck",
+      "ok": true,
+      "pressesDelivered": 60,
+      "releasesDelivered": 60,
+      "droppedByRate": 9882
+    },
+    {
+      "name": "B5 axis: clamped to -1..1 and the last value still arrives (0.25, -0.5)",
+      "ok": true,
+      "axisDelivered": 61,
+      "first": [
+        1,
+        -1
+      ],
+      "last": [
+        0.25,
+        -0.5
+      ]
+    },
+    {
+      "name": "B6 inside the hostile document a real FIRE tap still works and NUKE does nothing",
+      "ok": true,
+      "seq": [
+        "press:shoot",
+        "release:shoot"
+      ]
+    },
+    {
+      "name": "C1 sustained flood → 'flood' violation and the fallback controller mounted",
+      "ok": true,
+      "usingFallback": true,
+      "droppedByRate": 41021,
+      "fallbackReason": "flood"
+    },
+    {
+      "name": "D1 without the page CSP: the frame navigating itself is caught (second load) and the fallback mounted",
+      "ok": true,
+      "usingFallback": true,
+      "violations": [
+        "navigate"
+      ],
+      "fallbackControls": 3,
+      "requestLeft": 1
+    },
+    {
+      "name": "D2 default page CSP (frame-src 'none'): srcdoc frame still mounts, the navigation request never leaves",
+      "ok": true,
+      "mounted": true,
+      "cspMeta": true,
+      "beaconHits": 0,
+      "violations": [
+        "navigate"
+      ],
+      "usingFallback": true
+    }
+  ]
+}

@@ -1,0 +1,537 @@
+{
+  "ok": true,
+  "passed": 47,
+  "failed": 0,
+  "failedNames": [],
+  "checks": [
+    {
+      "name": "emp/dom: the demo has 4 buttons and 1 stick",
+      "pass": true,
+      "detail": [
+        "steer",
+        "shoot",
+        "boost",
+        "shield",
+        "land"
+      ]
+    },
+    {
+      "name": "emp/dom: the overlay exists in the same task as the call (visible within one frame)",
+      "pass": true,
+      "detail": 1
+    },
+    {
+      "name": "emp/dom: until is about now + 1500 ms",
+      "pass": true,
+      "detail": 1498
+    },
+    {
+      "name": "emp/dom: after 400 ms every button's centre moved more than 20 px",
+      "pass": true,
+      "detail": [
+        {
+          "key": "shoot",
+          "movedPx": 105,
+          "landedOn": "boost"
+        },
+        {
+          "key": "boost",
+          "movedPx": 115,
+          "landedOn": "shield"
+        },
+        {
+          "key": "shield",
+          "movedPx": 92,
+          "landedOn": "land"
+        },
+        {
+          "key": "land",
+          "movedPx": 109,
+          "landedOn": "shoot"
+        }
+      ]
+    },
+    {
+      "name": "emp/dom: every button sits on another button's old centre (within 3 px)",
+      "pass": true,
+      "detail": [
+        {
+          "key": "shoot",
+          "movedPx": 105,
+          "landedOn": "boost"
+        },
+        {
+          "key": "boost",
+          "movedPx": 115,
+          "landedOn": "shield"
+        },
+        {
+          "key": "shield",
+          "movedPx": 92,
+          "landedOn": "land"
+        },
+        {
+          "key": "land",
+          "movedPx": 109,
+          "landedOn": "shoot"
+        }
+      ]
+    },
+    {
+      "name": "emp/dom: the destinations are all different (a real permutation)",
+      "pass": true,
+      "detail": [
+        "boost",
+        "shield",
+        "land",
+        "shoot"
+      ]
+    },
+    {
+      "name": "emp/dom: permutation maps each place to the control now there",
+      "pass": true,
+      "detail": {
+        "boost": "shoot",
+        "shield": "boost",
+        "land": "shield",
+        "shoot": "land"
+      }
+    },
+    {
+      "name": "emp/dom: a lone stick mirrors to the other side (the kit's rule)",
+      "pass": true,
+      "detail": {
+        "home": {
+          "key": "steer",
+          "kind": "stick",
+          "x": 98,
+          "y": 292
+        },
+        "mid": {
+          "key": "steer",
+          "kind": "stick",
+          "x": 746,
+          "y": 292
+        }
+      }
+    },
+    {
+      "name": "emp/dom: a real tap at FIRE's old centre presses the control that moved there",
+      "pass": true,
+      "detail": {
+        "expected": "land",
+        "presses": [
+          "land"
+        ]
+      }
+    },
+    {
+      "name": "emp/dom: 1.5 s + 400 ms later every control is back (within 2 px)",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "emp/dom: the overlay is gone",
+      "pass": true
+    },
+    {
+      "name": "emp/dom: a real tap at FIRE's centre logs shoot again",
+      "pass": true,
+      "detail": [
+        "shoot"
+      ]
+    },
+    {
+      "name": "emp/dom: onSwap(permutation) at the start, onSwap(null) at the restore",
+      "pass": true,
+      "detail": [
+        "perm:{\"boost\":\"shoot\",\"shield\":\"boost\",\"land\":\"shield\",\"shoot\":\"land\"}",
+        "null"
+      ]
+    },
+    {
+      "name": "emp/dom: no inline translate or transition is left on the controls",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "emp/dom: a second emp() restarts (one overlay, same promise, total about 0.4 + 1.5 s)",
+      "pass": true,
+      "detail": {
+        "overlays": 1,
+        "same": true,
+        "totalMs": 2194,
+        "left": 0
+      }
+    },
+    {
+      "name": "emp/dom: cancel() removes the overlay at once",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "ink: coverage() is above 0.35 right after the bomb",
+      "pass": true,
+      "detail": 0.5813802083333334
+    },
+    {
+      "name": "ink: one root with 72 blocker cells",
+      "pass": true,
+      "detail": {
+        "seed": 3,
+        "cov": 0.5813802083333334,
+        "cells": 72,
+        "roots": 1,
+        "fireInked": true
+      }
+    },
+    {
+      "name": "ink: a real tap on the inked cell over FIRE does not press FIRE",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "ink: the wipe lowers coverage by a measurable amount (more than 0.015)",
+      "pass": true,
+      "detail": {
+        "before": 0.58,
+        "after": 0.541
+      }
+    },
+    {
+      "name": "ink: the cell over FIRE now has pointer-events none and nothing blocks FIRE's centre",
+      "pass": true,
+      "detail": {
+        "before": 0.5804268875055842,
+        "after": 0.5410647247697651,
+        "cellPointerEvents": "none",
+        "blockerAtFire": false,
+        "region": {
+          "l": 703.328125,
+          "t": 260,
+          "r": 796,
+          "b": 350
+        }
+      }
+    },
+    {
+      "name": "ink: a real tap on FIRE now logs shoot",
+      "pass": true,
+      "detail": [
+        "shoot"
+      ]
+    },
+    {
+      "name": "ink: cancel() removes the root at once",
+      "pass": true
+    },
+    {
+      "name": "ink: two fingers wipe two far-apart cells at once (both open)",
+      "pass": true,
+      "detail": {
+        "closedBefore": 52,
+        "before": 0.5813802083333334,
+        "after": 0.5540584362022654,
+        "aOpen": true,
+        "bOpen": true,
+        "apart": 774
+      }
+    },
+    {
+      "name": "ink: a bomb with seconds 1 removes its root within 1.6 s",
+      "pass": true,
+      "detail": {
+        "ms": 1399,
+        "onClear": {
+          "wiped": false,
+          "ms": 1000
+        },
+        "done": {
+          "wiped": false,
+          "ms": 1000
+        },
+        "coverage": 0.556640625
+      }
+    },
+    {
+      "name": "ink: onClear reports { wiped: false, ms } for a timeout",
+      "pass": true,
+      "detail": {
+        "wiped": false,
+        "ms": 1000
+      }
+    },
+    {
+      "name": "tractor: adds its overlay (toast + tractor) and removes everything by duration + 0.6 s",
+      "pass": true,
+      "detail": {
+        "ms": 1914,
+        "peak": 2,
+        "kinds": [
+          "toast",
+          "tractor"
+        ],
+        "limitMs": 2200
+      }
+    },
+    {
+      "name": "mine: adds its overlay (mine + toast) and removes everything by duration + 0.6 s",
+      "pass": true,
+      "detail": {
+        "ms": 1795,
+        "peak": 2,
+        "kinds": [
+          "mine",
+          "toast"
+        ],
+        "limitMs": 2100
+      }
+    },
+    {
+      "name": "decoy: adds its overlay (decoy + toast) and removes everything by duration + 0.6 s",
+      "pass": true,
+      "detail": {
+        "ms": 2009,
+        "peak": 2,
+        "kinds": [
+          "decoy",
+          "toast"
+        ],
+        "limitMs": 2300
+      }
+    },
+    {
+      "name": "decoyMine: adds its overlay (decoy + toast) and removes everything by duration + 0.6 s",
+      "pass": true,
+      "detail": {
+        "ms": 2013,
+        "peak": 2,
+        "kinds": [
+          "decoy",
+          "toast"
+        ],
+        "limitMs": 2300
+      }
+    },
+    {
+      "name": "toast: adds its overlay (toast) and removes everything by duration + 0.6 s",
+      "pass": true,
+      "detail": {
+        "ms": 2470,
+        "peak": 1,
+        "kinds": [
+          "toast"
+        ],
+        "limitMs": 2800
+      }
+    },
+    {
+      "name": "tractor: overlay on screen at its peak (screenshot taken)",
+      "pass": true,
+      "detail": 2
+    },
+    {
+      "name": "mine: overlay on screen at its peak (screenshot taken)",
+      "pass": true,
+      "detail": 2
+    },
+    {
+      "name": "decoy: overlay on screen at its peak (screenshot taken)",
+      "pass": true,
+      "detail": 2
+    },
+    {
+      "name": "decoy-mine: overlay on screen at its peak (screenshot taken)",
+      "pass": true,
+      "detail": 2
+    },
+    {
+      "name": "toast: overlay on screen at its peak (screenshot taken)",
+      "pass": true,
+      "detail": 1
+    },
+    {
+      "name": "toast: four quick toasts leave three, newest (D) on top, oldest (A) gone",
+      "pass": true,
+      "detail": [
+        {
+          "text": "TOAST B",
+          "top": 198
+        },
+        {
+          "text": "TOAST C",
+          "top": 134
+        },
+        {
+          "text": "TOAST D",
+          "top": 70
+        }
+      ]
+    },
+    {
+      "name": "cancel(): every effect leaves nothing behind and its promise resolves",
+      "pass": true,
+      "detail": {
+        "tractor": {
+          "during": 2,
+          "after": 0,
+          "cancelled": true
+        },
+        "mine": {
+          "during": 2,
+          "after": 0,
+          "cancelled": true
+        },
+        "decoy": {
+          "during": 2,
+          "after": 0,
+          "cancelled": true
+        },
+        "toast": {
+          "during": 1,
+          "after": 0,
+          "cancelled": true
+        },
+        "ink": {
+          "during": 2,
+          "after": 0,
+          "cancelled": true
+        },
+        "emp": {
+          "during": 1,
+          "after": 0,
+          "cancelled": true
+        },
+        "styleTags": 1,
+        "inlineLeft": 0
+      }
+    },
+    {
+      "name": "bad input never throws and always returns { done, cancel }",
+      "pass": true,
+      "detail": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ]
+    },
+    {
+      "name": "no overlay left after the bad-input calls",
+      "pass": true
+    },
+    {
+      "name": "sandbox: the controller is mounted (window.__ready)",
+      "pass": true
+    },
+    {
+      "name": "sandbox: the EMP overlay appears at once over the controller frame",
+      "pass": true,
+      "detail": {
+        "overlays": 1,
+        "handle": true
+      }
+    },
+    {
+      "name": "sandbox: the frame element gets the jitter animation",
+      "pass": true,
+      "detail": 1
+    },
+    {
+      "name": "sandbox: the promise from emp() resolves (about 1.2 s plus the fade)",
+      "pass": true,
+      "detail": 1492
+    },
+    {
+      "name": "sandbox: the overlay is gone afterwards",
+      "pass": true
+    },
+    {
+      "name": "sandbox: empPermutation() equals the kit's own scramble for the same seed",
+      "pass": true,
+      "detail": {
+        "equal": true,
+        "mine": {
+          "move": "steer",
+          "steer": "move",
+          "drill": "shoot",
+          "land": "boost",
+          "boost": "shield",
+          "shield": "drill",
+          "view": "land",
+          "shoot": "view"
+        },
+        "kit": {
+          "move": "steer",
+          "steer": "move",
+          "drill": "shoot",
+          "land": "boost",
+          "boost": "shield",
+          "shield": "drill",
+          "view": "land",
+          "shoot": "view"
+        }
+      }
+    },
+    {
+      "name": "no uncaught page errors",
+      "pass": true,
+      "detail": []
+    }
+  ],
+  "metrics": {
+    "empRestoreWorstPx": 0,
+    "ink": {
+      "seed": 3,
+      "cov": 0.5813802083333334,
+      "cells": 72,
+      "roots": 1,
+      "fireInked": true
+    },
+    "inkWipe": {
+      "before": 0.5804268875055842,
+      "after": 0.5410647247697651,
+      "cellPointerEvents": "none",
+      "blockerAtFire": false,
+      "region": {
+        "l": 703.328125,
+        "t": 260,
+        "r": 796,
+        "b": 350
+      }
+    },
+    "inkTwoFingers": {
+      "closedBefore": 52,
+      "before": 0.5813802083333334,
+      "after": 0.5540584362022654,
+      "aOpen": true,
+      "bOpen": true,
+      "apart": 774
+    },
+    "inkSelfClearMs": 1399,
+    "gone_tractor_ms": 1914,
+    "gone_mine_ms": 1795,
+    "gone_decoy_ms": 2009,
+    "gone_decoyMine_ms": 2013,
+    "gone_toast_ms": 2470,
+    "sandboxKitReported": true,
+    "sandboxEmpDoneMs": 1492
+  },
+  "shots": [
+    "mischief-decoy-mine.png",
+    "mischief-decoy.png",
+    "mischief-emp-dom.png",
+    "mischief-emp-sandbox.png",
+    "mischief-ink-after.png",
+    "mischief-ink-before.png",
+    "mischief-mine.png",
+    "mischief-toast-stack.png",
+    "mischief-toast.png",
+    "mischief-tractor.png"
+  ]
+}

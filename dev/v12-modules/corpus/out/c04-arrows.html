@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Space Party Controller</title>
+<style>
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:transparent;overflow:hidden}
+body{font-family:"Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+.control{
+position:absolute;
+left:clamp(calc(var(--w)/2 + 5px),var(--cx),calc(100vw - var(--w)/2 - 5px));
+top:clamp(calc(var(--h)/2 + 5px),var(--cy),calc(100vh - var(--h)/2 - 10px));
+width:var(--w);height:var(--h);
+margin-left:calc(var(--w)/-2);margin-top:calc(var(--h)/-2);
+display:flex;align-items:center;justify-content:center;
+border:3px solid #fff;border-radius:9px;
+background:linear-gradient(180deg,#86dcfff0 0%,#2f8bfff0 48%,#1647c8f0 100%);
+box-shadow:inset 0 3px 0 #ffffff85,inset 0 -3px 0 #0b103340,0 5px 0 #0b1033;
+transform:skewX(-9deg);
+color:white;opacity:.94;
+transition:scale .2s cubic-bezier(.2,1.7,.4,1),transform .15s,box-shadow .15s,filter .15s;
+animation:arrive .4s cubic-bezier(.2,1.5,.4,1) both;
+animation-delay:var(--delay);
+}
+.face{transform:skewX(9deg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px}
+.arrow{width:clamp(28px,5vw,49px);height:clamp(28px,8vh,42px);fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(2px 3px 0 #0b1033)}
+.label{font-size:clamp(18px,3vw,24px);font-weight:900;letter-spacing:.04em;line-height:1;text-shadow:-1px -1px 0 #0b1033,1px -1px 0 #0b1033,-1px 1px 0 #0b1033,1px 1px 0 #0b1033,0 3px 2px #0b103380}
+.zap{
+--w:max(56px,min(26vw,56vh));--h:max(56px,min(26vw,56vh));
+border-radius:50%;transform:none;
+background:linear-gradient(180deg,#ffe36ef0 0%,#ffb21ff0 52%,#d26a06f0 100%);
+}
+.zap .face{transform:none;gap:8px}
+.zap .label{font-size:clamp(22px,4vw,36px)}
+.bolt{width:clamp(28px,6vw,58px);height:clamp(30px,13vh,58px);fill:#ffffff;stroke:#0b1033;stroke-width:2.5;stroke-linejoin:round;filter:drop-shadow(0 3px 0 #0b1033)}
+.control.is-down{transform:skewX(-9deg) translateY(4px);scale:.95;filter:brightness(1.2);box-shadow:inset 0 2px 0 #ffffff85,0 1px 0 #0b1033}
+.zap.is-down{transform:translateY(4px)}
+.control.is-on{background:linear-gradient(#ffe36ef0,#ffb21ff0 52%,#d26a06f0)}
+.control.is-disabled{opacity:.35;filter:grayscale(.75)}
+@keyframes arrive{0%{opacity:0;scale:.35}75%{opacity:.94;scale:1.07}100%{opacity:.94;scale:1}}
+@media(prefers-reduced-motion:reduce){.control{animation:none;transition:none}}
+</style>
+</head>
+<body>
+<div class="control" data-action="left" data-label="◀" aria-label="Left" style="--cx:9vw;--cy:54vh;--w:max(56px,12vw);--h:max(56px,24vh);--delay:0ms">
+<span class="face"><svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><path d="M39 24H9m13-13L9 24l13 13"/></svg></span>
+</div>
+<div class="control" data-action="right" data-label="▶" aria-label="Right" style="--cx:33vw;--cy:54vh;--w:max(56px,12vw);--h:max(56px,24vh);--delay:50ms">
+<span class="face"><svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><path d="M9 24h30M26 11l13 13-13 13"/></svg></span>
+</div>
+<div class="control" data-action="up" data-label="▲" aria-label="Up" style="--cx:21vw;--cy:27vh;--w:max(56px,12vw);--h:max(56px,26vh);--delay:100ms">
+<span class="face"><svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 39V9M11 22 24 9l13 13"/></svg></span>
+</div>
+<div class="control" data-action="down" data-label="▼" aria-label="Down" style="--cx:21vw;--cy:81vh;--w:max(56px,12vw);--h:max(56px,26vh);--delay:150ms">
+<span class="face"><svg class="arrow" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 9v30M11 26l13 13 13-13"/></svg></span>
+</div>
+<div class="control zap" data-action="shoot" data-label="ZAP" aria-label="ZAP" style="--cx:81vw;--cy:58vh;--delay:200ms">
+<span class="face"><svg class="bolt" viewBox="0 0 48 60" aria-hidden="true"><path d="M29 3 9 33h15l-5 24 23-34H27z"/></svg><span class="label">ZAP</span></span>
+</div>
+</body>
+</html>
