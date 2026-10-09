@@ -24,6 +24,7 @@ Everything runs from one Node server, `node server.js`, on port 8000. Phones joi
 | `controller.html` | Phone: join, draw or photograph a controller or entity, play with your own 3D view |
 | `space.html` | Big screen: spectator view, HUD, round clock, minimap, scoreboard |
 | `controllers/<player>-<kind>.png/.json` | Each player's drawings and their generated layouts and entities. Never served |
+| `ORCHESTRATE.md`, `assets/` | The channel with the 3D asset model: requests, deliveries and the asset contract. Delivered assets live in `assets/<id>-<slug>/` |
 
 **Flow:** the player draws on the phone. Astra sends the image to the model, checks and wires the answer, writes the `.json` and broadcasts it. The phone and the game pick it up right away.
 
@@ -208,7 +209,7 @@ dig: {
   modes: ["planet"], hold: true,
   params: { speed: [0.5, 2, 1] },
   hint: "shovels, spades, claws",
-  requires: { sockets: ["hand.R", "hand.L", "mouth", "front"] },
+  requires: { sockets: ["hand_r", "hand_l", "mouth", "front"] },
   slot: "use",
   synonyms: ["DIG", "SHOVEL", "SPADE"],
   tags: ["dig"],
@@ -239,12 +240,12 @@ Same idea, existing names: invisible = cloak, teleport = blink, flare = light, b
 ### 10 entity types (`rigs.js`)
 | Type | Zone | Moves | Skeleton | Sockets | Procedural motion |
 | --- | --- | --- | --- | --- | --- |
-| ship | space | fly6dof | none, rigid | nose, wing.L, wing.R, back, belly, seat | banking, engine flame |
-| person | planet | walk | 19-bone biped | hand.L, hand.R, head, back, feet | foot planting |
+| ship | space | fly6dof | none, rigid | nose, wing_l, wing_r, back, belly, seat | banking, engine flame |
+| person | planet | walk | 19-bone biped | hand_l, hand_r, head, back, feet | foot planting |
 | quadruped | planet | walk, rideable | spine, 4 legs, neck, head, tail | mouth, back (seat), tail | gait cycle |
 | car | planet | drive | rigid; wheels from drawn circles | seat, roof, front, back | wheel spin, suspension, steer tilt |
 | boat | planet water | float | rigid | seat, mast, bow, stern | buoyancy bob, wake |
-| flyer | planet | fly | wing chains for animals, rigid for machines | seat, nose, wing.L, wing.R | flap or propeller spin |
+| flyer | planet | fly | wing chains for animals, rigid for machines | seat, nose, wing_l, wing_r | flap or propeller spin |
 | swimmer | planet water | swim | 6-bone spine | mouth, back (seat) | body wave |
 | crawler | planet | crawl, walls too | body plus a 2-bone chain per leg | mouth, back, front | leg IK |
 | serpent | planet | slither | 8-bone spine | mouth, tail | spine follows the path |
@@ -259,12 +260,14 @@ Drawn bridges, ladders and planks are props: no rig, no controls, only collision
   procedural, slots /* slot -> this type's clip or effect */ }
 ```
 
+Bone, socket and node names are lowercase with underscores (`hand_r`, `socket_seat`): three.js strips dots from animation track names, so `hand.R` would silently break clips. The full bone lists are in `ORCHESTRATE.md` section 4.
+
 ### Rigging, the same steps for every type
 1. The entity call returns the type, the joints its template asks for, each drawn part with its socket, and the verbs.
 2. Snap joints to the ink's medial axis. On a bad fit, place joints by bounding-box proportion, or fall back to blob.
 3. Build the body (inflate or extrude), then the bones from the joints. Rigid types are cut into parts instead.
 4. Skin weights: each vertex to its 2 nearest bones by distance to the bone segment.
-5. Attach drawn items to their socket as `Object3D` children, so a gun in `hand.R` or a lamp on `nose` follows the animation and its effects spawn there.
+5. Attach drawn items to their socket as `Object3D` children, so a gun in `hand_r` or a lamp on `nose` follows the animation and its effects spawn there.
 6. One `AnimationMixer` per entity: a locomotion layer blended by speed, an upper-body action layer for one-shots, and the procedural motion on top.
 7. Clips are rotation-only keyframes on template bone names, so any clip plays on any proportions. Procedural clips first, retargeted Mixamo clips later.
 
