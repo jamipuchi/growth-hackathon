@@ -247,6 +247,41 @@ Movement is always available: arrows, sticks and tilt mean turn, pitch, thrust, 
 - Default ship abilities: shoot and boost.
 - Default explorer abilities: jump and takeoff.
 
+### Unlockable skills: you only have what you draw
+**Abilities come from what is drawn on the entity, never from the controller alone.** The controller button is the trigger; the drawing grants the power. A plain ship can only fly. Boost needs an exhaust with fire drawn on it; shoot needs a gun or cannon. Pressing a button whose skill you have not drawn does nothing, and holding it shows why ("BOOST · draw an exhaust with fire on your ship"). Sol reads the entity drawing and returns the drawn parts and the skills they unlock; without a key, a simple heuristic fallback unlocks movement only.
+
+| Skill | Draw this on your entity | Notes |
+| --- | --- | --- |
+| Fly / walk | the entity itself | always |
+| Shoot | a gun, cannon or laser | |
+| Boost | an exhaust with fire or flames | |
+| Shield | a shield or a bubble | |
+| Drill | a drill or saw on the nose | gate 1: needed to crack the boss |
+| Land | landing legs or a parachute | gate 2: plus a LAND button on the controller |
+| Dig | a shovel or claws (planet entity) | gate 3 |
+| Drive | wheels (planet entity) | faster, cannot jump |
+| Jump | legs or springs | |
+| Scan | an antenna, radar dish or eye | |
+| Flare | a lamp or torch | |
+| Invisible | a cape or a ghost | |
+| Heal | a red cross | |
+
+**Add a part:** like add-a-button, a player can draw just a new part (a drill, legs, a shovel) and it snaps onto the nearest socket of their entity. It costs one drawing from the budget, so players have to think about what to draw and when. Once assists are on (3:00), the three gate skills unlock for everyone so nobody stays stuck.
+
+### Mischief: mess with the other players
+Players can kill each other (PvP, section 4) and also screw with each other. Every mischief skill is unlocked by drawing too:
+
+| Mischief | Draw | What it does to a rival |
+| --- | --- | --- |
+| Mine | spikes or bombs on the back | drops a mine; whoever hits it is stunned and loses 30 points |
+| Tractor | a magnet | pulls the nearest rival toward you, or into a rock |
+| EMP | a lightning bolt | scrambles the nearest rival's controller for 5 s: their buttons swap places on their phone |
+| Ink bomb | an octopus or an ink bottle | splats ink over a rival's phone screen for 4 s; they wipe it off with a finger |
+| Steal | a hand or a hook | on the island, steals a rival's dig progress or knocks the chest away |
+| Decoy | a second, smaller ship | a fake copy of you that draws fire |
+
+Mischief has cooldowns of 10 to 20 s and never hits players in the lobby, landing or take-off.
+
 ### `verbs.js` format
 Keep `modes`, `hold`, `params` (`[min, max, default]`, clamped) and `hint`. Add:
 - `requires: {moves, sockets}`: who can use it.
