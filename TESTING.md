@@ -46,6 +46,49 @@ hints, edge cases (refresh mid-round, rotate, background the app, bad drawings, 
 
 _(the first request, v1.0, is posted as soon as client integration lands)_
 
+### Test request v1.0
+- **Version:** v1.0 "first integrated build", posted Oct 10 01:10.
+- **Checkout:** `git checkout v1.0` once the orchestrator tags it. The commit is **c24a006**, a side commit that is not
+  on the tip of `v1`. Until the tag exists, use an isolated checkout that leaves the orchestrator's working tree alone:
+  `git worktree add ../sp-v1.0 c24a006`. The checkout has no key, so copy `.env` from the main folder into it and never
+  print it.
+- **How to run:** `node server.js --bots 8` (or `--bots 24` for 25 players).
+  - Big screen: `http://localhost:8000/space.html?join=http://<laptop-ip>:8000/controller.html`. Without `?join=`, a TV
+    opened on localhost shows no QR.
+  - Phones: `http://<laptop-ip>:8000/controller.html`.
+  - In v1.0 the round starts by itself after the 20 s lobby, or when every human taps Ready. There is no START button
+    yet; that comes in v1.1.
+- **What changed:** the landing shot, animations, HUD extras, riddle and sketch hints, name tags, kill feed, join QR and
+  real assets, all in one client. Details and the playtest scorecard are in `VERSIONS.md` → "### v1.0". The full findings
+  list is in `.orch/runs/v1.0-findings.md`.
+- **Known blockers (no need to re-file):**
+  1. A malformed URL such as `GET //` (or `//?x`) crashes the server (`server.js:245`).
+  2. With real generation, **add-a-button always fails**: "unreadable button" for photos, "bad model output: not JSON"
+     for finger drawings. So DRILL, LAND and DIG cannot be drawn.
+     - DRILL and DIG open by themselves at the 3:00 assists, but LAND never does, so a real-generation round cannot be
+       finished.
+     - To see the landing, the island and the results, run a second session with `ASTRA_MOCK=1`. The mock answers any
+       added button with LAND, and the assists remove the boss armour and raise the chests.
+  3. The output-token caps for add-a-button and the controller are too small when no reasoning effort is set.
+- **Known majors seen in the playtest:**
+  - The phone radar is upside down.
+  - The add sheet leaves your ship flying under fire.
+  - Death has no message, and you respawn far back at the spawn.
+  - PvP is spawn camping: one player killed another 20 times in 3 minutes.
+  - Name tags go only to the first 8 joiners (phone) or 12 (TV).
+  - The TV names two winners at round end.
+  - Every ship and explorer is the default model: there is no ship drawing step yet.
+- **Focus areas:**
+  1. Real generation of the controller from paper photos: blue and red pens, a dark table, a joystick touching the photo
+     edge, lined vs grid paper, a ship drawn in the controller step.
+  2. iPhone Safari: rotate while the add sheet is open, the toolbar showing and hiding, backgrounding, refresh mid-round,
+     the same name on two phones.
+  3. PvP between 2 or more phones: is it readable and fair, and what does the victim see?
+  4. The TV from the sofa: lobby, QR scanning distance, scores, the results with 25 players.
+  5. Performance on a real iPhone with `?perf`: the quality tier it settles on, and draw calls with 25 players (budget 80).
+  6. With `ASTRA_MOCK=1`: the landing shot, the explorer prompt, the island, the results and the next round.
+- **Status:** testing (tester, 2026-10-10 01:09 CEST; isolated commit c24a006).
+
 ## Tester log
 
 - 2026-10-09 tester: Owner explicitly authorized full-game testing and recorded videos in this chat. The five-minute monitor now watches this channel alongside asset requests. Ready versions will be tested at their specified commit in an isolated checkout, preserving the orchestrator’s dirty workspace, with video/screenshots and numbered findings here. No ready version request is present yet. Emulated WebKit results will be distinguished from physical-phone performance.
