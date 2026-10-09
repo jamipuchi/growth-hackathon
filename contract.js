@@ -36,6 +36,7 @@
     flare: { seconds: 14, radius: 120 },
     boss: { radius: 9, armour: 100, hp: 300, drillRange: 14, drillPerSecond: 20, shotEverySeconds: 1.5, shotSpeed: 60, shotDamage: 15, shotLife: 3 },
     scan: { range: 250, seconds: 8 },
+    drawings: { space: 5, planet: 5 },   // finished drawings per player per round (PLAN.md, Drawing budget)
     // v1 keeps the world simple: plain rocks plus bonus crystals. The other types stay defined for later.
     rockTypesInPlay: ["stone", "crystal"],
     planet: { offset: 150, radius: 40, landRange: 25, landingSeconds: 3, takeoffSeconds: 2 },
@@ -88,6 +89,7 @@
    * tick       { type, t, round, phase, clock,                           // lobby/scoreboard: seconds left; playing/assists: seconds since the start
    *              players: [{ name, color, mode: "space"|"planet", x, y, z, yaw, pitch, roll, hp, score,
    *                          shieldEnergy, boostEnergy,                  // 0..1, drive the HUD meters
+   *                          drawingsLeft: { space, planet },
    *                          flags: { boost, shield, stun, dead, invisible, drilling, digging, ready, bot,
    *                                   landing, takingOff },        // landing/takingOff: the predefined animation plays, no control
    *                          action, slot, startedAt }],                 // last verb + animation slot + server ms
@@ -110,7 +112,8 @@
    * POST /input     { type: "input", player, action, down }
    *                 { type: "axis", player, axis: "steer"|"move", x, y }  // -1..1, at most 20 per second
    * POST /generate  { player, kind: "controller"|"button"|"ship"|"explorer", image, speculative, requestId }
-   *                 → { ok: true, layout } | { ok: false, error }        // image: PNG data URL, max 512 px
+   *                 → { ok: true, layout, drawingsLeft } | { ok: false, error }   // image: PNG data URL, max 512 px;
+   *                                                                      // error "no drawings left" when the world's 5 are used
    * POST /perf      { player, screen: "phone"|"big", ua, fps, low1, p90ms, calls, tris, textures, tier, w, h, dpr }
    *
    * Controller layout v2 (PLAN.md section 3):
