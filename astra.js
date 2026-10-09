@@ -14,6 +14,7 @@ const fs = require("fs");
 const path = require("path");
 const Contract = require("./contract.js");
 const Verbs = require("./verbs.js");
+const Anims = require("./anims.js");
 
 const API_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_MODEL = "gpt-6.1-sol";
@@ -358,6 +359,38 @@ function release(token) {
   }
 }
 
+// Animations (PLAN.md section 6): the slots this entity's verbs use, plus the always-on ones, each with its clip,
+// motion profile, effects, shake and hit-stop from the shared anims.js table. Unknown types use the blob row.
+//   wireAnimations("ship", ["shoot", "boost"]) → { idle, move, hit, die, respawn, primary: {…, byVerb: { shoot… }} }
+// `verbs` are verb ids or { verb } objects. byVerb keeps only this entity's verbs.
+const cloneEntry = (e, verbSet) => {
+  const out = { clip: e.clip, profile: e.profile, fx: e.fx.map((f) => ({ kind: f.kind, at: f.at, socket: f.socket })), shake: e.shake, hitStop: e.hitStop };
+  if (e.byVerb) {
+    for (const v of Object.keys(e.byVerb)) {
+      if (!verbSet.has(v)) continue;
+      const o = e.byVerb[v];
+      (out.byVerb || (out.byVerb = {}))[v] = { clip: o.clip, profile: o.profile, fx: o.fx.map((f) => ({ kind: f.kind, at: f.at, socket: f.socket })), shake: o.shake, hitStop: o.hitStop };
+    }
+  }
+  return out;
+};
+
+function wireAnimations(type, verbs) {
+  const row = Anims.get(type);
+  const verbSet = new Set();
+  const slots = new Set(Anims.ALWAYS);
+  for (const item of Array.isArray(verbs) ? verbs : []) {
+    const id = typeof item === "string" ? item : item && item.verb;
+    const verb = Verbs.VERBS[id];
+    if (!verb) continue;
+    verbSet.add(id);
+    slots.add(verb.slot);
+  }
+  const out = {};
+  for (const slot of slots) if (row[slot]) out[slot] = cloneEntry(row[slot], verbSet);
+  return out;
+}
+
 const _internals = {
   setFetch: (fn) => (fetchImpl = fn),
   setDir: (dir) => (outDir = dir),
@@ -374,4 +407,4 @@ const _internals = {
   buildRequest, promptFor, extractText, parseJson, cleanControl, layoutFromModel, mockLayout, cleanRegion, sha1,
 };
 
-module.exports = { generate, defaultLayout, _internals };
+module.exports = { generate, defaultLayout, wireAnimations, _internals };

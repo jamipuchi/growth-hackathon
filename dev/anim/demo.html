@@ -1,0 +1,113 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Animator demo</title><link rel="icon" href="data:,">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#070b14;color:#dfe6ee;font:12px system-ui;overflow:hidden}canvas{display:block;width:100vw;height:100vh}
+#ui{position:absolute;left:0;right:0;bottom:0;padding:6px;display:flex;gap:10px;background:linear-gradient(transparent,#070b14e0 40%);max-height:46vh;overflow:auto}
+#ui div{flex:1;min-width:0}h3{margin:0 0 3px;font:600 11px monospace;color:#7fb2c0}
+button{margin:1px;padding:4px 6px;background:#1b2833;color:inherit;border:1px solid #344c5b;border-radius:4px;font:11px system-ui}
+button:active{background:#2f5568}label{margin-right:8px;white-space:nowrap}#hud{position:absolute;top:6px;left:8px;font:11px monospace;color:#9bb}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<canvas id="c"></canvas><div id="hud"></div><div id="ui"></div>
+<script type="module">
+import * as THREE from "three";
+import { createDefaultShip, createDefaultExplorer } from "/assets/A-009-defaults/defaults.js";
+import { createAnimator, setFxView } from "/anim.js";
+
+const q = new URLSearchParams(location.search);
+const manual = q.has("manual");
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("c"), antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#0a1020");
+scene.fog = new THREE.Fog("#0a1020", 18, 40);
+const key = new THREE.DirectionalLight(0xffe8c9, 3); key.position.set(-4, 8, 6); scene.add(key);
+const rim = new THREE.DirectionalLight(0x5ba7cf, 3); rim.position.set(5, 3, -5); scene.add(rim);
+scene.add(new THREE.HemisphereLight(0xc8d8df, 0x33303b, 1.1));
+const floor = new THREE.GridHelper(30, 30, 0x2a4a5a, 0x152532); scene.add(floor);
+const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+const baseFov = 38;
+
+const [ship, explorer] = await Promise.all([createDefaultShip(), createDefaultExplorer()]);
+const yaw = Number(q.get("yaw") ?? 2.6);
+const shipRoot = new THREE.Group(), exRoot = new THREE.Group();
+shipRoot.add(ship.object3d); exRoot.add(explorer.object3d);
+shipRoot.position.set(-2.1, 1.5, 0); exRoot.position.set(2.0, 0, 0);
+shipRoot.rotation.y = yaw; exRoot.rotation.y = yaw;
+scene.add(shipRoot, exRoot);
+
+const shipA = createAnimator("ship", shipRoot, { sockets: ship.sockets, size: 2.9 });
+const exA = createAnimator("person", exRoot, { sockets: explorer.sockets, clips: explorer.clips, play: explorer.play, size: 1.8 });
+const ents = { ship: { a: shipA, root: shipRoot, type: "ship" }, person: { a: exA, root: exRoot, type: "person" } };
+const state = { ship: { speed: 0, turn: 0, grounded: true }, person: { speed: 0, turn: 0, grounded: true } };
+
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  setFxView(renderer.domElement.height, baseFov);
+}
+addEventListener("resize", resize); resize();
+
+// UI
+const ui = document.getElementById("ui");
+const Anims = globalThis.Anims;
+for (const [name, e] of Object.entries(ents)) {
+  const col = document.createElement("div");
+  col.innerHTML = `<h3>${name}</h3>`;
+  const row = Anims.ROWS[e.type];
+  for (const slot of Anims.SLOTS) {
+    const variants = [[slot, null], ...Object.keys(row[slot].byVerb || {}).map((v) => [slot, v])];
+    for (const [s, verb] of variants) {
+      const b = document.createElement("button"); b.textContent = verb ? `${s}:${verb}` : s;
+      b.onclick = () => e.a.trigger(s, { verb }); b.dataset.slot = s; b.dataset.verb = verb || ""; b.dataset.ent = name;
+      col.appendChild(b);
+    }
+  }
+  const flags = document.createElement("div");
+  for (const f of ["boost", "shield", "drilling", "digging", "invisible", "dead"]) {
+    const l = document.createElement("label"); l.innerHTML = `<input type="checkbox" data-flag="${f}"> ${f}`;
+    l.firstChild.onchange = (ev) => (state[name][f] = ev.target.checked); flags.appendChild(l);
+  }
+  const gl = document.createElement("label"); gl.innerHTML = `<input type="checkbox" checked> grounded`; gl.firstChild.onchange = (ev) => (state[name].grounded = ev.target.checked); flags.appendChild(gl);
+  for (const [k, min, max] of [["speed", 0, 1], ["turn", -1, 1]]) {
+    const l = document.createElement("label"); l.innerHTML = `${k} <input type="range" min="${min}" max="${max}" step="0.05" value="0" style="width:70px">`;
+    l.lastChild.oninput = (ev) => (state[name][k] = Number(ev.target.value)); flags.appendChild(l);
+  }
+  col.appendChild(flags); ui.appendChild(col);
+}
+if (q.has("nohud")) ui.style.display = "none";
+
+const camPos = new THREE.Vector3(0, 1.9, 6.2), camLook = new THREE.Vector3(0, 1.1, 0);
+let last = performance.now(), frames = 0, costSum = 0, costN = 0;
+function frame(dt) {
+  const t0 = performance.now();
+  const d1 = shipA.update(dt, state.ship);
+  const d2 = exA.update(dt, state.person);
+  void d1;
+  explorer.update(d2);
+  costSum += performance.now() - t0; costN++;
+  const sh = Math.max(shipA.shake, exA.shake) , tt = performance.now() * 0.001;
+  camera.position.copy(camPos);
+  camera.position.x += (Math.sin(tt * 61) + Math.sin(tt * 43)) * 0.06 * sh;
+  camera.position.y += (Math.sin(tt * 53) + Math.cos(tt * 37)) * 0.06 * sh;
+  camera.lookAt(camLook);
+  const fov = baseFov + Math.max(shipA.fovKick, exA.fovKick);
+  if (camera.fov !== fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
+  renderer.render(scene, camera);
+}
+function loop(now) {
+  const dt = (now - last) / 1000; last = now; frames++;
+  frame(dt);
+  if (frames % 30 === 0) document.getElementById("hud").textContent = `update ${(costSum / costN).toFixed(3)} ms for both | shake ${shipA.shake.toFixed(2)} fov+${shipA.fovKick.toFixed(1)}`;
+  requestAnimationFrame(loop);
+}
+if (!manual) requestAnimationFrame(loop);
+window.demo = {
+  ents, state, ship, explorer, camera, THREE, scene, renderer,
+  step(dt) { frame(dt); },
+  setCam(x, y, z, lx, ly, lz) { camPos.set(x, y, z); camLook.set(lx, ly, lz); },
+  cost() { return costSum / Math.max(1, costN); },
+  ready: true,
+};
+</script>
+</html>
