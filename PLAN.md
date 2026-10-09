@@ -1,6 +1,6 @@
 # Space Party: multiplayer game plan
 
-**Goal:** a multiplayer 3D game where every player **draws their own phone controller**, their own ship and their own explorer. Drawings turn into real gameplay. Everyone plays together on a big screen and on their own phone. **A player who knows the route and boosts wins a round alone in about 2 minutes; a weak player still finishes in 4 to 5. There is no time cap.**
+**Goal:** a multiplayer 3D game where every player **draws their own phone controller**, their own ship and their own explorer. Drawings turn into real gameplay. Everyone plays together on a big screen and on their own phone. **A player who knows the route and boosts wins a round alone in about 2 minutes; a regular person in about 3; a weak player still finishes in 4 to 5. There is no time cap.**
 
 **How to use this doc:** it is the spec for **four lanes, each one person plus one agent**, building the game from this repo. Steps 0 and 1 are done together; after that the lanes work in parallel against the contract. Follow the build order in section 9. Each step ends with a check that must pass before you go on.
 
@@ -125,9 +125,9 @@ Server to every screen, over the event stream:
 FLARE and SCAN stay as abilities (a bright flare others can see; a scan that adds extras to your radar), but no gate needs them.
 
 ### Hints: make people think
-Hints guide without giving the answer away. The world hints first; words come later as riddles; nobody is told the button's name until assists switch on at 3:00. A player who knows the route never sees a hint.
+Hints guide without giving the answer away, but **a regular person must still finish within about 3 minutes**. The world hints first; then a riddle, then a sketch; the button's name comes only after about 30 s stuck at a gate. A player who knows the route never sees a hint.
 
-| Gate | The world hints (always on) | 1. A riddle (stuck about 15 s) | 2. A sketch (stuck about 30 s more) | 3. The answer (only once assists are on) |
+| Gate | The world hints (always on) | 1. A riddle (stuck 6 s) | 2. A sketch (10 s later) | 3. The answer (15 s later; at once when assists are on) |
 | --- | --- | --- | --- | --- |
 | **DRILL** | Lasers clang off the armour with sparks; a glowing hairline crack shows where it is weakest | "Too tough to shoot through. What breaks rock?" | A faint pencil sketch of a drill bit fades in on an empty corner of the pad | "Draw DRILL" and a ghost box to trace |
 | **LAND** | The planet's landing ring pulses as you get close; your ship slows and wobbles above it | "So close you could touch down." | A faint sketch of landing legs touching a line | "Draw LAND" and a ghost box to trace |
@@ -137,8 +137,9 @@ Hints guide without giving the answer away. The world hints first; words come la
 - A hint stops the moment the player has a control for that verb. Never in the lobby.
 - The ghost box (step 3) sits in the largest empty area of the pad, so tracing it never covers an existing control.
 - The server owns the ladder (it knows positions, time stuck and bindings). A `toast` carries `text`, an optional `sketch` (`drill`, `landing`, `shovel`) the phone draws faintly on the pad, and `ghost` only in step 3.
+- **Pace check:** a regular player who follows each hint as it appears and needs about 12 s to add a button finishes in about 2:30 (fly 25 s, DRILL gate 45 s, planet 10 s, LAND gate 30 s, explorer 10 s, walk 10 s, DIG gate 30 s). Tune the stuck timers, not the riddles, if playtests run long.
 
-### Round clock: about 2:00 for a player who knows the route, 4 to 5 minutes for anyone
+### Round clock: about 2:00 if you know the route, about 3:00 for a regular person, 4 to 5 minutes at worst
 Before the clock: a **20 s lobby** to draw your ship and controller (defaults if you skip).
 
 | Clock | Stage | Budget |
@@ -148,8 +149,8 @@ Before the clock: a **20 s lobby** to draw your ship and controller (defaults if
 | 0:45–1:10 | Fly to the planet, add LAND, land | 25 s |
 | 1:10–1:25 | Draw your explorer (15 s timer, default if skipped) | 15 s |
 | 1:25–1:50 | Walk to an X, add DIG, dig up the chest | 25 s |
-| 3:00 | **Assists on** (phase `assists`): the boss loses its armour, the buried chests come up and glow, and hints may finally name the button (step 3) | |
-| No cap | The round ends only when someone collects a chest; a weak player finishes in 4 to 5 minutes | |
+| 3:00 | **Assists on** (phase `assists`): the boss loses its armour, the buried chests come up and glow, and every hint jumps straight to step 3 | |
+| No cap | The round ends only when someone collects a chest; a regular person finishes in about 3 minutes, a weak player in 4 to 5 | |
 
 - After a win: an 8 s scoreboard, then a new round. Everyone keeps their drawings.
 - **Tuning targets, to verify in playtests:** the boss about 300 m from spawn; one player cracks its armour in about 5 s of drilling; the planet appears within about 150 m of the boss; the landing spot is within 40 m of the nearest chest.
@@ -374,7 +375,7 @@ Steps 0 and 1 are done by everyone together. After that each lane works on its s
 | **5. Phone controller** | Phone | Join with a name, draw on a canvas, **Done** → upload. Dashed tap areas, real analog sticks, a tilt toggle. The phone renders its own ship (chase by default, cockpit toggle), with the drawing semi-transparent on top and the HUD along the top (section 4, Look and HUD) | `controller.html` | Using a hand-written layout JSON, a phone flies its ship and sees its own view. With `--bots 8`, an iPhone's samples in `perf.log` average 55 fps or more with a 1% low of 30 or more |
 | **6. Astra: controllers** | Astra | `POST /generate` for controllers: speculative calls, abort, cache by hash, add-a-button mode, checks, "generating…" and "try again" states | `astra.js`, `server.js` | Draw arrows plus FIRE, and working buttons appear in under 3 s. Adding a LAND button mid-round takes under 5 s. Bad model output is rejected cleanly |
 | **7. Open world and boss** | Netcode & sim, World & render | Stone and crystal rocks, PvP with health and respawn, the scoring table, the armoured boss with DRILL, boss attacks, FLARE and SCAN as abilities | `world.js`, `render.js` | One player alone reaches, cracks and destroys the boss by about 0:45; points match the scoring table |
-| **8. Planet and island** | Netcode & sim, World & render, Phone | Planet with LAND, a 15 s prompt to draw your explorer (default if skipped), the island scene, chests and DIG, takeoff, assists | `terrain.js`, `world.js`, `render.js`, `controller.html` | A player lands, digs up a chest and the round ends. A scripted solo player who boosts and knows the route finishes in about 2:00; a scripted weak player (no boost, wrong decoys first, hints needed) finishes in 4 to 5 minutes. Assists fire at 3:00 |
+| **8. Planet and island** | Netcode & sim, World & render, Phone | Planet with LAND, a 15 s prompt to draw your explorer (default if skipped), the island scene, chests and DIG, takeoff, assists | `terrain.js`, `world.js`, `render.js`, `controller.html` | A player lands, digs up a chest and the round ends. A scripted solo player who boosts and knows the route finishes in about 2:00; a scripted regular player (no boost, acts on each hint as it appears, 12 s per button) finishes within 3:00; a scripted weak player finishes in 4 to 5 minutes. Assists fire at 3:00 |
 | **9. Drawn entities** | Astra, Phone, World & render | Entity call (type, joints, parts on sockets, verbs). Inflate or extrude on the device. Rigs for ship and person first, then car and quadruped. Generic binding with re-bind on every switch. Photo of the drawing by default. Selfie on the head socket | `astra.js`, `rigs.js`, `render.js`, `controller.html` | A drawn ship with wings and a drill gets `fly` and `drill` and looks like the drawing. Landing re-binds the same controller in under 5 ms, with greyed controls and hints |
 | **10. Polish** | All | The other 6 rig types, the graphics pass (section 4) within the iPhone budget, sound, and round twists only if rounds still feel short, HTTPS for tilt and camera | all | Runs smoothly with 8 players: 60 fps on the big screen and on an iPhone 12, 30 fps or better on an iPhone XR, all read from `perf.log`. Expert solo round about 2:00, weak player 4 to 5 minutes |
 

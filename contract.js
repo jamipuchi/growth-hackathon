@@ -100,8 +100,8 @@
    * announce   { type, text, big }                                       // kill feed, boss down, winner
    * toast      { type, player, text, sketch, ghost }                     // one player only. Hints are riddles first:
    *                                                                      // sketch: null | "drill"|"landing"|"shovel", drawn faintly
-   *                                                                      // on the pad; ghost: null | { action, x, y, w, h }, only
-   *                                                                      // once assists are on (PLAN.md section 4, Hints)
+   *                                                                      // on the pad; ghost: null | { action, x, y, w, h }, only in
+   *                                                                      // the last step (PLAN.md section 4, Hints)
    * generated  { type, player, kind, layout }                            // a controller layout is ready
    *
    * Phone → server:
