@@ -9,3 +9,4 @@ note.txt
 perf.log
 .playwright-cli/
 .orch/
+.orch-certs/
