@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Space Party</title>
+<link rel="icon" href="data:,">
 <style>
   :root { --cyan: #67e8f9; --cyan2: #22d3ee; --red: #ef4444; --orange: #f97316; --ink: #e2e8f0; --dim: #94a3b8; }
   * { box-sizing: border-box; margin: 0; }
@@ -54,7 +55,8 @@
   #banner.show { opacity: 1; transform: none; }
   #banner div { display: inline-block; padding: 14px 40px; font-size: clamp(18px, 2.4vw, 38px); color: #fff; background: linear-gradient(90deg, transparent, rgba(124,58,237,.45), transparent); }
   #banner.small div { font-size: clamp(14px, 1.4vw, 22px); }
-  #feed { position: absolute; right: 26px; top: 90px; width: 320px; text-align: right; }
+  #feed { position: absolute; right: 26px; top: 300px; width: 320px; text-align: right; }
+  #hud .bse-feed { top: 96px; max-width: 46vw; }
   #feed div { font-size: 13px; color: #e2e8f0; margin-bottom: 5px; text-shadow: 0 1px 4px #000; animation: fade 6s forwards; }
   #feed b { color: var(--cyan); text-transform: uppercase; letter-spacing: .08em; }
   @keyframes fade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
@@ -64,6 +66,8 @@
   .panel.show { display: grid; }
   .panel .inner { text-align: center; }
   #lobby .join { font-size: clamp(56px, 8vw, 120px); font-weight: 800; letter-spacing: .3em; color: #fff; text-shadow: 0 0 30px rgba(167,139,250,.8); }
+  #qr { margin-top: 16px; }
+  #qr:empty { display: none; }
   #lobby .url { margin-top: 8px; font: 600 clamp(18px, 2vw, 30px) ui-monospace, Menlo, monospace; color: var(--cyan); }
   #lobby .hint { margin-top: 10px; font-size: 13px; color: var(--dim); letter-spacing: .14em; }
   #lobby .count { margin-top: 26px; font-size: clamp(40px, 5vw, 72px); font-weight: 800; color: #fde68a; font-variant-numeric: tabular-nums; }
@@ -106,6 +110,7 @@
   <div id="banner"><div class="caps glow" id="bannerText"></div></div>
   <div id="lobby" class="panel"><div class="inner">
     <div class="join">JOIN</div>
+    <div id="qr"></div>
     <div class="url" id="joinUrl"></div>
     <div class="hint caps">Open it on your phone · draw your controller · tap ready</div>
     <div class="plist" id="lobbyPlayers"></div>
@@ -120,14 +125,34 @@
 </div>
 <script type="module">
 import { startGame } from "./render.js";
+// Big-screen extras: join QR, kill feed, name tags with health bars. The screen still works without them.
+const BX = await import("./bigscreen-extras.js").catch((e) => (console.warn("bigscreen-extras.js unavailable", e), null));
 
 const $ = (id) => document.getElementById(id);
 const hex = (c) => "#" + (c >>> 0).toString(16).padStart(6, "0");
 const game = startGame({ canvas: $("c"), screen: "big", view: "spectator" });
 window.__game = game; // for dev tests
 
-const host = /^(localhost|127\.)/.test(location.hostname) ? `<laptop-ip>:${location.port || 8000}` : location.host;
-$("joinUrl").textContent = `http://${host}/controller.html`;
+// Join URL: this page's own host (open the big screen at http://<LAN-IP>:<port>/space.html; server.js prints it).
+// ?join=<url> overrides it, e.g. the HTTPS one (https://<LAN-IP>:8443/controller.html) for tilt and the camera.
+const params = new URLSearchParams(location.search);
+const local = /^(localhost|127\.|\[?::1)/.test(location.hostname);
+const joinUrl = params.get("join") || `${location.protocol}//${location.host}/controller.html`;
+$("joinUrl").textContent = local && !params.get("join") ? `http://<laptop-ip>:${location.port || 8000}/controller.html` : joinUrl.replace(/^https?:\/\//, "");
+if (BX && (!local || params.get("join"))) BX.createJoinQR($("qr"), joinUrl, { size: 200 });
+
+// Kill feed (top right) in the colour of the player the line starts with; name tags projected every frame.
+const killFeed = BX ? BX.createKillFeed($("hud")) : null;
+const nameTags = BX ? BX.createNameTags($("hud"), { max: 12, offset: 6 }) : null;
+if (nameTags) game.on("frame", () => nameTags.update(game.projectPlayers()));
+let lastPlayers = [];
+game.on("tick", (m) => (lastPlayers = m.players));
+function leadColour(text) {
+  const low = String(text).toLowerCase();
+  let best = null, at = Infinity;
+  for (const p of lastPlayers) { const i = low.indexOf(p.name.toLowerCase()); if (i >= 0 && (i < at || (i === at && p.name.length > best.name.length))) { at = i; best = p; } }
+  return best ? hex(best.color) : "#9fd8ff";
+}
 
 // ---- HUD ----
 const radar = $("radar"), rg = radar.getContext("2d");
@@ -220,9 +245,10 @@ game.on("announce", (m) => {
   $("banner").className = m.big ? "show" : "show small";
   clearTimeout(bannerTimer);
   bannerTimer = setTimeout(() => ($("banner").className = m.big ? "" : "small"), m.big ? 3500 : 2500);
-  feed(m.text);
+  if (killFeed) killFeed.push(m.text, leadColour(m.text)); else feed(m.text);
 });
-game.on("toast", (m) => feed(`<b>${m.player}</b> ${m.text}`, true));
+// Hints are for one phone; the big screen only shows the ones with words (no sketch-only steps).
+game.on("toast", (m) => { if (m.text) feed(`<b>${m.player}</b> ${m.text}`, true); });
 function feed(html, raw) {
   const d = document.createElement("div");
   if (raw) d.innerHTML = html; else d.textContent = html;

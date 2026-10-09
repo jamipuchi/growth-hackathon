@@ -1,0 +1,232 @@
+{
+  "mode": "full",
+  "route": "expert",
+  "bots": 8,
+  "port": 8120,
+  "measuredAt": "2026-10-09T21:48:07.051Z",
+  "wallSeconds": 33.6,
+  "roundSeconds": 28.6,
+  "roundClock": 27.77,
+  "winner": "e2e",
+  "pass": true,
+  "gates": {
+    "won": true,
+    "noConsoleErrors": true,
+    "phonePerf": true
+  },
+  "stages": {
+    "playing": {
+      "t": 0,
+      "clock": 0.03
+    },
+    "nebula": {
+      "t": 2.96,
+      "clock": 2.9
+    },
+    "flare": {
+      "t": 2.96,
+      "clock": 2.9
+    },
+    "button-drill": {
+      "t": 3.33,
+      "clock": 3.23,
+      "ms": 303,
+      "actions": [
+        "land"
+      ]
+    },
+    "scan": {
+      "t": 3.97,
+      "clock": 3.87
+    },
+    "boss": {
+      "t": 3.97,
+      "clock": 3.87
+    },
+    "drilling": {
+      "t": 6.47,
+      "clock": 6.3
+    },
+    "cracked": {
+      "t": 11.59,
+      "clock": 11.23
+    },
+    "bossDown": {
+      "t": 14.83,
+      "clock": 14.43
+    },
+    "button-land": {
+      "t": 18.18,
+      "clock": 17.63,
+      "ms": 304,
+      "actions": [
+        "land"
+      ]
+    },
+    "planet": {
+      "t": 19.56,
+      "clock": 19.03
+    },
+    "land-pressed": {
+      "t": 20.57,
+      "clock": 20
+    },
+    "landed": {
+      "t": 23.68,
+      "clock": 23.03
+    },
+    "explorer": {
+      "t": 25,
+      "clock": 24.3,
+      "choice": "default"
+    },
+    "chest": {
+      "t": 25.77,
+      "clock": 25.1,
+      "id": 2
+    },
+    "button-dig": {
+      "t": 27.02,
+      "clock": 26.27,
+      "ms": 302,
+      "actions": [
+        "land"
+      ]
+    },
+    "digging": {
+      "t": 27.06,
+      "clock": 26.33
+    },
+    "won": {
+      "t": 28.6,
+      "clock": 27.77,
+      "text": "🏆 e2e found the treasure and wins round 1!"
+    }
+  },
+  "generates": [
+    {
+      "gate": "drill",
+      "ok": true,
+      "ms": 303,
+      "status": 200,
+      "actions": [
+        "land"
+      ],
+      "drawingsLeft": {
+        "space": 4,
+        "planet": 5
+      }
+    },
+    {
+      "gate": "land",
+      "ok": true,
+      "ms": 304,
+      "status": 200,
+      "actions": [
+        "land"
+      ],
+      "drawingsLeft": {
+        "space": 3,
+        "planet": 5
+      }
+    },
+    {
+      "gate": "dig",
+      "ok": true,
+      "ms": 302,
+      "status": 200,
+      "actions": [
+        "land"
+      ],
+      "drawingsLeft": {
+        "space": 3,
+        "planet": 4
+      }
+    }
+  ],
+  "deaths": 0,
+  "ticks": 476,
+  "invalidMessages": {
+    "world": 0,
+    "tick": 0
+  },
+  "announces": [
+    {
+      "t": 0,
+      "text": "Round 1: REACH THE BOSS",
+      "big": true
+    },
+    {
+      "t": 11.59,
+      "text": "e2e cracked the boss's armour! DESTROY THE BOSS",
+      "big": false
+    },
+    {
+      "t": 14.79,
+      "text": "💥 e2e destroyed the boss! LAND ON THE PLANET",
+      "big": true
+    },
+    {
+      "t": 23.65,
+      "text": "e2e landed on the planet. DIG UP A CHEST",
+      "big": false
+    },
+    {
+      "t": 28.6,
+      "text": "🏆 e2e found the treasure and wins round 1!",
+      "big": true
+    }
+  ],
+  "issues": [
+    "mock /generate for drill returned land (astra mockLayout always answers LAND); inputs still sent",
+    "mock /generate for dig returned land (astra mockLayout always answers LAND); inputs still sent"
+  ],
+  "readyVia": "tap",
+  "toasts": [
+    {
+      "t": 9.87,
+      "text": "Too tough to shoot through. What breaks rock?",
+      "sketch": null,
+      "ghost": null
+    }
+  ],
+  "perf": {
+    "source": "perf.log",
+    "phone": {
+      "samples": 6,
+      "fps": 59.9,
+      "fpsMin": 59.2,
+      "low1": 44.5,
+      "low1Min": 23.1,
+      "p90ms": 18.6,
+      "calls": 31.6,
+      "callsMax": 43,
+      "tris": 55625,
+      "trisMax": 59030,
+      "tier": 5,
+      "size": "844x390@1",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Apple",
+      "contractErrors": []
+    },
+    "big": {
+      "samples": 6,
+      "fps": 119.4,
+      "fpsMin": 117.7,
+      "low1": 83.3,
+      "low1Min": 45.7,
+      "p90ms": 10,
+      "calls": 38,
+      "callsMax": 49,
+      "tris": 90419,
+      "trisMax": 147888,
+      "tier": 0,
+      "size": "1440x900@1",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/",
+      "contractErrors": []
+    },
+    "note": "Phone numbers come from WebKit on a desktop Mac emulating an iPhone 13 (844x390 @3x): a proxy only, confirm on a real iPhone."
+  },
+  "consoleErrors": [],
+  "shots": [],
+  "video": null
+}
