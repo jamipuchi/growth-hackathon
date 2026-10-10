@@ -190,7 +190,7 @@
   #bannerText { display: block; font-size: 2.6rem; text-align: center; line-height: 1.05; }
   #bannerBox.big #bannerText { font-size: 3.4rem; }
 
-  /* stings: the big full-screen moments (3-2-1 before START, GO!, BOSS DOWN!, the last 5 seconds). Above the 3D, under the kill feed. */
+  /* stings: the big full-screen moments (the 3-2-1 after START, GO!, BOSS DOWN!, the last 5 seconds). Above the 3D, under the kill feed. */
   #sting { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: .6rem; pointer-events: none; z-index: 32; }
   #sting.on { display: flex; }
   #sting::before { content: ""; position: absolute; left: 50%; top: 50%; width: 120vmax; height: 120vmax; margin: -60vmax 0 0 -60vmax; z-index: -1; opacity: 0;
@@ -455,7 +455,7 @@ const COPY = {
   lobby: {
     round: "ROUND {n}",
     joinTitle: "SCAN TO JOIN",
-    steps: ["SCAN THE CODE", "DRAW YOUR SPACESHIP", "DRAW YOUR CONTROLLER"],
+    steps: ["1 · DRAW YOUR SHIP", "2 · DRAW YOUR CONTROLLER"], // the phone's words (controller.html COPY join.steps); "N · " goes in the gold chip
     localUrl: "http://<laptop-ip>:{port}/controller.html",
     localHint: "To show the join code, open this page at your laptop's network address, not localhost",
     noQr: "Type this address in your phone's browser",
@@ -501,6 +501,7 @@ const COPY = {
     bossDown: "BOSS DOWN!",
     lastHit: "{name} LANDED THE LAST HIT",
     lastHitStolen: "{name} STOLE THE LAST HIT!",
+    topDamage: "{name} DID THE MOST DAMAGE",
     swarm: "THE PLANET IS OPEN",
     firstLanding: "{name} IS FIRST ON THE PLANET!",
     nextRound: "NEW ROUND · SCAN TO JOIN",
@@ -583,8 +584,9 @@ COPY.brand.split(" ").forEach((w, i, all) => {
 $("rosterEmpty").textContent = COPY.lobby.rosterEmpty;
 COPY.lobby.steps.forEach((t, i) => {
   const li = document.createElement("li");
+  const m = /^(\d+)\s*·\s*(.*)$/.exec(t); // "1 · DRAW YOUR SHIP": the number in the chip, the words next to it
   li.className = "step sk navy";
-  li.innerHTML = `<span class="n sk gold h dk">${i + 1}</span><span class="t h">${esc(t)}</span>`;
+  li.innerHTML = `<span class="n sk gold h dk">${m ? m[1] : i + 1}</span><span class="t h">${esc(m ? m[2] : t)}</span>`;
   $("steps").appendChild(li);
 });
 
@@ -592,7 +594,8 @@ const game = R.startGame({ canvas: $("c"), screen: "big", view: "spectator" });
 window.__game = game; // for dev tests
 
 // ---- sound: render.js plays the game sounds itself (start, win, the last-10-seconds countdown, world effects); this page only
-// unlocks audio on the first click or key (browsers need a gesture), plays its UI sounds (click, pop) and lets M mute ----
+// unlocks audio on the first click or key (browsers need a gesture), plays its UI sounds (click, pop, the 3-2-1 beeps after START)
+// and lets M mute ----
 const getSfx = () => game.sfx || R.sfx || null;
 const sfxPlay = (name, opts) => { try { getSfx()?.play?.(name, opts); } catch (e) { /* sound is optional */ } };
 const sfxUnlock = () => { try { Promise.resolve(getSfx()?.unlock?.()).catch(() => {}); } catch (e) { /* sound is optional */ } };
@@ -710,6 +713,7 @@ game.on("tick", (m) => {
     colours.set(p.name, hex(p.color));
     if (p.flags && p.flags.bot) bots.add(p.name); else bots.delete(p.name);
   }
+  if (!mocked) countdownTick(m);
 });
 
 // ================= LOBBY =================
@@ -721,38 +725,54 @@ function setStartState(s) {
   flag($("startBtn"), "long", s !== "idle");
   flag($("startBtn"), "busy", s === "busy");
 }
+// START posts /start at once. { countdown: true }: the server plays its 3-2-1 first (phase "countdown", v1.3: every phone counts
+// with this screen, see countdownTick); ?nocountdown (tests) asks for none, so play starts at once. An older server ignores it.
+const NO_COUNTDOWN = params.has("nocountdown");
 async function startRound() {
   sfxUnlock();
   sfxPlay("click");
   $("startBtn").blur();
-  if (starting || view !== "lobby") return;
+  if (starting || view !== "lobby" || phase === "countdown") return;
   starting = true;
   setStartState("busy");
-  // 3 · 2 · 1 on the big screen, then the round starts (GO! when the phase flips). Someone else started it meanwhile: stop here.
-  if (!(await preStartCountdown())) { starting = false; if (view === "lobby") setStartState("idle"); return; }
   let next = "busy";
   try {
-    const res = await fetch("/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+    const res = await fetch("/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ countdown: !NO_COUNTDOWN }) });
     next = res.status === 409 ? "already" : res.ok ? "busy" : "error";
   } catch (e) { next = "error"; }
   setStartState(next);
-  if (next !== "busy") hideSting();
-  // The next tick flips the phase and hides the lobby; if it did not (or the call failed), offer START again.
-  setTimeout(() => { starting = false; if (view === "lobby") { setStartState("idle"); hideSting(); } }, next === "busy" ? 3000 : 1800);
+  // The next ticks flip the phase (the 3-2-1, then play hides the lobby); if they did not (or the call failed), offer START
+  // again. Never during the 3-2-1: START stays busy until play starts.
+  setTimeout(() => { starting = false; if (view === "lobby" && phase !== "countdown") setStartState("idle"); }, next === "busy" ? 3000 : 1800);
 }
-// ?nocountdown skips the 3-2-1 (tests); so does reduced motion.
-const NO_COUNTDOWN = params.has("nocountdown");
-function preStartCountdown() {
+// The 3-2-1 is the server's phase "countdown": its ticks carry the seconds left (tick.countdown, whole seconds; else tick.clock,
+// fractional). Each number shows once, over the lobby, with a beep (render.js beeps only the last 10 s of a round and has no
+// 3-2-1). GO! is enterPhase's when play starts: one GO! whether the server counted or not (an older one goes straight to play).
+let cdNum = 0; // the number on screen (0: none)
+function countdownDigit(n) {
+  sting(String(n), { sub: COPY.lobby.getReady, rays: true, dim: true, ms: 0 });
+  sfxPlay("countdown", { volume: 0.7, pitch: n === 1 ? 1.5 : 1 });
+}
+function countdownTick(m) {
+  if (m.phase !== "countdown") {
+    if (cdNum && m.phase === "lobby") hideSting(); // called off: no digit left behind (when play starts, GO! replaces it)
+    cdNum = 0;
+    return;
+  }
+  const n = Number.isFinite(m.countdown) ? m.countdown : Math.ceil(m.clock);
+  if (n >= 1 && n !== cdNum) { cdNum = n; countdownDigit(n); }
+}
+// __bigscreen.countdown(): the same digits locally (no START, no server phase), one a second; resolves true when done, false
+// when the screen left the lobby meanwhile.
+function localCountdown() {
   return new Promise((resolve) => {
-    if (NO_COUNTDOWN || reduceMotion) { resolve(true); return; }
-    let i = 3;
+    let n = 3, seq = -1;
     const step = () => {
-      if (view !== "lobby") { resolve(false); return; } // started elsewhere: GO! (enterPhase) already replaced the digit
-      if (i === 0) { resolve(true); return; }
-      sting(String(i), { sub: COPY.lobby.getReady, rays: true, dim: true, ms: 0 });
-      sfxPlay("countdown", { volume: 0.7, pitch: i === 1 ? 1.5 : 1 }); // the lobby: render.js plays its countdown only in the last 10 s of a round
-      i--;
-      setTimeout(step, 800);
+      if (view !== "lobby") { resolve(false); return; }
+      if (n === 0) { if (seq === stingSeq) hideSting(); resolve(true); return; }
+      countdownDigit(n--);
+      seq = stingSeq;
+      setTimeout(step, 1000);
     };
     step();
   });
@@ -1049,19 +1069,24 @@ function confetti() {
 // ================= phases =================
 function enterPhase(h) {
   phase = h.phase;
-  const next = phase === "lobby" ? "lobby" : phase === "scoreboard" ? "results" : "play";
-  if (next === view) return;
+  // The 3-2-1 (phase "countdown") keeps the lobby on screen: the big digits go over it (countdownTick) and START stays busy.
+  const next = phase === "lobby" || phase === "countdown" ? "lobby" : phase === "scoreboard" ? "results" : "play";
+  if (next === view) { if (view === "lobby" && !starting) setStartState(phase === "countdown" ? "busy" : "idle"); return; }
   const before = view;
   view = next;
   hudEl.dataset.view = next;
   if (nameTags) nameTags.setMode(next === "lobby" ? "lobby" : "play");
   if (next === "lobby") {
-    known = null; infoSig = ""; starting = false; setStartState("idle"); fitJoin(); refreshInfo(); hideSting();
-    if (before === "results") sting(fmt(COPY.lobby.round, { n: h.round || 1 }), { word: true, tone: "blue", sub: COPY.sting.nextRound, rays: true, ms: 1900 }); // results → next round
+    known = null; infoSig = ""; starting = false; fitJoin(); refreshInfo();
+    if (phase === "countdown") setStartState("busy"); // a page opened during the 3-2-1 keeps its digit
+    else {
+      setStartState("idle"); hideSting();
+      if (before === "results") sting(fmt(COPY.lobby.round, { n: h.round || 1 }), { word: true, tone: "blue", sub: COPY.sting.nextRound, rays: true, ms: 1900 }); // results → next round
+    }
   }
   if (next === "play") {
     pipTotal = pipOpen = -1; firstLanded = false; lastFinalSec = 0;
-    if (before === "lobby") goSting(h); // START → 3-2-1 (lobby) → GO!
+    if (before === "lobby") goSting(h); // START → the 3-2-1 (over the lobby) → GO!; an older server: START → GO!
   }
   if (next === "results") { resSig = ""; hideBanner(); hideSting(); confetti(); }
   if (before === "results") $("confetti").textContent = "";
@@ -1074,7 +1099,8 @@ function onHud(h) {
     if (s.bot) bots.add(s.name); else bots.delete(s.name);
   }
   if (h.phase !== phase) enterPhase(h);
-  if (view === "lobby") renderLobby(h);
+  // the 3-2-1: the lobby holds still under the digits (its ticks drop the READY flags); drawn once if the page opens then
+  if (view === "lobby") { if (phase !== "countdown" || !known) renderLobby(h); }
   else if (view === "play") renderPlay(h);
   else if (view === "results") renderResults(h);
 }
@@ -1124,12 +1150,16 @@ function goSting(h) {
   const obj = h.objectiveText || (globalThis.Contract && Contract.OBJECTIVES ? Contract.OBJECTIVES.boss : "");
   sting(COPY.sting.go, { sub: fmt(COPY.sting.goSub, { n: h.round || 1, objective: obj }), rays: true, ms: 1500 });
 }
-// BOSS DOWN! with who landed the last hit (or who stole it); from the announce line, or from the world message as a fallback.
+// BOSS DOWN! with who landed the last hit, who stole it, or who did the most damage when a bot got it; from the announce line,
+// or from the world message as a fallback. world.js: "💥 ana destroyed the boss! +1000. …", "💥 ana stole the boss from bob! …",
+// "💥 The swarm brought the boss down! ana did the most damage: …"; the v1.2 "… landed the last hit on the boss (stolen from …)" still parses.
 function bossDownSting(text) {
   bossStingAt = performance.now();
   let sub = COPY.sting.swarm, gold = false, m;
-  if (text && (m = /([a-z0-9]{1,20}) landed the last hit on the boss \(stolen from [a-z0-9]{1,20}\)/i.exec(text))) { sub = fmt(COPY.sting.lastHitStolen, { name: m[1] }); gold = true; }
-  else if (text && (m = /([a-z0-9]{1,20}) landed the last hit on the boss/i.exec(text))) { sub = fmt(COPY.sting.lastHit, { name: m[1] }); gold = true; }
+  const t = text || "";
+  if ((m = /([a-z0-9]{1,20}) stole the boss from [a-z0-9]{1,20}/i.exec(t) || /([a-z0-9]{1,20}) landed the last hit on the boss \(stolen from [a-z0-9]{1,20}\)/i.exec(t))) { sub = fmt(COPY.sting.lastHitStolen, { name: m[1] }); gold = true; }
+  else if ((m = /([a-z0-9]{1,20}) destroyed the boss/i.exec(t) || /([a-z0-9]{1,20}) landed the last hit on the boss/i.exec(t)) && m[1] !== "Someone") { sub = fmt(COPY.sting.lastHit, { name: m[1] }); gold = true; } // "Someone": no killer known
+  else if ((m = /brought the boss down!? ([a-z0-9]{1,20}) did the most damage/i.exec(t))) { sub = fmt(COPY.sting.topDamage, { name: m[1] }); gold = true; }
   if (view === "play") { hideBanner(); sting(COPY.sting.bossDown, { sub, gold, tone: "red", word: true, rays: true, ms: 2800 }); }
 }
 const cleanText = (t) => String(t).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{2693}\u{2695}-\u{26FF}]\uFE0F?/gu, "").replace(/\s+/g, " ").trim();
@@ -1159,6 +1189,7 @@ function onAnnounce(m) {
   let text = cleanText(raw);
   let plain = false;
   for (const [re, nice] of COPY.rewrite) if (re.test(text)) { text = nice; plain = true; }
+  if (/^round \d+ starts in\b/i.test(text)) return; // "Round 2 starts in 3…": the big 3-2-1 says it (not even in the feed)
   if (killFeed) {
     // a kill between two filler players is a small dim line that the feed drops first
     const names = namesIn(text);
@@ -1168,7 +1199,7 @@ function onAnnounce(m) {
   // The results screen names the winner better: no banner for the round-end line.
   if (m.big && /wins round|nobody scored/i.test(text)) return;
   if (/^round \d+\b/i.test(text)) return; // the GO! sting says it
-  if (/last hit on the boss|brought the boss down/i.test(text)) { bossDownSting(text); return; }
+  if (/destroyed the boss|stole the boss from|last hit on the boss|brought the boss down/i.test(text)) { bossDownSting(text); return; }
   const land = /^([a-z0-9]{1,20}) landed on the planet/i.exec(text);
   if (land) { // only the first landing of the round is a moment; the others stay in the feed
     if (firstLanded) return;
@@ -1229,7 +1260,7 @@ addEventListener("blur", () => Object.values(KEYMAP).forEach((a) => joined && po
 // window.__bigscreen.mock("lobby" | "play" | "results", { players: 8, bots: 0, left: 187, assists: false, reason: "time" | "chests",
 // noRounds: true, nobody: true, me: 1, dead: true, crowd: true (every ship in a small cluster), planet: true (boss down, planet map) }) shows that
 // screen with made-up players; mock(null) (or unmock()) goes back to the live game. __bigscreen.feed(text) pushes an announce line (kill feed +
-// banner) as if the server had sent it. __bigscreen.sting(text, opts) shows a sting; __bigscreen.countdown() plays the 3-2-1 (no START).
+// banner) as if the server had sent it. __bigscreen.sting(text, opts) shows a sting; __bigscreen.countdown() plays the 3-2-1 digits (no START, in the lobby).
 // URL shortcut: space.html?mock=results&players=25 (also &bots=N &dead &crowd &nobody &planet &reason=chests &me=i &left=s)
 const MOCK_NAMES = ["ana", "ben", "carla", "dani", "eli", "fran", "gina", "hugo", "ivan", "julia", "kai", "lara", "marc", "nora", "omar", "pau", "quim", "rita", "sam", "tina", "uri", "vera", "wes", "xavi", "yara"];
 function buildMock(kind, o) {
@@ -1299,7 +1330,7 @@ window.__bigscreen = {
   feed(text, big = false) { onAnnounce({ type: "announce", text: String(text), big: !!big }); },
   joinUrl: () => joinShown, // the address the join code shows
   sting: (text, o) => sting(text, o || {}),
-  countdown: () => preStartCountdown(),
+  countdown: () => localCountdown(), // the server phase's 3-2-1 digits, played here (no START)
   followed: () => followed, // the player the director follows (from hud.followed)
 };
 if (params.get("mock")) {

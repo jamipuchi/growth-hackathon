@@ -14,11 +14,16 @@
 //     onSwap(permutation) at the start, onSwap(null) at the restore, so a page that hit-tests by layout can remap.
 //     A second emp() on the same element restarts the timer. `until` is a Date.now() timestamp.
 //     Parent-side overlay on top (the frame cannot block it): scanlines, RGB tears, arcs, a countdown label.
-//   inkBomb(screenEl, { seconds = 4, seed, splats = 3, onClear, hint = true })  → { done, cancel, coverage() }
-//     hint: an "INK! WIPE IT OFF WITH YOUR FINGER" toast for the first 2.6 s
-//     Opaque glossy ink; wipe it with a finger. A grid of transparent blocker cells ([data-ink-cell]) catches the
-//     touches (the controller below may be a cross-origin frame), a cell stops blocking once it is wiped (coverage
-//     < 0.18). Gone when coverage < 0.12 or after `seconds`: onClear({ wiped, ms }).
+//   inkBomb(screenEl, { seconds = 10, seed, splats = 3, onClear, hint = true })  → { done, cancel, coverage() }
+//     Opaque glossy ink that stays until the player wipes it off with a finger (PLAN.md section 0); `seconds` is only
+//     the safety net (the server sends 10): over its last 1.5 s (at most 30 % of it) the ink dries out, then it is
+//     gone. A grid of transparent blocker cells ([data-ink-cell]) catches the touches (the controller below may be a
+//     cross-origin frame), a cell stops blocking once it is wiped (coverage < 0.18). Gone when coverage < 0.12 (a
+//     0.38 s fade) or after `seconds`: onClear({ wiped, ms }).
+//     hint: the "WIPE IT!" cue in the middle of the ink ([data-ink-cue], click-through): an "INK!" kicker, the label
+//     on a slanted violet plate, a finger swiping left-right over a double arrow (still under reduced motion). While
+//     a finger is on the ink the hand rests and the label shrinks (the hand is back after 1.8 s without one); the cue
+//     goes once coverage is under 60 % of the start, or when the ink dries or fades.
 //   tractorHit(screenEl, { by, dir = 0, seconds = 1.6 })   dir in radians, 0 = right, PI / 2 = down
 //   mineHit(screenEl, { by, points = -30, stunSeconds = 1.5, shakeEl })
 //   decoyFooled(screenEl, { by, mine = false, victim })    mine: true is the positive "your decoy worked"
@@ -96,6 +101,37 @@ const CSS = `
 .mfx-off .mfx-ink-cell{pointer-events:none!important}
 .mfx-ink-flash{background:radial-gradient(ellipse at 50% 50%,rgba(200,160,255,.5),rgba(60,20,140,0) 72%);opacity:0;animation:mfx-iflash .24s ease-out both}
 @keyframes mfx-iflash{0%{opacity:1}100%{opacity:0}}
+.mfx-ink-cue{display:flex;align-items:center;justify-content:center;pointer-events:none!important;font-size:clamp(34px,11.5vmin,68px);
+  font-family:var(--f-head,${FONT});font-weight:900;font-style:italic;line-height:1;text-transform:uppercase;white-space:nowrap;color:#fff}
+.mfx-ink-cue *{pointer-events:none!important}
+.mfx-ink-cue-s{transition:transform .25s cubic-bezier(.2,.8,.3,1),opacity .22s ease-out}
+.mfx-ink-cue-pop{display:flex;flex-direction:column;align-items:center;padding-bottom:1.6em;animation:mfx-ink-pop .42s cubic-bezier(.26,1.5,.48,1) .15s both}
+.mfx-ink-cue-k{position:relative;z-index:1;isolation:isolate;margin-bottom:-.12em;padding:.16em .55em .12em;font-size:.4em;letter-spacing:.08em;${STROKE(4)};transform:rotate(-4deg)}
+.mfx-ink-cue-k::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:.22em;transform:skewX(-9deg);border:3px solid ${INK};
+  background:linear-gradient(180deg,#ffe58a 0%,#ffcb3d 45%,#ffb000 100%);box-shadow:0 3px 0 ${HARD}}
+.mfx-ink-cue-p{position:relative;isolation:isolate;padding:.14em .5em .1em;letter-spacing:.04em;-webkit-text-stroke:.13em ${INK};paint-order:stroke fill;
+  text-shadow:0 .06em 0 rgb(10 6 30 / .55);animation:mfx-ink-pulse .8s ease-in-out .6s infinite alternate}
+.mfx-ink-cue-p::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:.16em;transform:skewX(-9deg);border:4px solid #ffcb3d;
+  background:linear-gradient(180deg,#d49bff 0%,#9d4dff 48%,#5a1bc4 100%);box-shadow:0 0 0 3px ${INK},0 7px 0 ${HARD},0 12px 24px rgba(0,0,0,.5),inset 0 4px 0 rgba(255,255,255,.3)}
+.mfx-ink-trail{position:absolute;left:50%;top:100%;width:3.6em;height:.6em;margin:-.3em 0 0 -1.8em;opacity:.3;animation:mfx-ink-trail 1.1s ease-in-out infinite}
+.mfx-ink-hand{position:absolute;left:50%;top:100%;width:1.2em;height:1.63em;margin-left:-.46em;transform-origin:38% 4%;transition:opacity .2s;
+  animation:mfx-ink-swipe 1.1s ease-in-out infinite alternate}
+.mfx-ink-trail svg,.mfx-ink-hand svg{display:block;width:100%;height:100%;overflow:visible}
+.mfx-ink-hand svg{filter:drop-shadow(0 3px 0 rgb(10 6 30 / .45))}
+.mfx-rm .mfx-ink-cue-pop{animation:mfx-ink-in .25s ease-out .1s both}
+.mfx-rm .mfx-ink-cue-p,.mfx-rm .mfx-ink-trail,.mfx-rm .mfx-ink-hand{animation:none}
+.mfx-rm .mfx-ink-trail{opacity:.9}
+.mfx-rm .mfx-ink-cue-s{transition:opacity .22s ease-out}
+.mfx-ink-wiping .mfx-ink-cue-s{transform:scale(.72)}
+.mfx-ink-wiping .mfx-ink-hand{opacity:0;animation-play-state:paused}
+.mfx-ink-wiping .mfx-ink-trail{animation:none;opacity:0}
+.mfx-ink-wiping .mfx-ink-cue-p{animation-play-state:paused}
+.mfx-ink-cue-out .mfx-ink-cue-s{opacity:0;transform:scale(.5)}
+@keyframes mfx-ink-pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+@keyframes mfx-ink-in{from{opacity:0}to{opacity:1}}
+@keyframes mfx-ink-pulse{from{transform:scale(1)}to{transform:scale(1.05)}}
+@keyframes mfx-ink-trail{0%,100%{opacity:.25}50%{opacity:.9}}
+@keyframes mfx-ink-swipe{from{transform:translateX(-1.45em) rotate(-12deg)}to{transform:translateX(1.45em) rotate(12deg)}}
 
 .mfx-tr{animation:mfx-env var(--s,1.6s) linear both}
 .mfx-tr-stage{position:absolute;left:50%;top:50%}
@@ -798,6 +834,9 @@ const BRUSH = { r: 0.07, a: 0.28, space: 0.22 }; // radius (of the shorter side)
 const GRID = { cols: 48, rows: 24, bx: 12, by: 6 }; // coverage samples, blocker cells
 const OPEN_BELOW = 0.18; // a blocker cell lets touches through when its coverage average is under this
 const CLEAR_BELOW = 0.12; // the whole bomb ends when total coverage is under this
+const CUE_BELOW = 0.6; // the "WIPE IT!" cue goes once the coverage is under this share of what the bomb started with
+const CUE_IDLE_MS = 1800; // no finger on the ink for this long: the swiping hand comes back
+const DRY_MS = 1500; // the safety fade: the ink dries out over the last 1.5 s of `seconds` (at most 30 % of it)
 
 // brush falloff 0..1 from the centre to the edge (the canvas brush sprite uses the same stops)
 const brushAt = (u) => (u >= 1 ? 0 : u <= 0.55 ? 1 - 0.2 * (u / 0.55) : 0.8 * (1 - (u - 0.55) / 0.45));
@@ -1041,6 +1080,31 @@ function makeBrush(R, dpr) {
   return c;
 }
 
+// The "WIPE IT!" cue (PLAN.md section 0: every screen answers "what do I do now?"), drawn on the ink itself: an
+// "INK!" kicker, the label on a slanted violet plate and, along its bottom edge, a double arrow with a pointing hand
+// (fingertip on the arrow) that swipes left-right. Constant markup only; it never takes a touch.
+const HAND_SVG =
+  '<svg viewBox="0 0 56 76" aria-hidden="true"><g fill="#fff" stroke="' + INK + '" stroke-width="3.6" stroke-linejoin="round">' +
+  '<rect x="13" y="60" width="32" height="13" rx="3" fill="#ffcb3d"/><rect x="9" y="30" width="40" height="36" rx="13"/>' +
+  '<rect x="42" y="32" width="9" height="15" rx="4.5"/><rect x="35" y="28" width="10" height="17" rx="5"/><rect x="26" y="25" width="11" height="19" rx="5.5"/>' +
+  '<rect x="3" y="38" width="13" height="22" rx="6.5" transform="rotate(24 9.5 49)"/><rect x="15" y="3" width="13" height="42" rx="6.5"/></g></svg>';
+const ARROW_D = "M10 10H110M22 2.5 10 10l12 7.5M98 2.5l12 7.5-12 7.5";
+const ARROW_SVG =
+  '<svg viewBox="0 0 120 20" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="' + ARROW_D + '" stroke="' + INK + '" stroke-width="7"/><path d="' + ARROW_D + '" stroke="#fff" stroke-width="3.4"/></svg>';
+
+function buildCue(root) {
+  const cue = div("mfx-fill mfx-ink-cue", root);
+  cue.setAttribute("data-ink-cue", "");
+  const pop = div("mfx-ink-cue-pop", div("mfx-ink-cue-s", cue));
+  div("mfx-ink-cue-k", pop).textContent = "INK!";
+  const plate = div("mfx-ink-cue-p", pop);
+  plate.textContent = "WIPE IT!";
+  div("mfx-ink-trail", plate).innerHTML = ARROW_SVG;
+  div("mfx-ink-hand", plate).innerHTML = HAND_SVG;
+  return cue;
+}
+
 const inkRuns = new WeakMap(); // host → the bomb on it (a new one replaces the old)
 
 export function inkBomb(screenEl, opts) {
@@ -1053,14 +1117,9 @@ export function inkBomb(screenEl, opts) {
     fx.on(() => {
       if (inkRuns.get(host) === fx) inkRuns.delete(host);
     });
-    const seconds = clampN(o.seconds, 0.3, 30, 4);
+    const seconds = clampN(o.seconds, 0.3, 30, 10); // the safety net: the ink stays until wiped, at most this long
     const rnd = rng(o.seed == null ? randSeed() : o.seed);
     const root = layer(fx, host, "mfx-ink", "ink");
-    // Say what to do (PLAN.md section 0: every screen answers "what do I do now?"); it goes with the ink.
-    if (o.hint !== false) {
-      const hint = toast("INK!", { sub: "WIPE IT OFF WITH YOUR FINGER", tone: "violet", seconds: Math.min(2.6, seconds), screenEl: host });
-      fx.on(() => hint.cancel());
-    }
     const { w: W, h: H } = sizeOf(root);
     const field = inkField(W, H, rnd, Math.round(clampN(o.splats, 1, 6, 3)));
     const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -1100,19 +1159,47 @@ export function inkBomb(screenEl, opts) {
     let fading = false;
     let total = field.total();
     fx.handle.coverage = () => total;
+
+    // Say what to do, on the ink, until a good part of it is gone (it replaces the old "INK!" toast: one text only).
+    const cueAt = total * CUE_BELOW;
+    let cue = o.hint === false ? null : buildCue(root);
+    let idle = 0;
+    fx.on(() => clearTimeout(idle));
+    const dropCue = () => {
+      if (!cue) return;
+      const c = cue;
+      cue = null;
+      clearTimeout(idle);
+      c.classList.add("mfx-ink-cue-out");
+      fx.timeout(() => c.remove(), 260);
+    };
+
+    let dry = null; // the drying animation, once the safety fade has begun
     const fade = (wiped) => {
       if (fading) return;
       fading = true;
       const ms = Math.round(performance.now() - t0);
       root.classList.add("mfx-off"); // touches reach the controls again at once
-      fx.anim(root, [{ opacity: 1 }, { opacity: 0 }], { duration: 380, easing: "ease-out", fill: "forwards" });
+      dropCue();
+      const dried = !wiped && !!dry; // the timer ran out: the drying has already taken the ink away
+      if (!dried) {
+        const now = dry ? parseFloat(getComputedStyle(root).opacity) : 1; // wiped while drying: fade on from there
+        fx.anim(root, [{ opacity: now >= 0 && now <= 1 ? now : 1 }, { opacity: 0 }], { duration: 380, easing: "ease-out", fill: "forwards" });
+      }
       if (typeof o.onClear === "function") {
         try {
           o.onClear({ wiped, ms });
         } catch (e) {}
       }
-      fx.timeout(() => fx.end({ wiped, ms }), 390);
+      fx.timeout(() => fx.end({ wiped, ms }), dried ? 40 : 390);
     };
+    // the safety net: nobody wiped it, so the ink dries out (slowly, still wipeable) and is gone at `seconds`
+    const dryMs = Math.round(Math.min(DRY_MS, seconds * 300));
+    fx.timeout(() => {
+      if (fading) return;
+      dropCue();
+      dry = fx.anim(root, [{ opacity: 1 }, { opacity: 0 }], { duration: dryMs, easing: "cubic-bezier(.45,0,.75,1)", fill: "forwards" });
+    }, seconds * 1000 - dryMs);
     fx.timeout(() => fade(false), seconds * 1000);
 
     // after every wipe event: open the cells that are clean enough, then check the total
@@ -1124,6 +1211,7 @@ export function inkBomb(screenEl, opts) {
         }
       }
       total = field.total();
+      if (cue && total < cueAt) dropCue();
       if (total < CLEAR_BELOW) fade(true);
     };
 
@@ -1146,6 +1234,10 @@ export function inkBomb(screenEl, opts) {
       try {
         t.setPointerCapture(e.pointerId); // a mouse or pen keeps wiping across cells (touch is captured already)
       } catch (err) {}
+      if (cue) {
+        clearTimeout(idle); // wiping: the hand rests, the label shrinks
+        cue.classList.add("mfx-ink-wiping");
+      }
       paint(tmp.x, tmp.y);
       settle();
     });
@@ -1163,7 +1255,9 @@ export function inkBomb(screenEl, opts) {
       { passive: true }
     );
     const lift = (e) => {
-      wipes.delete(e.pointerId);
+      if (!wipes.delete(e.pointerId) || wipes.size || !cue) return;
+      clearTimeout(idle); // the last finger left the ink: if nobody goes on wiping, show the swipe again
+      idle = setTimeout(() => cue && cue.classList.remove("mfx-ink-wiping"), CUE_IDLE_MS);
     };
     fx.listen(window, "pointerup", lift);
     fx.listen(window, "pointercancel", lift);
@@ -1628,4 +1722,4 @@ function buildShield(fx, host, label) {
 }
 
 // for tests and tuning; not part of the API
-export const __test = { inkField, inkWalk, makeSplats, BRUSH, GRID, OPEN_BELOW, CLEAR_BELOW, rng, hitSpot, angDiff, MAX_HITS, HIT_SAME };
+export const __test = { inkField, inkWalk, makeSplats, BRUSH, GRID, OPEN_BELOW, CLEAR_BELOW, CUE_BELOW, DRY_MS, rng, hitSpot, angDiff, MAX_HITS, HIT_SAME };

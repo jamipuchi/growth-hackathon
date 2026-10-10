@@ -1,6 +1,7 @@
 // Phone extras (v1.3 phone track, Fortnite style, readable over bright scenes): chunky HP / SHIELD / BOOST bars on a dark
 // slanted plate, hand-drawn hint sketches, the drawings-left counter, the radar, and the pencil example sketches of the
-// drawing steps.
+// drawing steps. v1.4: the 3-2-1-GO! countdown, the "draw the missing part" late hint card (with the part sketch at full
+// ink), the iPhone "Add to Home Screen" hint and a Fullscreen helper.
 // No dependencies. update() only writes values that changed, and only touches transform / opacity / textContent / class,
 // so it never forces layout; CSS animates only transform and opacity, and there is no backdrop-filter. Every user-facing
 // string comes in through the `copy` argument (controller.html owns the COPY table); the defaults below only keep the
@@ -8,6 +9,7 @@
 
 const STYLE_ID = "pe-styles";
 const HEAD_FONT = 'var(--f-head,"Barlow Condensed","Avenir Next Condensed","Arial Narrow",Impact,system-ui,sans-serif)';
+const BODY_FONT = 'var(--f-body,"Barlow",-apple-system,"SF Pro Text",system-ui,sans-serif)';
 // What every panel shares: a dark translucent slanted plate (a scrim, so it reads on white sand or a pink nebula)
 // and white text with a dark outline.
 const PLATE = "background:rgb(13 11 46 / .78);border:3px solid #120a2e;box-shadow:0 4px 0 #0a0830";
@@ -79,6 +81,97 @@ const CSS = `
 
 .pe-example{width:100%;height:100%;display:block}
 .pe-example svg{width:100%;height:100%;display:block}
+
+.pe-cd{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vmin;
+  overflow:hidden;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .15s,visibility 0s linear .15s;
+  font-family:${HEAD_FONT};text-align:center}
+.pe-cd.pe-on{opacity:1;visibility:visible;transition:opacity .1s}
+.pe-cd-n{display:block;font-weight:900;font-style:italic;font-size:58vmin;line-height:.8;white-space:nowrap;color:#fff;
+  -webkit-text-stroke:.075em #120a2e;paint-order:stroke fill;text-shadow:0 .045em 0 #ffb000,0 .09em 0 #0a0830;
+  will-change:transform,opacity;animation:pe-cd-pop 1s ease-out both}
+.pe-cd-n.pe-cd-go{font-size:64vmin;color:#ffcb3d;text-shadow:0 .07em 0 #0a0830;animation:pe-cd-go 1.1s cubic-bezier(.2,.9,.3,1.2) both}
+.pe-cd-sub{position:relative;z-index:0;isolation:isolate;display:block;padding:5px 18px 7px;font-weight:900;font-style:italic;
+  font-size:clamp(17px,5.4vmin,30px);line-height:1;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;${OUTLINE}}
+.pe-cd-sub::before{content:"";position:absolute;inset:0;z-index:-1;transform:skewX(-9deg);border-radius:5px;${PLATE}}
+.pe-cd-sub:empty,.pe-cd-going .pe-cd-sub{display:none}
+@keyframes pe-cd-pop{0%{opacity:0;transform:scale(.4)}14%{opacity:1;transform:scale(1.15)}35%{opacity:1;transform:scale(1)}
+  72%{opacity:1;transform:scale(.96);animation-timing-function:ease-in}100%{opacity:.35;transform:scale(.8)}}
+@keyframes pe-cd-go{0%{opacity:0;transform:scale(.4) rotate(-6deg)}20%{opacity:1;transform:scale(1.14) rotate(-6deg)}
+  34%{opacity:1;transform:scale(1) rotate(-6deg)}76%{opacity:1;transform:scale(1.04) rotate(-6deg)}
+  100%{opacity:0;transform:scale(1.45) rotate(-6deg)}}
+
+.pe-late{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;box-sizing:border-box;pointer-events:none;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) calc(env(safe-area-inset-right,0px) + 10px)
+    calc(env(safe-area-inset-bottom,0px) + 12px) calc(env(safe-area-inset-left,0px) + 10px)}
+.pe-late.pe-on{display:flex}
+.pe-late-card{position:relative;z-index:0;isolation:isolate;box-sizing:border-box;width:min(520px,92vw);max-height:100%;display:grid;
+  grid-template-columns:minmax(0,1fr);grid-template-areas:"t" "p" "s" "g" "l";justify-items:center;align-items:center;gap:10px;
+  padding:18px 20px 10px;text-align:center;pointer-events:auto;font-family:${HEAD_FONT};
+  animation:pe-pop .32s cubic-bezier(.2,.9,.3,1.4) both}
+.pe-late-card::before{content:"";position:absolute;inset:0;z-index:-1;transform:skewX(-3deg);border-radius:8px;border:4px solid #120a2e;
+  background:linear-gradient(160deg,rgb(52 38 150 / .95),rgb(16 12 58 / .95));box-shadow:0 7px 0 #0a0830,inset 0 0 0 3px #ffcb3d}
+.pe-late-t{grid-area:t;max-width:100%;font-weight:900;font-style:italic;font-size:clamp(28px,8.8vw,42px);line-height:.95;
+  letter-spacing:.02em;text-transform:uppercase;overflow-wrap:break-word;text-wrap:balance;color:#ffcb3d;
+  -webkit-text-stroke:3.4px #120a2e;paint-order:stroke fill;text-shadow:0 3px 0 rgb(10 6 30 / .55);transform:rotate(-2deg)}
+.pe-late-p{grid-area:p;box-sizing:border-box;width:min(46vw,190px);height:min(46vw,190px);padding:8px;background:#fffdf5;
+  border:3px solid #120a2e;border-radius:12px;box-shadow:0 5px 0 #0a0830;transform:rotate(-3deg)}
+.pe-late-p svg{width:100%;height:100%;display:block}
+.pe-late-p.pe-two{display:flex;gap:4px;width:min(78vw,330px)}
+.pe-late-p.pe-two svg{flex:1 1 0;min-width:0}
+.pe-late-s{grid-area:s;margin:0;max-width:100%;font-weight:800;font-style:italic;font-size:18px;line-height:1.12;letter-spacing:.03em;
+  text-transform:uppercase;text-wrap:balance;${OUTLINE}}
+.pe-late-t:empty,.pe-late-s:empty,.pe-late-p:empty{display:none}
+.pe-late-go,.pe-late-later,.pe-inst-x{-webkit-appearance:none;appearance:none;box-sizing:border-box;margin:0;border:0;background:none;
+  font:inherit;color:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;
+  user-select:none}
+.pe-late-go{grid-area:g;justify-self:stretch;position:relative;z-index:0;isolation:isolate;display:flex;align-items:center;
+  justify-content:center;gap:.35em;min-height:58px;padding:6px 22px;font-family:${HEAD_FONT};font-weight:900;font-style:italic;
+  font-size:26px;line-height:1;letter-spacing:.03em;text-transform:uppercase;text-align:center;color:#120a2e;transition:transform .08s}
+.pe-late-go::before{content:"";position:absolute;inset:0;z-index:-1;transform:skewX(-9deg);border:3px solid #120a2e;border-radius:5px;
+  background:linear-gradient(#ffe58a,#ffcb3d 45%,#ffb000);box-shadow:0 6px 0 #0a0830,inset 0 3px 0 rgb(255 255 255 / .45);
+  transition:box-shadow .08s}
+.pe-late-go:active{transform:scale(.94)}
+.pe-late-go:active::before{box-shadow:0 2px 0 #0a0830,inset 0 3px 0 rgb(255 255 255 / .45)}
+.pe-late-ico{flex:none;width:1em;height:1em}
+.pe-late-ico svg{width:100%;height:100%;display:block;fill:#fff;stroke:#120a2e;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.pe-late-later{grid-area:l;min-height:48px;padding:0 18px;font-family:${HEAD_FONT};font-weight:800;font-style:italic;font-size:18px;
+  line-height:1;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-shadow:0 2px 0 rgb(10 6 30 / .7);text-decoration:underline;
+  text-decoration-thickness:2px;text-underline-offset:4px;text-decoration-color:rgb(255 255 255 / .5)}
+.pe-late-later:active{opacity:.6}
+@keyframes pe-pop{0%{opacity:0;transform:scale(.6)}62%{opacity:1;transform:scale(1.06)}100%{opacity:1;transform:scale(1)}}
+@media (orientation:landscape){
+  .pe-late-card{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"p t t" "p s s" "p g l";justify-items:start;
+    column-gap:16px;row-gap:8px;padding:14px 16px 16px;text-align:left}
+  .pe-late-p{width:min(150px,38vh);height:min(150px,38vh);padding:6px;transform:rotate(-2.5deg)}
+  .pe-late-p.pe-two{width:min(250px,64vh)}
+  .pe-late-t{font-size:clamp(24px,8vh,34px);transform:rotate(-1.5deg);transform-origin:0 50%}
+  .pe-late-s{font-size:16px}
+  .pe-late-go{font-size:23px;min-height:54px;padding:6px 16px}
+  .pe-late-later{justify-self:center;padding:0 12px}
+}
+
+.pe-inst{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);z-index:35;display:none;align-items:center;gap:4px;
+  box-sizing:border-box;width:max-content;max-width:min(520px,calc(100vw - 20px));max-height:72px;padding:4px 4px 4px 16px;
+  pointer-events:auto;isolation:isolate;transform:translateX(-50%);font-family:${BODY_FONT};
+  animation:pe-inst-in .4s cubic-bezier(.2,.9,.3,1.3) both}
+.pe-inst.pe-on{display:flex}
+.pe-inst::before{content:"";position:absolute;inset:0;z-index:-1;transform:skewX(-6deg);border-radius:8px;border:3px solid #120a2e;
+  background:linear-gradient(100deg,#2b7bff,#8a3dff);box-shadow:0 4px 0 #0a0830}
+.pe-inst-txt{flex:1 1 auto;min-width:0;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+  font-weight:700;font-size:15px;line-height:1.2;color:#fff;text-shadow:0 2px 0 rgb(10 6 30 / .6)}
+.pe-inst-share{display:inline-block;width:1.1em;height:1.1em;margin:0 .12em;vertical-align:-.22em}
+.pe-inst-share svg{width:100%;height:100%;display:block;overflow:visible;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;
+  stroke-linejoin:round}
+.pe-inst-x{flex:none;display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:50%}
+.pe-inst-xi{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#120a2e;transition:transform .08s}
+.pe-inst-xi svg{width:11px;height:11px;display:block;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round}
+.pe-inst-x:active .pe-inst-xi{transform:scale(.88)}
+@keyframes pe-inst-in{0%{opacity:0;transform:translate(-50%,130%)}62%{opacity:1;transform:translate(-50%,-8%)}
+  100%{opacity:1;transform:translate(-50%,0)}}
+@media (prefers-reduced-motion:reduce){
+  .pe-cd-n,.pe-cd-n.pe-cd-go,.pe-late-card,.pe-inst{animation:none}
+  .pe-cd-n.pe-cd-go{transform:rotate(-6deg)}
+}
 `;
 
 export function injectStyles() {
@@ -356,6 +449,31 @@ export function createSketchHint(padElement) {
   }
 
   return { show, hide, update: () => {}, destroy: () => (clearTimeout(hideTimer), box.remove()) };
+}
+
+const partCache = {};
+
+// The hint sketch of one part (drill | landing | shovel | gun) at FULL ink, for a paper card: dark graphite pencil lines on
+// transparent, the same viewBox and the very same drawing as the faint hint (same seed, same wobble). Inline attributes, so
+// it needs no CSS (also usable as an <img> data URL). "" for unknown names.
+export function partSketchSvg(name, { stroke = "#2a2a34", width = 4 } = {}) {
+  if (typeof name !== "string" || !Object.prototype.hasOwnProperty.call(STROKES, name)) return "";
+  const w = Number(width) > 0 ? Number(width) : 4;
+  const ink = stroke ? String(stroke) : "#2a2a34";
+  const key = name + "|" + ink + "|" + w;
+  if (partCache[key]) return partCache[key];
+  const rnd = rng(name.length * 977 + name.charCodeAt(0) * 31); // sketchSvg's seed
+  let main = "";
+  let ghost = "";
+  for (const pts of STROKES[name]) {
+    main += '<path d="' + wobble(pts, rnd, 1.6) + '"/>';
+    ghost += '<path d="' + wobble(pts, rnd, 2.4) + '"/>';
+  }
+  return (partCache[key] =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 -4 108 108" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' +
+    '<g fill="none" stroke="' + esc(ink) + '" stroke-linecap="round" stroke-linejoin="round">' +
+    '<g stroke-width="' + f1(w) + '">' + main + "</g>" +
+    '<g stroke-width="' + f1(w * 0.45) + '" opacity=".5">' + ghost + "</g></g></svg>");
 }
 
 // ---------------------------------------------------------------- counter
@@ -886,3 +1004,328 @@ export function exampleSvg(kind, labels = {}) {
     '<g font-family="' + HAND + '" font-weight="400" fill="' + GRAPHITE_TEXT + '">' + words + "</g></svg>"
   );
 }
+
+// ---------------------------------------------------------------- countdown
+
+// copy: { go: "GO!", sub: "" } (sub: an optional small line over the number, e.g. "GET READY")
+// The start countdown: a full-screen, click-through overlay (z-index 30: over the HUD layers 4-9, under the page notice at
+// 40) with a huge outlined number (~42vmin, reads in portrait and landscape). show(n) is idempotent for the same n (call it
+// on every tick); a new n pops in (0.4 → 1.15 → 1 in ~350 ms), then slowly shrinks and fades until the next one. go() pops a
+// bigger gold GO! that fades out by itself after ~1.1 s; hide() fades out at once (the phase jumped) and cancels a GO!.
+// Reduced motion: no scaling, just show / hide.
+export function createCountdown(container, copy = {}) {
+  injectStyles();
+  const T = { go: "GO!", sub: "", ...copy };
+  const root = el("div", "pe-cd", container || document.body);
+  root.setAttribute("aria-hidden", "true");
+  el("span", "pe-cd-sub", root, T.sub || "");
+  let num = el("b", "pe-cd-n", root);
+  let state = 0; // 0 hidden, 1 a number, 2 GO!
+  let cur = "";
+  let timer = 0;
+
+  // a fresh node per number: a new element starts its pop from the first frame (no reflow needed to replay it)
+  function put(text, cls) {
+    const b = el("b", cls, null, text);
+    root.replaceChild(b, num);
+    num = b;
+  }
+
+  function show(n) {
+    if (n == null || n === "" || (typeof n === "number" && !Number.isFinite(n))) return hide();
+    const text = typeof n === "number" ? String(Math.max(0, Math.ceil(n))) : String(n);
+    if (state === 1 && text === cur) return;
+    clearTimeout(timer);
+    state = 1;
+    cur = text;
+    put(text, "pe-cd-n");
+    root.classList.remove("pe-cd-going");
+    root.classList.add("pe-on");
+  }
+
+  function go() {
+    if (state === 2) return; // already popping
+    clearTimeout(timer);
+    state = 2;
+    cur = "";
+    put(T.go, "pe-cd-n pe-cd-go");
+    root.classList.add("pe-on", "pe-cd-going");
+    timer = setTimeout(hide, 1100);
+  }
+
+  function hide() {
+    if (!state) return;
+    clearTimeout(timer);
+    state = 0;
+    cur = "";
+    root.classList.remove("pe-on");
+  }
+
+  return { show, go, hide, destroy: () => (clearTimeout(timer), (state = 0), root.remove()) };
+}
+
+// ---------------------------------------------------------------- late hint
+
+let lateSeq = 0;
+const PENCIL_SVG =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.3 3.7a2.6 2.6 0 0 1 3.9 3.6L8.1 19.4 3 21l1.6-5.1z"/><path d="M14.2 5.8l4 4"/></svg>';
+const str = (v) => (v == null ? "" : String(v));
+
+// copy: { go: "DRAW IT NOW", later: "LATER" }
+// The owner's rule: no free skills at 3:00. A player missing a gate skill gets this big, friendly card: a gold title
+// ("DRAW A SHOVEL"), the part's example sketch on a white paper card, one line ("ON YOUR EXPLORER, THEN TAP DIG"), ONE big gold
+// button that opens the drawing step, and a small LATER. Centred, at most min(520px, 92vw) wide: a column in portrait, the
+// sketch beside the text in landscape (about 190 px tall at 844x390). z-index 20; only the card takes taps. Both buttons close
+// the card first, then call onAction(action) / onLater(). show() while open updates the content in place (no second pop).
+export function createLateHint(container, { copy = {}, onAction, onLater } = {}) {
+  injectStyles();
+  const T = { go: "DRAW IT NOW", later: "LATER", ...copy };
+  const root = el("div", "pe-late", container || document.body);
+  const card = el("div", "pe-late-card", root);
+  const titleEl = el("div", "pe-late-t", card);
+  titleEl.id = "pe-late-t" + ++lateSeq;
+  card.setAttribute("role", "dialog");
+  card.setAttribute("aria-labelledby", titleEl.id);
+  const paper = el("div", "pe-late-p", card);
+  const subEl = el("p", "pe-late-s", card);
+  const goBtn = el("button", "pe-late-go", card);
+  goBtn.type = "button";
+  el("span", "pe-late-ico", goBtn).innerHTML = PENCIL_SVG;
+  const goTxt = el("span", "pe-late-gt", goBtn, T.go);
+  const laterBtn = el("button", "pe-late-later", card, T.later);
+  laterBtn.type = "button";
+  let open = false;
+  let action;
+  let lastTitle = "";
+  let lastSub = "";
+  let lastSketch = "";
+  let lastCta = str(T.go);
+
+  goBtn.addEventListener("click", () => {
+    if (!open) return;
+    const a = action;
+    hide();
+    if (typeof onAction === "function") onAction(a);
+  });
+  laterBtn.addEventListener("click", () => {
+    if (!open) return;
+    hide();
+    if (typeof onLater === "function") onLater();
+  });
+
+  // o: { title, sub, sketch: "drill" | "landing" | "shovel" | "gun", sketches (several parts at once, e.g. ["shovel", "drill"]:
+  // drawn side by side; wins over sketch), action (handed back to onAction), cta (button text) }
+  function show(o) {
+    const { title, sub, sketch, sketches, action: a, cta } = o || {};
+    action = a;
+    const t = str(title);
+    const s = str(sub);
+    const list = (Array.isArray(sketches) && sketches.length ? sketches : [sketch]).map(str).filter((x) => STROKES[x]).slice(0, 2);
+    const k = list.join(",");
+    const c = str(cta) || str(T.go);
+    if (t !== lastTitle) titleEl.textContent = lastTitle = t;
+    if (s !== lastSub) subEl.textContent = lastSub = s;
+    if (k !== lastSketch) {
+      lastSketch = k;
+      paper.innerHTML = list.map((x) => partSketchSvg(x)).join("");
+      paper.classList.toggle("pe-two", list.length > 1);
+    }
+    if (c !== lastCta) goTxt.textContent = lastCta = c;
+    if (open) return;
+    open = true;
+    root.classList.add("pe-on"); // display none → flex: the card's pop-in replays on every open
+  }
+
+  function hide() {
+    if (!open) return;
+    open = false;
+    root.classList.remove("pe-on");
+  }
+
+  return { show, hide, isOpen: () => open, destroy: () => ((open = false), root.remove()) };
+}
+
+// ---------------------------------------------------------------- install hint
+
+// the iOS share icon: a rounded square open at the top, an arrow out of it
+const SHARE_SVG =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 9H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1.5"/>' +
+  '<path d="M12 15V2.8M8.4 6.2L12 2.6l3.6 3.6"/></svg>';
+const CLOSE_SVG = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg>';
+
+// copy: { text: "For full screen: tap {share} Share, then Add to Home Screen", close: "Close" } ({share}: the share icon;
+// close: the ✕ button's label for screen readers)
+// A one-time bottom card for iPhone Safari outside a home-screen app (see Fullscreen.iosSafari()). The caller decides when to
+// show it and stores the "seen" flag; ✕ (a 44 px target) hides it and calls onClose(). z-index 35; only the card takes taps.
+export function createInstallHint(container, { copy = {}, onClose } = {}) {
+  injectStyles();
+  const T = { text: "For full screen: tap {share} Share, then Add to Home Screen", close: "Close", ...copy };
+  const root = el("div", "pe-inst", container || document.body);
+  const txt = el("div", "pe-inst-txt", root);
+  str(T.text)
+    .split("{share}")
+    .forEach((part, i) => {
+      if (i) el("span", "pe-inst-share", txt).innerHTML = SHARE_SVG;
+      if (part) txt.appendChild(document.createTextNode(part));
+    });
+  const x = el("button", "pe-inst-x", root);
+  x.type = "button";
+  x.setAttribute("aria-label", str(T.close));
+  el("i", "pe-inst-xi", x).innerHTML = CLOSE_SVG;
+  let open = false;
+
+  x.addEventListener("click", () => {
+    hide();
+    if (typeof onClose === "function") onClose();
+  });
+
+  function show() {
+    if (open) return;
+    open = true;
+    root.classList.add("pe-on"); // display none → flex: the slide-in replays
+  }
+
+  function hide() {
+    if (!open) return;
+    open = false;
+    root.classList.remove("pe-on");
+  }
+
+  return { show, hide, destroy: () => ((open = false), root.remove()) };
+}
+
+// ---------------------------------------------------------------- fullscreen
+
+const hasDoc = () => typeof document !== "undefined";
+const fsActive = () => hasDoc() && !!(document.fullscreenElement || document.webkitFullscreenElement);
+const uaString = () => (typeof navigator !== "undefined" && navigator.userAgent) || "";
+
+function fsSupported() {
+  if (!hasDoc() || /iPhone|iPod/.test(uaString())) return false; // iPhone browsers (all WebKit) have no element fullscreen
+  const d = document;
+  const e = d.documentElement;
+  if (!e || !(e.requestFullscreen || e.webkitRequestFullscreen)) return false;
+  if (typeof d.fullscreenEnabled === "boolean") return d.fullscreenEnabled;
+  if (typeof d.webkitFullscreenEnabled === "boolean") return d.webkitFullscreenEnabled;
+  return true;
+}
+
+// cb(active) runs when fullscreen turns on or off (a browser firing both the prefixed and the plain event calls it once)
+function fsOnChange(cb) {
+  if (!hasDoc() || typeof cb !== "function") return () => {};
+  let last = fsActive();
+  const h = () => {
+    const a = fsActive();
+    if (a === last) return;
+    last = a;
+    cb(a);
+  };
+  document.addEventListener("fullscreenchange", h);
+  document.addEventListener("webkitfullscreenchange", h);
+  return () => {
+    document.removeEventListener("fullscreenchange", h);
+    document.removeEventListener("webkitfullscreenchange", h);
+  };
+}
+
+// a prefixed request returns nothing: wait for the change (or error) event, at most `ms`
+function fsWhenActive(ms) {
+  return new Promise((resolve) => {
+    if (fsActive()) return resolve(true);
+    let done = false;
+    let timer = 0;
+    let off = null;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      if (off) off();
+      document.removeEventListener("fullscreenerror", finish);
+      document.removeEventListener("webkitfullscreenerror", finish);
+      resolve(fsActive());
+    };
+    off = fsOnChange(finish);
+    document.addEventListener("fullscreenerror", finish);
+    document.addEventListener("webkitfullscreenerror", finish);
+    timer = setTimeout(finish, ms);
+  });
+}
+
+// → Promise<boolean> (true when locked); never rejects (Android Chrome locks in fullscreen; Safari and desktops refuse)
+function lockLandscape() {
+  try {
+    const o = typeof screen !== "undefined" ? screen.orientation : null;
+    if (o && typeof o.lock === "function") return Promise.resolve(o.lock("landscape")).then(() => true, () => false);
+  } catch {
+    // lock() may throw synchronously
+  }
+  return Promise.resolve(false);
+}
+
+// → Promise<boolean> (true when fullscreen is on); never throws or rejects. The request runs synchronously, so call this
+// straight from the tap handler (nothing awaited before it, or the browser refuses). Then it tries the landscape lock.
+function fsRequest(target) {
+  if (!hasDoc()) return Promise.resolve(false);
+  const t = target && (target.requestFullscreen || target.webkitRequestFullscreen) ? target : document.documentElement;
+  let ret;
+  try {
+    if (t && typeof t.requestFullscreen === "function") ret = t.requestFullscreen({ navigationUI: "hide" });
+    else if (t && typeof t.webkitRequestFullscreen === "function") ret = t.webkitRequestFullscreen();
+    else return Promise.resolve(false);
+  } catch {
+    return Promise.resolve(false);
+  }
+  const entered = ret && typeof ret.then === "function" ? ret.then(() => true, () => false) : fsWhenActive(1500);
+  return entered.then(
+    (ok) => {
+      const on = ok || fsActive();
+      if (on) lockLandscape(); // fire and forget, it never rejects
+      return on;
+    },
+    () => false,
+  );
+}
+
+// → Promise<void>; never throws or rejects (a no-op when not in fullscreen)
+function fsExit() {
+  try {
+    if (!fsActive()) return Promise.resolve();
+    const d = document;
+    const r =
+      typeof d.exitFullscreen === "function" ? d.exitFullscreen() : typeof d.webkitExitFullscreen === "function" ? d.webkitExitFullscreen() : null;
+    return Promise.resolve(r).then(() => {}, () => {});
+  } catch {
+    return Promise.resolve();
+  }
+}
+
+// a home-screen web app (or an installed PWA)
+function isStandalone() {
+  try {
+    if (typeof matchMedia === "function" && (matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches)) {
+      return true;
+    }
+  } catch {
+    // no matchMedia
+  }
+  return typeof navigator !== "undefined" && navigator.standalone === true;
+}
+
+// iPhone / iPod / iPad (iPadOS says MacIntel, with touch points) in Safari itself, not in a home-screen app
+function isIosSafari() {
+  if (typeof navigator === "undefined") return false;
+  const ua = uaString();
+  const ios = /iPhone|iPod|iPad/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  return ios && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua) && !isStandalone();
+}
+
+export const Fullscreen = Object.freeze({
+  supported: fsSupported,
+  active: () => fsActive(),
+  request: (target) => fsRequest(target),
+  exit: fsExit,
+  standalone: isStandalone,
+  iosSafari: isIosSafari,
+  lockLandscape,
+  onChange: fsOnChange,
+});

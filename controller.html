@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#0d0b2e">
+<meta name="apple-mobile-web-app-title" content="Space Party">
+<link rel="manifest" href="controller.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
 <title>Space Party</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -92,6 +95,9 @@
     padding: calc(var(--st) + 14px) calc(var(--sr) + 18px) calc(var(--sb) + 14px) calc(var(--sl) + 18px); }
   #join::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgb(255 255 255 / 0.035) 0 22px, transparent 22px 64px); pointer-events: none; }
   .jwrap { position: relative; width: min(420px, 100%); display: flex; flex-direction: column; gap: 16px; }
+  .fsbtn { position: absolute; z-index: 2; top: calc(var(--st) + 10px); right: calc(var(--sr) + 10px); display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 11px;
+    border: 3px solid var(--ink); border-radius: 8px; background: rgb(13 11 46 / 0.85); box-shadow: 0 3px 0 var(--hard); color: #fff; font: 900 italic 15px/1 var(--f-head); letter-spacing: 0.05em; text-transform: uppercase; }
+  .fsbtn:active { transform: scale(0.94); }
   .jleft { display: flex; flex-direction: column; gap: 16px; }
   .logo { text-align: center; line-height: 0.82; transform: rotate(-4deg); margin-bottom: 4px; }
   .logo span { display: block; font: 900 italic 78px/0.86 var(--f-head); text-transform: uppercase; letter-spacing: 0.01em;
@@ -121,63 +127,114 @@
     .steps li { min-height: 56px; font-size: 21px; }
   }
 
-  /* ---- Draw screen: STEP 1 (ship, orange) / STEP 2 (controller, cyan) / explorer / planet controller ---- */
-  #draw { --accent: #ff8a1f; --accent2: #ffb347; --glow: rgb(255 138 31 / 0.5); display: flex; flex-direction: column; gap: 8px;
+  /* ---- Draw screen: STEP 1 (ship, orange) / STEP 2 (controller, cyan) / explorer / planet controller ----
+     v1.4 (owner: "more space for drawing"): the paper (#stage) takes the whole screen but a slim tool rail (<= 56 px) on the right edge,
+     the bottom edge in portrait; the instruction is one line over the paper's top edge (tap it: the example card); the status and the
+     drawings-left counter float over its bottom edge. Both fade while a finger draws, so the whole sheet is paper. */
+  #draw { --accent: #ff8a1f; --accent2: #ffb347; --glow: rgb(255 138 31 / 0.5); --rail: 52px; display: flex; flex-direction: row; gap: 6px;
     background: radial-gradient(ellipse at 50% -10%, #3b2593 0%, #17104f 50%, #0d0b2e 100%);
-    padding: calc(var(--st) + 10px) calc(var(--sr) + 12px) calc(var(--sb) + 8px) calc(var(--sl) + 12px); }
+    padding: calc(var(--st) + 4px) calc(var(--sr) + 4px) calc(var(--sb) + 4px) calc(var(--sl) + 4px); }
   #draw[data-kind="controller"], #draw[data-kind="planetController"] { --accent: #0fb8e8; --accent2: #19d3ff; --glow: rgb(25 211 255 / 0.5); }
-  #draw::after { content: ""; position: fixed; inset: 0; border: 6px solid var(--accent); box-shadow: inset 0 0 30px var(--glow); pointer-events: none; z-index: 6; }
-  .dtop { flex: none; display: flex; align-items: center; gap: 12px; }
-  .dhead { position: relative; z-index: 0; isolation: isolate; flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 7px 18px 8px 12px; }
+  .stagebox { position: relative; flex: 1 1 0; min-width: 0; min-height: 0; border: 3px solid var(--accent); border-radius: 8px; background: rgb(13 11 46 / 0.6);
+    box-shadow: 0 0 18px var(--glow); overflow: hidden; }
+  .padwrap { position: absolute; inset: 0; }
+  #drawPad { position: absolute; touch-action: none; background: #fbf8ef; border-radius: 3px; }
+  #addPad { position: fixed; top: var(--st); left: var(--sl); width: calc(100% - var(--sl) - var(--sr)); height: calc(100% - var(--st) - var(--sb)); touch-action: none; }
+  .padhint { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 56px 18px 40px; pointer-events: none; transition: opacity 0.2s; }
+  .padhint b { font: 900 italic 28px/1 var(--f-head); text-transform: uppercase; letter-spacing: 0.04em; color: rgb(18 10 46 / 0.2); }
+  .padhint i { max-width: 460px; font: 700 15px/1.2 var(--f-body); color: rgb(18 10 46 / 0.4); }
+  .padhint i:empty { display: none; }
+  .padwrap.has-ink .padhint { opacity: 0; }
+  /* the one-line instruction over the top edge of the paper, and SKIP / CANCEL at its end */
+  .dline { position: absolute; z-index: 9; top: 5px; left: 5px; right: 5px; display: flex; align-items: center; gap: 6px; pointer-events: none; transition: opacity 0.25s; }
+  .dline > * { pointer-events: auto; }
+  .dhead { position: relative; z-index: 0; isolation: isolate; flex: 0 1 auto; min-width: 0; max-width: 100%; display: flex; align-items: center; gap: 7px; height: 42px; padding: 0 10px 0 6px; text-align: left; color: #fff; }
   .dhead::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-8deg); background: linear-gradient(90deg, var(--accent), var(--accent2));
-    border: 3px solid var(--ink); border-radius: 5px; box-shadow: 0 5px 0 var(--hard); }
-  .dicon { flex: none; width: 46px; height: 46px; position: relative; perspective: 260px; }
+    border: 3px solid var(--ink); border-radius: 5px; box-shadow: 0 3px 0 var(--hard); }
+  .dhead:active { transform: scale(0.97); }
+  .dicon { flex: none; width: 32px; height: 32px; position: relative; perspective: 260px; }
   .dicon .still { width: 100%; height: 100%; animation: bob 2.4s ease-in-out infinite; }
   .spin3d { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; animation: spin3d 3.4s linear infinite; }
   .spin3d svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: initial; stroke: none; }
-  .dtxt { min-width: 0; line-height: 1; }
-  .dtxt b { display: block; font: 900 italic 22px/1 var(--f-head); text-transform: uppercase; letter-spacing: 0.02em; color: #fff;
-    -webkit-text-stroke: 2.6px var(--ink); paint-order: stroke fill; text-shadow: 0 3px 0 rgb(10 6 30 / 0.45); }
-  .dtxt i { display: block; margin-top: 3px; font: 700 italic 15px/1.1 var(--f-body); color: #fff; text-shadow: 0 2px 0 rgb(10 6 30 / 0.65); }
-  .dbody { flex: 1; min-height: 0; display: flex; gap: 10px; }
-  .guide { flex: 0 0 30%; min-width: 150px; min-height: 0; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
-  .gcol { flex: none; display: flex; flex-direction: column; gap: 2px; min-height: 0; }
-  .example { position: relative; flex: 1 1 90px; min-height: 60px; max-height: 152px; display: flex; align-items: center; justify-content: center; overflow: hidden;
+  .dtxt { min-width: 0; display: flex; align-items: baseline; gap: 8px; padding: 3px 2px; line-height: 1; white-space: nowrap; overflow: hidden; }   /* padding: the outline is not clipped */
+  .dtxt b { flex: none; font: 900 italic 20px/1 var(--f-head); text-transform: uppercase; letter-spacing: 0.02em; color: #fff;
+    -webkit-text-stroke: 2.4px var(--ink); paint-order: stroke fill; text-shadow: 0 2px 0 rgb(10 6 30 / 0.45); }
+  .dtxt i { min-width: 0; overflow: hidden; text-overflow: ellipsis; font: 700 italic 14px/1.1 var(--f-body); color: #fff; text-shadow: 0 1px 0 rgb(10 6 30 / 0.8), 0 0 4px rgb(10 6 30 / 0.5); }
+  .dq { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border: 2.5px solid var(--ink); border-radius: 50%; background: #fff; color: var(--ink);
+    font: 900 italic 16px/1 var(--f-head); box-shadow: 0 2px 0 var(--hard); }
+  .dskip { flex: none; margin-left: auto; min-height: 42px; padding: 0 14px; border: 3px solid var(--ink); border-radius: 6px; background: rgb(13 11 46 / 0.86); color: #fff;
+    font: 900 italic 16px/1 var(--f-head); letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 3px 0 var(--hard); transform: skewX(-8deg); }
+  .dskip:active { transform: skewX(-8deg) scale(0.94); }
+  .dstat { position: absolute; z-index: 3; left: 8px; right: 8px; bottom: 6px; display: flex; flex-direction: column; align-items: center; gap: 3px; pointer-events: none; transition: opacity 0.25s; }
+  .dstat .status { padding: 3px 12px 4px; border-radius: 6px; background: rgb(13 11 46 / 0.78); }
+  .dstat .status:empty { display: none; }
+  #draw.inking .dline, #draw.inking .dstat { opacity: 0.18; }
+  #draw.inking .dline > * { pointer-events: none; }
+  /* the tool rail: icon buttons with a tiny caption, DONE in gold at the thumb's end */
+  .rail { flex: 0 0 var(--rail); min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
+  .rail .grow { flex: 1 1 0; min-height: 0; }
+  .rseg { display: flex; flex-direction: column; gap: 3px; padding: 3px; border: 3px solid var(--ink); border-radius: 8px; background: rgb(13 11 46 / 0.88); box-shadow: 0 3px 0 var(--hard); }
+  .rb { position: relative; flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 48px; padding: 3px 0; border-radius: 6px;
+    color: #fff; font: 900 italic 10.5px/1 var(--f-head); letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+  .rail > .rb { border: 3px solid var(--ink); background: rgb(13 11 46 / 0.88); box-shadow: 0 3px 0 var(--hard); }
+  .rb svg.ic { width: 22px; height: 22px; }
+  .rb:active { transform: scale(0.92); }
+  .rb:disabled { opacity: 0.5; filter: grayscale(0.5); }
+  .rb.on { color: var(--ink); background: linear-gradient(#ffe58a, var(--gold)); }
+  .rail > .rdone { min-height: 66px; font-size: 14px; color: var(--ink); background: linear-gradient(#ffe58a, var(--gold) 45%, var(--gold2)); box-shadow: 0 4px 0 var(--hard); }
+  .rdone svg.ic { width: 28px; height: 28px; stroke-width: 3; }
+  .inkdot { width: 22px; height: 22px; border: 3px solid #fff; border-radius: 50%; background: var(--pen, #111); box-shadow: 0 0 0 2px var(--ink); }
+  .inkpick { position: fixed; z-index: 7; display: flex; flex-direction: column; gap: 6px; padding: 6px; border: 3px solid var(--ink); border-radius: 10px; background: rgb(13 11 46 / 0.94); box-shadow: 0 4px 0 var(--hard); }
+  .inkpick button { width: 40px; height: 40px; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 0 2px var(--ink); }
+  .inkpick button.on { outline: 3px solid var(--gold); outline-offset: 2px; }
+  /* the example card: the instruction line opens it (and it opens by itself the first time per step on this phone) */
+  .guide { position: absolute; inset: 0; z-index: 8; display: flex; align-items: center; justify-content: center; padding: 52px 8px 8px; background: rgb(8 6 28 / 0.62); }
+  .gcard { position: relative; z-index: 0; isolation: isolate; width: min(700px, 100%); max-height: 100%; display: flex; gap: 16px; align-items: center; padding: 14px 18px 16px;
+    animation: pop 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.4) both; }
+  .gcard::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-3deg); background: linear-gradient(160deg, #3a2a9a, #1a1252); border: 4px solid var(--ink);
+    border-radius: 8px; box-shadow: 0 7px 0 var(--hard), 0 0 0 4px var(--accent) inset; }
+  .gcol { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; text-align: left; }
+  #guideTitle { font-size: 30px; color: #fff; }
+  .example { position: relative; flex: 0 0 46%; height: min(62vh, 250px); display: flex; align-items: center; justify-content: center; overflow: hidden;
     background: #fffdf5; border: 3px solid var(--ink); border-radius: 12px; box-shadow: 0 5px 0 var(--hard); transform: rotate(-1.2deg); }
   .example svg { width: 100%; height: 100%; display: block; }
   .example::before { content: attr(data-tag); position: absolute; left: 0; top: 0; z-index: 1; padding: 2px 9px 3px 7px; border-radius: 0 0 8px 0;
     background: var(--ink); color: #fff; font: 900 italic 11px/1 var(--f-head); letter-spacing: 0.1em; text-transform: uppercase; }
-  .gtext { flex: none; }
-  .gtext p { font: 700 14px/1.22 var(--f-body); text-shadow: 0 2px 0 rgb(10 6 30 / 0.75); }
+  .gtext p { font: 700 15px/1.25 var(--f-body); text-shadow: 0 2px 0 rgb(10 6 30 / 0.75); }
   .gtext p:empty { display: none; }
-  .gtext #drawLine, .gtext .ln { margin-top: 5px; color: #ffe27a; }
-  .stagebox { position: relative; flex: 1 1 0; min-width: 0; min-height: 0; border: 4px solid var(--accent); border-radius: 8px; background: rgb(13 11 46 / 0.6);
-    box-shadow: 0 5px 0 var(--hard), 0 0 22px var(--glow); overflow: hidden; }
-  .padwrap { position: absolute; inset: 0; }
-  #drawPad { position: absolute; touch-action: none; background: #fbf8ef; border-radius: 3px; }
-  #addPad { position: fixed; top: var(--st); left: var(--sl); width: calc(100% - var(--sl) - var(--sr)); height: calc(100% - var(--st) - var(--sb)); touch-action: none; }
-  .padhint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 12px; pointer-events: none;
-    font: 900 italic 26px/1 var(--f-head); text-transform: uppercase; letter-spacing: 0.04em; color: rgb(18 10 46 / 0.18); transition: opacity 0.2s; }
-  .padwrap.has-ink .padhint { opacity: 0; }
-  .camcard { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 10px; text-align: center; }
+  .gtext #drawLine, .gtext .ln { margin-top: 6px; color: #ffe27a; }
+  .gtext .gskip { margin-top: 6px; font-size: 13px; opacity: 0.8; }
+  .camcard { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 52px 8px 30px; text-align: center; }
   .camintro { display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .camhint { max-width: 330px; font: 700 14px/1.25 var(--f-body); text-shadow: 0 2px 0 rgb(10 6 30 / 0.75); }
   .bigshot { min-height: 92px; padding: 0 34px; font-size: 27px; }
   .bigshot svg.ic { width: 38px; height: 38px; }
   .preview { flex: 1 1 0; min-height: 0; max-width: 100%; object-fit: contain; border: 3px solid #fff; border-radius: 6px; background: #fff; box-shadow: 0 5px 0 var(--hard); }
-  .dfoot { flex: none; display: flex; align-items: center; gap: 8px; min-height: 52px; }
-  .dfoot .fl, .dfoot .fr { display: flex; gap: 8px; flex: none; }
-  .dfoot .fc { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  #draw .preview { width: 100%; }
+  #draw .camcard { padding-bottom: 62px; }     /* RETAKE / USE THIS PHOTO stay above the status and the counter */
+  #camActions .btn { min-height: 46px; }
   @media (orientation: portrait) {
-    .dtop { flex-wrap: wrap; row-gap: 8px; }
-    .dhead { flex: 1 1 100%; }
-    .dbody { flex-direction: column; }
-    .guide { flex: none; flex-direction: row; align-items: flex-start; gap: 12px; overflow: visible; }
-    .example { flex: 0 0 138px; height: 92px; min-height: 0; max-height: none; }
-    .gcol { flex: 1 1 0; min-width: 0; }
-    .dfoot { flex-wrap: wrap; row-gap: 6px; }
-    .dfoot .fc { order: -1; flex: 1 0 100%; flex-direction: row; justify-content: space-between; }
-    .dfoot .fl { flex: 1; }
+    #draw { flex-direction: column; }
+    .rail { flex: 0 0 var(--rail); flex-direction: row; align-items: stretch; }
+    .rseg { flex-direction: row; }
+    .rb { min-width: 44px; min-height: 0; padding: 0 4px; }
+    .rail > .rb { flex: 1 1 0; max-width: 64px; }
+    .rail > .rdone { flex: 0 0 84px; max-width: none; min-height: 0; flex-direction: row; gap: 5px; font-size: 17px; }
+    .inkpick { flex-direction: row; }
+    .gcard { flex-direction: column; align-items: stretch; }
+    .example { flex: none; height: min(30vh, 210px); }
+    .dtxt i { display: none; }       /* portrait: the title alone fits the line; the card says the rest */
+  }
+  @media (max-height: 440px) and (orientation: landscape) {
+    .dline .dtxt b { font-size: 18px; }
+    #guideTitle { font-size: 26px; }
+  }
+  @media (max-height: 380px) and (orientation: landscape) {      /* Safari's bars up: the rail still fits (about 300 px) */
+    .rail { gap: 4px; }
+    .rb { min-height: 42px; }
+    .rb svg.ic { width: 20px; height: 20px; }
+    .rail > .rdone { min-height: 54px; }
+    .dhead, .dskip { height: 38px; min-height: 38px; }
   }
 
   /* ---- Screen and sheet transitions: everything that opens fades in (the 3D play screen does not) ---- */
@@ -371,6 +428,8 @@
   @keyframes lowPulse { from { transform: skewX(-9deg) scale(1); } to { transform: skewX(-9deg) scale(1.07); } }
   body[data-phase="lobby"] #tAdd, body[data-phase="lobby"] #tRedraw { display: none; }
   body[data-phase="lobby"] #hud .objpanel, body[data-phase="lobby"] #hud .timer, body[data-phase="scoreboard"] #hud .hc { visibility: hidden; }
+  body[data-phase="countdown"] #hud .objpanel, body[data-phase="countdown"] #hud .timer { visibility: hidden; }   /* the big 3-2-1 says it */
+  body:not([data-phase="lobby"]) #tFull { display: none; }   /* back into full screen from the lobby; in play the tools stay five */
   #radar { width: 84px; height: 84px; display: block; }
   /* a dark scrim behind the HUD: its words read on the white sand of the island and the pink nebula */
   #hud::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: calc(var(--st) + 122px); z-index: -1; pointer-events: none;
@@ -516,12 +575,18 @@
   /* add a button (over the game) */
   #add { z-index: 8; justify-content: flex-start; background: rgb(8 6 28 / 0.3); }
   #add.camera { background: rgb(8 6 28 / 0.92); }
+  body.adding #hud, body.adding #legend, body.adding #chip { visibility: hidden; }   /* v1.4: only the pad and my controller's ink behind it */
   #addRegion { position: fixed; z-index: 1; display: flex; align-items: center; justify-content: center; pointer-events: none; border: 3.5px dashed var(--gold); border-radius: 14px; background: rgb(255 203 61 / 0.08);
     font: 900 italic 24px/1 var(--f-head); letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
-  .toolbar { position: fixed; top: calc(var(--st) + 8px); left: calc(var(--sl) + 8px); right: calc(var(--sr) + 8px); z-index: 5; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; pointer-events: none; }
-  .toolbar > * { pointer-events: auto; }
-  .toolbar .grow { flex: 1; pointer-events: none; }
-  #add .camcard { z-index: 2; padding-top: calc(var(--st) + 66px); padding-bottom: calc(var(--sb) + 58px); }   /* the status and the counter sit under it */
+  /* v1.4: the tools are a slim rail on the right edge (the pad under it is the whole play area, so the new button lands where it is drawn) */
+  .addrail { position: fixed; z-index: 5; top: calc(var(--st) + 6px); bottom: calc(var(--sb) + 6px); right: calc(var(--sr) + 6px); width: 52px; pointer-events: none; }
+  .addrail > * { pointer-events: auto; }
+  .addrail .grow { pointer-events: none; }
+  #add .camcard { z-index: 2; padding: calc(var(--st) + 10px) calc(var(--sr) + 66px) calc(var(--sb) + 58px) calc(var(--sl) + 10px); }
+  /* a photo is in: the preview takes the room, the camera button shrinks to a RETAKE-sized one */
+  #addCam.shot .bigshot { min-height: 48px; padding: 0 18px; font-size: 18px; }
+  #addCam.shot .bigshot svg.ic { width: 24px; height: 24px; }
+  #addCam.shot .camhint { display: none; }   /* the status and the counter sit under it */
   #addDrawStatus { position: fixed; bottom: calc(var(--sb) + 8px); left: 0; right: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; }
 
   #rotate { position: fixed; inset: 0; z-index: 30; display: none; align-items: center; justify-content: center; text-align: center; padding: 30px; background: radial-gradient(ellipse at 50% 30%, #3b2593, #0d0b2e 70%); }
@@ -571,10 +636,15 @@
     <symbol id="i-redo" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></symbol>
     <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 7V4h4v3M6 7l1 13h10l1-13"/></symbol>
+    <symbol id="i-full" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+    <symbol id="i-unfull" viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></symbol>
   </defs>
 </svg>
 
 <div id="join" class="screen">
+  <button id="fsBtn" class="fsbtn hidden" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-full"/></svg><span data-copy="fs.cap"></span></button>
   <div class="jwrap">
     <div class="jleft">
       <h1 class="logo" id="logo"><span class="l1" data-copy="brand.0"></span><span class="l2" data-copy="brand.1"></span></h1>
@@ -592,51 +662,60 @@
   </div>
 </div>
 
+<!-- v1.4 (owner, 10 Oct 09:36: "more space for drawing"): the paper takes almost the whole screen. The instruction is one short line
+     over its top edge (tap it for the example), the tools sit in a slim rail on the right edge (the bottom edge in portrait). -->
 <div id="draw" class="screen hidden" data-kind="ship">
-  <div class="dtop">
-    <div id="drawHeader" class="dhead">
-      <div id="drawIcon" class="dicon"></div>
-      <div class="dtxt"><b id="drawTitle"></b> <i id="drawSub"></i></div>
+  <section id="stage" class="stagebox">
+    <div id="padWrap" class="padwrap hidden">
+      <canvas id="drawPad"></canvas>
+      <div id="padHint" class="padhint"><b id="padHintBig"></b><i id="padHintLine"></i></div>
     </div>
-    <div class="seg" id="drawSeg">
-      <button id="modePhoto" data-mode="photo" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-camera"/></svg><span data-copy="mode.photo"></span></button>
-      <button id="modeDraw" data-mode="draw" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-pencil"/></svg><span data-copy="mode.draw"></span></button>
+    <div id="camCard" class="camcard">
+      <div id="camIntro" class="camintro">
+        <label class="btn big bigshot"><svg class="ic" viewBox="0 0 24 24"><use href="#i-camera"/></svg><span data-copy="draw.takePhoto"></span>
+          <input id="camInput" type="file" accept="image/*" capture="environment"></label>
+        <p id="camHint" class="camhint"></p>
+      </div>
+      <img id="camPreview" class="preview hidden" alt="">
+      <div id="camActions" class="row hidden">
+        <button id="camUse" class="btn" type="button" data-copy="draw.usePhoto"></button>
+        <label class="btn blue sm"><span data-copy="draw.retake"></span><input id="camInput2" type="file" accept="image/*" capture="environment"></label>
+        <button id="camRotate" class="btn blue sm sq" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-redo"/></svg></button>
+      </div>
     </div>
-  </div>
-  <div class="dbody">
-    <aside class="guide">
-      <div id="example" class="example" role="img"></div>
-      <div class="gcol">
-        <div class="gtext"><p id="drawHint"></p><p id="drawLine"></p></div>
-        <button id="useDefault" class="skip" type="button"></button>
-        <button id="drawCancel" class="skip hidden" type="button" data-copy="draw.cancel"></button>
-      </div>
-    </aside>
-    <section id="stage" class="stagebox">
-      <div id="padWrap" class="padwrap hidden">
-        <canvas id="drawPad"></canvas>
-        <div id="padHint" class="padhint"></div>
-      </div>
-      <div id="camCard" class="camcard">
-        <div id="camIntro" class="camintro">
-          <label class="btn big bigshot"><svg class="ic" viewBox="0 0 24 24"><use href="#i-camera"/></svg><span data-copy="draw.takePhoto"></span>
-            <input id="camInput" type="file" accept="image/*" capture="environment"></label>
-          <p id="camHint" class="camhint"></p>
-        </div>
-        <img id="camPreview" class="preview hidden" alt="">
-        <div id="camActions" class="row hidden">
-          <button id="camUse" class="btn" type="button" data-copy="draw.usePhoto"></button>
-          <label class="btn blue sm"><span data-copy="draw.retake"></span><input id="camInput2" type="file" accept="image/*" capture="environment"></label>
-          <button id="camRotate" class="btn blue sm sq" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-redo"/></svg></button>
+    <div class="dline">
+      <button id="drawHeader" class="dhead" type="button" aria-haspopup="dialog">
+        <span id="drawIcon" class="dicon"></span>
+        <span class="dtxt"><b id="drawTitle"></b><i id="drawSub"></i></span>
+        <span class="dq" aria-hidden="true">?</span>
+      </button>
+      <button id="useDefault" class="dskip" type="button"></button>
+      <button id="drawCancel" class="dskip hidden" type="button" data-copy="draw.cancel"></button>
+    </div>
+    <div class="dstat"><div id="drawStatus" class="status"></div><div id="drawCount" class="counter"></div></div>
+    <div id="guide" class="guide hidden" role="dialog">
+      <div class="gcard">
+        <div id="example" class="example" role="img"></div>
+        <div class="gcol">
+          <b id="guideTitle" class="hd"></b>
+          <div class="gtext"><p id="drawHint"></p><p id="drawLine"></p><p id="guideSkip" class="gskip"></p></div>
+          <button id="guideOk" class="btn sm" type="button" data-copy="draw.gotIt"></button>
         </div>
       </div>
-    </section>
-  </div>
-  <div class="dfoot">
-    <div class="fl"><button id="undo" class="btn ghost sm" type="button" data-copy="draw.undo"></button><button id="clear" class="btn ghost sm" type="button" data-copy="draw.clear"></button></div>
-    <div class="fc"><div id="drawCount" class="counter"></div><div id="drawStatus" class="status"></div></div>
-    <div class="fr"><button id="done" class="btn" type="button" data-copy="draw.done"></button></div>
-  </div>
+    </div>
+  </section>
+  <nav id="drawRail" class="rail">
+    <div class="rseg" id="drawSeg">
+      <button id="modePhoto" class="rb" data-mode="photo" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-camera"/></svg><span data-copy="mode.photo"></span></button>
+      <button id="modeDraw" class="rb" data-mode="draw" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-pencil"/></svg><span data-copy="mode.draw"></span></button>
+    </div>
+    <button id="undo" class="rb" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-undo"/></svg><span data-copy="draw.undo"></span></button>
+    <button id="clear" class="rb" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-trash"/></svg><span data-copy="draw.clear"></span></button>
+    <button id="inkBtn" class="rb" type="button"><i id="inkDot" class="inkdot"></i><span data-copy="draw.color"></span></button>
+    <span class="grow"></span>
+    <button id="done" class="rb rdone" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-check"/></svg><span data-copy="draw.done"></span></button>
+  </nav>
+  <div id="inkPick" class="inkpick hidden" role="listbox"></div>
 </div>
 
 <div id="play" class="screen hidden">
@@ -658,6 +737,7 @@
         <button id="tView" class="tool" type="button"><svg viewBox="0 0 24 24"><use href="#i-eye"/></svg></button>
         <button id="tTilt" class="tool" type="button"><svg viewBox="0 0 24 24"><use href="#i-tilt"/></svg></button>
         <button id="tSound" class="tool" type="button"><svg id="tSoundIcon" viewBox="0 0 24 24"><use href="#i-sound"/></svg></button>
+        <button id="tFull" class="tool hidden" type="button"><svg viewBox="0 0 24 24"><use href="#i-full"/></svg></button>
       </div>
     </div>
     <div class="hc">
@@ -744,18 +824,18 @@
 <div id="add" class="sheet hidden">
   <canvas id="addPad"></canvas>
   <div id="addRegion"></div>
-  <div class="toolbar">
-    <div class="seg" id="addSeg"><button data-mode="photo" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-camera"/></svg><span data-copy="mode.photo"></span></button><button data-mode="draw" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-pencil"/></svg><span data-copy="mode.draw"></span></button></div>
-    <button id="addUndo" class="btn ghost sm" type="button" data-copy="draw.undo"></button>
+  <nav class="rail addrail">
+    <div class="rseg" id="addSeg"><button class="rb" data-mode="photo" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-camera"/></svg><span data-copy="mode.photo"></span></button><button class="rb" data-mode="draw" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-pencil"/></svg><span data-copy="mode.draw"></span></button></div>
+    <button id="addUndo" class="rb" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-undo"/></svg><span data-copy="draw.undo"></span></button>
     <span class="grow"></span>
-    <button id="addCancel" class="btn blue sm" type="button" data-copy="draw.cancel"></button>
-    <button id="addDone" class="btn sm" type="button" data-copy="draw.done"></button>
-  </div>
+    <button id="addCancel" class="rb" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus" transform="rotate(45 12 12)"/></svg><span data-copy="draw.cancel"></span></button>
+    <button id="addDone" class="rb rdone" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-check"/></svg><span data-copy="draw.done"></span></button>
+  </nav>
   <div id="addCam" class="camcard">
     <label class="btn big bigshot"><svg class="ic" viewBox="0 0 24 24"><use href="#i-camera"/></svg><span data-copy="draw.takePhoto"></span>
       <input id="addInput" type="file" accept="image/*" capture="environment"></label>
     <p class="camhint" id="addHint"></p>
-    <img id="addPreview" class="preview hidden" alt="" style="flex:none;max-height:28vh">
+    <img id="addPreview" class="preview hidden" alt="">
   </div>
   <div id="addDrawStatus"><span id="addStatus" class="status"></span><div id="addCount" class="counter"></div></div>
 </div>
@@ -829,7 +909,7 @@ const COPY = {
   and: "and", andMore: "and more",
   draw: {
     takePhoto: "TAKE A PHOTO", usePhoto: "USE THIS PHOTO", retake: "RETAKE", turnPhoto: "Turn the photo",
-    undo: "UNDO", clear: "CLEAR", done: "DONE", cancel: "CANCEL",
+    undo: "UNDO", clear: "CLEAR", done: "DONE", cancel: "CANCEL", color: "COLOR", gotIt: "GOT IT ▶",
     exampleTag: "EXAMPLE",
     padHint: { ship: "DRAW YOUR SHIP HERE", controller: "DRAW YOUR BUTTONS HERE", explorer: "DRAW YOUR EXPLORER HERE", planetController: "DRAW YOUR BUTTONS HERE" },
     ready: "Draw with your finger, then tap DONE",
@@ -954,9 +1034,23 @@ const COPY = {
   hud: { hp: "HP", shield: "SHIELD", boost: "BOOST", respawn: "BACK IN {n}…", timeLeft: "TIME LEFT", getReady: "GET READY", assists: "ALL POWERS ON",
     points: "POINTS", rank: "{r} OF {n}", spawn: "SPAWN SHIELD · YOU CAN'T BE HIT" },
   counter: { left: "{left} OF {max} DRAWINGS LEFT", none: "NO DRAWINGS LEFT {where}", space: "IN SPACE", planet: "ON THE PLANET" },
-  tools: { add: "Add a button", redraw: "Redraw", view: "Change the camera", tilt: "Tilt to steer", sound: "Sound" },
+  tools: { add: "Add a button", redraw: "Redraw", view: "Change the camera", tilt: "Tilt to steer", sound: "Sound", full: "Full screen" },
   // the short caption under each HUD tool, shown for a few seconds the first times the play screen opens
-  toolCaps: { add: "BUTTON", redraw: "REDRAW", view: "CAMERA", tilt: "TILT", sound: "SOUND" },
+  toolCaps: { add: "BUTTON", redraw: "REDRAW", view: "CAMERA", tilt: "TILT", sound: "SOUND", full: "FULL" },
+  // v1.4 full screen (owner, 10 Oct 09:33): the button, and the one-time iPhone hint (Safari has no full screen for pages; a home-screen app is)
+  fs: { cap: "FULL SCREEN", on: "Full screen", off: "Leave full screen", hint: "For full screen: tap {share} Share, then Add to Home Screen" },
+  // v1.4 (owner, 10 Oct 09:05: no free skills at 3:00): from 3:00 a big card with the part's example and one tap to draw it. The server's
+  // card (late: true) brings its own title ("DRAW A SHOVEL AND A DRILL", "DRAW A DIG BUTTON"); these are the fallbacks and the lines under it.
+  // on: the button is already on the controller; then: it is not (the card says so too).
+  late: {
+    weapon: { part: "DRAW A GUN", on: "ON YOUR SHIP · A CANNON WORKS TOO", then: "ON YOUR SHIP · THEN A SHOOT BUTTON", button: "ADD A SHOOT BUTTON", sketch: "gun", action: "shoot" },
+    land: { part: "DRAW LANDING LEGS", on: "ON YOUR SHIP · A PARACHUTE WORKS TOO", then: "ON YOUR SHIP · THEN A LAND BUTTON", button: "ADD A LAND BUTTON", sketch: "landing", action: "land" },
+    dig: { part: "DRAW A SHOVEL", on: "ON YOUR EXPLORER · CLAWS WORK TOO", then: "ON YOUR EXPLORER · THEN A DIG BUTTON", button: "ADD A DIG BUTTON", sketch: "shovel", action: "dig" },
+    drill: { part: "DRAW A DRILL", on: "ON YOUR EXPLORER", then: "ON YOUR EXPLORER · THEN A DRILL BUTTON", button: "ADD A DRILL BUTTON", sketch: "drill", action: "drill" },
+    buttonSub: "A BOX WITH THE WORD {word} ON YOUR CONTROLLER",
+    onWhat: { ship: "ON YOUR SHIP", explorer: "ON YOUR EXPLORER", controller: "ON YOUR CONTROLLER" },
+    redrawShip: "REDRAW MY SHIP", redrawExplorer: "REDRAW MY EXPLORER", addButton: "DRAW THE BUTTON", go: "DRAW IT NOW", later: "LATER",
+  },
   menu: { ship: "REDRAW SHIP", explorer: "REDRAW EXPLORER", controller: "REDRAW CONTROLLER", uses: "uses 1 drawing" },
   toast: {
     redrawShip: "REDRAW SHIP", redrawExplorer: "REDRAW EXPLORER", added: "{name} added",
@@ -1020,7 +1114,7 @@ function applyCopy() {
   $("name").placeholder = COPY.join.namePlaceholder;
   $("placeholder").dataset.t = COPY.placeholder;
   $("example").dataset.tag = $("expExample").dataset.tag = COPY.draw.exampleTag;
-  for (const [id, key] of [["tAdd", "add"], ["tRedraw", "redraw"], ["tView", "view"], ["tTilt", "tilt"], ["tSound", "sound"]]) { $(id).setAttribute("aria-label", COPY.tools[key]); $(id).dataset.cap = COPY.toolCaps[key]; }
+  for (const [id, key] of [["tAdd", "add"], ["tRedraw", "redraw"], ["tView", "view"], ["tTilt", "tilt"], ["tSound", "sound"], ["tFull", "full"]]) { $(id).setAttribute("aria-label", COPY.tools[key]); $(id).dataset.cap = COPY.toolCaps[key]; }
   $("camRotate").setAttribute("aria-label", COPY.draw.turnPhoto);
   $("readyBtn").textContent = COPY.wait.ready;
   $("ctrlRedraw").textContent = COPY.ctrlPrompt.redraw;
@@ -1188,6 +1282,7 @@ const SCREENS = ["join", "draw", "play"];
 const SHEETS = ["gen", "wrong", "result", "explorer", "ctrlPrompt", "resultsSheet", "redrawMenu"];
 function show(screen) {
   S.screen = screen;
+  if (screen !== "join" && installHint) installHint.hide();   // the iPhone hint belongs to the join screen
   for (const id of SCREENS) $(id).classList.toggle("hidden", id !== screen);
   syncLandscape();
   syncRendering();
@@ -1219,12 +1314,43 @@ function closeSheets(except) {
 function areaRect() { return $("probe").getBoundingClientRect(); }   // the play area, measurable from any screen
 const playAspect = () => { const r = areaRect(); const a = r.width / Math.max(1, r.height); return a >= 1 ? a : 1 / a; };   // always landscape
 
+// ---------- full screen (owner, 10 Oct 09:33: "the phone should be able to go into fullscreen") ----------
+// Android Chrome, iPad: the Fullscreen API, asked on the first JOIN tap and from the buttons, then landscape locked where allowed.
+// iPhone Safari has no full screen for pages: a home-screen app is (controller.webmanifest, apple-mobile-web-app-capable, black-translucent
+// under the notch; every screen keeps the safe areas through --st / --sr / --sb / --sl). The button there, and a one-time hint, say how.
+const FS = PE && PE.Fullscreen ? PE.Fullscreen : null;
+const installHint = PE && typeof PE.createInstallHint === "function"
+  ? PE.createInstallHint(document.body, { copy: { text: COPY.fs.hint }, onClose: () => store.set("a2hsSeen", true) }) : null;
+let fsAsked = false;
+const fsCan = () => !!FS && FS.supported() && !FS.standalone();
+// JOIN asks by itself only on a touch phone or tablet, never on a laptop or under test automation (the e2e viewport must not change)
+const fsAuto = () => fsCan() && !navigator.webdriver && matchMedia("(pointer: coarse)").matches;
+function syncFs() {
+  const on = !!FS && FS.active();
+  const offer = !!FS && !FS.standalone() && (FS.supported() || (FS.iosSafari() && !!installHint));
+  $("fsBtn").classList.toggle("hidden", !offer || on);
+  $("tFull").classList.toggle("hidden", !fsCan() || on);       // in the game: only a way back in (Android), never the iPhone hint
+}
+function askFullscreen() {
+  if (fsCan()) { if (!FS.active()) FS.request(); return; }     // inside the tap: requestFullscreen needs the user's gesture
+  if (FS && FS.iosSafari() && installHint) installHint.show();
+}
+$("fsBtn").onclick = askFullscreen;
+$("tFull").onclick = askFullscreen;
+if (FS) FS.onChange(() => { syncFs(); requestAnimationFrame(onResize); });   // the pads and the play area follow the new size (strokes kept)
+syncFs();
+// iPhone Safari (an iPad has the API), not opened from the home screen: say once how to get full screen
+if (FS && FS.iosSafari() && !FS.supported() && installHint && !store.get("a2hsSeen") && !store.get("player"))
+  setTimeout(() => { if (S.screen === "join" && !S.player) { installHint.show(); store.set("a2hsSeen", true); } }, 900);
+
 // ---------- join ----------
 $("joinForm").onsubmit = async (e) => {
   e.preventDefault();
   const name = C.cleanName($("name").value);
   if (!name) return setText($("joinErr"), COPY.join.badName);
   setText($("joinErr"), "");
+  if (!fsAsked && fsAuto() && !FS.active()) { fsAsked = true; FS.request(); }   // the first JOIN tap goes full screen (before any await)
+  if (installHint) installHint.hide();
   await join(name);
 };
 function setText(el, text) { el.textContent = text || ""; }
@@ -1281,6 +1407,7 @@ function makeSketch(canvas, { ink = "#111", width = 6, onChange, onStart } = {})
     if (cur) return;                      // one finger draws
     try { canvas.setPointerCapture(e.pointerId); } catch {}
     cur = { id: e.pointerId, pts: [pt(e)] };
+    if (sk.color) cur.pts.c = sk.color;   // v1.4 pen colours: kept on the stroke, so undo / resize / export keep it
     sk.strokes.push(cur.pts);
     if (onStart) onStart();
     sk.redraw();
@@ -1292,7 +1419,7 @@ function makeSketch(canvas, { ink = "#111", width = 6, onChange, onStart } = {})
     for (const ce of (evs.length ? evs : [e])) cur.pts.push(pt(ce));
     // draw only the new segment: tiny work per move
     const w = canvas.width, h = canvas.height;
-    ctx.strokeStyle = sk.ink; ctx.lineWidth = sk.width * DPR; ctx.lineCap = ctx.lineJoin = "round";
+    ctx.strokeStyle = sk.ink || cur.pts.c || "#111"; ctx.lineWidth = sk.width * DPR; ctx.lineCap = ctx.lineJoin = "round";
     ctx.beginPath(); ctx.moveTo(cur.pts[last - 1][0] * w, cur.pts[last - 1][1] * h);
     for (let i = last; i < cur.pts.length; i++) ctx.lineTo(cur.pts[i][0] * w, cur.pts[i][1] * h);
     ctx.stroke();
@@ -1306,9 +1433,11 @@ function makeSketch(canvas, { ink = "#111", width = 6, onChange, onStart } = {})
   sk.add = (list) => { for (const s of list) sk.strokes.push(s); sk.version++; sk.redraw(); sk.onChange && sk.onChange(); };
   return sk;
 }
+// color null: every stroke in its own pen colour (s.c, else dark ink).
 function drawStrokes(ctx, strokes, w, h, color, lw, ox = 0, oy = 0, fw = w, fh = h) {
-  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = lw; ctx.lineCap = ctx.lineJoin = "round";
+  ctx.lineWidth = lw; ctx.lineCap = ctx.lineJoin = "round";
   for (const s of strokes) {
+    ctx.strokeStyle = ctx.fillStyle = color || s.c || "#111";
     ctx.beginPath();
     ctx.moveTo(ox + s[0][0] * fw, oy + s[0][1] * fh);
     if (s.length === 1) ctx.lineTo(ox + s[0][0] * fw + 0.1, oy + s[0][1] * fh);
@@ -1595,7 +1724,7 @@ const KINDS = {
   planetController: { wire: "controller", entity: false, world: "planet" },
 };
 const DR = { kind: "ship", redraw: false, mode: S.drawMode, busy: false, photo: null, cache: null };   // photo: { analysis, rendered, key }
-const padSketch = makeSketch($("drawPad"), { onChange: onPadChange, onStart: () => $("padWrap").classList.add("has-ink") });
+const padSketch = makeSketch($("drawPad"), { ink: null, onChange: onPadChange, onStart: () => $("padWrap").classList.add("has-ink") });
 let specTimer = 0, genTimer = 0;
 const setDrawStatus = (t) => setText($("drawStatus"), t);
 
@@ -1620,15 +1749,20 @@ function lineFor(kind) {         // the controller steps: which buttons the draw
 }
 function paintDrawChrome() {
   const kind = DR.kind, K = COPY.kinds[kind], head = DR.redraw && K.redraw ? K.redraw : K;
+  const line = lineFor(kind);
   $("drawTitle").textContent = head.title;
-  $("drawSub").textContent = "— " + head.sub;
-  $("drawHint").textContent = K.hint;
-  setText($("drawLine"), lineFor(kind));
+  $("drawSub").textContent = K.hint;                 // v1.4: the instruction is one line over the paper: the step and its hint
+  $("guideTitle").textContent = head.title;
+  $("drawHint").textContent = head.sub ? `${K.hint}. ${head.sub[0].toUpperCase()}${head.sub.slice(1)}.` : K.hint;
+  setText($("drawLine"), line);
+  setText($("guideSkip"), DR.redraw ? "" : K.skip);
   const ex = kind === "ship" ? "ship" : kind === "explorer" ? "explorer" : "controller";
   $("example").innerHTML = PE ? PE.exampleSvg(ex, K.example) : "";
   $("camHint").textContent = K.photoHint;
-  $("padHint").textContent = COPY.draw.padHint[kind];
-  $("useDefault").textContent = K.skip;
+  $("padHintBig").textContent = COPY.draw.padHint[kind];
+  $("padHintLine").textContent = line || K.hint;
+  $("useDefault").textContent = K.skip.split(" — ")[0];   // "SKIP": the whole sentence is in the example card
+  $("useDefault").setAttribute("aria-label", K.skip);
   $("useDefault").classList.toggle("hidden", DR.redraw);
   $("drawCancel").classList.toggle("hidden", !DR.redraw);
   $("drawIcon").innerHTML = kind === "ship" ? iconHtml("c-ship", true) : kind === "explorer" ? iconHtml("c-astro", true) : iconHtml("c-pad", false);
@@ -1642,11 +1776,15 @@ function enterDraw(kind, { redraw = false, photo = false, mode = null } = {}) {
   clearTimeout(specTimer); clearTimeout(genTimer);
   Object.assign(DR, { kind, redraw, busy: false, photo: null, cache: null });
   padSketch.strokes = []; padSketch.version++;
+  padSketch.color = KINDS[kind].entity ? penColor : null;
   $("padWrap").classList.remove("has-ink");
   latest[KINDS[kind].wire] = null;
   $("draw").dataset.kind = kind;
+  $("draw").classList.remove("inking");
+  closePenPick(); closeLate();
   paintDrawChrome();
   show("draw");
+  if (photo) closeGuide(); else guideFirstTime(kind);   // straight to the camera: the example card must not cover the photo
   setStep(kind === "ship" ? "ship" : kind === "controller" ? "controller" : kind);
   resetPhotoUi();
   setDrawMode(mode || (photo ? "photo" : S.drawMode));
@@ -1661,6 +1799,8 @@ function setDrawMode(mode) {
   $("padWrap").classList.toggle("hidden", !draw);
   $("camCard").classList.toggle("hidden", draw);
   for (const id of ["undo", "clear", "done"]) $(id).classList.toggle("hidden", !draw);
+  $("inkBtn").classList.toggle("hidden", !draw || !KINDS[DR.kind].entity);   // controller ink is drawn white over the game: one colour
+  closePenPick();
   setDrawStatus(draw ? (padSketch.strokes.length ? COPY.draw.tapDone : COPY.draw.ready) : (DR.photo ? COPY.draw.photoFound : COPY.draw.readyPhoto));
   syncLandscape();
   if (draw) requestAnimationFrame(sizePad);
@@ -1692,6 +1832,51 @@ function onPadChange() {
 $("undo").onclick = () => padSketch.undo();
 $("clear").onclick = () => padSketch.clear();
 
+// ---- the example card: tapping the instruction line opens it; it also opens by itself the first time each step is drawn on this phone.
+// The line (with SKIP) stays above it, and it covers only the paper, so the rail works while it is open. ----
+function openGuide() { closePenPick(); $("guide").classList.remove("hidden"); }
+function closeGuide() { $("guide").classList.add("hidden"); }
+function guideFirstTime(kind) {
+  closeGuide();
+  const seen = store.get("guideSeen") || {};
+  if (seen[kind]) return;
+  seen[kind] = 1; store.set("guideSeen", seen);
+  openGuide();
+}
+$("drawHeader").onclick = () => ($("guide").classList.contains("hidden") ? openGuide() : closeGuide());
+$("guideOk").onclick = closeGuide;
+$("guide").addEventListener("pointerdown", (e) => { if (e.target === $("guide")) closeGuide(); });
+
+// ---- pen colours (ship and explorer drawings): the drawing is sent in its colours and inflates in them ----
+const PENS = ["#111111", "#e11d48", "#2563eb", "#16a34a", "#ea580c", "#7c3aed"];
+$("inkPick").innerHTML = PENS.map((c) => `<button type="button" data-c="${c}" style="background:${c}" aria-label="${c}"></button>`).join("");
+let penColor = null;     // the pen of the ship / explorer drawings (null: dark ink); the controller pad always draws dark
+function setPen(c) {
+  penColor = padSketch.color = c === PENS[0] ? null : c;
+  $("inkBtn").style.setProperty("--pen", c);
+  for (const b of $("inkPick").children) b.classList.toggle("on", b.dataset.c === c);
+}
+function closePenPick() { $("inkPick").classList.add("hidden"); }
+$("inkPick").onclick = (e) => { const b = e.target.closest("button"); if (b) { setPen(b.dataset.c); closePenPick(); } };
+$("inkBtn").onclick = () => {
+  const pick = $("inkPick");
+  if (!pick.classList.contains("hidden")) return closePenPick();
+  closeGuide();
+  pick.classList.remove("hidden");
+  const r = $("inkBtn").getBoundingClientRect(), p = pick.getBoundingClientRect(), W = innerWidth, H = innerHeight;
+  const clampTo = (v, max) => Math.max(4, Math.min(max - 4, v));
+  if (H > W) Object.assign(pick.style, { left: clampTo(r.left + r.width / 2 - p.width / 2, W - p.width) + "px", top: Math.max(4, r.top - p.height - 8) + "px" });   // above the bottom rail
+  else Object.assign(pick.style, { left: Math.max(4, r.left - p.width - 8) + "px", top: clampTo(r.top + r.height / 2 - p.height / 2, H - p.height) + "px" });   // left of the side rail
+};
+setPen(PENS[0]);
+
+// While a finger draws, the instruction line and the status fade to a ghost (strokes may pass under them): the whole sheet is paper.
+let inkingTimer = 0;
+$("drawPad").addEventListener("pointerdown", () => { clearTimeout(inkingTimer); $("draw").classList.add("inking"); closePenPick(); });
+const inkingOff = () => { clearTimeout(inkingTimer); inkingTimer = setTimeout(() => $("draw").classList.remove("inking"), 900); };
+window.addEventListener("pointerup", inkingOff);
+window.addEventListener("pointercancel", inkingOff);
+
 // The drawing as it would be sent: { key, source, image (PNG, dark ink on white, <= 512 px), ink (controller overlay), regions }.
 function drawingNow() {
   const K = KINDS[DR.kind];
@@ -1706,7 +1891,7 @@ function drawingNow() {
   if (DR.cache && DR.cache.key === key) return DR.cache;
   const aspect = padAspectNow();
   let d;
-  if (K.entity) d = { key, source: "draw", image: strokesPNG(strokes, aspect, { crop: true }), ink: null, regions: null };
+  if (K.entity) d = { key, source: "draw", image: strokesPNG(strokes, aspect, { crop: true, color: null }), ink: null, regions: null };   // in its pen colours
   else d = {
     key, source: "draw", image: strokesPNG(strokes, aspect),
     ink: strokesPNG(strokes, aspect, { bg: null, color: "#fff", px: 1024 }),
@@ -1735,6 +1920,7 @@ function resetPhotoUi() {
   $("camPreview").classList.add("hidden"); $("camActions").classList.add("hidden"); $("camIntro").classList.remove("hidden");
 }
 function showPhoto() {
+  closeGuide();        // the photo, never the example card over it
   $("camPreview").src = DR.photo.rendered.image;
   $("camPreview").classList.remove("hidden"); $("camActions").classList.remove("hidden"); $("camIntro").classList.add("hidden");
   setDrawStatus(COPY.draw.photoFound);
@@ -2667,6 +2853,7 @@ function wireGame(game) {
     if (me && me.drawingsLeft) setLeft(me.drawingsLeft);
     S.net.phase = m.phase;
     syncDrawing();
+    syncCountdown(m);
   });
   game.on("entity", (m) => { if (m.player === S.player && m.entity) setEntity(m.entity); });
   game.on("world", (m) => {
@@ -2698,7 +2885,7 @@ function updateHud() {
   updateDeath(h, me);
   feelHits(h, me);
   updateScore(h, me);
-  setCached("obj", hudEls.obj, h.phase === "lobby" ? COPY.hud.getReady : String(h.objectiveText || "").toUpperCase());
+  setCached("obj", hudEls.obj, h.phase === "lobby" || h.phase === "countdown" ? COPY.hud.getReady : String(h.objectiveText || "").toUpperCase());
   setCached("status", hudEls.status, String(h.status || "").toUpperCase());
   // time left to the cap while playing (turns red and pulses under 30 s); the lobby and the scoreboard have no timer
   const playing = h.phase === "playing" || h.phase === "assists";
@@ -2738,7 +2925,6 @@ function updateHud() {
   if (S.sketch && sketchDone()) clearSketch();
 }
 function onPhase(phase, h) {
-  const prev = S.phase;
   S.phase = phase;
   document.body.dataset.phase = phase || "";
   const lobby = phase === "lobby", board = phase === "scoreboard";
@@ -2748,8 +2934,9 @@ function onPhase(phase, h) {
   // a new round starts clean: no leftover ghost box or sketch hint (the server's hint ladder starts again), nothing cooling down
   if (board || lobby) { clearGhost(); clearSketch(); S.tipAt = {}; }
   if (lobby) { resetReady(); clearCooldowns(); }
+  if (board || lobby) { lateSeen.clear(); if (lateCard) lateCard.hide(); }   // the big "DRAW A SHOVEL" card comes once per gate and round
   syncPlayStep();
-  if (prev === "lobby" && (phase === "playing" || phase === "assists")) showGo();
+  // GO! is played by syncCountdown (from the ticks, on every screen) when the round starts
 }
 // wait / play / results, unless a sheet of the planet flow (explorer, controller prompt...) owns the step
 function syncPlayStep() {
@@ -2757,10 +2944,35 @@ function syncPlayStep() {
   if (SHEETS.some((id) => id !== "resultsSheet" && !$(id).classList.contains("hidden")) || !$("add").classList.contains("hidden")) return;
   setStep(S.phase === "scoreboard" ? "results" : S.phase === "playing" || S.phase === "assists" ? "play" : "wait");
 }
-function showGo() {
+// text: a countdown number when phone-extras.js (its big 3-2-1) is missing; none = GO!
+function showGo(text) {
+  if (!text && countdownFx) return countdownFx.go();
   const g = $("go");
+  g.firstElementChild.textContent = text || COPY.go;
   g.classList.remove("on"); void g.offsetWidth; g.classList.add("on");
-  clearTimeout(goTimer);      // the start sound is render.js's (WorldSound plays every game sound: the page must not play it twice) goTimer = setTimeout(() => g.classList.remove("on"), 1300);
+  clearTimeout(goTimer);      // the start sound is render.js's (WorldSound plays every game sound: the page must not play it twice)
+  goTimer = setTimeout(() => g.classList.remove("on"), 1300);
+}
+// ---- the 3-2-1 after START (owner, 10 Oct 09:05: a server phase, so every phone counts down with the big screen), then GO! ----
+// tick.countdown = whole seconds left (3, 2, 1); a server without the field: ceil(clock), which counts the seconds left in that phase. A
+// server that skips the phase (lobby -> playing) gets GO! only. Driven by the ticks, so it shows over any screen, a draw sheet included.
+const countdownFx = PE && typeof PE.createCountdown === "function" ? PE.createCountdown(document.body, { go: COPY.go, sub: COPY.hud.getReady }) : null;
+let cdLast = null, cdPhase = null;
+function syncCountdown(m) {
+  const phase = m && m.phase, was = cdPhase;
+  cdPhase = phase;
+  if (phase === "countdown") {
+    const n = Number.isFinite(m.countdown) ? Math.round(m.countdown) : Math.ceil(Number(m.clock) || 0);
+    if (n >= 1 && n !== cdLast) {
+      cdLast = n;
+      if (countdownFx) countdownFx.show(n); else showGo(String(n));
+      sfxPlay("countdown", { volume: 0.7, pitch: n === 1 ? 1.5 : 1 });   // render.js beeps only the round's last seconds
+    }
+    return;
+  }
+  cdLast = null;
+  if ((was === "countdown" || was === "lobby") && (phase === "playing" || phase === "assists")) showGo();
+  else if (was === "countdown" && countdownFx) countdownFx.hide();      // back to the lobby (a reset) mid-count
 }
 function resetReady() { $("readyBtn").textContent = COPY.wait.ready; $("readyBtn").classList.remove("green"); }
 $("readyBtn").onclick = () => {
@@ -2815,8 +3027,9 @@ function toastAction(m) {
 function showToast(m) {
   // the locked tip above the control already said it: no second message from the server for the same skill
   if (m.kind === "refused" && m.verb && performance.now() - (S.tipAt[m.verb] || -1e9) < REFUSED_QUIET_MS) return;
-  // Step 2 of the hint ladder has an empty text and only a sketch: no text bubble for it.
-  if (m.text) {
+  // Step 2 of the hint ladder has an empty text and only a sketch: no text bubble for it. The last step for a missing part (or button) is
+  // the big card instead (lateHint).
+  if (m.text && !lateHint(m)) {
     const act = toastAction(m);
     $("toast").dataset.kind = m.kind || "info";
     $("toastText").textContent = m.text;
@@ -2833,6 +3046,51 @@ function showToast(m) {
   if (m.ghost && m.ghost.action) { clearSketch(); S.ghost = { ...m.ghost, action: C.normaliseAction(m.ghost.action) }; placeGhost(); }
 }
 $("toastAct").onclick = () => { $("toast").classList.add("off"); if (toastRun) toastRun(); };
+
+// ---- the late hint (owner, 10 Oct 09:05: no free skills at 3:00, the skill is never given): a big, friendly "DRAW A SHOVEL" card with the
+// part's example and one tap to the drawing (a full redraw of the ship / explorer, or the add-a-button sheet on the ghost box for a missing
+// button). The server sends it from 3:00 as a hint toast with late: true, title, parts (sketch names, both when the explorer misses a shovel
+// AND a drill), on (ship | explorer | controller) and, for a button, the ghost box (world.js / rules.js lateHint). An older server: its
+// ladder's answer step once assists are on. The ladder's answer before 3:00 stays the plain toast (with its REDRAW). Once per card and
+// round, never with no drawing left here; it closes by itself after LATE_MS and whenever a draw or add sheet opens. ----
+const LATE_MS = 15000;
+const lateCard = PE && typeof PE.createLateHint === "function"
+  ? PE.createLateHint(document.body, { copy: { go: COPY.late.go, later: COPY.late.later }, onAction: (a) => lateGo(a), onLater: () => clearTimeout(lateTimer) }) : null;
+const lateSeen = new Set();
+let lateGhost = null, lateTimer = 0;
+function lateHint(m) {
+  const L = COPY.late[m.gate];
+  if (!lateCard || !L || m.kind !== "hint" || S.screen !== "play" || (m.need !== "part" && m.need !== "button")) return false;
+  const answer = m.step === 3 || /^draw\b/i.test(String(m.text || ""));     // riddles never start with "Draw"; the sketch step has no text
+  if (!(m.late === true || (answer && S.phase === "assists"))) return false;
+  const parts = (Array.isArray(m.parts) && m.parts.length ? m.parts : [m.part || L.sketch]).map(String);
+  const key = m.gate + ":" + m.need + ":" + parts.join(",");
+  if (lateSeen.has(key) || leftHere() <= 0) return false;
+  lateSeen.add(key);
+  const on = COPY.late.onWhat[m.on] ? m.on : m.need === "button" ? "controller" : m.gate === "dig" || m.gate === "drill" ? "explorer" : "ship";
+  if (m.need === "part") {
+    const sub = parts.length > 1 ? COPY.late.onWhat[on] : layoutHas(L.action) ? L.on : L.then;
+    lateCard.show({ title: m.title ? String(m.title).toUpperCase() : L.part, sub, sketches: parts, action: on === "explorer" ? "explorer" : "ship",
+      cta: on === "explorer" ? COPY.late.redrawExplorer : COPY.late.redrawShip });
+  } else {
+    lateGhost = m.ghost && m.ghost.action ? { ...m.ghost, action: C.normaliseAction(m.ghost.action) } : null;
+    // the word the server put on the card ("DRAW A BLAST BUTTON": the weapon this ship really has), else the ghost box's action
+    const said = /^draw an? (.+) button$/i.exec(String(m.title || "").trim());
+    const word = said ? said[1].toUpperCase() : (lateGhost ? lateGhost.action : L.action).toUpperCase();
+    lateCard.show({ title: m.title ? String(m.title).toUpperCase() : L.button, sub: tpl(COPY.late.buttonSub, { word }), sketches: parts, action: "button", cta: COPY.late.addButton });
+  }
+  clearTimeout(lateTimer);
+  lateTimer = setTimeout(() => lateCard.hide(), LATE_MS);
+  sfxPlay("pop");
+  return true;
+}
+function lateGo(action) {
+  clearTimeout(lateTimer);
+  lateCard.hide();
+  if (action === "ship" || action === "explorer") return startRedraw(action);
+  if (action === "button") openAdd(lateGhost || (S.ghost && !layoutHas(S.ghost.action) ? S.ghost : null));
+}
+function closeLate() { if (lateCard) { clearTimeout(lateTimer); lateCard.hide(); } }
 
 // ============================================================================================================
 // What rivals do to me (mischief), the big moments (one chip), and my own death (the card)
@@ -2860,7 +3118,7 @@ function onMischief(m) {
       case "emp":      // the target is the whole play screen: its EMP overlay (and the countdown chip) then sit above the HUD; the frame is found inside it
         empRun = MFX.emp(host, secs > 0 ? secs : 5, S.ctl ? {} : { onSwap: (map) => { empMap = map || null; releaseAll(); } });
         break;
-      case "inkbomb": MFX.inkBomb(host, { seconds: secs > 0 ? secs : 4 }); break;
+      case "inkbomb": MFX.inkBomb(host, { seconds: secs > 0 ? secs : 10 }); break;   // v1.4: it stays until wiped; seconds = the safety fade (10 s)
       case "tractor": MFX.tractorHit(host, { by: m.from, dir: Number.isFinite(+m.dir) ? -m.dir : 0, seconds: secs > 0 ? secs : undefined }); break;   // server: 0 = right, PI/2 = UP; mischief-fx: PI/2 = DOWN
       case "mine": MFX.mineHit(host, { by: m.from, points: -Math.abs(Number.isFinite(+m.points) ? +m.points : 30), stunSeconds: secs > 0 ? secs : undefined, shakeEl: $("game") }); break;
       case "decoy":    // seconds 0: no victim = I shot a decoy of m.from; a victim = my own decoy fooled him
@@ -3116,7 +3374,7 @@ let addState = null;          // { region, action, photo }
 const f3 = (v) => Math.round(Math.max(0, Math.min(1, v)) * 1000) / 1000;
 function openAdd(ghost) {
   if (noneLeft()) return;
-  releaseAll(); hideTip();
+  releaseAll(); hideTip(); closeLate();
   $("redrawMenu").classList.add("hidden");
   const region = ghost ? { x: ghost.x, y: ghost.y, w: ghost.w, h: ghost.h } : largestFree();
   addState = { region, action: ghost ? ghost.action : null, photo: null };
@@ -3127,7 +3385,7 @@ function openAdd(ghost) {
   placeAddRegion();
   $("addRegion").textContent = addState.action ? addState.action.toUpperCase() : "";
   $("addHint").textContent = addState.action ? tpl(COPY.add.hintGhost, { action: addState.action.toUpperCase() }) : COPY.add.hintPhoto;
-  $("addPreview").classList.add("hidden");
+  $("addPreview").classList.add("hidden"); $("addCam").classList.remove("shot");
   addSketch.strokes = []; addSketch.version++;
   setAddMode(S.drawMode);
   setStep("play");
@@ -3168,7 +3426,7 @@ $("addInput").onchange = async (e) => {
   catch (err) { return setText($("addStatus"), err && (err.message === COPY.draw.noInk || err.message === COPY.draw.edge) ? err.message : COPY.draw.badPhoto); }
   if (!addState) return;
   addState.photo = p;
-  $("addPreview").src = p.rendered.image; $("addPreview").classList.remove("hidden");
+  $("addPreview").src = p.rendered.image; $("addPreview").classList.remove("hidden"); $("addCam").classList.add("shot");
   $("addDone").classList.remove("hidden");
   setText($("addStatus"), COPY.add.photoOk);
 };
@@ -3400,6 +3658,19 @@ window.__spTest = {
   // toolCaps()   the names under the HUD tools for 6 s
   hit(dir = Math.PI / 2, amount = 20, from = "bob") { onHit({ type: "hit", player: S.player, from, amount, dir }); },
   spawnShield(on = true) { spawnShieldFx(!!on); },
+  // v1.4: countdown(n)   the server's 3-2-1 as a tick would bring it (n = 0: GO!; live ticks win, so use it with no round counting down);
+  // lateHint(gate, need, parts)   the server's late card (gate weapon | land | dig | drill, need part | button, parts e.g. ["shovel", "drill"]);
+  // fullscreen()   what the page knows about full screen; installHint()   the iPhone hint
+  countdown(n = 3) { syncCountdown(n > 0 ? { type: "tick", phase: "countdown", countdown: n, clock: n } : { type: "tick", phase: "playing", clock: 0 }); },
+  lateHint(gate = "dig", need = "part", parts = null) {
+    const L = COPY.late[gate] || COPY.late.dig, list = parts || [L.sketch];
+    lateSeen.clear();
+    return lateHint({ type: "toast", player: S.player, kind: "hint", gate, need, step: 3, late: true, sketch: null, parts: list, part: list[0],
+      title: need === "button" ? `DRAW A ${L.action.toUpperCase()} BUTTON` : list.length > 1 ? "DRAW A SHOVEL AND A DRILL" : L.part, text: "Draw it",
+      on: need === "button" ? "controller" : gate === "dig" || gate === "drill" ? "explorer" : "ship", ghost: need === "button" ? { action: L.action, x: 0.4, y: 0.3, w: 0.2, h: 0.3 } : null });
+  },
+  fullscreen() { return FS ? { supported: FS.supported(), active: FS.active(), standalone: FS.standalone(), iosSafari: FS.iosSafari() } : null; },
+  installHint() { if (installHint) installHint.show(); return !!installHint; },
   toolCaps() { $("hud").classList.add("caps"); clearTimeout(showToolCaps.t); showToolCaps.t = setTimeout(() => $("hud").classList.remove("caps"), 6000); },
   html(html, kind = "controller", padLayout = null) {
     let lay = padLayout || (kind === "html" && S.pad && S.pad.padLayout) || null;

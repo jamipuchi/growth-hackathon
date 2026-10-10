@@ -544,6 +544,10 @@ const FUN = [
   [new RegExp(`^${NM} hit ${NM}'s mine(?: \\((-?\\d+)\\))?`, "i"), (m, L) => [{ n: m[1] }, { t: L.hit }, { n: m[2] }, { t: L.s, g: true }, { c: "mine" }, { p: fill(L.mine, m[3] ? m[3].replace("-", "−") : "") }]],
   [new RegExp(`^${NM} shot ${NM}'s decoy`, "i"), (m, L) => [{ n: m[1] }, { t: L.fellFor }, { n: m[2] }, { t: L.s, g: true }, { c: "decoy" }]],
   [new RegExp(`^${NM} stole (\\d+) points from ${NM}`, "i"), (m, L) => [{ n: m[1] }, { c: "steal" }, { n: m[3] }, { p: fill(L.stole, m[2]) }]],
+  // the boss (world.js v1.3): "ana destroyed the boss! +1000. …", "ana stole the boss from bob! +1000. …", "The swarm brought the
+  // boss down! ana did the most damage: +1000. …"; the v1.2 "ana landed the last hit on the boss (stolen from bob)" reads the same
+  [new RegExp(`^${NM} stole the boss from ${NM}`, "i"), (m, L) => [{ n: m[1] }, { c: "boss" }, { p: L.lastHitStolen }, { n: m[2] }]],
+  [new RegExp(`^${NM} destroyed the boss`, "i"), (m, L) => [{ n: m[1] }, { c: "boss" }, { p: L.lastHit }]],
   [new RegExp(`^${NM} landed the last hit on the boss \\(stolen from ${NM}\\)`, "i"), (m, L) => [{ n: m[1] }, { c: "boss" }, { p: L.lastHitStolen }, { n: m[2] }]],
   [new RegExp(`^${NM} landed the last hit on the boss`, "i"), (m, L) => [{ n: m[1] }, { c: "boss" }, { p: L.lastHit }]],
   [/^the swarm brought the boss down!?(?: ([a-z0-9]{1,20}) did the most damage)?/i, (m, L) => [{ c: "boss" }, { p: L.swarm }].concat(m[1] ? [{ n: m[1] }, { t: L.topDamage }] : [])],
