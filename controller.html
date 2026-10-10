@@ -1322,6 +1322,7 @@ const S = {
   cool: {},                  // action -> performance.now() when that skill is ready again
   held: {},                  // sticks held right now (sandbox): axis -> true
   net: { phase: null },      // from the newest tick, on every screen (the renderer may be paused)
+  round: (() => { const r = store.get("round"); return Number.isFinite(r) ? r : null; })(),   // v1.5: the round my drawings belong to
   drawingDown: false,        // "drawing" is down on the server (a draw sheet is open during play)
 };
 
@@ -1532,7 +1533,8 @@ async function join(name) {
   if (S.game && typeof S.game.setPlayer === "function") { try { S.game.setPlayer(S.player); } catch {} }   // joined again under a new name: the view follows
   if (earlyEs && !earlyEs.url.endsWith("=" + encodeURIComponent(S.player))) { earlyEs.close(); earlyEs = null; }   // a new name: its own stream
   openEarlyStream();       // v1.5: the 3-2-1 reaches a phone that is still drawing
-  // A refresh keeps the drawings: the saved controller goes straight to the wait screen.
+  // A refresh keeps this round's drawings: the saved controller goes straight to the wait screen (v1.5: a tick of a later round then
+  // clears them, noteRound).
   if (S.layout) enterPlay();
   else if (store.get("shipDone")) enterDraw("controller");
   else enterDraw("ship");
@@ -3077,7 +3079,36 @@ async function startRenderer() {
   }
 }
 // Every tick, from the game's stream (or, before the first play screen, the one opened at JOIN).
+// v1.5 (owner, 10 Oct 11:31: every round starts from scratch). A tick of a new round (also after a reload, or a server restart: the
+// round is kept in localStorage sp.round) means the server has forgotten every drawing: so does this phone. The ship, explorer and
+// controller (and their saved copies), the pad HTML, the drawings left, the early answers: all gone, and the phone is back at
+// "1 · DRAW YOUR SHIP". Kept: the name, the colour, the device token and this phone's settings (sound, haptics, tips seen).
+function noteRound(round) {
+  if (!Number.isFinite(round) || round === S.round) return;
+  const had = S.round !== null;
+  S.round = round; store.set("round", round);
+  if (had) freshRound();
+}
+function freshRound() {
+  for (const k of Object.keys(latest)) latest[k] = null;          // an answer still on its way belongs to the old round (isLatest drops it)
+  clearTimeout(specTimer); clearTimeout(genTimer);
+  S.layout = null; S.inkBase = null; S.inkButtons = {};
+  store.set("layout", null); store.set("inkBase", null); store.set("inkButtons", null); store.set("shipDone", false);
+  S.drawn = { ship: null, explorer: null };
+  S.pad = null; S.padFailed = false; padTemplate = null; padSettled = "";
+  destroyCtl(); S.ctlPending = false;
+  images.clear();
+  S.left = { space: C.TUNING.drawings.space, planet: C.TUNING.drawings.planet }; hudCache.leftWorld = null;
+  S.explorerAsked = false; S.wrecked = false; S.resultKind = null; S.legendPending = false;
+  clearGhost(); clearSketch();
+  hitRect = null;
+  $("hits").replaceChildren(); controls.length = 0;               // no layout: no controls and no ink left on the play screen
+  paintInk().catch(() => {});
+  updateCounters();
+  if (S.player && S.screen !== "join") enterDraw("ship");
+}
 function onNetTick(m) {
+  noteRound(m.round);
   const me = m.players && m.players.find((p) => p.name === S.player);
   if (me && me.drawingsLeft) setLeft(me.drawingsLeft);
   S.net.phase = m.phase;
@@ -3210,7 +3241,7 @@ function updateHud() {
       shieldOff: known && !S.entity.verbs.includes("shield"), boostOff: known && !S.entity.verbs.includes("boost") });
   }
   if (radar && !hudOff) radar.update(h.radar || [], me && me.mode === "planet" ? 100 : 300);   // v1.5: hidden by the HUD switch: no work
-  // phases: lobby → the wait banner, playing → GO!, scoreboard → the results; the drawings are kept across rounds
+  // phases: lobby → the wait banner, playing → GO!, scoreboard → the results; v1.5: a new round clears every drawing (noteRound)
   if (h.phase !== S.phase) onPhase(h.phase, h);
   if (h.phase === "scoreboard") renderResults(h);
   // landing and take-off are a predefined animation with no control: the overlay fades to 20 %
@@ -4189,7 +4220,7 @@ window.__spTest = {
 paintExplorerSheet();
 applyMuted();
 updateCounters();
-// A refresh rejoins with the same name and keeps the drawings.
+// A refresh rejoins with the same name and keeps this round's drawings (v1.5: noteRound clears them when the round has moved on).
 const saved = store.get("player");
 const savedLayout = store.get("layout");
 if (savedLayout && !C.CHECKS.layout(savedLayout).length) { S.layout = savedLayout; S.inkBase = store.get("inkBase"); S.inkButtons = store.get("inkButtons") || {}; }

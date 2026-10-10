@@ -763,7 +763,7 @@ export function createKillFeed(container, opts = {}) {
 
 /* ---------- lobby hangar ---------- */
 
-// createHangar(container, opts) → { el, update(list), fit(), clear(), destroy() }: the lobby's cards, one per player.
+// createHangar(container, opts) → { el, update(list), fit(), clear(), resetImages(), destroy() }: the lobby's cards, one per player.
 // list = the humans in the lobby in join order: [{ name, color, image, ready, stars }] (image = their ship drawing's URL, the
 // entity message's `image`, or null while they draw). A card pops in when someone joins (the cards of the first fill come in
 // quietly: a page opened mid-lobby makes no noise), shows the drawing on a paper tile (a scribbling pencil and "DRAWING…" until
@@ -873,7 +873,16 @@ export function createHangar(container, opts = {}) {
   let ro = null;
   if (typeof ResizeObserver === "function") { ro = new ResizeObserver(() => { layoutKey = ""; fit(); }); ro.observe(container); }
   const clear = () => { for (const c of cards.values()) c.el.remove(); cards.clear(); count = 0; primed = false; layoutKey = ""; };
-  return { el, update, fit: () => { layoutKey = ""; fit(); }, clear, destroy: () => { clear(); if (ro) ro.disconnect(); el.remove(); }, get size() { return cards.size; } };
+  // v1.5 (every round starts from scratch): every card forgets its drawing and shows the pencil and DRAWING… again (the cards,
+  // names, READY and stars stay); the next drawing that arrives pops in as a new one.
+  const resetImages = () => {
+    for (const c of cards.values()) {
+      c.url = ""; c.shown = "";
+      c.img.removeAttribute("src");
+      c.el.classList.remove("drawn", "fresh");
+    }
+  };
+  return { el, update, fit: () => { layoutKey = ""; fit(); }, clear, resetImages, destroy: () => { clear(); if (ro) ro.disconnect(); el.remove(); }, get size() { return cards.size; } };
 }
 
 /* ---------- name tags ---------- */

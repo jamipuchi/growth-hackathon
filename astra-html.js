@@ -66,6 +66,17 @@ let warnedModel = false;
 let envKey;
 const cache = new Map();     // key → result (newest 64)
 const inflight = new Map();  // key → { promise, controller, owners }
+// v1.5 (owner, 10 Oct 11:31: every round starts from scratch): the round generation, part of every cache key. newRound()
+// (server.js, at each new lobby) bumps it, forgets every cached controller and stops the calls still running, so a
+// controller drawing sent again in a later round is written afresh.
+let roundGen = 0;
+function newRound() {
+  roundGen++;
+  for (const entry of inflight.values()) { try { entry.controller.abort(); } catch {} }
+  inflight.clear();
+  cache.clear();
+  return roundGen;
+}
 
 // The key from the environment, else .env. A key that is present but blank (a harness blanks it on purpose) means
 // NO key: .env is not consulted then.
@@ -739,7 +750,8 @@ async function generateControllerHtml({ image, layout, allowedActions, style, si
   if (process.env.ASTRA_MOCK === "1") { const r = templateResult(controls, allowed, { accent }, Date.now() - t0, "mock"); log(r); return r; }
   if (signal && signal.aborted) return templateResult(controls, allowed, { accent }, 0, "aborted");
 
-  const key = sha1(JSON.stringify([img ? sha1(img) : "", controls, [...allowed].sort(), accent]));
+  const gen = roundGen;
+  const key = sha1(JSON.stringify([img ? sha1(img) : "", controls, [...allowed].sort(), accent, ...(gen ? [gen] : [])]));
   const cached = cache.get(key);
   if (cached) return { ...cached, ms: Date.now() - t0 };
 
@@ -758,14 +770,14 @@ async function generateControllerHtml({ image, layout, allowedActions, style, si
         if (styleRejects(check.style)) return templateResult(controls, allowed, { accent }, 0, `rejected: style (${check.style.missing.join(", ")})`);
         const warnings = [...check.warnings, ...check.style.missing.map((m) => `style: ${m}`), ...(check.style.italic ? [] : ["style: no italic labels"])];
         const result = { ok: true, html, controls: check.controls, source: "model", ms: 0, bytes: check.bytes, style: check.style, ...(warnings.length ? { warnings } : {}) };
-        cache.set(key, result);
+        if (gen === roundGen) cache.set(key, result); // v1.5: never an earlier round's answer in this round's cache
         if (cache.size > 64) cache.delete(cache.keys().next().value);
         return result;
       } catch (err) {
         return templateResult(controls, allowed, { accent }, 0, entry.timedOut ? "timeout" : String((err && err.message) || err));
       } finally {
         clearTimeout(timer);
-        inflight.delete(key);
+        if (inflight.get(key) === entry) inflight.delete(key);
       }
     })();
     inflight.set(key, entry);
@@ -788,10 +800,10 @@ async function generateControllerHtml({ image, layout, allowedActions, style, si
 const _internals = {
   setFetch: (fn) => (fetchImpl = fn),
   setTimeoutMs: (ms) => (timeoutMs = ms),
-  reset: () => { cache.clear(); inflight.clear(); defaultTierOnly = false; warnedModel = false; timeoutMs = Number(process.env.ASTRA_HTML_TIMEOUT_MS) || TIMEOUT_MS; },
+  reset: () => { roundGen = 0; cache.clear(); inflight.clear(); defaultTierOnly = false; warnedModel = false; timeoutMs = Number(process.env.ASTRA_HTML_TIMEOUT_MS) || TIMEOUT_MS; },
   state: () => ({ cache: cache.size, inflight: inflight.size, defaultTierOnly, warnedModel }),
   INSTRUCTIONS, ICONS, MAX_HTML_BYTES, MIN_TOUCH_PX, MIN_VISUAL_PX, MIN_STICK_PX, STYLE_MISS, TIER_OF, cleanLayout, buildRequest, layoutText, extractText, extractHtml, attrsOf,
   modelName, styleGate, styleRejects, tierOf,
 };
 
-module.exports = { generateControllerHtml, templateHtml, validateHtml, _internals };
+module.exports = { generateControllerHtml, templateHtml, validateHtml, newRound, _internals };

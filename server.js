@@ -120,7 +120,7 @@ function onLateShipSpec({ player, kind, image, spec }) {
   noteShipSpec(v, spec);
   const family = kind === "explorer" ? "explorer" : "ship"; // v1.4: an explorer's body spec comes the same way
   const url = drawnImages[player] && drawnImages[player][family];
-  if (!url || vOfUrl(url) !== v) return; // an older drawing of theirs: kept by its hash, nothing to send
+  if (!url || specKey(vOfUrl(url)) !== v) return; // an older drawing of theirs: kept by its hash, nothing to send
   const p = world.players[player];
   if (p && p.entity && kindOfEntity(p.entity) === family) broadcast({ type: "entity", player, entity: p.entity });
   if (p && p.mode === "planet") broadcast(world.worldMessage({ entities: false }));
@@ -136,7 +136,7 @@ function wireAnimations(type, verbs) {
 // the plain entity (only its type's innate skills, source "fallback"), and it is free (fallback: true, free: true: no
 // drawing spent, the phone says so and offers TRY AGAIN). Astra answers its own timeouts / failures the same way.
 // Refusals (a controller drawn in the ship step, a blank page) and bad requests keep their plain message.
-const ENTITY_NO_FALLBACK = /^(looks like|nothing to read|no drawings left|slow down|superseded|kind is|player required|image must|image too large|region too small|join first|name taken)/;
+const ENTITY_NO_FALLBACK = /^(looks like|nothing to read|no drawings left|new round|slow down|superseded|kind is|player required|image must|image too large|region too small|join first|name taken)/;
 function fallbackEntity(kind) {
   const type = kind === "ship" ? "ship" : "person";
   const unlocked = [];
@@ -152,7 +152,10 @@ function fallbackEntity(kind) {
 // A finished ship / explorer drawing is kept (in memory, and by Astra at controllers/<player>-<kind>.png) and served
 // read-only at /drawings/<player>-<kind>.png; every entity message for that player and type carries its URL as
 // `image` (with ?v=<hash>), so every screen, late joiners included, inflates the same drawing (inflate.js).
-const CONTROLLERS = path.join(ROOT, "controllers");
+// v1.5 (owner, 10 Oct 11:31: every round starts from scratch): only from memory, and only this round's. The ?v= is the
+// drawing's hash (10 hex) in round 1 and the hash plus the round in hex from round 2 on (drawingV), so a drawing never has
+// the same URL in two rounds and no screen's cache (render.js DrawnCache, the TV hangar) can show a previous round's
+// model; freshRound clears everything at each new lobby.
 const DRAWING_KINDS = Object.assign(Object.create(null), { ship: "ship", explorer: "explorer" }); // drawing kind → drawnImages key
 const kindOfEntity = (entity) => (entity && entity.type === "ship" ? "ship" : "explorer"); // any planet type is the explorer
 const DRAWING_PATH = /^\/drawings\/([a-z0-9]{1,20})-(ship|explorer)\.png$/;
@@ -160,15 +163,23 @@ const drawingFiles = new Map();          // "<player>-<kind>" → PNG buffer
 const drawnImages = Object.create(null); // player → { [entity type]: "/drawings/<player>-<kind>.png?v=<hash>" }
 // v1.4 (ship3d.js): the ship spec Astra read from each ship drawing (astra-ship.js: hull, wings, engines... as parts), by
 // the drawing's hash (the ?v= of its URL). Every ship entity message and parked ship carries it as `spec`, next to `image`.
-const shipSpecs = new Map(); // hash → spec (newest 200)
+const shipSpecs = new Map(); // drawing hash (10 hex) → spec (newest 200), this round's only (freshRound clears it)
 const vOfUrl = (url) => { const m = /[?&]v=([0-9a-f]{6,40})/.exec(String(url || "")); return m ? m[1] : ""; };
+// The drawing's own hash in a ?v= (its first 10 hex): what the phone's result card computes from its PNG (render.js
+// entImageV) and asks GET /ship-spec for.
+const specKey = (v) => String(v || "").slice(0, 10);
+// The ?v= of a drawing this round: its hash, plus the round in hex from round 2 on (round 1 keeps the plain 10 hex).
+const drawingV = (buf) => sha1(buf).slice(0, 10) + (world.round > 1 ? world.round.toString(16).padStart(2, "0") : "");
+// The round a ?v= belongs to (10 hex: round 1).
+const roundOfV = (v) => (String(v).length <= 10 ? 1 : parseInt(String(v).slice(10), 16) || 0);
 function noteShipSpec(v, spec) {
+  v = specKey(v);
   if (!v || !spec || typeof spec !== "object") return;
   shipSpecs.delete(v);
   shipSpecs.set(v, spec);
   if (shipSpecs.size > 200) shipSpecs.delete(shipSpecs.keys().next().value);
 }
-const shipSpecOf = (url) => shipSpecs.get(vOfUrl(url)) || null;
+const shipSpecOf = (url) => shipSpecs.get(specKey(vOfUrl(url))) || null;
 
 // A real PNG of a sane size: the signature, an IHDR chunk first, 1..MAX_DRAWING_PX on each side.
 function validPng(buf) {
@@ -183,7 +194,7 @@ function keepDrawing(player, kind, dataUrl) {
   const buf = Buffer.from(m[1], "base64");
   if (!validPng(buf)) return null;
   drawingFiles.set(`${player}-${kind}`, buf);
-  const url = `/drawings/${player}-${kind}.png?v=${sha1(buf).slice(0, 10)}`;
+  const url = `/drawings/${player}-${kind}.png?v=${drawingV(buf)}`;
   (drawnImages[player] || (drawnImages[player] = {}))[DRAWING_KINDS[kind]] = url;
   return url;
 }
@@ -225,11 +236,13 @@ function withDrawings(m) {
   return m;
 }
 
+// v1.5 (every round from scratch): only this round's drawings, from memory. No copy on disk is ever served (Astra's
+// controllers/ copies are a record, not a source), and a URL of another round (its ?v=) is 404.
 function serveDrawing(req, res, url) {
   const m = DRAWING_PATH.exec(url.pathname);
   const name = m && `${m[1]}-${m[2]}`;
-  let buf = name && drawingFiles.get(name);
-  if (name && !buf) { try { buf = fs.readFileSync(path.join(CONTROLLERS, `${name}.png`)); } catch {} }
+  const v = url.searchParams.get("v");
+  const buf = name && (v == null || roundOfV(v) === world.round) ? drawingFiles.get(name) : null;
   if (!validPng(buf)) return res.writeHead(404, { "Content-Type": "text/plain" }).end("not found");
   res.writeHead(200, { "Content-Type": "image/png", "Content-Length": buf.length, "Cache-Control": url.searchParams.has("v") ? "public, max-age=86400" : "no-cache" });
   res.end(req.method === "HEAD" ? undefined : buf);
@@ -268,7 +281,7 @@ function startHtmlJob(A, player, padLayout, sig, image) {
     .catch((err) => ({ ok: false, error: String((err && err.message) || err) }))
     .then((r) => {
       job.done = true;
-      if (r && r.ok && r.source === "model" && entry.sig === sig && entry.source !== "model") {
+      if (r && r.ok && r.source === "model" && ctrl[player] === entry && entry.sig === sig && entry.source !== "model") { // v1.5: not after a new round
         Object.assign(entry, { html: r.html, controls: r.controls, source: "model" });
         broadcast({ type: "generated", player, kind: "html", html: r.html, controls: r.controls, htmlSource: "model", padLayout: entry.padLayout });
       }
@@ -308,7 +321,28 @@ async function currentHtml(player, wait) {
 
 // ---- The world ---------------------------------------------------------------------------------------------------
 
-const world = createWorld({ broadcast, autoStart: true, wireAnimations, autostartSeconds: AUTOSTART });
+// v1.5 (owner, 10 Oct 11:31: "Make sure things restart from scratch each round. not possible to reuse drawings etc."):
+// at every new lobby after the first, world.js clears each player's drawings, skills, controller and budget, and calls
+// this first. Everything generated from a drawing goes too: the drawings and their URLs, the ship / body specs, Sol's
+// controller HTML (its running calls aborted), the speculative counters, Astra's and astra-html's caches (so a drawing
+// sent again is read afresh and costs a drawing) and Astra's saved copies of those players' drawings. Kept: the players
+// (name, colour, device token) and the session stars (world.js).
+function freshRound(round, names) {
+  for (const k of Object.keys(drawnImages)) delete drawnImages[k];
+  drawingFiles.clear();
+  shipSpecs.clear();
+  for (const k of Object.keys(ctrl)) {
+    const job = ctrl[k] && ctrl[k].job;
+    if (job && !job.done) { try { job.controller.abort(); } catch {} }
+    delete ctrl[k];
+  }
+  for (const k of Object.keys(speculativeAt)) delete speculativeAt[k];
+  try { if (astra && typeof astra.newRound === "function") astra.newRound({ players: names }); } catch (err) { logOnce("astra round reset failed", err); }
+  try { if (astraHtml && typeof astraHtml.newRound === "function") astraHtml.newRound(); } catch (err) { logOnce("astra-html round reset failed", err); }
+  console.log(`round ${round}: a fresh start (drawings, controllers and their caches cleared for ${names.length} player(s))`);
+}
+
+const world = createWorld({ broadcast, autoStart: true, wireAnimations, autostartSeconds: AUTOSTART, onRoundReset: freshRound });
 for (let i = 1; i <= BOTS; i++) world.addBot(`bot${i}`);
 
 setInterval(() => {
@@ -464,6 +498,7 @@ function plainMessage(kind, error) {
   const what = kind === "button" ? "button" : kind === "ship" ? "ship" : kind === "explorer" ? "explorer" : "controller";
   if (e === "slow down" || e === "superseded") return "";
   if (e === "no drawings left") return "No drawings left for this world.";
+  if (e === "new round") return "A new round started: draw your ship again.";
   if (e === "timeout") return "That took too long. Tap Done to try again.";
   // v1.5 (QA M1): the entity could not be read, the plain one stands in, nothing spent
   if (e === "fallback timeout") return "That took too long. Try again: this did not use a drawing.";
@@ -601,10 +636,16 @@ async function handlePost(req, res, url) {
     const gone = new AbortController();
     res.on("close", () => { if (!res.writableEnded) gone.abort(); });
     if (res.destroyed || (req.socket && req.socket.destroyed)) gone.abort(); // it closed before we started listening
+    const round0 = world.round;
     let { status, result } = await generate({ ...body, where }, gone.signal);
     if (gone.signal.aborted) {
       logOnce(`generate ${String(body.kind).slice(0, 12)}`, `${player || "-"} gave up waiting: nothing spent`);
       return;
+    }
+    // v1.5 (every round from scratch): a drawing sent in one round and answered in the next belongs to neither: nothing
+    // spent, kept or changed; the phone (already back at "1 · DRAW YOUR SHIP") says a new round started.
+    if (world.round !== round0) {
+      return json(res, 200, { ok: false, error: "new round", message: plainMessage(body.kind, "new round"), ...(player ? { drawingsLeft: world.drawingsLeft(player) } : {}) });
     }
     // A finished ship / explorer always comes back as an entity (fallbackEntity), unless it was refused.
     if (finished && player && DRAWING_KINDS[body.kind] && !(result && result.ok) && !ENTITY_NO_FALLBACK.test(String((result && result.error) || ""))) {
@@ -690,7 +731,7 @@ async function handler(req, res) {
     else if ((req.method === "GET" || req.method === "HEAD") && url.pathname.startsWith("/drawings/")) serveDrawing(req, res, url);
     else if ((req.method === "GET" || req.method === "HEAD") && url.pathname === "/ship-spec") {
       // v1.4: the spec of a ship drawing by its hash (the phone's result card); 404 until Astra has one.
-      const spec = shipSpecs.get(String(url.searchParams.get("v") || "").slice(0, 40));
+      const spec = shipSpecs.get(specKey(String(url.searchParams.get("v") || "").slice(0, 40))); // v1.5: by the drawing's hash, this round only
       json(res, spec ? 200 : 404, spec ? { ok: true, spec } : { ok: false, error: "no spec" });
     }
     else if (req.method === "POST") await handlePost(req, res, url);

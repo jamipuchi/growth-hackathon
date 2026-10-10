@@ -810,9 +810,17 @@ game.on("frame", () => {
   drawMap();
 });
 let bossWasDead = null, bossRound = -1;
+// v1.5 (owner, 10 Oct 11:31: every round starts from scratch): a new round number means every drawing is gone (the server
+// cleared them all, and a drawing's URL changes with the round): the hangar shows DRAWING… again until new ones arrive.
+let drawRound = null;
+function forgetDrawings() {
+  shipImg.clear(); otherImg.clear();
+  if (hangar && hangar.resetImages) hangar.resetImages();
+}
 game.on("world", (m) => {
   const wasResult = world && world.result ? world.result.round : null;
   world = m;
+  if (!mocked && Number.isFinite(m.round) && m.round !== drawRound) { if (drawRound !== null) forgetDrawings(); drawRound = m.round; }
   if (m.entities) for (const k of Object.keys(m.entities)) noteDrawing(k, m.entities[k]);
   if (m.island && Array.isArray(m.island.parked)) for (const c of m.island.parked) if (c && c.player && c.image) shipImg.set(c.player, c.image);
   if (m.result && m.result.round !== wasResult) { suppressBannerUntil = performance.now() + 700; hideBanner(); }

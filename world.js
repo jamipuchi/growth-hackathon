@@ -184,7 +184,10 @@ function ghostBox(layout, action) {
 
 // wireAnimations(type, verbs) → anims (astra.js), optional: called on every entity switch.
 // autostartSeconds: the lobby starts by itself after that many seconds (null: only start(), the host's START button).
-function createWorld({ broadcast = () => {}, random = Math.random, autoStart = false, wireAnimations = null, autostartSeconds = ROUND.autostartSeconds } = {}) {
+// onRoundReset(round, names) (v1.5, owner 10 Oct 11:31 "every round starts from scratch"): called at every new lobby after
+// the first, before any message of the new round goes out, with the new round number and every player's name: server.js
+// forgets the drawings, their URLs, specs, Sol's controller HTML and Astra's caches there.
+function createWorld({ broadcast = () => {}, random = Math.random, autoStart = false, wireAnimations = null, autostartSeconds = ROUND.autostartSeconds, onRoundReset = null } = {}) {
   const players = Object.create(null);
   // Hints run on the simulation clock so fast-forward tests see the same ladder as a live round.
   const hints = Rules.createHints({ now: () => Math.round(S.t * 1000) });
@@ -632,16 +635,28 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
 
   // ---- Round clock ---------------------------------------------------------------------------------------------
 
-  // The lobby: players join and draw; the host presses START (start()). Players, drawings and layouts are kept.
+  // The lobby: players join and draw; the host presses START (start()).
+  // v1.5 (owner, 10 Oct 11:31): every round starts from scratch. Only the player (name, colour, device token) and the
+  // session stars carry over; the drawn ship and explorer (and every skill they unlocked), the controller layout, the
+  // drawing budget, parked and wrecked ships, mines, decoys and the parking bay are all gone, so every phone draws its
+  // ship again. onRoundReset (server.js) clears the drawings, their URLs and the generation caches first, so no entity
+  // message of the new round can carry an old drawing.
   function newRound() {
     S.round++; S.phase = "lobby"; S.phaseT = 0; S.playT = 0; S.assists = false; S.result = null;
+    if (S.round > 1 && typeof onRoundReset === "function") {
+      try { onRoundReset(S.round, Object.keys(players)); } catch (err) { console.log(`round reset hook failed: ${(err && err.message) || err}`); }
+    }
     S.playerCount = scaledCount(active());
     buildWorld();
     hints.reset(); budget.reset(); parked = [];
     for (const p of Object.values(players)) {
+      const hadDrawing = !!(p.drawn.space || p.drawn.planet || p.layout);
+      Object.assign(p, { drawn: { space: null, planet: null }, layout: null, bayIndex: null, hitBy: Object.create(null), run: null, lastChest: null, hitAcc: 0 });
       spawnAt(p);
       Object.assign(p, { ready: p.bot, hints: {}, keys: {}, axes: {}, drawingUntil: 0, pressed: [], cd: {}, invisibleFor: 0, shieldEnergy: 1, boostEnergy: 1, boostLocked: false, shieldLocked: false, lastChest: null, refusedAt: {}, tractor: null, empFor: 0, inkFor: 0, late: {}, lateAt: -Infinity });
-      setMode(p, "space", true); // assists from the last round are gone
+      // assists from the last round are gone, and so is the drawn entity: the plain ship (bots: the dev kit) goes to every
+      // screen ("fresh": always sent when the player had drawn anything, so no screen keeps a drawn model)
+      setMode(p, "space", hadDrawing ? "fresh" : true);
     }
     sendWorld();
   }

@@ -121,6 +121,11 @@ const inflight = new Map(); // hash → { promise, controller, owners: Set<token
 const slots = new Map(); // "player:kind" → token of the newest call
 const pads = new Map(); // player → [{ type, action, label }] on their phone now (last finished controller + buttons)
 const MAX_PADS = 500;
+// v1.5 (owner, 10 Oct 11:31: every round starts from scratch): the round generation. newRound() (server.js, at each new
+// lobby) bumps it and clears every cache; it is part of every cache key (readings and specs alike), so a call of an earlier
+// round that finishes later can never answer a drawing sent in this one: the same photo sent again is read afresh.
+let roundGen = 0;
+const genKey = () => (roundGen ? `round:${roundGen}:` : "");
 
 function apiKey() {
   // Present but blank (a harness turning the network off) means no key: never fall back to the .env then.
@@ -601,6 +606,7 @@ const sleep = (ms, signal) => new Promise((resolve, reject) => {
 
 // One in-flight request per image hash; every caller waiting on it is an owner.
 function startEntry(hash, kind, image, region, source, extra) {
+  const gen = roundGen;
   const controller = new AbortController();
   const entry = { controller, owners: new Set(), timedOut: false, superseded: false, done: false };
   const timer = setTimeout(() => ((entry.timedOut = true), controller.abort()), timeoutMs);
@@ -610,7 +616,7 @@ function startEntry(hash, kind, image, region, source, extra) {
       const reading = process.env.ASTRA_MOCK === "1"
         ? (await sleep(ENTITY_KINDS[kind] ? 0 : MOCK_MS, controller.signal), { value: ENTITY_KINDS[kind] ? devKitEntity(kind) : mockLayout(kind, hash, region, extra), looksLike: null, thing: null, wrong: false })
         : await callModel(kind, image, region, source, controller.signal, extra);
-      cache.set(hash, reading);
+      if (gen === roundGen) cache.set(hash, reading); // v1.5: never fill this round's cache with an earlier round's reading
       return { ok: true, reading, ms: Date.now() - t0, outcome: outcomeOf(reading) };
     } catch (err) {
       const ms = Date.now() - t0;
@@ -639,7 +645,7 @@ function startEntry(hash, kind, image, region, source, extra) {
     } finally {
       clearTimeout(timer);
       entry.done = true;
-      inflight.delete(hash);
+      if (inflight.get(hash) === entry) inflight.delete(hash);
     }
   })();
   inflight.set(hash, entry);
@@ -785,7 +791,7 @@ async function askSpecOnce(image, source, signal, kind = "ship") {
 // The model's spec of a ship (or, kind "explorer", body) drawing → Promise<{ spec, ms } | null> (null: mock, no key, no
 // astra-ship.js / astra-body.js, a failure). owner: the request waiting for it; a spec call nobody waits for any more (every
 // owner superseded: the player kept drawing) is aborted, unless a finished answer already counts on it (the late listeners).
-const specHash = (image, kind) => sha1(`${kind === "explorer" ? "bodyspec" : "shipspec"}${image}`);
+const specHash = (image, kind) => sha1(`${genKey()}${kind === "explorer" ? "bodyspec" : "shipspec"}${image}`);
 function shipSpec(image, source, owner = null, kind = "ship") {
   const Lib = specLibFor(kind);
   if (!Lib || process.env.ASTRA_MOCK === "1" || !apiKey()) return Promise.resolve(null);
@@ -796,6 +802,7 @@ function shipSpec(image, source, owner = null, kind = "ship") {
     if (owner) running.owners.add(owner);
     return running.p;
   }
+  const gen = roundGen;
   const entry = { p: null, ctrl: null, owners: new Set(owner ? [owner] : []), wanted: false, done: false };
   const ctrl = (entry.ctrl = new AbortController());
   const timer = setTimeout(() => ctrl.abort(), SPEC_TIMEOUT_MS);
@@ -803,7 +810,7 @@ function shipSpec(image, source, owner = null, kind = "ship") {
   const p = hedged((signal) => askSpecOnce(image, source, signal, kind), ctrl.signal, SPEC_HEDGE_MS)
     .then((raw) => {
       const got = { spec: Lib.normalize(raw, { seed: Lib.seedOf(hash) }), ms: Date.now() - t0 };
-      specCache.set(hash, got);
+      if (gen === roundGen) specCache.set(hash, got); // v1.5: this round's only
       if (specCache.size > MAX_SPECS) specCache.delete(specCache.keys().next().value);
       const sp = got.spec;
       if (kind === "ship") console.log(`astra ship-spec model=${got.ms}ms ok ${sp.hull.shape} wings=${sp.wings.count} engines=${sp.engines.count}${sp.engines.flame ? "+flame" : ""} weapons=${sp.weapons.length} extras=${sp.extras.length}${sp.palette.colored ? " coloured" : ""}`);
@@ -887,8 +894,9 @@ async function generateOnce(body, opts = {}) {
   const inkRegions = kind === "controller" && Array.isArray(body.inkRegions) ? body.inkRegions.slice(0, 40) : null;
   // where (v1.3, from server.js): the player's world now, "space" | "planet"; the mock button answers a skill of it.
   const where = kind === "button" && (body.where === "space" || body.where === "planet") ? body.where : null;
-  const hash = sha1(kind + image + (region ? JSON.stringify(region) : "") + (expect ? `expect:${expect}` : "") + (pad.length ? `pad:${pad.map((c) => c.action).join(",")}` : "") + (where ? `where:${where}` : ""));
+  const hash = sha1(genKey() + kind + image + (region ? JSON.stringify(region) : "") + (expect ? `expect:${expect}` : "") + (pad.length ? `pad:${pad.map((c) => c.action).join(",")}` : "") + (where ? `where:${where}` : ""));
   const slotKey = `${player}:${kind}`;
+  const gen = roundGen; // v1.5: a new round while this call runs: no late spec and no saved copy for it
 
   // The newest request for this player and kind wins; the older one resolves "superseded".
   const token = { slotKey };
@@ -938,6 +946,7 @@ async function generateOnce(body, opts = {}) {
     if (late && !body.speculative && specListeners.size) {
       const entity = answer.entity;
       specP.then((g) => {
+        if (gen !== roundGen) return; // v1.5: that round is over, so is its drawing
         const spec = specFor(entity, g, seedText);
         if (!spec) return;
         for (const fn of specListeners) {
@@ -951,7 +960,7 @@ async function generateOnce(body, opts = {}) {
   // A speculative ship / explorer is not kept (the drawing on disk is the finished one; controllers keep theirs).
   // A refused ship / explorer is not kept either: the drawing on disk stays the last accepted one.
   // v1.5: nor is one that could not be read (answer.fallback).
-  if (result.error !== "superseded" && !(ENTITY_KINDS[kind] && (body.speculative || !answer.ok || answer.fallback))) save(player, kind, image, answer);
+  if (gen === roundGen && result.error !== "superseded" && !(ENTITY_KINDS[kind] && (body.speculative || !answer.ok || answer.fallback))) save(player, kind, image, answer);
   return answer;
 }
 
@@ -1047,11 +1056,37 @@ function wireAnimations(type, verbs) {
   return out;
 }
 
+// v1.5 (owner, 10 Oct 11:31: every round starts from scratch). server.js calls it at each new lobby with every player's
+// name: the round generation moves on (every cache key carries it), each waiting call answers "superseded" and its model
+// call stops, every reading, spec and pad is forgotten, and the saved copies of those players' drawings
+// (controllers/<player>-<kind>.png / .json) are deleted. Nothing of an earlier round can answer a drawing sent now.
+const SAVED_KINDS = ["controller", "button", "ship", "explorer"];
+function newRound({ players = [] } = {}) {
+  roundGen++;
+  for (const token of [...slots.values()]) { try { release(token); } catch {} }
+  slots.clear();
+  for (const entry of inflight.values()) { entry.superseded = true; try { entry.controller.abort(); } catch {} }
+  inflight.clear();
+  cache.clear();
+  pads.clear();
+  for (const entry of specInflight.values()) { try { entry.ctrl.abort(); } catch {} }
+  specInflight.clear();
+  specCache.clear();
+  const dir = outDir;
+  for (const name of Array.isArray(players) ? players : []) {
+    const player = Contract.cleanName(name);
+    if (!player) continue;
+    for (const kind of SAVED_KINDS) for (const ext of ["png", "json"]) fs.promises.unlink(path.join(dir, `${player}-${kind}.${ext}`)).catch(() => {});
+  }
+  return roundGen;
+}
+
 const _internals = {
   setFetch: (fn) => (fetchImpl = fn),
   setDir: (dir) => (outDir = dir),
   setTimeoutMs: (ms) => (timeoutMs = ms),
   reset: () => {
+    roundGen = 0;
     cache.clear();
     inflight.clear();
     slots.clear();
@@ -1070,4 +1105,4 @@ const _internals = {
   shipSpec, specFor, specRequest, releaseSpec, SPEC_GRACE_MS, SPEC_TIMEOUT_MS,
 };
 
-module.exports = { generate, defaultLayout, wireAnimations, onShipSpec, _internals };
+module.exports = { generate, defaultLayout, wireAnimations, onShipSpec, newRound, _internals };
