@@ -252,7 +252,10 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   // present: everybody holding a seat; active: who is in the game now (v1.7 readyGate: out of the lobby, only the round's players)
   const present = () => Object.values(players).filter((p) => p.bot || Date.now() - p.lastSeen < INACTIVE_MS);
   const active = () => present().filter((p) => !readyGate || S.phase === "lobby" || p.inRound);
-  const readyNow = (p) => !!p.bot || (!!p.drawn.space && !!p.layout); // v1.7: ship drawing + controller accepted
+  // v1.7: ship drawing + controller accepted. v1.8 (skipready): SKIP on the phone's drawing steps counts the same (useDefault:
+  // p.defaults.ship = the plain ship, p.defaults.controller = the default buttons), so a skipping player is READY too.
+  const chose = (p, kind) => !!(p.defaults && p.defaults[kind]);
+  const readyNow = (p) => !!p.bot || ((!!p.drawn.space || chose(p, "ship")) && (!!p.layout || chose(p, "controller")));
   const waitingList = () => (readyGate && S.phase !== "lobby" ? present().filter((p) => !p.inRound && !p.bot) : []);
   const readyCount = () => present().filter((p) => !p.bot && readyNow(p)).length; // ready humans (the TV's START · n READY)
   const assists = () => S.assists;
@@ -690,6 +693,17 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     if (!p || !layout || !Array.isArray(layout.buttons)) return;
     p.layout = mergeLayout(p.layout, layout, kind);
   }
+  // v1.8 (skipready): SKIP on a drawing step ("plain ship + default buttons" / "use the default buttons", server.js POST
+  // /default). kind "ship" | "controller". The plain ship and the default pad are what a player who drew nothing already
+  // flies (entity source "plain", layoutOf → DEFAULT_LAYOUT), so nothing else changes and a later drawing replaces them as
+  // usual; the choice only counts for READY (readyNow). Gone with the drawings at a fresh round. Never creates a player.
+  // → true / false (READY now), null for an unknown player, a bot or another kind.
+  function useDefault(name, kind) {
+    const p = getPlayer(name, false, { create: false });
+    if (!p || p.bot || (kind !== "ship" && kind !== "controller")) return null;
+    p.defaults = { ...(p.defaults || {}), [kind]: true };
+    return readyNow(p);
+  }
   // The player's whole pad now: their drawn controller plus added buttons, else the phone's default.
   const layoutOf = (name) => { const p = players[Contract.cleanName(name)]; return (p && p.layout) || DEFAULT_LAYOUT; };
 
@@ -722,7 +736,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     for (const p of Object.values(players)) {
       const fresh = played(p);
       const hadDrawing = !!(p.drawn.space || p.drawn.planet || p.layout);
-      Object.assign(p, { ...(fresh ? { drawn: { space: null, planet: null }, layout: null } : {}), bayIndex: null, hitBy: Object.create(null), run: null, lastChest: null, hitAcc: 0, inRound: false });
+      Object.assign(p, { ...(fresh ? { drawn: { space: null, planet: null }, layout: null, defaults: null } : {}), bayIndex: null, hitBy: Object.create(null), run: null, lastChest: null, hitAcc: 0, inRound: false });
       spawnAt(p);
       Object.assign(p, { ready: p.bot, hints: {}, keys: {}, axes: {}, drawingUntil: 0, pressed: [], cd: {}, invisibleFor: 0, shieldEnergy: 1, boostEnergy: 1, boostLocked: false, shieldLocked: false, lastChest: null, refusedAt: {}, tractor: null, empFor: 0, inkFor: 0, late: {}, lateAt: -Infinity, power: null, bubbleFor: 0 });
       // assists from the last round are gone, and so is the drawn entity: the plain ship (bots: the dev kit) goes to every
@@ -1970,6 +1984,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     setEndless, endSession,
     // v1.7 readyGate: ready humans now (START needs one), and whether a player is waiting out this round
     readyCount, readyGate: !!readyGate, isWaiting: (name) => waitingList().some((p) => p.name === Contract.cleanName(name)),
+    // v1.8 (skipready): SKIP on a drawing step counts for READY (the plain ship / the default buttons)
+    useDefault, isReady: (name) => { const p = players[Contract.cleanName(name)]; return !!p && readyNow(p); },
     get endless() { return endless.on; },
     get phase() { return S.phase; },
     get round() { return S.round; },

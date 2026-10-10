@@ -38,6 +38,7 @@ const BODY_LIMIT = 2 * 1024 * 1024;            // POST /generate (a 512 px drawi
 const SMALL_BODY = { "/input": 64 * 1024, "/perf": 16 * 1024, "/join": 4096, "/start": 4096, "/controller-html": 4096, "/mode": 4096, "/end": 4096 };
 Object.assign(SMALL_BODY, { "/hall/judge": 4096, "/hall/reset": 4096 }); // v1.6 hall of fame
 SMALL_BODY["/restart"] = 4096; // v1.6.1 RESTART
+SMALL_BODY["/default"] = 4096; // v1.8 skipready: SKIP on a drawing step
 // v1.6.1: this server process's id, in every world message and in GET /info. A screen that sees it change knows the server
 // restarted (a phone then forgets its player and joins again, the TV reloads).
 const SESSION_ID = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString("hex")}`;
@@ -704,6 +705,22 @@ async function handlePost(req, res, url) {
     const joined = world.join(body.player, body.device);
     if (joined) return json(res, 200, joined);
     return json(res, 400, { error: Contract.cleanName(body.player) ? "the game is full" : "player name required" });
+  }
+  if (url.pathname === "/default") {
+    // v1.8 (skipready): SKIP on the phone's drawing steps, { player, device, kinds: ["ship", "controller"] } ("plain ship +
+    // default buttons") or { kinds: ["controller"] } ("use the default buttons"; `kind` alone works too). The readyGate counts
+    // the plain ship / the default buttons like a drawing (world.useDefault), so a skipping player is READY on the TV and
+    // enters the round at START. Free (no drawing spent, no Astra call). A name that has not joined (a phone that outlived a
+    // server restart) joins first, as for /generate; a name bound to another phone, or a bot's, is refused.
+    const player = Contract.cleanName(body.player);
+    if (!player) return json(res, 400, { ok: false, error: "player name required" });
+    const kinds = [...new Set((Array.isArray(body.kinds) ? body.kinds : [body.kind]).filter((k) => k === "ship" || k === "controller"))];
+    if (!kinds.length) return json(res, 400, { ok: false, error: "kind must be ship or controller" });
+    if (!world.players[player] && !world.join(player, tokenOf(body))) return json(res, 400, { ok: false, error: "the game is full" });
+    if (boundElsewhere(player, body)) return json(res, 403, { ok: false, error: "name taken" });
+    if (typeof world.seat === "function" && !world.seat(player)) return json(res, 400, { ok: false, error: "the game is full" });
+    for (const k of kinds) world.useDefault(player, k);
+    return json(res, 200, { ok: true, kinds, ready: world.isReady(player), phase: world.phase });
   }
   if (url.pathname === "/generate") {
     // Drawing budget (PLAN.md): only finished (non-speculative), successful drawings count, in the world the player
