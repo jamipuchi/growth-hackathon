@@ -467,7 +467,7 @@ function plainMessage(kind, error) {
   if (e === "timeout") return "That took too long. Tap Done to try again.";
   // v1.5 (QA M1): the entity could not be read, the plain one stands in, nothing spent
   if (e === "fallback timeout") return "That took too long. Try again: this did not use a drawing.";
-  if (e === "fallback error") return "Sol could not read it, try again: this did not use a drawing.";
+  if (e === "fallback error") return "We could not read it. Try again: this did not use a drawing.";
   if (e === "generation unavailable") return "The drawing reader is offline. Try again in a moment.";
   if (e === "looks like a controller") return what === "ship" ? "This looks like a controller. Did you mean to draw your ship?" : "This looks like a controller. Draw what explores the planet here.";
   if (e === "looks like a ship") return kind === "button" ? "That looks like a ship. Draw one button here." : "That looks like your ship. Draw your buttons here.";
