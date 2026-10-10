@@ -1,0 +1,2 @@
+server up on :8620 (pid 5814, bots 0)
+{"perf":{"frames":2999,"fps":120,"low1":107.5,"p90ms":8.7,"worstMs":11.3,"calls":{"avg":97.8,"p95":102,"max":103},"tris":{"avg":218168,"p95":220176,"max":220838},"tier":{"min":0,"max":0},"scenes":["planet"]},"violations":{"calls":0,"triangles":null}}

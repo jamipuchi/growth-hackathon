@@ -860,13 +860,17 @@ function entPop(k) {
 // metres (`far` for a view that already has one: hysteresis), at most `cap` of them, the nearest (a phone keeps 8, the TV 16: 25
 // default ships are 75 draw calls); a view that already has a mesh counts as 25 % closer, so two ships swapping places do not
 // flicker between mesh and impostor.
-function entPlanLod(items, phone, cap, near, far, order, t) {
-  let forced = 0;
+// v1.9 (Codex B1): `budget` = draw calls left for these views this frame (IslandWorld.actorBudget); the forced ones always get their
+// mesh, the others nearest first while their cost fits (meshCost(): the model's draws, a guess before it is built). Returns the calls
+// given out. Without a budget (space) only the cap counts, as before.
+function entPlanLod(items, phone, cap, near, far, order, t, budget = Infinity) {
+  let forced = 0, used = 0;
+  const costs = budget !== Infinity;
   order.length = 0;
   for (let i = 0; i < items.length; i++) {
     const s = items[i];
     s.hadMesh = s.wantMesh;
-    if (s.forced) { s.wantMesh = true; forced++; continue; }
+    if (s.forced) { s.wantMesh = true; forced++; if (costs) used += s.meshCost(); continue; }
     if (s.lodDist > (s.hadMesh ? far : near)) { s.wantMesh = false; continue; }
     // A view that has a mesh counts as 25 % closer, and as 60 % closer for its first `dwell` seconds (a heavy model is
     // not worth building again and again as the nearest set shuffles).
@@ -880,9 +884,37 @@ function entPlanLod(items, phone, cap, near, far, order, t) {
     order[j + 1] = x;
   }
   const room = Math.max(0, cap - forced);
-  for (let i = 0; i < order.length; i++) order[i].wantMesh = i < room;
+  let full = false; // nearest first: once one does not fit, the farther ones stay impostors too (no far mesh next to a near glow)
+  for (let i = 0; i < order.length; i++) {
+    const s = order[i];
+    let want = i < room && !full;
+    if (want && costs) { const c = s.meshCost(); if (used + c > budget) { want = false; full = true; } else used += c; }
+    s.wantMesh = want;
+  }
   for (let i = 0; i < items.length; i++) { const s = items[i]; if (s.wantMesh && !s.hadMesh) s.keepUntil = t + (s.dwell || 0); }
+  return used;
 }
+
+// v1.9 (Codex B1): what a model costs in draw calls: meshes x material groups (three draws a double-sided transparent material twice),
+// counted again every 2 s (a model may grow parts after it is built). An upper bound: parts that hide count anyway.
+let entCallsClock = 0; // IslandWorld.update's frame counter
+function entCallsOf(o) {
+  if (!(o.isMesh || o.isPoints || o.isLine || o.isSprite)) return 0;
+  const arr = Array.isArray(o.material), m = arr ? o.material[0] : o.material;
+  const groups = arr && o.geometry && o.geometry.groups.length ? o.geometry.groups.length : 1;
+  return groups * (m && m.transparent && m.side === THREE.DoubleSide && !m.forceSinglePass ? 2 : 1);
+}
+function entCalls(model) {
+  if (!model || !model.object3d) return 0;
+  if (model._calls === undefined || entCallsClock - model._callsAt > 120) {
+    let n = 0;
+    model.object3d.traverse((o) => { n += entCallsOf(o); });
+    model._calls = n;
+    model._callsAt = entCallsClock;
+  }
+  return model._calls;
+}
+const ENT_COST_GUESS = 3; // draws of a view's model before it is built (the A-008 person, the A-009 ship and car: 3)
 
 // ---- Procedural toys: the placeholder of a car, bike, quadruped or blob without a drawing (player colour, low-poly) ----
 const _entM = new THREE.Matrix4();
@@ -1113,6 +1145,7 @@ class ShipModel {
   }
   beforeSwap() {}
   afterSwap() {}
+  meshCost() { return this.model ? entCalls(this.model) : ENT_COST_GUESS; } // v1.9 (Codex B1): draws of its mesh (entPlanLod budget)
   use(model, kind) {
     this.beforeSwap();
     const old = this.model;
@@ -1206,6 +1239,7 @@ class ParkedShip extends ShipModel {
     this.saved = null;
     this.smokeAcc = 0;
     this.popT = -1;
+    group.userData.actor = true; // v1.9: an actor (its draws are in the actor budget, not in IslandWorld.countFixed)
     island.scene.add(group);
   }
   afterSwap() {
@@ -1346,8 +1380,11 @@ class ExplorerView {
       this.stepOutUntil = ctx.t + 1.5;
     }
     this.setType("person");
+    this.group.userData.actor = true; // v1.9: an actor (its draws are in the actor budget, not in IslandWorld.countFixed)
     island.scene.add(this.group);
   }
+  // v1.9 (Codex B1): draws of its mesh for the actor budget (a guess before it is built; the fallback shield bubble counts too).
+  meshCost() { return (this.model ? entCalls(this.model) : ENT_COST_GUESS) + (this.shield.visible ? 1 : 0); }
   setType(type) {
     this.type = type;
     this.speedRef = TUNING.island.walkSpeed * (TUNING.island.speeds[type] || 1) * TUNING.island.runMultiplier;
@@ -1466,7 +1503,9 @@ class ExplorerView {
     pv.x = p.x; pv.y = p.y; pv.z = p.z; pv.yaw = p.yaw;
     this.hasPrev = true;
     g.position.set(p.x, p.y, p.z);
-    g.rotation.set(0, p.yaw, 0);
+    // v1.9.1 FLIGHT: in the air on a flight (the jets fire, or it sinks after them) the explorer leans into its flight speed
+    const air = !!(p.flags.thrust || p.flags.glide);
+    g.rotation.set(air ? -0.32 * clamp(speed / (TUNING.island.walkSpeed * 1.5), 0, 1) : 0, p.yaw, 0, "YXZ");
     if (this.popPending) {
       this.popPending = false;
       this.popT = t;
@@ -1486,7 +1525,7 @@ class ExplorerView {
     const model = this.model;
     if (model && model.play && this.clipSet) {
       const stepping = this.stepOutUntil > t;
-      let clip = working ? "dig" : p.y > ground + 0.4 ? "jump" : speed > TUNING.island.walkSpeed * 1.3 ? "run" : speed > 0.6 ? "walk" : onX ? "kneel" : "idle";
+      let clip = working ? "dig" : air ? (this.hasClip("glide") ? "glide" : "jump") : p.y > ground + 0.4 ? "jump" : speed > TUNING.island.walkSpeed * 1.3 ? "run" : speed > 0.6 ? "walk" : onX ? "kneel" : "idle";
       if (stepping && clip === "idle") clip = "step_out";
       if (clip === "kneel" && !this.hasClip("kneel")) clip = "idle";
       if (clip === "dig" && !this.hasClip("dig")) clip = "idle";
@@ -1531,11 +1570,37 @@ class ExplorerView {
       const f = forwardOf(p.yaw, 0, isl.tmp);
       isl.particles.emit(p.x + f.x * 0.8, ground + 0.2, p.z + f.z * 0.8, (Math.random() - 0.5) * 3, 3 + Math.random() * 3, (Math.random() - 0.5) * 3, 0.8, 0.35, 0.15, DIRT, 1.0, 0.5, 12);
     }
+    if (p.flags.thrust && g.visible && !(p.flags.invisible && p.name !== ctx.me)) this.jetFx(p, dt, ground);
     const c = this.color;
     // An impostor (no mesh): a glow in the player colour at body height. v1.7 look: small and not hot enough to bloom (crowds of
     // big glowing balls), and the marker over the head a small crisp dot instead of a glowing ball.
     if (!model) isl.glow.add(p.x, p.y + 0.9, p.z, 0.7, c.r * 1.0, c.g * 1.0, c.b * 1.0, 0.6);
     isl.glow.add(p.x, p.y + this.markY, p.z, 0.3, c.r * 1.5, c.g * 1.5, c.b * 1.5, 1);
+  }
+  // v1.9.1 FLIGHT, while the jets fire: a jetpack (the fly part's name says jet, rocket, thruster or engine) shoots two flames
+  // from the back with a hot glow; wings, a propeller, a balloon or a hoverboard fly flames-free. Low over the ground the
+  // downwash kicks up dust. Particles and glow sprites only: no draw call of its own.
+  jetFx(p, dt, ground) {
+    const isl = this.island, ent = entPlanet.get(this.name);
+    if (ent !== this.flyEnt) {
+      this.flyEnt = ent;
+      const u = ent && Array.isArray(ent.unlocked) ? ent.unlocked.find((x) => x && x.verb === "fly") : null;
+      this.jetLook = !!u && /jet|rocket|thrust|engine/i.test(String(u.part || ""));
+    }
+    const k = (this.markY || 2.3) / 2.3, f = forwardOf(p.yaw, 0, isl.tmp), fx = f.x, fz = f.z; // k: the type's size
+    if (this.jetLook) {
+      const by = p.y + 1.0 * k, bx = p.x - fx * 0.34 * k, bz = p.z - fz * 0.34 * k, sx = -fz * 0.13 * k, sz = fx * 0.13 * k;
+      for (let s = -1; s <= 1; s += 2) {
+        const x = bx + sx * s, z = bz + sz * s;
+        isl.glow.add(x, by - 0.28 * k, z, 0.42 * k, 2.4, 1.15, 0.35, 1);
+        if (Math.random() < dt * 34) isl.particles.emit(x, by - 0.32 * k, z, (Math.random() - 0.5) * 1.2, -7 - Math.random() * 4, (Math.random() - 0.5) * 1.2, 0.3, 0.32 * k, 0.05, JET_FIRE, 2.2, 1.5, 0);
+      }
+    }
+    const h = p.y - ground;
+    if (h < 9 && Math.random() < dt * 22 * (1 - h / 9)) {
+      const a = Math.random() * Math.PI * 2, r = 0.6 + Math.random();
+      isl.particles.emit(p.x + Math.cos(a) * r, ground + 0.15, p.z + Math.sin(a) * r, Math.cos(a) * 5, 0.6 + Math.random(), Math.sin(a) * 5, 0.7, 0.35, 0.9, DIRT, 1, 2.5, 0);
+    }
   }
   dispose() {
     this.disposed = true;
@@ -1976,9 +2041,10 @@ const FAR_PARTS = 45;
 // The TV forces the humans' drawings on screen (s.human), but only the nearest of them up to the mesh cap: 25 humans must not
 // mean 25 x 3 draw calls. The others compete with the bots by distance in entPlanLod; one that has a mesh counts 25 % closer
 // (no flicker between two humans at the same distance).
-function lodHumans(items, cap) {
-  let n = 0;
-  for (let i = 0; i < items.length; i++) if (items[i].forced) n++;
+function lodHumans(items, cap, budget = Infinity) {
+  let n = 0, used = 0;
+  const costs = budget !== Infinity; // v1.9 (Codex B1): the nearest humans while their meshes fit (IslandWorld.actorBudget)
+  for (let i = 0; i < items.length; i++) if (items[i].forced) { n++; if (costs) used += items[i].meshCost(); }
   while (n < cap) {
     let best = null, bd = Infinity;
     for (let i = 0; i < items.length; i++) {
@@ -1988,6 +2054,7 @@ function lodHumans(items, cap) {
       if (d < bd) { bd = d; best = s; }
     }
     if (!best) break;
+    if (costs) { const c = best.meshCost(); if (used + c > budget) break; used += c; }
     best.forced = true;
     n++;
   }
@@ -2376,6 +2443,28 @@ function holoLook(mats, color) {
   }
 }
 
+// v1.9 (Codex B1): a decoy's stand-in in ONE draw (the hologram tints it anyway): the placeholder explorer / ship merged into one
+// vertex-coloured mesh (they were 4 / 2 draws: 8 TV decoys were 32 of the crowded island's 144 calls); a toy as it is (one material).
+function holoStandIn(type, colorHex) {
+  if (type !== "person" && type !== "ship") return entToy(type, colorHex);
+  const parts = [];
+  if (type === "person") {
+    parts.push(entPart(new THREE.CapsuleGeometry(0.33, 0.7, 3, 8), colorHex, 0, 0.75, 0));
+    parts.push(entPart(new THREE.SphereGeometry(0.3, 12, 8), 0xf1f5f9, 0, 1.5, 0));
+    parts.push(entPart(new THREE.SphereGeometry(0.22, 10, 6, 0, Math.PI).rotateY(Math.PI), 0x0e7490, 0, 1.52, -0.14));
+    parts.push(entPart(new THREE.BoxGeometry(0.45, 0.5, 0.22), 0xf1f5f9, 0, 0.95, 0.3));
+  } else {
+    parts.push(entPart(new THREE.ConeGeometry(0.6, 3, 6).rotateX(-Math.PI / 2), colorHex));
+    parts.push(entPart(new THREE.BoxGeometry(3.2, 0.12, 0.9), 0x1e293b, 0, 0, 0.6));
+  }
+  const geo = mergeGeometries(parts);
+  parts.forEach((p) => p.dispose());
+  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0.05, flatShading: true });
+  const group = new THREE.Group();
+  group.add(new THREE.Mesh(geo, mat));
+  return { object3d: group, materials: [mat], engines: ENT_ENGINES, dispose() { group.removeFromParent(); geo.dispose(); mat.dispose(); } };
+}
+
 // One decoy on screen: the owner's DRAWN ship (space) or explorer (island) from the drawing cache, else a plain stand-in, as a hologram
 // (flicker, a glow behind it, a fade in / out). Only built while the layer's LOD plan wants a mesh; otherwise a glow in the owner's colour.
 class DecoyView {
@@ -2388,6 +2477,7 @@ class DecoyView {
     this.color = new THREE.Color(colorHex);
     this.group = new THREE.Group();
     this.group.visible = false;
+    this.group.userData.actor = true; // v1.9: an actor (its draws are in the actor budget, not in IslandWorld.countFixed)
     layer.world.scene.add(this.group);
     this.model = null;
     this.mats = null;
@@ -2422,8 +2512,10 @@ class DecoyView {
       }
     }
     // v1.9: a car's stand-in is the A-009 car once its template is in (the toy car before that)
-    if (!this.model) this.use(this.mode ? (type === "person" ? placeholderExplorer(this.colorHex) : (type === "car" && defaultCarMake(this.colorHex)) || entToy(type, this.colorHex)) : placeholderShip(this.colorHex), "stand-in");
+    if (!this.model) this.use((this.mode && type === "car" && defaultCarMake(this.colorHex)) || holoStandIn(this.mode ? type : "ship", this.colorHex), "stand-in"); // v1.9: a person / ship stand-in in one draw (was 4 / 2)
   }
+  // v1.9 (Codex B1): draws of its mesh for the layer's budget (a drawing on its way: a guess; the stand-in: one draw).
+  meshCost() { return this.model ? entCalls(this.model) : this.claim.e ? ENT_COST_GUESS : 1; }
   use(model, kind) {
     if (this.model) { this.group.remove(this.model.object3d); this.model.dispose?.(); }
     this.model = model;
@@ -2496,6 +2588,8 @@ class MischiefLayer {
     this.arcN = 0;
     this.streaks = world.streaks || (this.ownStreaks = new StreakBatch(48));
     if (this.ownStreaks) world.scene.add(this.ownStreaks.mesh);
+    this.budget = Infinity; // v1.9 (Codex B1): draw calls the decoys may use this frame (IslandWorld sets it; space: no limit but the cap)
+    this.used = 0; // ... and what they used
   }
   clear() {
     this.ink.clear();
@@ -2569,12 +2663,16 @@ class MischiefLayer {
       while (j >= 0 && order[j].lodDist > v.lodDist) { order[j + 1] = order[j]; j--; }
       order[j + 1] = v;
     }
-    const cap = this.phone ? 3 : 8;
+    const cap = this.phone ? 3 : 8, budget = this.budget;
+    let used = 0;
     for (let i = 0; i < order.length; i++) {
       const v = order[i];
-      v.wantMesh = i < cap && v.lodDist < 420;
+      let want = i < cap && v.lodDist < 420;
+      if (want && budget !== Infinity) { const c = v.meshCost(); if (used + c > budget) want = false; else used += c; } // nearest first
+      v.wantMesh = want;
       try { v.step(t, dt, glow); } catch (e) { entWarn("decoy", e); }
     }
+    this.used = used;
 
     // ---- flags on players: emp sparks and arcs, ink drips and smoke, the tractor beam to the puller
     const players = snap.players, small = this.phone;
@@ -4055,12 +4153,14 @@ const LOOP_KINDS = [
   { kind: "boost", flag: "boost", subjectOnly: true, ref: 60, v: 0.55 },
   { kind: "drill", flag: "drilling", subjectOnly: false, ref: 35, v: 0.8 },
   { kind: "dig", flag: "digging", subjectOnly: false, ref: 30, v: 0.85 },
+  { kind: "jet", flag: "thrust", subjectOnly: false, ref: 40, v: 0.7 }, // v1.9.1 FLIGHT: the jets roar while they fire
 ];
 class WorldSound {
   constructor() {
     this.game = null;
     this.L = { ok: false, x: 0, y: 0, z: 0, mode: "space", color: null };
     this.boost = new Map();
+    this.jet = new Map(); // v1.9.1 FLIGHT: whose jets fired last frame (the lift-off whoosh on the rising edge)
     this.shot = new Map();
     this.bullets = new Set();
     this.bTmp = new Set();
@@ -4084,7 +4184,7 @@ class WorldSound {
     this.myShots = Array.from({ length: 24 }, () => ({ id: -1, x: 0, y: 0, z: 0, dx: 0, dy: 0, dz: 0, dir: false, t: 0 }));
   }
   attach(game) { this.game = game; }
-  reset() { this.boost.clear(); this.shot.clear(); this.bullets.clear(); this.shots.clear(); this.phase = null; this.count = NaN; this.meDead = false; this.hush(); for (const s of this.myShots) s.id = -1; }
+  reset() { this.boost.clear(); this.jet.clear(); this.shot.clear(); this.bullets.clear(); this.shots.clear(); this.phase = null; this.count = NaN; this.meDead = false; this.hush(); for (const s of this.myShots) s.id = -1; }
   // Every held loop off at once (a new round, the page paused or hidden: nothing may hum on behind the draw screen).
   hush() {
     for (const l of this.loops) if (l.h) { try { l.h.stop(0.12); } catch { /* ignore */ } l.h = null; l.who = null; }
@@ -4212,11 +4312,14 @@ class WorldSound {
       const b = !!f.boost;
       if (b && !this.boost.get(p.name)) this.at("boost", p.x, p.y, p.z, p.mode, { v: 0.55, ref: 70 }); // the whoosh; a held boost adds the loop (loopTick)
       this.boost.set(p.name, b);
+      const j = !!f.thrust;
+      if (j && !this.jet.get(p.name)) this.at("jet", p.x, p.y, p.z, p.mode, { v: 0.6, ref: 60 }); // v1.9.1: the lift-off whoosh (the loop follows)
+      this.jet.set(p.name, j);
       const st = f.landing ? "land" : f.takingOff ? "takeoff" : "";
       if (st && st !== (this.shot.get(p.name) || "")) this.at(st, p.x, p.y, p.z, p.mode, { v: 0.9, ref: 110 });
       this.shot.set(p.name, st);
     }
-    if (this.boost.size > names.size) for (const k of this.boost.keys()) if (!names.has(k)) { this.boost.delete(k); this.shot.delete(k); }
+    if (this.boost.size > names.size) for (const k of this.boost.keys()) if (!names.has(k)) { this.boost.delete(k); this.jet.delete(k); this.shot.delete(k); }
     // Bullets: a laser zap for every new one close to the listener (the subject's own at full volume).
     const cur = this.bTmp;
     cur.clear();
@@ -5688,14 +5791,23 @@ class IslandWorld {
       items.push(e);
       plist.push(p);
     }
+    // v1.9 (Codex B1): ONE draw-call budget for the actors, so a crowded island (25 players, 25 parked ships, 8 decoys, effects) stays
+    // inside the screen's limit in every frame: explorers first (the TV's humans nearest first), then decoys, then parked ships, each
+    // nearest first while its mesh fits; the rest are the usual glow impostors. Up close nothing changes: the nearest keep their meshes.
+    entCallsClock++;
+    let budget = this.actorBudget(ctx.bloom !== false);
     const ecap = this.phone ? 8 : 14;
-    lodHumans(items, ecap);
-    entPlanLod(items, this.phone, ecap, this.big ? 300 : 220, this.big ? 360 : 260, this.lodOrder || (this.lodOrder = []), t);
+    lodHumans(items, ecap, budget);
+    budget -= entPlanLod(items, this.phone, ecap, this.big ? 300 : 220, this.big ? 360 : 260, this.lodOrder || (this.lodOrder = []), t, budget);
     for (let i = 0; i < items.length; i++) {
       try { items[i].step(plist[i], dt, t, ctx); } catch (e) { entWarn(`explorer ${items[i].name}`, e); }
     }
     for (const e of this.explorers.values()) if (e.seen !== this.frame) { e.dispose(); this.explorers.delete(e.name); }
     this.shieldMat.uniforms.uTime.value = t;
+    // Mines, decoys (inside the budget, before the parked ships), emp / ink / tractor looks.
+    this.mischief.budget = Math.max(0, budget);
+    this.mischief.update(dt, t, snap, ctx, camera);
+    budget -= this.mischief.used;
     // Parked ships: one per world.island.parked entry, on its bay (its owner's drawing, charred and smoking when wrecked;
     // the phone keeps at most 6 as meshes, the rest are glow impostors). Someone else's take-off lifts it away.
     const byName = this.byName || (this.byName = new Map());
@@ -5715,14 +5827,13 @@ class IslandWorld {
       v.forced = q.player === ctx.me || q.player === subject;
       pitems.push(v);
     }
-    entPlanLod(pitems, this.phone, this.phone ? 6 : 10, this.big ? 300 : 220, this.big ? 360 : 260, this.lodOrderParked || (this.lodOrderParked = []), t);
+    entPlanLod(pitems, this.phone, this.phone ? 6 : 10, this.big ? 300 : 220, this.big ? 360 : 260, this.lodOrderParked || (this.lodOrderParked = []), t, Math.max(0, budget));
     for (let i = 0; i < pitems.length; i++) {
       try { pitems[i].step(pitems[i].q, byName.get(pitems[i].q.player), dt, t, ctx); } catch (e) { entWarn(`parked ship ${pitems[i].name}`, e); }
     }
     for (const v of this.parked.values()) if (!want.has(v.name) && !v.transit) this.disposeParked(v.name);
     // Island bullets (mode 1).
     writeBullets(this.bullets, this.dummy, snap.bullets, 1);
-    this.mischief.update(dt, t, snap, ctx, camera);
     // v1.7 look: a soft contact blob under every explorer and parked ship shown as a mesh, and under every chest (one draw).
     const B = this.blobs, G = this.groundFn || (this.groundFn = (x, z) => this.groundAt(x, z));
     B.begin();
@@ -5745,6 +5856,29 @@ class IslandWorld {
     this.particles.clear();
     this.mischief.clear();
     this.efx.clear();
+  }
+
+  // v1.9 (Codex B1): draw calls left for the actors this frame: the screen's limit (TV 120, phone 80) minus a margin, the bloom passes
+  // (14 on the bloom tiers) and the scene's own draws (kit, water, sky, chests, glows, particles, mines, effects, the cockpit), counted
+  // as if all of them were in view (an upper bound, so a camera cut never overshoots).
+  actorBudget(bloom) {
+    this.fixedDraws = this.countFixed();
+    return (this.phone ? 80 : 120) - 2 - (bloom ? 14 : 0) - this.fixedDraws;
+  }
+  // Every frame (a walk of the scene without the actors: ~100 nodes). A-010's system counts in full, shown or not (its shields and
+  // delayed blasts may show up later in this frame's update); everything else shows or hides between frames (stream messages).
+  countFixed() {
+    if (this.efx.sys && this.efx.sys.object3d) this.efx.sys.object3d.userData.pool = true;
+    let n = 0;
+    const walk = (o, all) => {
+      if (o.userData.actor || (!all && !o.visible)) return;
+      if (o.userData.pool) all = true;
+      n += entCallsOf(o);
+      const c = o.children;
+      for (let i = 0; i < c.length; i++) walk(c[i], all);
+    };
+    walk(this.scene, false);
+    return n;
   }
 
   fx(m) {
@@ -5795,6 +5929,7 @@ class IslandWorld {
   }
 }
 const DIRT = new THREE.Color(0x8a6236);
+const JET_FIRE = new THREE.Color(1.7, 0.8, 0.28); // v1.9.1: jetpack flames (over 1: they bloom)
 
 // ---------------------------------------------------------------------------------------------------------------
 // Ticks: buffer, clock offset, interpolation ~100 ms behind the newest tick.
@@ -6509,6 +6644,11 @@ class Perf {
     this.winWork = new Float64Array(GOV_WIN);
     this.winAt = 0;
     this.sortBuf = new Float64Array(GOV_WIN);
+    // v1.9 (Codex M6): an outside cap. cascadeFrom = the tier a run of step-downs started from while none of them has shortened the
+    // frames yet (cascadeP90 = the p90 that started it); capP90 = the frame time of a cap that no tier changed (quality holds there).
+    this.cascadeFrom = -1;
+    this.cascadeP90 = 0;
+    this.capP90 = 0;
   }
   // The next `frames` frames carry a one-off job: they are not judged.
   excuse(frames) { if (frames > this.excused) this.excused = frames; }
@@ -6536,12 +6676,34 @@ class Perf {
     this.winAt = (this.winAt + 1) % GOV_WIN;
     this.sinceChange++;
     if (this.sinceChange < GOV_WIN) return false;
-    const p90 = this.winPct(this.winDt, 0.9), work90 = this.winPct(this.winWork, 0.9);
-    this.capped = this.winPct(this.winDt, 0.1) >= 30 && p90 <= 36 && work90 < 8;
+    const p90 = this.winPct(this.winDt, 0.9), work90 = this.winPct(this.winWork, 0.9), p10 = this.winPct(this.winDt, 0.1);
+    this.capped = p10 >= 30 && p90 <= 36 && work90 < 8;
+    // v1.9 (Codex M6): steady (p10 within 20 % of p90), long (>= 45 ms, under 22 fps) frames while the CPU is idle: the GPU, or a cap from
+    // outside (a starved laptop's WebKit sat at exactly 15 fps on every tier). A descent is followed from its first step; the first step
+    // after which the frames are not "stuck" at the same length (shorter by 10 %, uneven, or CPU-bound) makes it a normal descent.
+    const stuck = p10 >= p90 * 0.8 && p90 >= 45 && work90 < 8;
+    if (this.cascadeFrom >= 0 && !(stuck && p90 > this.cascadeP90 * 0.9)) this.cascadeFrom = -1;
+    if (this.capP90 > 0) {
+      if (p90 < this.capP90 * 0.6) this.capP90 = 0; // the cap lifted: the governor works as usual again
+      else if (p90 <= this.capP90 * 1.15 && (stuck || p10 < this.capP90 * 0.85)) this.capped = true; // still capped, or lifting (a mixed window)
+      else this.capP90 = 0; // slower than the cap: something else, the governor decides
+    }
+    if (this.cascadeFrom >= 0 && this.tier === TIERS.length - 1) {
+      // Every tier tried and none shortened the frames: an outside cap. Back to the quality the cascade started from (no 20 s blocks),
+      // held while the frames stay at this cap; they speed up or slow down past 15 % and the governor works as usual again.
+      const back = this.cascadeFrom;
+      this.cascadeFrom = -1;
+      this.capP90 = p90;
+      for (let i = back; i < TIERS.length; i++) this.blockUntil[i] = 0;
+      this.set(back);
+      this.capped = true;
+      return true;
+    }
     if (p90 > STEP_DOWN_MS && !this.capped && this.tier < TIERS.length - 1) {
       // Into the last two tiers (bloom off, then near rocks only) only after a second slow window in a row.
       if (this.tier + 1 >= TIERS.length - 2 && ++this.slowRuns < 2) { this.sinceChange = 0; this.goodFor = 0; return false; }
       this.blockUntil[this.tier] = nowS + 20; // don't climb back into the tier we just left for 20 s
+      if (this.cascadeFrom < 0) { this.cascadeFrom = this.tier; this.cascadeP90 = p90; } // a descent starts here (dropped at the first step that helps)
       return this.set(this.tier + 1);
     }
     this.slowRuns = 0;
@@ -6599,7 +6761,8 @@ function computeHud(game) {
   const meP = snap.players.find((p) => p.name === meName) || null;
   const meEntity = (meName && entities.get(meName)) || null;
   const me = meP ? { name: meP.name, color: meP.color, mode: meP.mode, hp: meP.hp, maxHp: TUNING.shipHp, score: meP.score, shieldEnergy: meP.shieldEnergy, boostEnergy: meP.boostEnergy, flags: meP.flags,
-    respawnIn: meP.respawnIn ?? null, drawingsLeft: meP.drawingsLeft || null, entity: meEntity, ...hudLoot(meP.flags) } : null;
+    respawnIn: meP.respawnIn ?? null, drawingsLeft: meP.drawingsLeft || null, entity: meEntity, ...hudLoot(meP.flags),
+    fuel: Number.isFinite(meP.fuel) ? meP.fuel : null } : null; // v1.9.1 FLIGHT: the jet tank 0..1 (null: this explorer cannot fly)
   const boss = world?.targets?.find((t) => t.kind === "boss");
   const bossAlive = boss && !boss.dead;
   const H = HUD_COPY;
@@ -7286,7 +7449,7 @@ export function startGame({ canvas, screen = "big", view, player = null, winJing
     }
     return k.model;
   }
-  const frameCtx = { me: null, mePlayer: null, subject: null, cockpit: false, phone, big, t: 0, serverNow: 0, planet: null, lobby: undefined };
+  const frameCtx = { me: null, mePlayer: null, subject: null, cockpit: false, phone, big, t: 0, serverNow: 0, planet: null, lobby: undefined, bloom: true };
   function frame(now) {
     raf = 0;
     if (disposed || lost || paused || document.hidden) return;
@@ -7311,6 +7474,7 @@ export function startGame({ canvas, screen = "big", view, player = null, winJing
     const ctx = frameCtx;
     ctx.me = game.player; ctx.mePlayer = null; ctx.subject = subject; ctx.cockpit = cam.mode === "cockpit"; ctx.phone = phone; ctx.big = big;
     ctx.t = t; ctx.serverNow = serverNow(); ctx.planet = game.space.planet; ctx.lobby = undefined;
+    ctx.bloom = TIERS[game.perf.tier].bloom; // v1.9: the bloom passes count in the island's draw-call budget (IslandWorld.actorBudget)
     if (game.player) for (const p of snap.players) if (p.name === game.player) { ctx.mePlayer = p; break; }
     const W = cam.scene === "planet" ? game.island : game.space;
     W.update(dt, t, snap, ctx, camera);
@@ -7375,7 +7539,7 @@ export function startGame({ canvas, screen = "big", view, player = null, winJing
     if (overlay && now - lastOverlay > 250) {
       lastOverlay = now;
       const s = game.perf.stats();
-      overlay.textContent = `${s.fps.toFixed(0)} fps  1% low ${s.low1.toFixed(0)}\nframe ${s.ms.toFixed(1)} ms  p90 ${s.p90ms.toFixed(1)}  cpu ${s.workMs.toFixed(1)}\ncalls ${last.calls}  tris ${(last.tris / 1000).toFixed(1)}k  tex ${renderer.info.memory.textures}\ntier ${game.perf.tier} (pr ${pr}${tier.bloom ? "" : ", no bloom"}${tier.far ? "" : ", near rocks"}${game.perf.capped ? ", 30 Hz cap" : ""})  ${width}x${height}`;
+      overlay.textContent = `${s.fps.toFixed(0)} fps  1% low ${s.low1.toFixed(0)}\nframe ${s.ms.toFixed(1)} ms  p90 ${s.p90ms.toFixed(1)}  cpu ${s.workMs.toFixed(1)}\ncalls ${last.calls}  tris ${(last.tris / 1000).toFixed(1)}k  tex ${renderer.info.memory.textures}\ntier ${game.perf.tier} (pr ${pr}${tier.bloom ? "" : ", no bloom"}${tier.far ? "" : ", near rocks"}${game.perf.capped ? (game.perf.capP90 > 0 ? ", outside cap" : ", 30 Hz cap") : ""})  ${width}x${height}`;
     }
   }
   const start = () => { if (!raf && !disposed && !lost && !paused && !document.hidden) { lastT = performance.now(); raf = requestAnimationFrame(frame); } };

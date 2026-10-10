@@ -1,0 +1,78 @@
+[e2e    0.0s] mode full, route regular, bots 0, port 8622, draw 12 s per button
+[e2e    0.1s] started server.js --bots 0 on :8622 (pid 9183)
+[e2e    3.7s] phase lobby (clock 0)
+[e2e    3.8s] entity ship [] (plain)
+[e2e    3.9s] phone joined as "e2e" with the default controller
+[e2e    5.0s] phone tapped Ready
+[e2e    5.0s] lobby: drew ship and explorer → ship [shoot boost shield land scan flare mine emp]
+[e2e    5.0s] entity ship [shoot boost shield land scan flare mine emp] (devkit)
+[e2e    5.3s] READY controller accepted 200 true
+[e2e    6.9s] big screen: clicked START (#startBtn)
+[e2e    6.9s] phase countdown: the 3-2-1
+[e2e    6.9s] phase countdown (clock 3)
+[e2e   10.0s] phase playing (clock 0.03)
+[e2e   10.0s] stage playing      at 0.0 s (clock 0.03)
+[e2e   11.5s] countdown: server 3,2,1 in 3.08 s (lobby → countdown → playing); phone showed ["3","2","1","GO!"], TV ["3","2","1","GO!"]
+[e2e   18.8s] stage nebula       at 8.8 s (clock 8.73)
+[e2e   18.8s] stage flare        at 8.8 s (clock 8.73)
+[e2e   19.9s] stage scan         at 9.9 s (clock 9.77)
+[e2e   21.2s] stage shooting     at 11.2 s (clock 11.1)
+[e2e   25.5s] stage boss         at 15.6 s (clock 15.4)
+[e2e   33.2s] toast "Destroyed · back in 3 s"
+[e2e   33.2s] died (1)
+[e2e   43.5s] stage bossDead     at 33.5 s (clock 33.07) {"hp":1200}
+[e2e   43.5s] stage bossDown     at 33.5 s (clock 33.13)
+[e2e   63.1s] stage planet       at 53.1 s (clock 52.47)
+[e2e   63.1s] stage land-pressed at 53.1 s (clock 52.47)
+[e2e   67.2s] entity person [jump takeoff] (plain)
+[e2e   67.2s] stage landed       at 57.2 s (clock 56.5)
+[e2e   68.6s] phone: Use default explorer
+[e2e   71.9s] stage chest        at 61.9 s (clock 61.17) {"id":3,"kind":"buried"}
+[e2e   77.9s] toast "X marks the spot. Your explorer has nothing to dig with."
+[e2e   77.9s] stage hint-explorer at 68.0 s (clock 67.13) {"text":"X marks the spot. Your explorer has nothing to dig with.","sketch":null}
+[e2e   88.1s] toast "" sketch shovel
+[e2e   90.0s] stage drew-explorer at 80.0 s (clock 79) {"ms":9,"verbs":"shoot shield dig drill jump scan flare tractor inkbomb takeoff"}
+[e2e   90.0s] entity person [shoot shield dig drill jump scan flare tractor inkbomb takeoff] (devkit)
+[e2e   96.0s] toast "X marks the spot. The treasure isn't on top."
+[e2e   96.1s] stage hint-dig     at 86.1 s (clock 85.07) {"text":"X marks the spot. The treasure isn't on top.","sketch":null}
+[e2e  106.2s] toast "" sketch shovel
+[e2e  108.4s] stage button-dig   at 98.5 s (clock 97.23) {"ms":305,"actions":["dig"]}
+[e2e  108.5s] stage digging      at 98.5 s (clock 97.3)
+[e2e  112.5s] stage chest-1      at 102.5 s (clock 101.27)
+[e2e  118.0s] stage chest-2      at 108.0 s (clock 106.63)
+[e2e  126.2s] toast "Your drill is ready. What starts it?"
+[e2e  126.2s] stage hint-drill   at 116.3 s (clock 114.87) {"text":"Your drill is ready. What starts it?","sketch":null}
+[e2e  136.3s] toast "" sketch drill
+[e2e  138.6s] stage button-drill at 128.6 s (clock 127) {"ms":303,"actions":["drill"]}
+[e2e  138.6s] stage drilling     at 128.6 s (clock 127.07)
+[e2e  143.1s] stage chest-3      at 133.2 s (clock 131.5)
+[e2e  155.8s] stage chest-4      at 145.8 s (clock 144.03)
+[e2e  163.6s] stage chest-5      at 153.6 s (clock 151.7)
+[e2e  180.0s] stage chest-6      at 170.0 s (clock 167.93)
+[e2e  192.3s] phase assists (clock 180.03)
+[e2e  192.3s] stage assists      at 182.3 s (clock 180.03)
+[e2e  195.4s] stage chest-7      at 185.4 s (clock 183.07)
+[e2e  205.4s] stage chest-8      at 195.4 s (clock 192.97)
+[e2e  214.7s] stage chest-9      at 204.7 s (clock 202.1)
+[e2e  224.4s] stage chest-10     at 214.4 s (clock 211.73)
+[e2e  233.8s] stage chest-11     at 223.8 s (clock 221.03)
+[e2e  240.5s] stage chest-12     at 230.5 s (clock 227.63)
+[e2e  251.1s] stage chest-13     at 241.1 s (clock 238.07)
+[e2e  253.0s] stage ended        at 243.0 s (clock 240) {"reason":"time","winner":"e2e","top":[["e2e",20490]]}
+[e2e  253.0s] phase scoreboard (clock 9.97)
+
+==== Space Party e2e (full, regular, 0 bots) PASS ====
+round: ended after 243 s (clock 240, time), winner e2e, my chests 13, deaths 1, start via click #startBtn
+boss down at clock 33.07 (maxHp 1200), first chest at clock 101.27
+countdown: server 3,2,1 in 3.08 s, phone ["3","2","1","GO!"], TV ["3","2","1","GO!"]; specs {"ship":1,"explorer":1,"entities":4}
+scores: e2e 20490; gates {"ended":true,"openedAChest":true,"unlockedByDrawing":true,"validMessages":true,"countdown":true,"phoneCountdown":true,"noConsoleErrors":true,"phonePerf":true}
+entities: 0s ship [] plain | 0s ship [shoot boost shield land scan flare mine emp] devkit | 57.18s person [jump takeoff] plain | 79.99s person [shoot shield dig drill jump scan flare tractor inkbomb takeoff] devkit
+stages: playing 0 · nebula 8.81 · flare 8.82 · scan 9.88 · shooting 11.22 · boss 15.57 · bossDead 33.47 · bossDown 33.54 · planet 53.12 · land-pressed 53.12 · landed 57.2 · explorer 58.6 · chest 61.94 · hint-explorer 67.95 · drew-explorer 79.99 · hint-dig 86.13 · button-dig 98.46 · digging 98.49 · chest-1 102.55 · chest-2 107.97 · hint-drill 116.27 · button-drill 128.59 · drilling 128.62 · chest-3 133.15 · chest-4 145.81 · chest-5 153.62 · chest-6 170.04 · assists 182.28 · chest-7 185.4 · chest-8 195.39 · chest-9 204.68 · chest-10 214.43 · chest-11 223.81 · chest-12 230.49 · chest-13 241.08 · ended 243
+toasts (7): 23.23s "Destroyed · back in 3 s" | 67.95s "X marks the spot. Your explorer has nothing to dig with." | 78.07s ""[shovel] | 86.06s "X marks the spot. The treasure isn't on top." | 96.18s ""[shovel] | 116.2s "Your drill is ready. What starts it?" | 126.33s ""[drill]
+generate: ship ok 0 ms → shoot,boost,shield,land,scan,flare,mine,emp · explorer ok 9 ms → shoot,shield,dig,drill,jump,scan,flare,tractor,inkbomb,takeoff · dig ok 305 ms → dig · drill ok 303 ms → drill
+perf (perf.log) phone: 60 fps (min 59.8), 1% low 51.8 (min 26.3), p90 17.3 ms, 36.5 calls (max 42), 60k tris (max 65k), tier 0, 844x390@2, 50 samples
+perf (perf.log) phone, windows without a phone screenshot (0 shots; the gate reads the windows without a phone screenshot): 60 fps (min 59.8), 1% low 51.8 (min 26.3), p90 17.3 ms, 36.5 calls (max 42), 60k tris (max 65k), tier 0, 844x390@2, 50 samples
+perf (perf.log) big:   60 fps (min 59.2), 1% low 52.1 (min 23.6), p90 17.3 ms, 38.3 calls (max 43), 147k tris (max 180k), tier 0, 1440x900@1, 50 samples
+  Phone numbers come from WebKit on a desktop Mac emulating an iPhone 13 (844x390 @3x): a proxy only, confirm on a real iPhone.
+console errors: 0
+shots: 0 in dev/v17-e2e/shots/regular; report dev/e2e/report.json and dev/v17-e2e/report-regular.json

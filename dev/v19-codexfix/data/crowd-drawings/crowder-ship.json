@@ -1,0 +1,221 @@
+{
+  "type": "ship",
+  "rig": "ship",
+  "verbs": [
+    "shoot",
+    "boost",
+    "shield",
+    "land",
+    "scan",
+    "flare",
+    "mine",
+    "emp"
+  ],
+  "unlocked": [
+    {
+      "verb": "shoot",
+      "part": "cannon"
+    },
+    {
+      "verb": "boost",
+      "part": "exhaust flames"
+    },
+    {
+      "verb": "shield",
+      "part": "bubble"
+    },
+    {
+      "verb": "land",
+      "part": "landing legs"
+    },
+    {
+      "verb": "scan",
+      "part": "antenna"
+    },
+    {
+      "verb": "flare",
+      "part": "lamp"
+    },
+    {
+      "verb": "emp",
+      "part": "lightning bolt"
+    },
+    {
+      "verb": "mine",
+      "part": "spikes"
+    }
+  ],
+  "parts": [
+    {
+      "name": "cannon",
+      "x": 0.2,
+      "y": 0.5
+    },
+    {
+      "name": "exhaust flames",
+      "x": 0.3,
+      "y": 0.5
+    },
+    {
+      "name": "bubble",
+      "x": 0.4,
+      "y": 0.5
+    },
+    {
+      "name": "landing legs",
+      "x": 0.5,
+      "y": 0.5
+    },
+    {
+      "name": "antenna",
+      "x": 0.6,
+      "y": 0.5
+    },
+    {
+      "name": "lamp",
+      "x": 0.7,
+      "y": 0.5
+    },
+    {
+      "name": "lightning bolt",
+      "x": 0.8,
+      "y": 0.5
+    },
+    {
+      "name": "spikes",
+      "x": 0.9,
+      "y": 0.5
+    }
+  ],
+  "source": "devkit",
+  "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+  "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "menacing",
+    "seed": 3783629481,
+    "hull": {
+      "shape": "wedge",
+      "width": 0.359,
+      "height": 0.287,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "bubble",
+      "at": 0.301,
+      "size": 0.249,
+      "color": "",
+      "windows": 0
+    },
+    "wings": {
+      "count": 2,
+      "shape": "delta",
+      "at": 0.58,
+      "span": 0.71,
+      "chord": 0.3,
+      "mount": "mid",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.86,
+        "size": 0.278,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 1,
+      "size": 0.16,
+      "flame": true,
+      "flameColor": "",
+      "layout": "pair",
+      "verb": "boost"
+    },
+    "weapons": [
+      {
+        "kind": "cannon",
+        "count": 2,
+        "at": 0.32,
+        "mount": "wings",
+        "size": 0.28,
+        "color": "",
+        "verb": "shoot",
+        "added": true
+      }
+    ],
+    "extras": [
+      {
+        "kind": "shield",
+        "at": 0.5,
+        "mount": "top",
+        "size": 0.12,
+        "color": "",
+        "label": "",
+        "verb": "shield",
+        "added": true
+      },
+      {
+        "kind": "legs",
+        "at": 0.5,
+        "mount": "belly",
+        "size": 0.2,
+        "color": "",
+        "label": "",
+        "verb": "land",
+        "added": true
+      },
+      {
+        "kind": "antenna",
+        "at": 0.45,
+        "mount": "top",
+        "size": 0.2,
+        "color": "",
+        "label": "",
+        "verb": "scan",
+        "added": true
+      },
+      {
+        "kind": "lamp",
+        "at": 0.08,
+        "mount": "nose",
+        "size": 0.1,
+        "color": "",
+        "label": "",
+        "verb": "flare",
+        "added": true
+      },
+      {
+        "kind": "lightning",
+        "at": 0.5,
+        "mount": "sides",
+        "size": 0.16,
+        "color": "",
+        "label": "",
+        "verb": "emp",
+        "added": true
+      },
+      {
+        "kind": "spikes",
+        "at": 0.6,
+        "mount": "top",
+        "size": 0.35,
+        "color": "",
+        "label": "",
+        "verb": "mine",
+        "added": true
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "entity"
+  }
+}

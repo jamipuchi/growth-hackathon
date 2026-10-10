@@ -1,0 +1,656 @@
+{
+  "mode": "full",
+  "route": "regular",
+  "bots": 0,
+  "port": 8622,
+  "measuredAt": "2026-10-10T12:11:42.106Z",
+  "wallSeconds": 255.7,
+  "roundSeconds": 243,
+  "roundClock": 240,
+  "winner": "e2e",
+  "result": {
+    "round": 1,
+    "reason": "time",
+    "winner": "e2e",
+    "scores": [
+      [
+        "e2e",
+        20490
+      ]
+    ]
+  },
+  "leaderboard": [
+    {
+      "name": "e2e",
+      "stars": 1,
+      "total": 20490
+    }
+  ],
+  "chestsOpened": 13,
+  "startVia": "click #startBtn",
+  "countdown": {
+    "expected": true,
+    "phases": [
+      "lobby",
+      "countdown",
+      "playing"
+    ],
+    "values": [
+      3,
+      2,
+      1
+    ],
+    "seconds": 3.08,
+    "phone": {
+      "digits": [
+        "3",
+        "2",
+        "1",
+        "GO!"
+      ],
+      "phases": [
+        "lobby",
+        "countdown",
+        "playing"
+      ]
+    },
+    "big": {
+      "digits": [
+        "3",
+        "2",
+        "1",
+        "GO!"
+      ],
+      "phases": [
+        ""
+      ]
+    },
+    "serverOk": true,
+    "phoneOk": true,
+    "bigOk": true
+  },
+  "specs": {
+    "ship": 1,
+    "explorer": 1,
+    "entities": 4
+  },
+  "entities": [
+    {
+      "t": 0,
+      "type": "ship",
+      "verbs": [],
+      "source": "plain",
+      "assisted": []
+    },
+    {
+      "t": 0,
+      "type": "ship",
+      "verbs": [
+        "shoot",
+        "boost",
+        "shield",
+        "land",
+        "scan",
+        "flare",
+        "mine",
+        "emp"
+      ],
+      "source": "devkit",
+      "assisted": []
+    },
+    {
+      "t": 57.18,
+      "type": "person",
+      "verbs": [
+        "jump",
+        "takeoff"
+      ],
+      "source": "plain",
+      "assisted": []
+    },
+    {
+      "t": 79.99,
+      "type": "person",
+      "verbs": [
+        "shoot",
+        "shield",
+        "dig",
+        "drill",
+        "jump",
+        "scan",
+        "flare",
+        "tractor",
+        "inkbomb",
+        "takeoff"
+      ],
+      "source": "devkit",
+      "assisted": []
+    }
+  ],
+  "refusedToasts": 0,
+  "gates": {
+    "ended": true,
+    "openedAChest": true,
+    "unlockedByDrawing": true,
+    "validMessages": true,
+    "countdown": true,
+    "phoneCountdown": true,
+    "noConsoleErrors": true,
+    "phonePerf": true
+  },
+  "pass": true,
+  "bossDownClock": 33.07,
+  "firstChestClock": 101.27,
+  "stageClocks": {
+    "playing": 0.03,
+    "nebula": 8.73,
+    "flare": 8.73,
+    "scan": 9.77,
+    "shooting": 11.1,
+    "boss": 15.4,
+    "bossDead": 33.07,
+    "bossDown": 33.13,
+    "planet": 52.47,
+    "land-pressed": 52.47,
+    "landed": 56.5,
+    "explorer": 57.87,
+    "chest": 61.17,
+    "hint-explorer": 67.13,
+    "drew-explorer": 79,
+    "hint-dig": 85.07,
+    "button-dig": 97.23,
+    "digging": 97.3,
+    "chest-1": 101.27,
+    "chest-2": 106.63,
+    "hint-drill": 114.87,
+    "button-drill": 127,
+    "drilling": 127.07,
+    "chest-3": 131.5,
+    "chest-4": 144.03,
+    "chest-5": 151.7,
+    "chest-6": 167.93,
+    "assists": 180.03,
+    "chest-7": 183.07,
+    "chest-8": 192.97,
+    "chest-9": 202.1,
+    "chest-10": 211.73,
+    "chest-11": 221.03,
+    "chest-12": 227.63,
+    "chest-13": 238.07,
+    "ended": 240
+  },
+  "stages": {
+    "playing": {
+      "t": 0,
+      "clock": 0.03
+    },
+    "nebula": {
+      "t": 8.81,
+      "clock": 8.73
+    },
+    "flare": {
+      "t": 8.82,
+      "clock": 8.73
+    },
+    "scan": {
+      "t": 9.88,
+      "clock": 9.77
+    },
+    "shooting": {
+      "t": 11.22,
+      "clock": 11.1
+    },
+    "boss": {
+      "t": 15.57,
+      "clock": 15.4
+    },
+    "bossDead": {
+      "t": 33.47,
+      "clock": 33.07,
+      "hp": 1200
+    },
+    "bossDown": {
+      "t": 33.54,
+      "clock": 33.13
+    },
+    "planet": {
+      "t": 53.12,
+      "clock": 52.47
+    },
+    "land-pressed": {
+      "t": 53.12,
+      "clock": 52.47
+    },
+    "landed": {
+      "t": 57.2,
+      "clock": 56.5
+    },
+    "explorer": {
+      "t": 58.6,
+      "clock": 57.87,
+      "choice": "default"
+    },
+    "chest": {
+      "t": 61.94,
+      "clock": 61.17,
+      "id": 3,
+      "kind": "buried"
+    },
+    "hint-explorer": {
+      "t": 67.95,
+      "clock": 67.13,
+      "text": "X marks the spot. Your explorer has nothing to dig with.",
+      "sketch": null
+    },
+    "drew-explorer": {
+      "t": 79.99,
+      "clock": 79,
+      "ms": 9,
+      "verbs": "shoot shield dig drill jump scan flare tractor inkbomb takeoff"
+    },
+    "hint-dig": {
+      "t": 86.13,
+      "clock": 85.07,
+      "text": "X marks the spot. The treasure isn't on top.",
+      "sketch": null
+    },
+    "button-dig": {
+      "t": 98.46,
+      "clock": 97.23,
+      "ms": 305,
+      "actions": [
+        "dig"
+      ]
+    },
+    "digging": {
+      "t": 98.49,
+      "clock": 97.3
+    },
+    "chest-1": {
+      "t": 102.55,
+      "clock": 101.27
+    },
+    "chest-2": {
+      "t": 107.97,
+      "clock": 106.63
+    },
+    "hint-drill": {
+      "t": 116.27,
+      "clock": 114.87,
+      "text": "Your drill is ready. What starts it?",
+      "sketch": null
+    },
+    "button-drill": {
+      "t": 128.59,
+      "clock": 127,
+      "ms": 303,
+      "actions": [
+        "drill"
+      ]
+    },
+    "drilling": {
+      "t": 128.62,
+      "clock": 127.07
+    },
+    "chest-3": {
+      "t": 133.15,
+      "clock": 131.5
+    },
+    "chest-4": {
+      "t": 145.81,
+      "clock": 144.03
+    },
+    "chest-5": {
+      "t": 153.62,
+      "clock": 151.7
+    },
+    "chest-6": {
+      "t": 170.04,
+      "clock": 167.93
+    },
+    "assists": {
+      "t": 182.28,
+      "clock": 180.03
+    },
+    "chest-7": {
+      "t": 185.4,
+      "clock": 183.07
+    },
+    "chest-8": {
+      "t": 195.39,
+      "clock": 192.97
+    },
+    "chest-9": {
+      "t": 204.68,
+      "clock": 202.1
+    },
+    "chest-10": {
+      "t": 214.43,
+      "clock": 211.73
+    },
+    "chest-11": {
+      "t": 223.81,
+      "clock": 221.03
+    },
+    "chest-12": {
+      "t": 230.49,
+      "clock": 227.63
+    },
+    "chest-13": {
+      "t": 241.08,
+      "clock": 238.07
+    },
+    "ended": {
+      "t": 243,
+      "clock": 240,
+      "reason": "time",
+      "winner": "e2e",
+      "top": [
+        [
+          "e2e",
+          20490
+        ]
+      ]
+    }
+  },
+  "generates": [
+    {
+      "gate": "ship",
+      "ok": true,
+      "ms": 0,
+      "status": 200,
+      "actions": [
+        "shoot",
+        "boost",
+        "shield",
+        "land",
+        "scan",
+        "flare",
+        "mine",
+        "emp"
+      ],
+      "source": "devkit"
+    },
+    {
+      "gate": "explorer",
+      "ok": true,
+      "ms": 9,
+      "status": 200,
+      "actions": [
+        "shoot",
+        "shield",
+        "dig",
+        "drill",
+        "jump",
+        "scan",
+        "flare",
+        "tractor",
+        "inkbomb",
+        "takeoff"
+      ],
+      "drawingsLeft": {
+        "space": 3,
+        "planet": 4
+      },
+      "source": "devkit"
+    },
+    {
+      "gate": "dig",
+      "ok": true,
+      "ms": 305,
+      "status": 200,
+      "actions": [
+        "dig"
+      ],
+      "drawingsLeft": {
+        "space": 3,
+        "planet": 3
+      }
+    },
+    {
+      "gate": "drill",
+      "ok": true,
+      "ms": 303,
+      "status": 200,
+      "actions": [
+        "drill"
+      ],
+      "drawingsLeft": {
+        "space": 3,
+        "planet": 2
+      }
+    }
+  ],
+  "deaths": 1,
+  "ticks": 3771,
+  "invalidMessages": {
+    "world": 0,
+    "tick": 0
+  },
+  "announces": [
+    {
+      "t": 0,
+      "text": "Round 1 starts in 3…",
+      "big": false
+    },
+    {
+      "t": 0,
+      "text": "Round 1: REACH THE BOSS",
+      "big": true
+    },
+    {
+      "t": 23.23,
+      "text": "e2e was destroyed",
+      "big": false
+    },
+    {
+      "t": 33.47,
+      "text": "💥 e2e destroyed the boss! +1000. LAND ON THE PLANET",
+      "big": true
+    },
+    {
+      "t": 57.18,
+      "text": "e2e landed on the planet. OPEN THE CHESTS",
+      "big": false
+    },
+    {
+      "t": 102.55,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 107.97,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 133.15,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 145.81,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 153.62,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 170.04,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 182.26,
+      "text": "3:00! The chests glow. Missing a skill? Draw it now!",
+      "big": true
+    },
+    {
+      "t": 185.4,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 195.39,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 204.68,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 214.43,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 223.81,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 230.49,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 241.08,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 243,
+      "text": "🏆 Time's up! e2e wins round 1 with 20490 points",
+      "big": true
+    }
+  ],
+  "issues": [],
+  "readyVia": "tap",
+  "toasts": [
+    {
+      "t": 23.23,
+      "text": "Destroyed · back in 3 s",
+      "sketch": null,
+      "ghost": null,
+      "kind": "info",
+      "need": null,
+      "gate": null
+    },
+    {
+      "t": 67.95,
+      "text": "X marks the spot. Your explorer has nothing to dig with.",
+      "sketch": null,
+      "ghost": null,
+      "kind": "hint",
+      "need": "part",
+      "gate": "dig"
+    },
+    {
+      "t": 78.07,
+      "text": "",
+      "sketch": "shovel",
+      "ghost": null,
+      "kind": "hint",
+      "need": "part",
+      "gate": "dig"
+    },
+    {
+      "t": 86.06,
+      "text": "X marks the spot. The treasure isn't on top.",
+      "sketch": null,
+      "ghost": null,
+      "kind": "hint",
+      "need": "button",
+      "gate": "dig"
+    },
+    {
+      "t": 96.18,
+      "text": "",
+      "sketch": "shovel",
+      "ghost": null,
+      "kind": "hint",
+      "need": "button",
+      "gate": "dig"
+    },
+    {
+      "t": 116.2,
+      "text": "Your drill is ready. What starts it?",
+      "sketch": null,
+      "ghost": null,
+      "kind": "hint",
+      "need": "button",
+      "gate": "drill"
+    },
+    {
+      "t": 126.33,
+      "text": "",
+      "sketch": "drill",
+      "ghost": null,
+      "kind": "hint",
+      "need": "button",
+      "gate": "drill"
+    }
+  ],
+  "perf": {
+    "source": "perf.log",
+    "phone": {
+      "samples": 50,
+      "fps": 60,
+      "fpsMin": 59.8,
+      "low1": 51.8,
+      "low1Min": 26.3,
+      "p90ms": 17.3,
+      "calls": 36.5,
+      "callsMax": 42,
+      "tris": 59950,
+      "trisMax": 65024,
+      "tier": 0,
+      "size": "844x390@2",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Apple",
+      "contractErrors": []
+    },
+    "big": {
+      "samples": 50,
+      "fps": 60,
+      "fpsMin": 59.2,
+      "low1": 52.1,
+      "low1Min": 23.6,
+      "p90ms": 17.3,
+      "calls": 38.3,
+      "callsMax": 43,
+      "tris": 147159,
+      "trisMax": 179666,
+      "tier": 0,
+      "size": "1440x900@1",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/",
+      "contractErrors": []
+    },
+    "phoneWithoutShots": {
+      "samples": 50,
+      "fps": 60,
+      "fpsMin": 59.8,
+      "low1": 51.8,
+      "low1Min": 26.3,
+      "p90ms": 17.3,
+      "calls": 36.5,
+      "callsMax": 42,
+      "tris": 59950,
+      "trisMax": 65024,
+      "tier": 0,
+      "size": "844x390@2",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Apple",
+      "contractErrors": []
+    },
+    "phoneShots": 0,
+    "note": "Phone numbers come from WebKit on a desktop Mac emulating an iPhone 13 (844x390 @3x): a proxy only, confirm on a real iPhone.",
+    "gateOn": "the windows without a phone screenshot"
+  },
+  "consoleErrors": [],
+  "shots": [],
+  "video": null
+}

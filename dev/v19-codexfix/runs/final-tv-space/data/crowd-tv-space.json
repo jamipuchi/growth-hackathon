@@ -1,0 +1,1099 @@
+{
+  "at": "2026-10-10T12:18:36.565Z",
+  "device": "tv",
+  "staged": true,
+  "description": "25 ships in space (no landing). 25 human records placed by QA-only hooks (no bots). Default A-008 person models; actual renderer, no model or asset substitution.",
+  "mode": 200,
+  "network": {
+    "ticks": 375,
+    "seconds": 24.972,
+    "maxBytes": 5973,
+    "players": 25,
+    "hz": 14.976773986865288
+  },
+  "attrib": {
+    "frames": 3004,
+    "maxTotal": 71,
+    "framesOver110": 0,
+    "worst": {
+      "top:Group": 43,
+      "post": 14,
+      "top:Mesh": 5,
+      "top:Group[I]": 2,
+      "top:rock_field[I]": 2,
+      "top:space_environment": 1,
+      "top:Mesh[I]": 1,
+      "top:foreground_rocks[I]": 1,
+      "top:decorative_nebula": 1,
+      "top:fx_system": 1
+    },
+    "over": {},
+    "avg": {
+      "top:Group": 26,
+      "post": 14,
+      "top:Mesh": 5,
+      "top:Group[I]": 2,
+      "top:rock_field[I]": 2,
+      "top:space_environment": 1,
+      "top:Mesh[I]": 1,
+      "top:foreground_rocks[I]": 1,
+      "top:decorative_nebula": 1,
+      "top:fx_system": 1
+    }
+  },
+  "perf": {
+    "frames": 3000,
+    "fps": 120,
+    "low1": 106.4,
+    "p90ms": 8.9,
+    "worstMs": 16.6,
+    "calls": {
+      "avg": 52,
+      "p95": 68,
+      "max": 69
+    },
+    "tris": {
+      "avg": 174735,
+      "p95": 183472,
+      "max": 195172
+    },
+    "tier": {
+      "min": 0,
+      "max": 0
+    },
+    "scenes": [
+      "space"
+    ]
+  },
+  "violations": {
+    "calls": 0,
+    "triangles": null
+  },
+  "state": {
+    "ok": true,
+    "phase": "playing",
+    "round": 1,
+    "playT": 32.6,
+    "assists": false,
+    "playerCount": 25,
+    "boss": {
+      "x": -309.21,
+      "y": -9.39,
+      "z": 253.76,
+      "radius": 20,
+      "hp": 9840,
+      "maxHp": 9840,
+      "dead": false
+    },
+    "planet": null,
+    "landing": {
+      "x": -38.20038516665667,
+      "z": -11.862991744036455
+    },
+    "island": {
+      "seed": 17600,
+      "size": 840
+    },
+    "chests": [
+      {
+        "id": 1,
+        "kind": "buried",
+        "x": 38.34,
+        "z": -32.84,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 2,
+        "kind": "rock",
+        "x": 85.41,
+        "z": -130.68,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 3,
+        "kind": "buried",
+        "x": -23.34,
+        "z": 117.94,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 4,
+        "kind": "rock",
+        "x": -165.96,
+        "z": 27.41,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 5,
+        "kind": "buried",
+        "x": -166.97,
+        "z": 214.38,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 6,
+        "kind": "rock",
+        "x": 3.64,
+        "z": 249.77,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 7,
+        "kind": "buried",
+        "x": -258.99,
+        "z": 132.09,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 8,
+        "kind": "rock",
+        "x": -22.36,
+        "z": 59.12,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 9,
+        "kind": "buried",
+        "x": -100.43,
+        "z": -156.68,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 10,
+        "kind": "rock",
+        "x": 51.85,
+        "z": -221.12,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 11,
+        "kind": "buried",
+        "x": 191.94,
+        "z": -133.94,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 12,
+        "kind": "rock",
+        "x": -42.59,
+        "z": 143.48,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 13,
+        "kind": "buried",
+        "x": 95.1,
+        "z": -41.98,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 14,
+        "kind": "rock",
+        "x": -169.77,
+        "z": -67.96,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 15,
+        "kind": "buried",
+        "x": -15.37,
+        "z": -52.91,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 16,
+        "kind": "rock",
+        "x": -48.19,
+        "z": 108.72,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 17,
+        "kind": "buried",
+        "x": -253.71,
+        "z": 90.09,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 18,
+        "kind": "rock",
+        "x": -45.21,
+        "z": 124.1,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 19,
+        "kind": "buried",
+        "x": -99.64,
+        "z": 185.85,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 20,
+        "kind": "rock",
+        "x": 30.82,
+        "z": 79.83,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 21,
+        "kind": "buried",
+        "x": -161.48,
+        "z": 158.65,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 22,
+        "kind": "rock",
+        "x": -226.34,
+        "z": -10.91,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 23,
+        "kind": "buried",
+        "x": 22.58,
+        "z": 105.93,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 24,
+        "kind": "rock",
+        "x": -64.92,
+        "z": 12.97,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 25,
+        "kind": "buried",
+        "x": -256.67,
+        "z": -153.47,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 26,
+        "kind": "rock",
+        "x": -53.21,
+        "z": 157.52,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 27,
+        "kind": "buried",
+        "x": -264.26,
+        "z": 95.69,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 28,
+        "kind": "rock",
+        "x": -148.06,
+        "z": 188.37,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 29,
+        "kind": "buried",
+        "x": -37.35,
+        "z": 50.52,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 30,
+        "kind": "rock",
+        "x": 21.82,
+        "z": 57.12,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 31,
+        "kind": "buried",
+        "x": -46.22,
+        "z": -23.38,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 32,
+        "kind": "rock",
+        "x": 148.19,
+        "z": 23.41,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      }
+    ],
+    "parked": [],
+    "rocks": 336,
+    "players": {
+      "crowder": {
+        "mode": "space",
+        "x": -293.23,
+        "y": -8.89,
+        "z": 239.37,
+        "yaw": 2.3,
+        "pitch": -0.02,
+        "hp": 60,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human1": {
+        "mode": "space",
+        "x": -291.87,
+        "y": -7.74,
+        "z": 241.15,
+        "yaw": 2.2,
+        "pitch": -0.08,
+        "hp": 70,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human2": {
+        "mode": "space",
+        "x": -292.76,
+        "y": -11.09,
+        "z": 240.01,
+        "yaw": 2.27,
+        "pitch": 0.08,
+        "hp": 30,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human3": {
+        "mode": "space",
+        "x": -293.75,
+        "y": -6.84,
+        "z": 239.03,
+        "yaw": 2.33,
+        "pitch": -0.12,
+        "hp": 70,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human4": {
+        "mode": "space",
+        "x": -290.9,
+        "y": -9.41,
+        "z": 242.48,
+        "yaw": 2.12,
+        "pitch": 0,
+        "hp": 70,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human5": {
+        "mode": "space",
+        "x": -294.49,
+        "y": -10.64,
+        "z": 238.13,
+        "yaw": 2.39,
+        "pitch": 0.06,
+        "hp": 80,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human6": {
+        "mode": "space",
+        "x": -292.3,
+        "y": -5.52,
+        "z": 241.05,
+        "yaw": 2.22,
+        "pitch": -0.18,
+        "hp": 40,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human7": {
+        "mode": "space",
+        "x": -291.68,
+        "y": -12.25,
+        "z": 241.63,
+        "yaw": 2.18,
+        "pitch": 0.13,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human8": {
+        "mode": "space",
+        "x": -295.29,
+        "y": -7.53,
+        "z": 237.48,
+        "yaw": 2.43,
+        "pitch": -0.09,
+        "hp": 50,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human9": {
+        "mode": "space",
+        "x": -290.47,
+        "y": -7.29,
+        "z": 243.42,
+        "yaw": 2.07,
+        "pitch": -0.1,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human10": {
+        "mode": "space",
+        "x": -294.07,
+        "y": -12.93,
+        "z": 238.9,
+        "yaw": 2.35,
+        "pitch": 0.17,
+        "hp": 50,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human11": {
+        "mode": "space",
+        "x": -293.93,
+        "y": -4.51,
+        "z": 239.44,
+        "yaw": 2.32,
+        "pitch": -0.23,
+        "hp": 40,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human12": {
+        "mode": "space",
+        "x": -290.32,
+        "y": -11.32,
+        "z": 243.66,
+        "yaw": 2.06,
+        "pitch": 0.09,
+        "hp": 70,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human13": {
+        "mode": "space",
+        "x": -296.12,
+        "y": -9.98,
+        "z": 236.7,
+        "yaw": 2.49,
+        "pitch": 0.03,
+        "hp": 70,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human14": {
+        "mode": "space",
+        "x": -291.27,
+        "y": -4.7,
+        "z": 242.86,
+        "yaw": 2.12,
+        "pitch": -0.22,
+        "hp": 80,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human15": {
+        "mode": "space",
+        "x": -292.58,
+        "y": -14.22,
+        "z": 241,
+        "yaw": 2.23,
+        "pitch": 0.23,
+        "hp": 60,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human16": {
+        "mode": "space",
+        "x": -295.85,
+        "y": -5.38,
+        "z": 237.39,
+        "yaw": 2.46,
+        "pitch": -0.19,
+        "hp": 80,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human17": {
+        "mode": "space",
+        "x": -289.6,
+        "y": -8.67,
+        "z": 244.96,
+        "yaw": 1.99,
+        "pitch": -0.03,
+        "hp": 20,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human18": {
+        "mode": "space",
+        "x": -295.75,
+        "y": -13.01,
+        "z": 237.38,
+        "yaw": 2.45,
+        "pitch": 0.17,
+        "hp": 80,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human19": {
+        "mode": "space",
+        "x": -293.16,
+        "y": -3.02,
+        "z": 240.94,
+        "yaw": 2.24,
+        "pitch": -0.3,
+        "hp": 70,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human20": {
+        "mode": "space",
+        "x": -290.71,
+        "y": -13.59,
+        "z": 243.63,
+        "yaw": 2.07,
+        "pitch": 0.2,
+        "hp": 50,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human21": {
+        "mode": "space",
+        "x": -297.21,
+        "y": -8.09,
+        "z": 235.96,
+        "yaw": 2.55,
+        "pitch": -0.06,
+        "hp": 90,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human22": {
+        "mode": "space",
+        "x": -290.1,
+        "y": -5.31,
+        "z": 244.78,
+        "yaw": 2.01,
+        "pitch": -0.19,
+        "hp": 40,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human23": {
+        "mode": "space",
+        "x": -294.16,
+        "y": -15.25,
+        "z": 239.56,
+        "yaw": 2.33,
+        "pitch": 0.28,
+        "hp": 50,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      },
+      "human24": {
+        "mode": "space",
+        "x": -295.55,
+        "y": -3.24,
+        "z": 238.34,
+        "yaw": 2.42,
+        "pitch": -0.29,
+        "hp": 70,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ]
+      }
+    }
+  },
+  "console": {
+    "tv": {
+      "errors": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        }
+      ],
+      "http": [
+        {
+          "status": 404,
+          "url": "/assets/A-009-defaults/car.js"
+        }
+      ],
+      "failed": [],
+      "abortedRequests": {
+        "/assets/A-009-defaults/car.js": 1,
+        "/perf": 6
+      },
+      "warnings": 1,
+      "crashed": false
+    }
+  },
+  "warningDetails": [
+    {
+      "t": 1791634719070,
+      "text": "[render] asset car unavailable, using placeholder: Failed to fetch dynamically imported module: http://127.0.0.1:8620/assets/A-009-defaults/car.js"
+    }
+  ],
+  "render": {
+    "perf": {
+      "player": "bigscreen",
+      "screen": "big",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36",
+      "fps": 120,
+      "low1": 107.1,
+      "p90ms": 8.5,
+      "calls": 66,
+      "tris": 181934,
+      "textures": 29,
+      "tier": 0,
+      "w": 1440,
+      "h": 900,
+      "dpr": 1,
+      "scene": "space",
+      "followed": "human14"
+    },
+    "models": 0,
+    "parked": 0
+  }
+}
