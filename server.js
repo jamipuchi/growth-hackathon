@@ -78,7 +78,7 @@ const BOTS = botsArg > 0 ? Math.max(0, Math.min(25, Number(process.argv[botsArg 
 const autoArg = process.argv.indexOf("--autostart");
 const AUTOSTART = autoArg > 0 && Number.isFinite(Number(process.argv[autoArg + 1])) ? Math.max(0, Number(process.argv[autoArg + 1])) : null;
 const argNum = (flag, fallback) => { const i = process.argv.indexOf(flag); return i > 0 && Number.isFinite(Number(process.argv[i + 1])) ? Number(process.argv[i + 1]) : fallback; };
-const MINUTES_AT_START = Contract.ROUND_MINUTES.includes(argNum("--minutes", 1)) ? argNum("--minutes", 1) : 1; // v1.9 demo default: 1 minute
+const MINUTES_AT_START = Contract.ROUND_MINUTES.includes(argNum("--minutes", 2)) ? argNum("--minutes", 2) : 2; // demo default: 2 minutes (owner 14:37; was 1)
 const START_AFTER_AT_START = Contract.LOBBY_WAITS.includes(argNum("--start-after", 30)) ? argNum("--start-after", 30) : 30; // 0 = off
 // v1.6 ENDLESS (owner, 10 Oct 11:53): --endless or ENDLESS=1 starts the server in the endless free-for-all (endless.js).
 const ENDLESS_AT_START = (() => { try { return require("./endless").fromEnv(); } catch { return false; } })();
