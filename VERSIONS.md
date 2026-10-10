@@ -13,6 +13,9 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
 | v1.3 | Oct 10, 09:39 (tag `v1.3`) | A drawn ship or explorer always becomes a 3D entity or a plain refusal, with an unlock card; ruthless PvP (steal chest points and the boss's last hit, wreck parked ships, spawn shield, score floor); every delivered asset in the world; sound loops; a cinematic TV camera; a numbered phone flow; a TV readable from the sofa, with a live map; docs that match section 0 | 9/9 unit suites. e2e expert PASS in 161 s, regular PASS in 242 s (at the 4:00 cap, 6 chests); phone 59 fps; 0 console errors (24 bots, mock generation). Entity kit: mock 477/482 checks (5 not applicable), real `gpt-6.1-sol` 496/496 | Codex QA of v1.3: 1 blocker (phone perf), 4 majors (see notes) | – |
 | v1.4 | Oct 10, 10:50 (tag `v1.4`) | Drawn ships become real 3D ships built from their parts; drawn astronauts, animals, cars, bikes and blobs become rigged 3D models; the owner's 09:05 and 10:00 decisions (no free skills, ink until wiped, a server countdown, a 25-player cap, a close and weaker boss, most of the round on the planet); full screen and Add to Home Screen | e2e expert won in 179 s (boss down 20.6 s, landed 37 s, 16/16 chests), 0 console errors; phone gate missed (1% low 28.6 vs 30, laptop loaded). Entity kit real 485/485. Ship and character contact sheets. A real iPhone on the 3D-ship build: 60 fps, 1% low 27, tier 5 | Codex test round (10:53-11:29): the gates do not all pass; B1 still open, M5 and N4-N7 new (see notes) | – |
 | v1.5 | in progress | First-time coach marks, results and a 3-2-1 on the phone, a HUD show/hide button, the Codex QA fixes (a failed read is a plain entity and free), a TV lobby hangar with every player's ship drawing and a podium, entity and ship polish (see notes) | – | – | – |
+| v1.6 | Oct 10, 12:20 (tag `v1.6` on abebbfd) | Automatic landing (no LAND gate), shots that reach rivals uphill and downhill, closed vehicle tyres, the render and TV fixes (GO sound, one jingle, chest counter, a higher chase camera, drilling animates, hints stay with the HUD hidden), a Hall of Fame of every drawing judged by OpenAI's Decisions API, and an optional ENDLESS free-for-all (off by default) | Implement-first round: syntax checks on every file, plus the tracks' own node checks: sim-test 33/33, rules-test 17/17, fresh-round test pass, tyre probe 33/33, balance sim 6/6; 3 real Decisions API calls (HTTP 200, about 1.5 s each). No unit-suite set, e2e, perf run or video | not run on v1.6 (its features are in the v1.7 round) | – |
+| v1.6.1, v1.6.2 | Oct 10, 12:38 and 12:45 (tags on branch `v1.6.1-work`, hotfixes on v1.6) | v1.6.1: a RESTART button on the TV (everyone rejoins from scratch). v1.6.2: round 2 no longer asks for the explorer in the lobby | Syntax checks; the restart was tried on spare ports by the building agent (no numbers recorded). No e2e run | – | – |
+| v1.7 | Oct 10, 12:52 (tag `v1.7` on 0622fdf); the owner's demo build from 12:54 | A bright, cartoony island twice as wide (840 m) with faster explorers and chests spread across it; START any time with only READY players (ship and controller accepted), no bots; Sol on medium effort with longer timeouts; the round-2 explorer fix | Implement-first: syntax checks, plus the tracks' node checks: balance sim 12/12 (expert every chest at 3:00-3:19, regular 13-15/16 at the 4:00 cap), sim-test 33/33, rules-test 17/17, ready gate 7/7, astra-test 30/30, corpus replay 103 cases 0 failures, astra-html 57/57. No unit-suite set, e2e, phone perf run or real call on medium effort before the tag | Codex v1.7 test round from 12:53 (`dev/v17-test/FINDINGS.md`) | to come: `videos/v1.7/` |
 
 ## Notes per version
 
@@ -347,6 +350,153 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
   owner's 11:31 decision (every round starts from scratch).
 - **Checks:** none yet. v1.5 is checked after its last track lands.
 
+### v1.6 (tag v1.6 on abebbfd, Oct 10 12:20; live on 8104/8547)
+- **Starting point:** v1.5 was tagged at 11:44 on 21f2082 with the owner's 11:31 decision built in (every round starts
+  from scratch: from round 2 each player's drawings, ship and body specs, Sol's controller, skills, layout, budget and
+  every cache built from them are cleared at the new lobby; drawing URLs carry the round, and an answer that arrives
+  after the round changed is dropped and costs nothing). It has run as the demo on 8103/8546 since 11:52, when the owner
+  asked for a playable version instead of more tests. Its last gate run, on c5a4d87 before the tag: won in 185 s, 16/16
+  chests, 0 console errors; the phone at 40 fps with a 1% low of 17, under the phone gate (55 fps, 1% low 30), not
+  measured again since.
+- **What changed** (one implement-first round, 11:47-12:15, four commits):
+  - Render, TV and phone polish (d12950f): the GO sound plays again after the server's countdown (N6); the 3:00 copy
+    is "THE CHESTS GLOW · DRAW WHAT YOU NEED" on every screen (N4); drilling plays the dig clip, with one dust source;
+    the phone's chase camera sits higher (about 27.5° above the ship) and the exhaust glow dims from close behind, so
+    the ship is no longer hidden by its own flame; the TV plays one winner jingle instead of two; the TV lobby frames the
+    fleet as a wide backdrop behind the hangar; a two-digit chest count stays on one line (N5); a new round drops the
+    3D models cached from the last one; lite ships may drop small parts to fit the phone budget; with the HUD hidden,
+    hint toasts and a one-line next-step hint stay visible, placed off the drawn controls.
+  - Automatic landing (717e26e, the owner's 12:07 decision): a human's ship that reaches the open planet (its hull
+    within 2 m of the surface) lands by itself with the usual landing shot. No landing legs, no LAND button and no LAND
+    gate: the gate lists, the hint ladders, the 3:00 "DRAW X" cards and Astra's prompt drop it, and the HUD says "FLY
+    INTO THE PLANET TO LAND". Not while the player's draw sheet is open. Take-off is unchanged and starts 15 m out, clear
+    of the landing margin, so a ship never re-lands at once.
+  - Same commit: M5, shots on the planet aim with the terrain, so a rival uphill or downhill can be hit; N7, closed tyre
+    profiles with the hubs inside and every vehicle's lowest point at y = 0; the simulation tests expect a fresh lobby
+    after each round; the e2e driver flies into the planet instead of pressing LAND.
+  - Hall of Fame (eb77f96, the owner's 11:57 request: "rank all the drawings … use decisions api from openai … side by
+    side to the generations"). Every drawing the server accepts (ship, explorer, controller) is archived with its spec,
+    layout or Sol's HTML before the per-round wipe. `hall-of-fame.html` shows a podium and a ranked list, each drawing
+    beside its 3D turntable (`ship3d.js`, `entity3d.js`) or its generated controller, in tabs for ships, explorers and
+    controllers. The TV's ★ HALL OF FAME button (lobby and results) opens it in its own tab and starts the judging.
+    - The judge is OpenAI's Decisions API (public beta since 6 Oct, [guide](https://developers.openai.com/api/docs/guides/decisions)):
+      `POST /v1/decisions` with `gpt-6-luna`, the only model it serves, and the drawing as an inline image. One call
+      per drawing: four scores of 0-100 (creativity, effort, readability, fun; the overall score is their mean) and a
+      playful one-liner chosen from 14 fixed comments (the API picks answers, it writes no prose).
+    - At most 60 calls a session, cached by the drawing's hash, 3 at a time; a failed call leaves the drawing listed but
+      unscored. `ASTRA_MOCK=1` (or `HALL_MOCK=1`) gives marked mock scores with no network.
+    - The archive lives in memory and in `hall/` (git-ignored). It is cleared when the server starts and by
+      `POST /hall/reset {"confirm": true}`.
+  - ENDLESS free-for-all (the owner's 11:53 decision; server and TV in eb77f96, phone and render hooks in 717e26e, world
+    hooks in abebbfd). Off by default, so the round flow is exactly the v1.5 demo. On with `node server.js --endless`,
+    `ENDLESS=1`, or the TV lobby's ENDLESS switch (key E, `POST /mode`).
+    - No clock, no 3:00 assists, and no end when every chest is open; a late joiner spawns in space with a spawn shield.
+    - The boss comes back 60 s after it dies, with fresh HP and a 10 s warning; the planet stays open.
+    - Opened chests are replaced in new places when every chest is open (after 5 s) or every 90 s; closed ones stay.
+    - Drawings recharge by 1 per world every 60 s; a LEADER banner every 3 min; points add up all session.
+    - On the planet a TAKE OFF rocket button goes back to space; flying into the planet lands again.
+    - END GAME on the TV (or ENTER twice, `POST /end`) shows the results, then the lobby (a fresh start, as every round).
+- **Recorded checks** (implement-first: every track ran a syntax check of each file it touched; the node checks below
+  are the tracks' own, not a version run):
+  - Simulation (12:06-12:15): sim-test 33/33 (on a slope a shot pitches −18.4° downhill and +19.6° uphill, 0.9° on the
+    flat; a plain ship that flies in lands), rules-test 17/17, the fresh-round test passes, the tyre probe 33/33 (11 car
+    and bike specs at 3 qualities, lowest point 0.0000 m), balance sim on both routes with seeds 1-3 all pass (from the
+    open planet to landed in 4 s by flying in).
+  - Hall of Fame: 3 real Decisions API calls through `hall.js` (the whole budget; `dev/v16-hall/probe.js`, do not run it
+    again): all HTTP 200, about 1.5 s each, sensible scores (ship 42, explorer 37, controller 45).
+  - Render, ENDLESS: syntax checks only.
+  - Not run on v1.6: the unit suites as a set, the e2e routes, perf, videos, a live ENDLESS session and a judged Hall of
+    Fame after a real round.
+- **Still open after v1.6:** B1 (draw calls on a crowded island with effects); the phone frame rate seen on the v1.5
+  gate; the tank at the lowest quality has 2,718 triangles (over the 2,600 best-effort lite budget);
+  `dev/inflate/astra-entity-test.js` fails 1/4 because it still expects the dev kit on a failed read (out of date since
+  v1.5); the TV jsdom, phone mischief and sound tests still expect the old 3:00 copy and the old GO and jingle timing
+  (test lanes).
+- **Live:** 8104/8547 from 12:20 under the keep-alive loop, with 0 bots from 12:27; restarted fresh at 12:31 at the
+  owner's request, then left alone while the owner tests it (12:35). Effort stays `low` there (v1.6 reads time out at
+  4 s).
+
+### v1.6.1 and v1.6.2 (hotfixes on v1.6: branch `v1.6.1-work`, tags v1.6.1 on 07ef7af at 12:38 and v1.6.2 on 298f60a at 12:45)
+- **Why a branch:** the owner wanted a RESTART button in v1.6 (12:31) while testing v1.6 on 8104, and that server must
+  not be restarted (12:35). So both fixes were built on top of v1.6 in a separate worktree. The main line has the round-2
+  fix since v1.7 (4dbe138) and gets RESTART in v1.8 (track v18-restart).
+- **v1.6.1, RESTART** (07ef7af):
+  - A small ↻ RESTART button bottom left on the TV (lobby, play and results). Tap it, then tap again within 4 s ("RESTART
+    EVERYTHING? EVERYONE REJOINS · CLEARS PLAYERS AND THE HALL OF FAME"), or press R twice within 3 s (SHIFT+R with
+    `?kb`, where R drills).
+  - `POST /restart {"confirm": true}` broadcasts `{type: "restart"}`, closes every stream and restarts the server. Under
+    a keep-alive loop (`KEEPALIVE=1`, or a supervisor such as pm2 or nodemon in the parent's command line) the server
+    exits and the loop starts a fresh one. Otherwise it starts a detached copy of itself, which retries listen until the
+    ports are free (up to 30 s).
+  - A session id rides on every world message and on `GET /info`: the TV reloads once the new server answers; phones
+    forget their player and show "The host restarted the game. Join again." Players and the hall of fame start empty.
+- **v1.6.2, round 2** (298f60a): round 2 and later no longer ask for the explorer in the lobby, only after landing, as in
+  round 1. Cause: the phone pauses rendering while drawing, so the HUD's mode stayed at round 1's last frame
+  ("planet"), and the fresh round kept that stale mode; the first HUD read after drawing then opened the explorer step
+  in the lobby, with the planet's drawing budget. Fix: the tick's own mode wins over a stale frame, and a fresh round
+  clears it. The same change as v1.7's 4dbe138.
+- **Recorded checks:** syntax checks; the restart was tried on spare ports by the agent that built it (no numbers
+  recorded). No e2e run.
+- **Live:** not running. It is offered on 8106/8549 on the owner's go. The branch and both tags are pushed.
+
+### v1.7 (tag v1.7 on 0622fdf, Oct 10 12:52; live on 8105/8548; the owner, 12:54: "v1.7 is the good version")
+- **What changed** (implement-first, 12:18-12:48, five commits):
+  - Island look (7b306bb, Codex P1): a clean blue sky with a warm glow only around the sun, and a pale-blue horizon (no
+    grey or beige haze); a warmer, stronger sun over a near-white sky fill, so the sand is no longer grey; vivid greens,
+    warm sand, deeper green slopes and warm crags with soft toon shading; saturated props and chunkier palms; soft
+    shadows under explorers, parked ships and chests (one draw call for all); turquoise shallows, deep blue water and
+    bright animated shoreline foam; far players' glows shrunk to small dim dots.
+  - Ready-only start (cac0a06, plus the world.js part in 0622fdf; the owner's 12:26 decision). The host can press START
+    at any time; only READY players (the ship drawing and the controller accepted by the server) get into the round.
+    - The TV's button reads "START · n READY", greyed with a hint while nobody is ready (`POST /start` then answers 409
+      "nobody is ready"). The boss's HP and the chest count scale to the players in the round.
+    - Everyone else waits: no ship, no score, cannot be hit, listed in `tick.waiting`. Their phone shows "ROUND IN
+      PROGRESS · FINISH YOUR DRAWINGS, YOU'RE IN THE NEXT ROUND" with the time left, and no 3-2-1, GO or results; they
+      keep their drawings and their drawing budget for the next round.
+    - The TV marks each hangar card ✔ IN or ⏳ NEXT ROUND and shows a waiting strip during play.
+    - In ENDLESS, a waiting player who becomes ready jumps in at once, with a spawn shield.
+    - No bots: `--bots` stays 0 unless asked for, and the play servers run with 0 bots since 12:27.
+  - Sol on medium effort (c45390b, the owner's 12:41 "a bit more effort for sol, it's ok if it takes 2-3 seconds more"):
+    drawing reads, ship and body specs and the controller HTML use reasoning effort `medium` (was `low`), with longer
+    timeouts: the read 4 → 9 s (hedge 2.2 → 5 s, retry before 1.8 → 4 s; capped at 13 s so the phone never gives up
+    first) and the specs 9 → 14 s (hedge 5 → 8 s). Each has an environment override (README, "Environment variables").
+    Sol's controller page keeps the server's own 20 s limit (`server.js` `CTRL_HTML_TIMEOUT_MS`): `low` took 3.8-6.9 s,
+    so `medium` should fit; raise it if it runs slow live.
+  - Round 2 (4dbe138): the v1.6.2 fix on the main line (the explorer is asked for only after landing).
+  - Island size (0622fdf, the second option of ORCHESTRATE.md A-005). The island is 840 m across (was 420 m: twice as
+    wide, 4× the area), with the same hills scaled up: `terrain.js` height(x, z) is the old height(x / 2, z / 2), checked
+    identical over 20,000 samples. The server, the TV, the phone and the e2e driver follow with no second scale.
+    - To use the space, explorers are 1.5× faster (walk 8 → 12 m/s; every type keeps its multiplier) and the chests
+      spread wider: 16 chests up to 172 m from the pad (was 98 m), 32 up to 284 m (was 162 m). The landing-pad search
+      scales with the island, and ENDLESS chest refreshes use the same spread.
+- **Recorded checks** (implement-first: syntax checks on every file, plus the tracks' own node checks; numbers in
+  `dev/v17-island-size/README.md`):
+  - Balance sim, both routes, 24 bots, seeds 1-6 (12:41): ALL PASS 12/12. Expert: landed at 0:34-0:38, every chest open
+    at 3:00-3:19 (2:54-3:12 on the 420 m island). Regular: first chest at 1:28-1:31, 13-15 of 16 chests at the 4:00 cap
+    (was 14-16).
+  - 25 humans (crowd sim, seeds 1-4): every chest open at 1:39-2:05 when they spread out (was 1:28-1:46), 3:05-4:00
+    when they bunch up (was 2:09-3:23; one seed 30/32 at the cap).
+  - sim-test 33/33 (the 25-explorer crowd case in 190.6 s, under its 210 s bound; 12:45 on the near-final tree: largest
+    tick 6,046 B with 25 players), rules-test 17/17, 40 ENDLESS chest refreshes with 0 chests in the water.
+  - Ready gate: `dev/v17-ready/gate-test.js` 7/7.
+  - Sol effort: astra-test 30/30, the 103-case generation corpus replayed with 0 failures, server-generate 7/7,
+    astra-html 57/57. No real call on `medium` yet.
+  - Island look, renderer counters on the track's own server (Chromium): the phone (844×390) with 1 player 38 draw
+    calls and 65k triangles, a crowd of 13 at 66-69 calls and 106-109k; the TV 40 calls and 140k, the crowd 99-101
+    calls. Before and after shots in `dev/v17-island-look/shots/` (local, git-ignored).
+  - Not run before the tag: the unit suites as a set, the e2e routes (the harness must now post a controller before
+    START), phone perf, real generation on `medium`, videos.
+- **Tester:** Codex's v1.7 test round on the frozen tag from 12:53 (`dev/v17-test/FINDINGS.md`): the open v1.4 findings,
+  two phones and the TV through ready and waiting players, automatic landing, round 2, ENDLESS and the Hall of Fame,
+  at most 10 real calls, and videos of both routes in `videos/v1.7/`.
+- **Still open after v1.7:** B1 (the island shadows add one draw call to a crowded island with effects); the water
+  height map is coarse at 840 m; the `?island=procedural` fallback is not recoloured; a waiting phone with no ship of
+  its own gets whatever camera render.js gives it; the waiting strip over the draw screen and the new island are
+  unchecked in WebKit and on a real iPhone; the phone's HUD can still show stale values while rendering is paused;
+  RESTART comes to the main line in v1.8.
+- **Live:** 8105/8548 from 12:52 under the keep-alive loop with effort `medium` and 0 bots. Never restarted without the
+  owner's go. v1.6 (8104/8547) and the v1.5 demo (8103/8546) still run.
+
 ## The owner's decisions on the morning of Oct 10 (PLAN.md section 0 has the full text)
 | When | Decision | Landed in |
 | --- | --- | --- |
@@ -363,6 +513,18 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
 | 10:24 | QA and testing go to Codex; Claude workers only build | v1.3 QA, v1.4 test round |
 | 11:18 | A phone "controls only" mode, and no control may overlap another; the 3D view stays rendered on the phone (11:21) | v1.5 (in progress) |
 | 11:31 | Every round starts from scratch: drawings, entities, controllers, unlocked skills, drawing budgets and anything generated from them are cleared when a round ends, and a drawing is never reused in a later round; only the joined name, colour and session stars carry over | v1.5 (to do; in PLAN.md section 0 at 11:33, not in the code yet) |
+| 11:52 | "Don't keep testing, give me a playable version": v1.5 ships as it is and the gate rerun stops | v1.5 (tag on 21f2082, with the 11:31 fresh rounds), live on 8103/8546 |
+| 11:53 | An optional ENDLESS free-for-all (a toggle, off by default): no clock, join any time, explore, take off and land again; the boss and chests respawn, drawings recharge, points add up until the host ends it. The v1.5 round flow stays the demo | v1.6 |
+| 11:57 | A Hall of Fame: rank every drawing with OpenAI's Decisions API and show each one beside its generation | v1.6 (`gpt-6-luna`, the only model the Decisions API serves) |
+| 12:07 | Landing is automatic: a ship that flies into the open planet touches down by itself; no landing legs, no LAND button, no LAND gate; take-off unchanged. Replaces 12:03's "no drawings left: allow landing" | v1.6 |
+| 12:22 | The island at its full 840 m (A-005) and a bright, cartoony island look | v1.7 |
+| 12:26 | No bots; the host starts whenever, and only READY players (ship and controller accepted) get into the round; the others keep drawing and join the next round with their drawings kept (in ENDLESS as soon as they are ready) | v1.7 (the play servers run with 0 bots from 12:27) |
+| 12:31 | A RESTART button on the TV, in v1.6, without restarting the v1.6 server the owner is testing (12:35) | v1.6.1 (hotfix branch); the main line in v1.8 |
+| 12:35 | A Hall of Fame of characters only (ships and explorers, no controllers); withdrawn at 12:40 | unchanged: the hall keeps all three kinds |
+| 12:41 | "A bit more effort for Sol, it's ok if it takes 2-3 seconds more" | v1.7: `medium` everywhere, read timeout 9 s, specs 14 s |
+| 12:45 | Bug: round 2 asked for the explorer in the lobby; it must only ask after landing | v1.6.2 and v1.7 |
+| 12:50 | Push to main directly | from 12:50 (v1 is fast-forwarded onto `main`) |
+| 12:54 | "v1.7 is the good version": the demo build; its server (8105/8548) is never restarted without the owner's go | v1.7 |
 
 ## Decisions taken overnight while the owner slept (overrule any in the morning)
 | When | Decision | Why |
