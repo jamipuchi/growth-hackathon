@@ -164,7 +164,16 @@ const ICONS = {
   sink: '<path d="M12 5v13M6.6 12.6L12 18l5.4-5.4M5 20.6h14"/>',
   ready: '<path d="M4.6 12.6l4.6 4.6 10.2-10.2"/>',
   view: '<path d="M3.4 8.2h4l1.8-2.6h5.6l1.8 2.6h4v11H3.4z"/><circle cx="12" cy="13.4" r="3.4"/>',
+  // v1.3 mischief: lightning bolt, horseshoe magnet, spiked mine, ink drop, a ship and its dashed copy.
+  emp: '<path d="M13.6 2.4L5.4 13.4h5.8l-1.6 8.2 8.4-11.2h-5.8z"/>',
+  tractor: '<path d="M5.2 3.2h4.4v8.4a2.4 2.4 0 0 0 4.8 0V3.2h4.4v8.4a6.8 6.8 0 0 1-13.6 0z"/><path d="M5.2 7.2h4.4M14.4 7.2h4.4"/>',
+  mine: '<circle cx="12" cy="13" r="5"/><path d="M12 3.4v4.4M12 18.2v2.8M3.2 13H7M17 13h3.8M5.8 6.8l2.6 2.6M15.6 9.4l2.6-2.6M5.8 19.2l2.6-2.6M15.6 16.6l2.6 2.6"/>',
+  inkbomb: '<path d="M12 2.8c3.4 4.4 5.8 7.6 5.8 10.8a5.8 5.8 0 0 1-11.6 0c0-3.2 2.4-6.4 5.8-10.8z"/><circle cx="4.2" cy="19.8" r="1.5" class="f"/><circle cx="19.9" cy="18.6" r="1.2" class="f"/>',
+  decoy: '<path d="M8.6 3.4l5.2 11.2H3.4z"/><path d="M16.4 9.6l4 8.6h-8z" class="d"/>',
 };
+
+// The word a control shows when the player wrote none: how the game writes the skill ("INK BOMB", not "INKBOMB").
+const actionWord = (action) => (typeof Verbs.labelOf === "function" ? Verbs.labelOf(action) : String(action).toUpperCase());
 
 const hexRgb = (hex) => {
   const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || "").trim());
@@ -188,13 +197,16 @@ const TIER_OF = {
 };
 const tierOf = (action) => TIER_OF[action] || "blue";
 const OUTLINE = "#0b1033";
+// The phone's HUD (vitals, tools, objective, timer, score, radar) owns the top of the frame: no control's top edge goes
+// above this band (a control drawn up there slides down just enough; everything else stays exactly where it was drawn).
+const HUD_BAND = "clamp(72px,26vh,116px)";
 
 function templateCss(accent) {
   const rgb = hexRgb(accent);
   const dark = toHex(rgb.map((v) => v * 0.55));
   const o = OUTLINE;
   return [
-    `:root{--k:${accent};--k2:${dark};--ol:${o}}`,
+    `:root{--k:${accent};--k2:${dark};--ol:${o};--hud:${HUD_BAND}}`,
     `html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-family:${FONT};color:#fff}`,
     ".ctl{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;" +
       "transform-origin:0 0;transform:translate(-50%,-50%);animation:kpop .46s cubic-bezier(.26,1.5,.48,1) both;animation-delay:var(--d,0s);" +
@@ -239,14 +251,14 @@ function placeCss(id, c, n, i) {
   const delay = `--d:${(i * 0.055).toFixed(3)}s;`;
   if (c.type === "stick") {
     const size = `max(${MIN_STICK_PX}px,min(${W}vw,${H}vh))`, half = `max(${MIN_STICK_PX / 2}px,min(${fix(W / 2)}vw,${fix(H / 2)}vh))`;
-    return `#${id}{${delay}width:${size};height:${size};left:clamp(${half},${cx}vw,calc(100vw - ${half}));top:clamp(${half},${cy}vh,calc(100vh - ${half}))}`;
+    return `#${id}{${delay}width:${size};height:${size};left:clamp(${half},${cx}vw,calc(100vw - ${half}));top:clamp(min(calc(var(--hud) + ${half}),calc(100vh - ${half})),${cy}vh,calc(100vh - ${half}))}`;
   }
   const tier = TIERS[tierOf(c.action)];
   const hw = `max(${MIN_VISUAL_PX / 2}px,${fix(W / 2)}vw)`, hh = `max(${MIN_VISUAL_PX / 2}px,${fix(H / 2)}vh)`;
   // Label size: fits the width (≈ 0.56 em per heavy condensed capital), between 12 and 24 px.
   const fs = n ? `--fs:clamp(12px,${fix((W * 0.8) / Math.max(2.4, n * 0.56))}vw,24px);` : "";
   return `#${id}{${delay}--t1:${tier[0]};--t2:${tier[1]};--t3:${tier[2]};${fs}width:max(${MIN_VISUAL_PX}px,${W}vw);height:max(${MIN_VISUAL_PX}px,${H}vh);` +
-    `left:clamp(${hw},${cx}vw,calc(100vw - ${hw}));top:clamp(${hh},${cy}vh,calc(100vh - ${hh}))}`;
+    `left:clamp(${hw},${cx}vw,calc(100vw - ${hw}));top:clamp(min(calc(var(--hud) + ${hh}),calc(100vh - ${hh})),${cy}vh,calc(100vh - ${hh}))}`;
 }
 
 const ARROW_LABELS = /^[←→↑↓◀▶▲▼⬅➡⬆⬇<>^V]$/;
@@ -264,7 +276,7 @@ function controlHtml(id, c) {
   }
   // Arrows and unlabelled movement show only their icon; everything else shows the player's word.
   const iconOnly = icon && (!c.label || ARROW_LABELS.test(c.label)) && Verbs.MOVES.includes(c.action);
-  const label = c.label && !ARROW_LABELS.test(c.label) ? c.label : c.action.toUpperCase();
+  const label = c.label && !ARROW_LABELS.test(c.label) ? c.label : actionWord(c.action);
   const cls = `ctl btn${c.type === "toggle" ? " tog" : ""}${iconOnly ? " only" : ""}`;
   const led = c.type === "toggle" ? '<i class="led"></i>' : "";
   const text = iconOnly ? "" : `<span class="lab">${esc(label)}</span>`;
@@ -278,7 +290,7 @@ function templateHtml(layout, { allowedActions, style } = {}) {
   const body = [];
   controls.forEach((c, i) => {
     const id = `k${i}`;
-    const shown = c.type === "stick" ? "" : c.label && !ARROW_LABELS.test(c.label) ? c.label : c.action;
+    const shown = c.type === "stick" ? "" : c.label && !ARROW_LABELS.test(c.label) ? c.label : actionWord(c.action);
     const iconOnly = ICONS[c.action] && (!c.label || ARROW_LABELS.test(c.label)) && Verbs.MOVES.includes(c.action);
     css.push(placeCss(id, c, iconOnly ? 0 : shown.length, i));
     body.push(controlHtml(id, c));
@@ -571,13 +583,14 @@ Picture Fortnite's mobile buttons: fat, solid, saturated, cartoony, easy to hit 
 - Tiles: slanted with transform: skewX(-9deg) (a button drawn round stays a round disc). A thick 3-4 px WHITE border, rounded corners, a vertical rarity-colour gradient fill, a light inner highlight on top (inset 0 3px 0 #ffffff80) and a HARD dark drop shadow under it (box-shadow: 0 5px 0 #0b1033, no blur), so every button reads as a chunky solid tile. Slightly see-through (opacity about 0.92) so the game shows around them.
 - Rarity colours: gold (#ffe36e to #ffb21f to #d26a06) for weapons (shoot, blast, drill, mine); purple (#d49bff to #9d4dff to #5a1bc4) for powers (shield, invisible, teleport, heal, scan, flare, grapple, shapeshift, emp, inkbomb, tractor, decoy); blue (#86dcff to #2f8bff to #1647c8) for moving and everything else. The control list below names each rarity. A toggle turns gold when on.
 - Labels: heavy condensed ITALIC capitals: font-style: italic; font-weight: 900; text-transform: uppercase; letter-spacing about 0.04em; 16-26 px; white with a dark #0b1033 outline (text-shadow on all four sides plus a soft drop). The frame cannot load web fonts, so use exactly this font stack: "Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,sans-serif. The tile is skewed, so put its icon and label in one inner element with transform: skewX(9deg): the letters stay clean and their italic is their only slant.
-- Use the player's own word from the label (or the action name when the label is empty). Add a chunky white SVG icon that fits the action (stroke-width 3 or more, same dark drop shadow: filter: drop-shadow(0 2px 0 #0b1033)): crosshair (shoot), double chevron (boost), shield (shield), drill bit (drill), legs touching a line (land), shovel (dig), radar arcs (scan), sun (flare), arrows for movement.
+- Use the player's own word from the label (or the action name when the label is empty). Add a chunky white SVG icon that fits the action (stroke-width 3 or more, same dark drop shadow: filter: drop-shadow(0 2px 0 #0b1033)): crosshair (shoot), double chevron (boost), shield (shield), drill bit (drill), legs touching a line (land), shovel (dig), radar arcs (scan), sun (flare), lightning bolt (emp), horseshoe magnet (tractor), spiked ball (mine), ink drop with splats (inkbomb), a small ship with a dashed copy (decoy), arrows for movement. With no word written, write the skill the way players say it: INK BOMB for inkbomb, EMP, TRACTOR, MINE, DECOY.
 - Sticks: a round base (4 px white rim, dark translucent fill, four chunky white chevrons near the rim) with a big glossy knob of about 40% of the base (3 px white rim, blue gradient, hard dark drop shadow). The base diameter is the smaller side of its rectangle and at least 110 px.
 - NOT thin sci-fi lines: no border or stroke under 3 px on a control, no 1-2 px neon outlines, no wireframe or HUD-frame look, no glow-only outlines, no hairlines, no thin cyan line art, no empty see-through frames. Solid, fat, bright.
 - Motion: every control pops in once when the page appears (keyframes on opacity and the CSS scale property only: from about 0.35 over 1.07 to 1 in about 0.45 s, staggered by about 50 ms; never animate transform or translate, the skew and the kit's own moves use them). .is-down sinks a button (translate: 0 4px; scale: .95; shorter shadow; brighter) and it bounces back on release (overshoot easing). Nothing animates forever.
 - Nothing overlaps: labels, icons, chevrons and the knob each keep clear space. A stick label is optional; if you add one put it on the knob.
 - Echo the drawing: a button drawn round is a round disc, a square one a square tile, a star a star, arrows look like arrows, a joystick is a round base with a knob.
 - Touch: every button at least 64 x 64 CSS px (use max(64px, ...)); keep every control fully on screen (use clamp() on its centre).
+- The TOP BAND belongs to the game's HUD (health, tools, objective, timer, score, radar): define --hud: ${HUD_BAND} on :root and clamp every control's centre so its TOP EDGE stays below it (top: clamp(min(calc(var(--hud) + half its height), calc(100vh - half its height)), centre, calc(100vh - half its height)): the min() keeps a very tall control fully on screen). Nothing is drawn, faded or tinted in that band.
 - Layout: centre each control on the centre of the rectangle where the player drew it, with left/top plus negative half-size margins (transform stays free for the skew). Rectangles are fractions of the drawing (x, y = top left; w, h = size) and the drawing maps onto the whole frame, so centre = left (x + w/2) * 100vw, top (y + h/2) * 100vh. Keep the player's relative sizes; grow small controls to the minimum.
 - iPhone performance over a 3D game: no backdrop-filter, no blur filters on large areas. Keep the whole document under 10 KB.
 - A <script> is optional and only for cosmetics; it must never handle input or call the game.
@@ -630,6 +643,17 @@ function extractText(data) {
 }
 
 // The document out of the answer: fences dropped, from <!doctype or <html to </html>.
+// Sol is told to define --hud on :root. If its document uses var(--hud) without defining it, every clamp() on it is
+// invalid and its controls fall to top:auto: define it for Sol (the template's band) at the top of the head.
+function ensureHud(html) {
+  if (typeof html !== "string" || !/var\(\s*--hud\b/.test(html) || /--hud\s*:/.test(html)) return html;
+  const tag = `<style>:root{--hud:${HUD_BAND}}</style>`;
+  const head = /<head\b[^>]*>/i.exec(html);
+  if (head) return html.slice(0, head.index + head[0].length) + tag + html.slice(head.index + head[0].length);
+  const style = html.search(/<style\b/i);
+  return style >= 0 ? html.slice(0, style) + tag + html.slice(style) : html;
+}
+
 function extractHtml(text) {
   let body = String(text).trim();
   const fenced = /```(?:html)?\s*\n([\s\S]*?)```/i.exec(body);
@@ -726,7 +750,7 @@ async function generateControllerHtml({ image, layout, allowedActions, style, si
     const timer = setTimeout(() => ((entry.timedOut = true), controller.abort()), perCallTimeout || timeoutMs);
     entry.promise = (async () => {
       try {
-        const { html } = await callModel(controls, img, { accent }, controller.signal);
+        const html = ensureHud((await callModel(controls, img, { accent }, controller.signal)).html);
         const check = validateHtml(html, { allowedActions: [...allowed], layout: { buttons: controls } });
         if (!check.ok) return templateResult(controls, allowed, { accent }, 0, `rejected: ${check.errors.slice(0, 4).join("; ")}`);
         // Valid but not Fortnite (a thin-line sci-fi HUD...): the template has the look the owner asked for. Mild misses

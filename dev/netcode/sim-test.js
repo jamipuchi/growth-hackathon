@@ -111,7 +111,8 @@ const LAYOUT = { buttons: [
 ], source: "model" };
 
 // Put a player on the island next to their parked ship: kill the boss, park the ship near the planet, LAND.
-function killBoss(h, by) { const b = h.dbg().boss; b.hp = 1; h.w.handleInput({ type: "input", player: by, action: "noop", down: false }); hitBossVia(h, by); }
+// v1.3: only join() and addBot() create players (finding #18), so the test joins `by` first.
+function killBoss(h, by) { const b = h.dbg().boss; b.hp = 1; h.w.join(by); hitBossVia(h, by); }
 function hitBossVia(h, by) {
   // A shot from 20 m off the boss's surface (rocks keep 25 m clear of it): the cheapest way to land the last hit from a
   // test. Ships have no drill since v1.2 (PLAN.md section 0: the drill is a planet skill).
@@ -169,9 +170,9 @@ test("4:00 cap, assists at 3:00, most points wins, stars, scoreboard 10 s → lo
   h.until("assists", () => h.w.phase === "assists", 181);
   const assistsAt = h.dbg().playT;
   assert(Math.abs(assistsAt - ROUND.assistsAt) < 0.1, `assists at ${assistsAt}`);
-  const bobEnt = h.entities("bob", entFrom).pop();
-  assert(bobEnt && bobEnt.verbs.includes("shoot") && bobEnt.verbs.includes("land"), "assists: bob's plain ship gets the gate skills");
-  assert.deepStrictEqual(bobEnt.assisted, ["shoot", "land"]);
+  // v1.3 (owner, 10 Oct 09:05): no free skills at 3:00: bob's plain ship still cannot shoot or land.
+  assert(!h.p("bob").entity.verbs.includes("shoot") && !h.p("bob").entity.verbs.includes("land"), "assists: no gate skill is given");
+  assert.strictEqual(h.p("bob").entity.assisted, undefined);
   assert.strictEqual(h.w.worldMessage().assists, true, "chests glow (world.assists)");
   h.until("3:59", () => h.dbg().playT >= ROUND.maxSeconds - 0.5, 60);
   h.p("ana").score = 300; h.p("bob").score = 120;
@@ -220,7 +221,8 @@ test("solo expert round: fly ~1 min, shoot the boss ~30 s, land, open all 3 ches
   h.input(me, "shoot", false);
   const bossDown = h.dbg().playT;
   const deaths = h.announces().filter((t) => t === `${me} was destroyed`).length;
-  assert.strictEqual(h.p(me).score, SCORING.bossLastHit + deaths * SCORING.killed + h.dbg().rocks.length * 0, "last hit +1000, -50 per death");
+  // v1.3 score floor: a death before the +1000 costs nothing below 0.
+  assert(h.p(me).score <= SCORING.bossLastHit && h.p(me).score >= SCORING.bossLastHit + deaths * SCORING.killed, `last hit +1000, -50 per death (floored at 0): ${h.p(me).score}`);
   const pl = () => h.dbg().planet;
   flyTo(h, me, pl, T.planet.radius + T.planet.landRange - 5);
   h.input(me, "land", true); h.input(me, "land", false);
@@ -302,7 +304,7 @@ test("full redraws replace the entity; land needs legs, dig a shovel, drill a dr
 // ---- Boss --------------------------------------------------------------------------------------------------------------
 
 test("boss: any weapon hurts it, HP scales with players, it shoots back", () => {
-  assert.strictEqual(bossHp(1), 2400); assert.strictEqual(bossHp(25), 31200);
+  assert.strictEqual(bossHp(1), T.boss.hp); assert.strictEqual(bossHp(25), T.boss.hp * 13); // v1.3: hp 3000
   const h = harness(7);
   h.w.join("ana");
   h.w.start();
@@ -324,11 +326,11 @@ test("boss: any weapon hurts it, HP scales with players, it shoots back", () => 
   const big = harness(8);
   for (let i = 1; i <= 25; i++) big.w.join(`p${i}`);
   big.w.start();
-  assert.strictEqual(big.dbg().boss.maxHp, 31200); assert.strictEqual(big.w.worldMessage().playerCount, 25);
-  return `${dps.toFixed(0)} dps from one gun → solo ${(2400 / dps).toFixed(0)} s of steady fire; 25 players ${(31200 / dps / 25).toFixed(0)} s all firing`;
+  assert.strictEqual(big.dbg().boss.maxHp, T.boss.hp * 13); assert.strictEqual(big.w.worldMessage().playerCount, 25);
+  return `${dps.toFixed(0)} dps from one gun → solo ${(T.boss.hp / dps).toFixed(0)} s of steady fire; 25 players ${(T.boss.hp * 13 / dps / 25).toFixed(0)} s all firing`;
 });
 
-test("bigger space: boss ~1100 m, planet 600 m beyond, rocks dense around the boss, 25 spawn slots", () => {
+test("bigger space (v1.3): boss ~1100 m, planet 800 m beyond, rocks dense around the boss, 25 spawn slots ≥ 35 m apart", () => {
   const h = harness(9);
   h.w.join("ana"); for (let i = 1; i <= 24; i++) h.w.addBot(`bot${i}`);
   h.w.start();
@@ -339,12 +341,16 @@ test("bigger space: boss ~1100 m, planet 600 m beyond, rocks dense around the bo
   killBoss(h, "ana");
   const pl = h.dbg().planet;
   const beyond = dist(pl, d.boss.pos), planetD = Math.hypot(pl.x, pl.y, pl.z);
-  assert(Math.abs(bossD - 1100) < 2 && Math.abs(beyond - 600) < 2 && planetD > bossD + 500, `boss ${bossD}, beyond ${beyond}`);
+  assert(Math.abs(bossD - T.bossDistance) < 41 && Math.abs(beyond - T.planet.offset) < 2 && planetD > bossD + T.planet.offset - 100 && planetD < T.worldRadius - 150, `boss ${bossD}, beyond ${beyond}`);
   const near = d.rocks.filter((r) => dist(r.pos, planetAt) < 360).length;
   const nearVol = (4 / 3) * Math.PI * 360 ** 3, allVol = (4 / 3) * Math.PI * T.worldRadius ** 3;
   const density = (near / nearVol) / ((d.rocks.length - near) / (allVol - nearVol));
   assert(density > 20, `rocks ${density.toFixed(0)}× denser near the boss`);
   const spawns = Object.values(h.w.players).map((p) => `${p.pos.x},${p.pos.y},${p.pos.z}`);
+  const ships = Object.values(h.w.players).map((p) => p.pos);
+  let closest = Infinity;
+  for (let i = 0; i < ships.length; i++) for (let j = i + 1; j < ships.length; j++) closest = Math.min(closest, dist(ships[i], ships[j]));
+  assert(closest >= 35, `spawns ${closest.toFixed(1)} m apart at the closest`);
   return `boss ${bossD.toFixed(0)} m, planet ${beyond.toFixed(0)} m beyond, ${d.rocks.length} rocks, ${near} within 360 m of the boss (${density.toFixed(0)}× denser), ${new Set(spawns).size} distinct spawns`;
 });
 
@@ -386,7 +392,7 @@ test("chests: two kinds, count scales with players, each a dry straight walk fro
 
 test("bots are fillers: boss HP and chests scale with humans + 0.25 × bots", () => {
   const counts = [];
-  for (const [humans, bots, hp, nChests] of [[1, 24, 9600, 7], [3, 22, 11400, 8], [25, 0, 31200, 20], [1, 0, 2400, 3]]) {
+  for (const [humans, bots, hp, nChests] of [[1, 24, T.boss.hp * 4, 7], [3, 22, T.boss.hp * 4.75, 8], [25, 0, T.boss.hp * 13, 20], [1, 0, T.boss.hp, 3]]) {
     const h = harness(20 + humans);
     for (let i = 1; i <= humans; i++) h.w.join(`p${i}`);
     for (let i = 1; i <= bots; i++) h.w.addBot(`bot${i}`);
@@ -406,7 +412,7 @@ test("bots are fillers: boss HP and chests scale with humans + 0.25 × bots", ()
   return counts.join("; ") + `; "Bot 3" joins as ${j.player}`;
 });
 
-test("speed: cruise ~60 s to the boss, a full-boost run ~40 s, the planet ~30 s further at cruise", () => {
+test("speed (owner, 10 Oct 09:05): cruise ~60 s to the boss, a full-boost run ~40 s, the planet ~40 s further at cruise", () => {
   const T0 = (opts) => {
     const h = harness(31);
     h.w.join("ana"); h.w.setEntity("ana", "ship", devKit("ship"));
@@ -425,7 +431,7 @@ test("speed: cruise ~60 s to the boss, a full-boost run ~40 s, the planet ~30 s 
   assert(cruise > 55 && cruise < 65, `cruise ${cruise}`);
   assert(boost > 38 && boost < 48, `boost only ${boost}`);
   assert(full > 34 && full < 45, `forward + boost ${full}`);
-  assert(planetCruise > 25 && planetCruise < 35, `planet ${planetCruise}`);
+  assert(planetCruise > 35 && planetCruise < 45, `planet ${planetCruise}`);
   return `to the boss: cruise ${cruise.toFixed(1)} s, holding BOOST ${boost.toFixed(1)} s, FORWARD + BOOST ${full.toFixed(1)} s; boss → landing range at cruise ${planetCruise.toFixed(1)} s`;
 });
 
@@ -469,7 +475,7 @@ test("bots never start a fight: their bullets pass through humans and bots; they
   b2.hp = 5; b2.spawnShield = 0;
   h.dbg().bullets.push({ id: 2e6, mode: "space", pos: { x: b2.pos.x - 6, y: b2.pos.y, z: b2.pos.z }, dir: { x: 1, y: 0, z: 0 }, owner: "ana", color: 0, life: 1, damage: 12 });
   h.until("b2 dies", () => b2.dead, 1, () => { ana.pos = { ...far }; b2.pos = { x: far.x + 40, y: far.y, z: far.z }; });
-  assert.strictEqual(ana.score, s0, "no kill points for a bot"); assert.strictEqual(b2.score, b2s + SCORING.killed);
+  assert.strictEqual(ana.score, s0, "no kill points for a bot"); assert.strictEqual(b2.score, Math.max(0, b2s + SCORING.killed)); // v1.3: scores never go below 0
   assert(h.announces().includes("ana ✕ bot2"), "still in the kill feed");
   return `pass-through ok; bot1 shot back after ${back.toFixed(1)} s; grudge ends after ${10} s; a bot kill pays 0`;
 });
@@ -642,7 +648,7 @@ test("scoring: chest +1500, boss last hit +1000 (stealable), kill +200, killed -
   const from = h.steps;
   hitBossVia(h, "cy");
   assert.strictEqual(h.p("cy").score, SCORING.bossLastHit);
-  assert(h.announces(from).some((t) => t.includes("stolen from bob")), "last-hit steal announced");
+  assert(h.announces(from).some((t) => t.includes("cy stole the boss from bob")), "last-hit steal announced");
   for (const n of ["ana", "bob", "cy"]) landNow(h, n);
   const ana = h.p("ana"), bob = h.p("bob");
   // Ana opens a chest; Bob kills her 5 s later → steals 750.
@@ -697,11 +703,11 @@ test("parked ships can be wrecked (+150, kill feed); the owner must redraw a shi
   assert.deepStrictEqual(h.w.worldMessage().island.parked.find((x) => x.player === "ana").wrecked, true);
   assert.strictEqual(bob.score, SCORING.wreck, "wrecking a rival's parked ship scores +150");
   assert(h.announces().includes(`🔧 bob wrecked ana's ship (+${SCORING.wreck})`), "announced in the kill feed");
-  assert(h.toasts("ana").some((t) => t.text === "bob wrecked your parked ship! Draw a new ship to take off"), "the owner is told");
+  assert(h.toasts("ana").some((t) => t.text === "bob wrecked your ship: draw a new ship to take off"), "the owner is told");
   const from = h.steps;
   h.input("ana", "takeoff", true); h.input("ana", "takeoff", false); h.wait(0.5);
   assert.strictEqual(h.p("ana").takeoffFor, 0, "no take-off with a wreck");
-  assert.strictEqual(h.toasts("ana", from)[0].text, "Your ship is wrecked. Draw a new ship to take off");
+  assert.strictEqual(h.toasts("ana", from)[0].text, "Your ship is wrecked: draw a new ship to take off");
   h.w.setEntity("ana", "ship", devKit("ship"));
   assert.strictEqual(car.wrecked, false); assert.strictEqual(car.hp, car.maxHp);
   // A ship taking off can't be shot down any more: no wreck, no +150, she flies.
@@ -793,7 +799,7 @@ test("v1.3 mischief: EMP, ink bomb and tractor hit the nearest human rival in re
   press(h, "ana", "emp"); h.step();
   assert.strictEqual(mischiefOf(h, from).length, 0, "a second EMP inside the cooldown does nothing");
   press(h, "ana", "inkbomb"); h.step();
-  assert.deepStrictEqual(mischiefOf(h, from), [{ type: "mischief", kind: "inkbomb", player: "bob", from: "ana", seconds: 4 }], "ink: 4 s");
+  assert.deepStrictEqual(mischiefOf(h, from), [{ type: "mischief", kind: "inkbomb", player: "bob", from: "ana", seconds: 10 }], "ink: until wiped, 10 s safety fade (owner, 10 Oct 09:05)");
   // bob is landing (the predefined shot): immune, so the tractor reaches past him to cy at 100 m.
   h.p("bob").landingFor = 3;
   from = h.steps;
@@ -831,9 +837,10 @@ test("v1.3 mischief: a mine stuns, costs 30 and hurts; a mine kill is a kill (+2
   assert(mine && Math.abs(mine.pos.z - -396) < 1 && h.w.tickMessage().mines.length === 1, "a mine 4 m behind the ship, in the tick");
   h.wait(1);
   let from = h.steps;
+  bob.score = 100; // v1.3 score floor: give bob points to lose
   bob.pos = { ...mine.pos }; h.step();
   assert.deepStrictEqual(mischiefOf(h, from), [{ type: "mischief", kind: "mine", player: "bob", from: "ana", seconds: T.stunSeconds, points: 30 }]);
-  assert.deepStrictEqual([bob.score, bob.hp, bob.stun > 0, h.dbg().mines.length], [-30, 70, true, 0], "-30, 30 damage, stunned, the mine is gone");
+  assert.deepStrictEqual([bob.score, bob.hp, bob.stun > 0, h.dbg().mines.length], [70, 70, true, 0], "-30, 30 damage, stunned, the mine is gone");
   assert(h.announces(from).includes("💣 bob hit ana's mine (-30)"));
   // A mine kill (bob waits off ana's line, or he would fly into the new mine while it arms).
   ana.cd.mine = 0; bob.hp = 20; bob.stun = 0; bob.pos = { x: 300, y: 0, z: -400 };
@@ -842,7 +849,7 @@ test("v1.3 mischief: a mine stuns, costs 30 and hurts; a mine kill is a kill (+2
   from = h.steps;
   bob.pos = { ...h.dbg().mines[0].pos }; h.step();
   assert(bob.dead, "bob dies on the mine");
-  assert.deepStrictEqual([ana.score, bob.score], [SCORING.kill, -30 + SCORING.mineHit + SCORING.killed], "a mine kill scores as a kill");
+  assert.deepStrictEqual([ana.score, bob.score], [SCORING.kill, 0], "a mine kill scores as a kill (bob floored at 0, v1.3)");
   assert(h.announces(from).includes("ana ✕ bob 💣"), "the kill feed says how");
   // A shield eats a mine whole.
   h.wait(T.respawnSeconds + 0.5);
@@ -911,7 +918,7 @@ test("v1.3 mischief: a rock hit while being pulled hurts, credited to the puller
   rocks.push({ id: 99999, pos: { ...cy.pos }, size: 4, type: "stone", health: 1 });
   h.step();
   assert(cy.dead, "cy slammed into a rock while pulled");
-  assert.deepStrictEqual([h.p("ana").score, cy.score], [SCORING.kill, SCORING.hitByRock + SCORING.killed]);
+  assert.deepStrictEqual([h.p("ana").score, cy.score], [SCORING.kill, Math.max(0, SCORING.hitByRock + SCORING.killed)]); // floored at 0 (v1.3)
   assert(h.announces(from).includes("ana ✕ cy 🧲"));
   return "pulled into a rock: 30 damage credited to ana, a kill (+200), kill feed 🧲";
 });
@@ -942,21 +949,24 @@ test("LAND hint: a regular player circling near the planet gets the riddle at 6 
   return `LAND ladder at ${at.join(", ")} s while circling 50 m off the surface; landing bay ${bay} in the tick`;
 });
 
-test("names and caps: a second device gets name2, the same device its ship back; 'constructor' is a name; 32 active humans at most; floods are cut", () => {
+test("names and caps: a second device gets name2, the same device its ship back; 'constructor' is a name; 25 players at most (v1.3); floods are cut", () => {
   const h = harness(25);
   const a = h.w.join("ana", "device-aaaa-1111"), b = h.w.join("Ana", "device-bbbb-2222");
   assert.deepStrictEqual([a, b], [{ player: "ana", color: a.color }, { player: "ana2", color: b.color, renamed: true }]);
   assert.strictEqual(h.w.join("ana", "device-aaaa-1111").player, "ana", "the same device gets its ship back");
   assert.strictEqual(h.w.join("ana").player, "ana", "no device token: the old behaviour (same name, same ship)");
   assert.strictEqual(h.w.join("constructor").player, "constructor");
+  h.w.join("tostring"); // v1.3: input never creates a player (finding #18)
   h.input("constructor", "boost", true); h.input("tostring", "boost", true);
   assert(h.p("constructor").keys && h.p("tostring").name === "tostring", "prototype names are plain names");
+  assert.strictEqual(h.w.handleInput({ type: "input", player: "neverjoined", action: "boost", down: true }), false, "unknown name: false (409 join first)");
+  assert.strictEqual(h.p("neverjoined"), undefined, "input never creates a player");
   for (let i = 0; i < 40; i++) h.w.join(`g${i}`);
   const humans = Object.values(h.w.players).filter((p) => !p.bot).length;
-  assert.strictEqual(humans, 32);
-  assert.strictEqual(h.w.join("late"), null, "no room for a 33rd");
+  assert.strictEqual(humans, 25, "25 players at most, humans and bots together (owner, 10 Oct 09:05)");
+  assert.strictEqual(h.w.join("late"), null, "no room for a 26th");
   h.input("ghost", "boost", true);
-  assert.strictEqual(h.p("ghost"), undefined, "a POST /input with a new name makes no player when full");
+  assert.strictEqual(h.p("ghost"), undefined, "a POST /input with a new name makes no player");
   h.w.start();
   h.w.setEntity("ana", "ship", devKit("ship"));
   const from = h.steps;

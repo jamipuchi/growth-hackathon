@@ -30,7 +30,9 @@ const GATES = {
 };
 
 const STEP_MS = [6000, 16000, 31000]; // stuck time at which riddle, sketch, answer are due
-const GHOST = { w: 0.22, h: 0.18, grid: 0.01 };
+// top (v1.3): the phone HUD band. astra-html.js keeps every control's top edge below CSS --hud = clamp(72px, 26vh,
+// 116px), about the top 26-30% of a landscape phone, so a ghost box above it would slide away from the traced ink.
+const GHOST = { w: 0.22, h: 0.18, grid: 0.01, top: 0.3 };
 const EPS = 1e-9;
 
 const overlapArea = (a, b) => {
@@ -53,7 +55,9 @@ function ghostBox(layout, action) {
     return [...set];
   };
   const xs = axis(maxX, GHOST.w, "x", "x");
-  const ys = axis(maxY, GHOST.h, "y", "y");
+  const allYs = axis(maxY, GHOST.h, "y", "y");
+  const below = allYs.filter((y) => y >= GHOST.top - EPS); // below the HUD band (all of them if that leaves none)
+  const ys = below.length ? below : allYs;
   let best = null;
   for (const y of ys) {
     for (const x of xs) {

@@ -21,7 +21,6 @@ const BOSS_HINT_RANGE = 150; // this close to the boss's surface without a weapo
 const SHIP_RADIUS = 1.5;
 const EXPLORER_RADIUS = 0.9; // a capsule centred EXPLORER_CHEST m above the feet
 const EXPLORER_CHEST = 1.1;
-const SPAWN_SHIELD_SECONDS = 2;
 const BOT_FIRE_COOLDOWN = 0.5;
 const BOT_REVENGE_SECONDS = 10; // a bot shoots back only at a human who hit it this recently
 const BOT_RANGE = T.bulletSpeed * T.bulletLife - 6; // a bot fires only when its shot can still arrive
@@ -31,13 +30,15 @@ const INACTIVE_MS = 10 * 60 * 1000;
 // Name binding and caps (v1.0 review): a device token from /join keeps a second phone from taking over a name in use;
 // at most MAX_HUMANS active humans (a POST /input with a new name creates a player only below it), MAX_RECORDS ever.
 const TAKEN_MS = 30 * 1000;
-const MAX_HUMANS = 32;
+const MAX_HUMANS = 32;  // unused since v1.3 (old readers): MAX_PLAYERS
+const MAX_PLAYERS = 25; // PLAN.md section 0 (owner, 10 Oct 09:05): humans and bots together never exceed 25
 const MAX_RECORDS = 400;
 const MAX_PRESSES = 6; // pressed verbs queued per player per step (a flood of presses in one POST is dropped)
 const LAND_HINT_EXTRA = 50; // the LAND ladder starts this far beyond landing range (approaching the planet counts)
 // While the phone's draw sheet is open (input action "drawing", v1.0 playtest: players died photographing a button),
 // the ship hovers and cannot be hurt, shoot or be targeted, for at most DRAWING_SHIELD_SECONDS per press.
 const DRAWING_SHIELD_SECONDS = 30;
+const HIT_PER_SECOND = 4; // hit-marker notices per victim per second (v1.3)
 const TICK_MAX_BULLETS = 30; // the newest ones; keeps a tick under 8 KB with 25 players
 const PARKED_RADIUS = 2.5;
 const SHORE_TURNS = [0.35, 0.7, 1.05, Math.PI / 2]; // radians, either way: walkers slide along the shore
@@ -82,7 +83,9 @@ const DEFAULT_LAYOUT = {
   ],
   source: "default",
 };
-const GHOST = { w: 0.22, h: 0.18, scales: [1.4, 1.2, 1, 0.8, 0.6], step: 0.02, margin: 0.03, pad: 0.02 };
+// top: the phone HUD band (astra-html.js keeps every control's top edge below CSS --hud = clamp(72px, 26vh, 116px),
+// about the top 26-30% of a landscape phone): a ghost box above it would slide down away from the traced ink.
+const GHOST = { w: 0.22, h: 0.18, scales: [1.4, 1.2, 1, 0.8, 0.6], step: 0.02, margin: 0.03, pad: 0.02, top: 0.3 };
 
 const v3 = (x = 0, y = 0, z = 0) => ({ x, y, z });
 const add = (a, b, s = 1) => ({ x: a.x + b.x * s, y: a.y + b.y * s, z: a.z + b.z * s });
@@ -163,7 +166,7 @@ function ghostBox(layout, action) {
   for (const s of GHOST.scales) {
     const w = GHOST.w * s, h = GHOST.h * s;
     let best = null;
-    for (let y = GHOST.margin; y + h <= 1 - GHOST.margin + 1e-9; y += GHOST.step) {
+    for (let y = Math.max(GHOST.margin, GHOST.top); y + h <= 1 - GHOST.margin + 1e-9; y += GHOST.step) {
       for (let x = GHOST.margin; x + w <= 1 - GHOST.margin + 1e-9; x += GHOST.step) {
         const box = { x, y, w, h };
         const clearance = rects.length ? Math.min(...rects.map((r) => gap(box, r))) : 1;
@@ -172,7 +175,7 @@ function ghostBox(layout, action) {
     }
     if (best) return { action, x: r2(best.x), y: r2(best.y), w: r2(best.w), h: r2(best.h) };
   }
-  return { action, x: 0.39, y: 0.05, w: 0.22, h: 0.18 };
+  return { action, x: 0.39, y: 0.32, w: 0.22, h: 0.18 }; // below the HUD band
 }
 
 // wireAnimations(type, verbs) → anims (astra.js), optional: called on every entity switch.
@@ -214,9 +217,9 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     return inPlay[0];
   }
 
-  // Rocks keep clear of spawn, the boss and the planet that will appear.
+  // Rocks keep clear of the spawn disc (spawnRadius + 40 m), the boss and the planet that will appear.
   function rockPlaceOk(pos, size) {
-    if (len(pos) < 60 + size) return false;
+    if (len(pos) < T.spawnRadius + 40 + size) return false;
     if (boss && dist(pos, boss.pos) < boss.radius + 25 + size) return false;
     if (planetAt && dist(pos, planetAt) < T.planet.radius + 20 + size) return false;
     return true;
@@ -311,61 +314,121 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     const type = drawn ? drawn.type : world === "space" ? "ship" : "person";
     const unlocked = drawn ? drawn.unlocked : p.bot ? Verbs.DEV_KIT[world].map((u) => ({ ...u })) : [];
     const own = unlocked.map((u) => u.verb);
-    const extra = S.assists ? Verbs.GATE_SKILLS[world] : [];
+    // Owner, 10 Oct 09:05: no free skills at 3:00 (the hints jump to "draw X" and the chests glow instead).
+    const extra = [];
     const verbs = Verbs.entityVerbs(type, own, extra);
+    // card (v1.3): the unlock card in plain words. A drawing keeps the card Astra sent with it (setEntity); a plain or
+    // bot entity gets Verbs.cardOf. Assist-granted skills are never on the card (they ride in `assisted`).
     const entity = {
       type, rig: Verbs.RIG_OF[type] || "blob", verbs, unlocked, parts: drawn ? drawn.parts : [],
       source: drawn ? drawn.source : p.bot ? "bot" : "plain",
+      card: drawn && drawn.card ? drawn.card : Verbs.cardOf(type, unlocked),
     };
     const assisted = extra.filter((v) => verbs.includes(v) && !own.includes(v));
     if (assisted.length) entity.assisted = assisted;
     const key = `${entity.rig}:${verbs.join(",")}`;
     if (animCache[key]) entity.anims = animCache[key];
     else if (typeof wireAnimations === "function") {
-      try { const anims = wireAnimations(entity.rig, verbs); if (anims) entity.anims = animCache[key] = anims; } catch {}
+      try { const anims = wireAnimations(entity.rig, verbs); if (anims && Object.keys(anims).length) entity.anims = animCache[key] = anims; } catch {} // an empty table is not cached (anims.js may be mid-edit)
     }
     return entity;
   }
 
-  const sameEntity = (a, b) => a && b && a.type === b.type && a.source === b.source && a.verbs.join() === b.verbs.join() && JSON.stringify(a.unlocked) === JSON.stringify(b.unlocked);
+  // Parts and card count too: a redraw with the same skills but a new look must still reach every screen.
+  const sameEntity = (a, b) => a && b && a.type === b.type && a.source === b.source && a.card === b.card && a.verbs.join() === b.verbs.join() &&
+    JSON.stringify(a.unlocked) === JSON.stringify(b.unlocked) && JSON.stringify(a.parts) === JSON.stringify(b.parts);
 
   // Every mode switch, redraw and unlock (and the first spawn) tells every screen which entity the player now drives.
+  // force true: rebuild even in the same mode (sent only if it changed); force "fresh": a redraw, always sent.
   function setMode(p, mode, force = false) {
     if (p.mode === mode && p.entity && !force) return;
     const next = entityOf(p, mode);
-    if (p.mode === mode && sameEntity(p.entity, next)) return;
+    if (p.mode === mode && force !== "fresh" && sameEntity(p.entity, next)) return;
     p.mode = mode;
     p.entity = next;
     send({ type: "entity", player: p.name, entity: p.entity });
   }
   const can = (p, verb) => !!p.entity && p.entity.verbs.includes(verb);
 
-  const slotOf = (p) => Math.max(0, Object.keys(players).indexOf(p.name));
+  // Humans first (join order), then bots (v1.3): tick.players lists them in this order (TVs cap name tags and meshes
+  // and must keep the humans), humans take the inner spawn slots, and only humans ever take parking bays.
+  const ordered = (list = active()) => [...list.filter((q) => !q.bot), ...list.filter((q) => q.bot)];
+  const slotOf = (p) => Math.max(0, ordered().indexOf(p));
 
-  // A 5 × 5 grid (25 players), facing the boss.
+  // Spawn (v1.3, ruthless PvP): a wide sunflower disc of radius TUNING.spawnRadius across the line to the boss, so 25
+  // ships start about 40 m apart (never closer than about 38 m), side by side, nobody in front of anybody's guns.
+  // More than 25: another disc 60 m further back. Every ship faces the boss; a spawn shield until it moves or fires.
+  const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+  function spawnSlot(i) {
+    const d = boss ? norm({ x: boss.pos.x, y: 0, z: boss.pos.z }) : v3(0, 0, -1);
+    const u = { x: -d.z, y: 0, z: d.x }; // level and across the line to the boss
+    const k = i % 25, r = T.spawnRadius * Math.sqrt((k + 0.5) / 25), a = k * GOLDEN;
+    return add(add(add(v3(), u, Math.cos(a) * r), v3(0, 1, 0), Math.sin(a) * r), d, -60 * Math.floor(i / 25));
+  }
+  function faceGoal(p) {
+    const goal = !boss ? null : !boss.dead ? boss.pos : planet || planetAt;
+    if (!goal) { p.yaw = 0; p.pitch = 0; return; }
+    const v = sub(goal, p.pos);
+    p.yaw = Math.atan2(-v.x, -v.z);
+    p.pitch = clamp(Math.atan2(v.y, Math.hypot(v.x, v.z)), -T.maxPitch, T.maxPitch);
+  }
   function spawnAt(p) {
-    const i = slotOf(p);
     setMode(p, "space");
-    p.pos = { x: ((i % 5) - 2) * T.spawnSpacing, y: (Math.floor(i / 5) % 5 - 2) * T.spawnSpacing * 0.6, z: Math.floor(i / 25) * T.spawnSpacing };
-    p.yaw = boss ? Math.atan2(-boss.pos.x, -boss.pos.z) : 0;
-    p.pitch = 0; p.roll = 0; p.vy = 0;
+    p.pos = spawnSlot(slotOf(p));
+    faceGoal(p);
+    p.roll = 0; p.vy = 0;
     p.hp = T.shipHp; p.stun = 0; p.dead = false; p.deadFor = 0;
-    p.landingFor = 0; p.takeoffFor = 0; p.spawnShield = 0;
+    p.landingFor = 0; p.takeoffFor = 0;
+    // The spawn shield only runs in play (in the lobby it would freeze on: no simulate there); GO hands it out.
+    p.spawnShield = S.phase === "playing" || S.phase === "assists" ? T.spawnShieldSeconds : 0;
+  }
+  // Respawns spread too: of a few spots around `at`, the first at least spawnClear m from every other living ship
+  // and clear of rocks, else the roomiest one.
+  function clearSpot(p, at, spread) {
+    let best = at, bestGap = -1;
+    for (let i = 0; i < 10; i++) {
+      const c = i === 0 ? at : add(at, randomPoint(spread * 0.4, spread), 1);
+      if (rocks.some((r) => dist(r.pos, c) < r.size + 8)) continue;
+      let g = Infinity;
+      for (const q of active()) if (q !== p && q.mode === "space" && !q.dead) g = Math.min(g, dist(q.pos, c));
+      if (g >= T.spawnClear) return c;
+      if (g > bestGap) { best = c; bestGap = g; }
+    }
+    return best;
   }
 
-  // Each player has a parking bay on the landing pad; the explorer stands beside the parked ship.
+  // Each human gets a parking bay on the landing pad when the landing starts (land()): the lowest one free, so humans
+  // fill the first bays; the explorer stands beside the parked ship. 25 bays (all on dry land, buildIsland), shared
+  // beyond 25 humans.
+  const bayAt = (i) => ({ x: landing.x + (i % 25 % 5) * 5 - 10, z: landing.z + Math.floor((i % 25) / 5) * 5 });
+  function pickBay(p) {
+    const used = new Set();
+    for (const c of parked) if (c.player !== p.name && players[c.player] && players[c.player].bayIndex != null) used.add(players[c.player].bayIndex);
+    for (const q of active()) if (q !== p && q.landingFor > 0 && q.bayIndex != null) used.add(q.bayIndex);
+    // render.js ends the landing shot on the bay of the player's index in tick.players (= slotOf): take that one when
+    // it is free (humans come first, so they fill the first bays), else the lowest free one (the tick's `bay` says it).
+    const want = slotOf(p) % 25;
+    let i = used.has(want) ? 0 : want;
+    while (used.has(i) && i < 25) i++;
+    p.bayIndex = i < 25 ? i : want;
+    return p.bayIndex;
+  }
   function bay(p) {
-    const i = slotOf(p);
-    return { x: landing.x + (i % 5) * 5 - 10, z: landing.z + Math.floor(i / 5) * 5 };
+    const car = parked.find((c) => c.player === p.name);
+    if (car) return { x: car.x, z: car.z };
+    return bayAt(p.bayIndex != null ? p.bayIndex : pickBay(p));
   }
   // The nearest walkable spot, in 1 m rings out to 30 m, else the landing spot (v1.0 review: on about 2% of islands an
   // explorer stepped out onto water and stayed stuck for the round, respawning on the same cell).
+  // v1.3 (finding #17): the spot must also be reachable, a straight dry walk from the landing spot (from which every
+  // chest is), so nobody steps out onto a cut-off sandbar. Used by every island spawn: touchdown and respawn.
   function nearestDry(x, z) {
-    if (dry(x, z)) return { x, z };
+    const ok = (nx, nz) => dry(nx, nz) && (Math.hypot(nx - landing.x, nz - landing.z) < 2 || dryLine(landing.x, landing.z, nx, nz));
+    if (ok(x, z)) return { x, z };
     for (let r = 1; r <= 30; r++) {
       for (let i = 0; i < 16; i++) {
         const a = (i / 16) * Math.PI * 2, nx = x + Math.cos(a) * r, nz = z + Math.sin(a) * r;
-        if (dry(nx, nz)) return { x: nx, z: nz };
+        if (ok(nx, nz)) return { x: nx, z: nz };
       }
     }
     return { x: landing.x, z: landing.z };
@@ -379,18 +442,22 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
 
   // Death respawn: in space where the ship died but out of the boss's reach (no minute-long flight back), on the island
   // beside the parked ship; full health and a short spawn shield.
+  // v1.3: spread out (clearSpot: at least spawnClear m from every other ship when there is room), facing the goal, and
+  // a spawn shield until the player moves or fires (at most spawnShieldSeconds).
   function respawn(p) {
     if (p.mode === "planet") standBeside(p);
     else {
-      const at = { ...p.pos };
+      const died = { ...p.pos };
       spawnAt(p);
-      if (boss && !boss.dead && dist(at, boss.pos) < T.boss.respawnDistance) p.pos = add(boss.pos, norm(dist(at, boss.pos) > 1 ? sub(at, boss.pos) : v3(0, 0, 1)), T.boss.respawnDistance);
-      else p.pos = at;
-      const goal = boss.dead && planet ? planet : boss.pos;
-      p.yaw = Math.atan2(-(goal.x - p.pos.x), -(goal.z - p.pos.z));
+      let at = died;
+      if (boss && !boss.dead && dist(died, boss.pos) < T.boss.respawnDistance) at = add(boss.pos, norm(dist(died, boss.pos) > 1 ? sub(died, boss.pos) : v3(0, 0, 1)), T.boss.respawnDistance);
+      p.pos = clearSpot(p, at, 60);
+      if (boss && !boss.dead && dist(p.pos, boss.pos) < T.boss.respawnDistance) p.pos = add(boss.pos, norm(sub(p.pos, boss.pos)), T.boss.respawnDistance);
+      if (len(p.pos) > T.worldRadius) p.pos = add(p.pos, p.pos, -(len(p.pos) - T.worldRadius) / len(p.pos));
+      faceGoal(p);
     }
-    p.hp = T.shipHp; p.dead = false; p.deadFor = 0; p.tractor = null;
-    p.spawnShield = SPAWN_SHIELD_SECONDS;
+    p.hp = T.shipHp; p.dead = false; p.deadFor = 0; p.tractor = null; p.hitAcc = 0;
+    p.spawnShield = T.spawnShieldSeconds;
     fx("respawn", p.pos, p.color, 3, p.mode);
   }
 
@@ -401,20 +468,41 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     if (!name) return null;
     if (!players[name]) {
       if (!create) return null;
-      if (!bot && (humansActive() >= MAX_HUMANS || Object.keys(players).length >= MAX_RECORDS)) return null;
+      if (Object.keys(players).length >= MAX_RECORDS) return null;
+      // At most MAX_PLAYERS in the round, humans and bots together: a new human takes the place of the newest bot (bots
+      // are fillers); 25 humans: the game is full. A bot never takes a seat a human could have.
+      const live = active();
+      if (live.length >= MAX_PLAYERS) {
+        const filler = bot ? null : [...live].reverse().find((q) => q.bot);
+        if (!filler) return null;
+        dropBot(filler);
+      }
+      // A colour nobody has (a human who takes a dropped bot's seat must not wear another player's colour).
+      const inUse = new Set(Object.values(players).map((q) => q.color));
+      const color = COLORS.find((c) => !inUse.has(c)) ?? COLORS[Object.keys(players).length % COLORS.length];
       const p = {
-        name, bot, color: COLORS[Object.keys(players).length % COLORS.length], score: 0, keys: {}, axes: {}, pressed: [],
+        name, bot, color, score: 0, keys: {}, axes: {}, pressed: [],
         shieldEnergy: 1, boostEnergy: 1, boostLocked: false, shieldLocked: false, cd: {}, fireCd: 0,
         invisibleFor: 0, ready: bot, layout: null, hints: {}, action: "", slot: "", startedAt: 0, mode: null, entity: null,
         drilling: false, digging: false, boosting: false, shielding: false, botFire: 0, botSeed: random() * 100,
         drawn: { space: null, planet: null }, refusedAt: {}, lastChest: null, hitBy: Object.create(null), run: null, vel: v3(),
-        device: null, tractor: null, empFor: 0, inkFor: 0, drawingUntil: 0,
+        device: null, tractor: null, empFor: 0, inkFor: 0, drawingUntil: 0, bayIndex: null, hitSentAt: -Infinity,
+        lastSeen: Date.now(), // before spawnAt: slotOf only counts active players
       };
       players[name] = p;
       spawnAt(p);
+      // Humans take the inner slots: in the lobby (and the countdown) everybody moves to their slot again, so a human
+      // who joins after the bots never sits on top of one.
+      if (!bot && (S.phase === "lobby" || S.phase === "countdown")) for (const q of ordered()) if (q !== p) spawnAt(q);
     }
-    players[name].lastSeen = Date.now();
-    return players[name];
+    // A human back after INACTIVE_MS takes a seat again: the newest bot leaves if the round is full (MAX_PLAYERS).
+    const back = players[name];
+    if (!back.bot && Date.now() - back.lastSeen >= INACTIVE_MS) {
+      const live = active();
+      if (live.length >= MAX_PLAYERS) { const filler = [...live].reverse().find((q) => q.bot); if (filler) dropBot(filler); }
+    }
+    back.lastSeen = Date.now();
+    return back;
   }
 
   // A human never takes over a bot's seat: "bot3" joins as "bot3b" (a rejoin with the same name finds that human again).
@@ -433,37 +521,50 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     return clean !== base && players[base] && !players[base].bot ? { player: p.name, color: p.color, renamed: true } : { player: p.name, color: p.color };
   };
   const addBot = (name) => getPlayer(name, true);
+  // A bot leaves so a human can play (MAX_PLAYERS): gone from every list, with its mines and decoys.
+  function dropBot(q) {
+    delete players[q.name];
+    bullets = bullets.filter((b) => b.owner !== q.name); // an ownerless bullet would hurt anyone (canHurt)
+    mines = mines.filter((m) => m.owner !== q.name);
+    decoys = decoys.filter((d) => d.owner !== q.name);
+  }
 
+  // Only join() and addBot() create players (v1.0 finding #18: ghost players). Returns true when the player exists,
+  // false when the name is unknown (server.js answers 409 "join first").
   function handleInput(msg) {
-    const p = msg && getPlayer(msg.player);
-    if (!p) return;
+    const p = msg && getPlayer(msg.player, false, { create: false });
+    if (!p) return false;
     if (msg.type === "axis" && Contract.STICKS.includes(msg.axis)) {
-      p.axes[msg.axis] = { x: clamp(Number(msg.x) || 0, -1, 1), y: clamp(Number(msg.y) || 0, -1, 1) };
-      return;
+      const x = clamp(Number(msg.x) || 0, -1, 1), y = clamp(Number(msg.y) || 0, -1, 1);
+      p.axes[msg.axis] = { x, y };
+      if (x || y) moved(p);
+      return true;
     }
-    if (msg.type !== "input") return;
+    if (msg.type !== "input") return true;
     const action = Contract.normaliseAction(msg.action);
     const down = !!msg.down;
-    if (action === "ready") { if (down) p.ready = true; return; }
+    if (action === "ready") { if (down) p.ready = true; return true; }
     // The phone's draw sheet opened / closed: hover, protected, no control (re-sending "down" never extends it).
     if (action === "drawing") {
       if (!down) p.drawingUntil = 0;
       else if (!(p.drawingUntil > S.t)) { p.drawingUntil = S.t + DRAWING_SHIELD_SECONDS; p.keys = {}; p.axes = {}; p.pressed = []; }
-      return;
+      return true;
     }
-    if (p.drawingUntil > S.t) return;
-    if (p.landingFor > 0 || p.takeoffFor > 0) return; // the landing / take-off shot plays without control
-    if (Contract.MOVES.includes(action)) { p.keys[action] = down; return; }
-    if (!V1_VERBS.has(action)) return;
-    if (!down) { p.keys[action] = false; return; }
-    if (!can(p, action)) { refuse(p, action); return; }
+    if (p.drawingUntil > S.t) return true;
+    if (p.landingFor > 0 || p.takeoffFor > 0) return true; // the landing / take-off shot plays without control
+    if (Contract.MOVES.includes(action)) { p.keys[action] = down; if (down) moved(p); return true; }
+    if (!V1_VERBS.has(action)) return true;
+    if (!down) { p.keys[action] = false; return true; }
+    if (!can(p, action)) { refuse(p, action); return true; }
     p.keys[action] = down;
     if (down) {
+      moved(p); // using any skill drops the spawn shield
       if (PRESS.includes(action) && p.pressed.length < MAX_PRESSES) p.pressed.push(action);
       p.action = action;
       p.slot = (Verbs.VERBS[action] && Verbs.VERBS[action].slot) || "use";
       p.startedAt = Date.now();
     }
+    return true;
   }
 
   // A verb the entity has not unlocked: a toast explains what to draw, at most once per refusalToastSeconds per verb.
@@ -484,26 +585,30 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
 
   // A finished ship / explorer drawing (Astra's entity: type, unlocked, parts, source). Full redraws only: it replaces
   // that world's entity. A new ship also repairs a wrecked parked ship (that is how a wreck is fixed).
+  // Never creates a player (finding #18): server.js joins first. type: the ship is always "ship"; a planet entity keeps
+  // person / car / bike / quadruped / blob, anything else becomes "person" (render.js builds exactly those six).
+  // card: the unlock card Astra sent (≤ 200 chars), else Verbs.cardOf. The new entity always reaches every screen.
   function setEntity(name, kind, entity) {
-    const p = getPlayer(name);
+    const p = getPlayer(name, false, { create: false });
     if (!p || !entity) return null;
     const world = kind === "ship" ? "space" : "planet";
     const type = world === "space" ? "ship" : Verbs.PLANET_TYPES.includes(entity.type) ? entity.type : "person";
     const skills = Verbs.SKILLS[world];
     const unlocked = (Array.isArray(entity.unlocked) ? entity.unlocked : []).filter((u) => u && skills.includes(u.verb)).map((u) => ({ verb: u.verb, part: String(u.part || "drawing") }));
-    p.drawn[world] = { type, unlocked, parts: Array.isArray(entity.parts) ? entity.parts.slice(0, 12) : [], source: entity.source || "model" };
+    const card = typeof entity.card === "string" && entity.card.trim() ? entity.card.slice(0, 200) : Verbs.cardOf(type, unlocked);
+    p.drawn[world] = { type, unlocked, parts: Array.isArray(entity.parts) ? entity.parts.slice(0, 12) : [], source: entity.source || "model", card };
     if (world === "space") {
       const car = parked.find((x) => x.player === p.name);
-      if (car && car.wrecked) { car.wrecked = false; car.hp = car.maxHp; announce(`${p.name} rebuilt their ship`); sendWorld(); }
+      if (car && car.wrecked) { car.wrecked = false; car.hp = car.maxHp; announce(`🔧 ${p.name} rebuilt their ship`); sendWorld(); }
     }
-    if (p.mode === (world === "space" ? "space" : "planet")) setMode(p, p.mode, true);
+    if (p.mode === world) setMode(p, p.mode, "fresh");
     return p.entity;
   }
 
   // kind "button" adds the new controls to the current layout, replacing any with the same action (as the phone
-  // does); anything else replaces the whole layout.
+  // does); anything else replaces the whole layout. Never creates a player (finding #18).
   function setLayout(name, layout, kind = "controller") {
-    const p = getPlayer(name);
+    const p = getPlayer(name, false, { create: false });
     if (!p || !layout || !Array.isArray(layout.buttons)) return;
     p.layout = mergeLayout(p.layout, layout, kind);
   }
@@ -532,24 +637,34 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   }
 
   // START: the boss's HP and the chest count scale with the players in the round now (bots count botWeight each).
-  function start() {
+  // countdown (owner, 10 Oct 09:05: a real server phase so every phone counts with the big screen): phase "countdown"
+  // for ROUND.countdownSeconds, ships frozen on their spawn slots, tick clock = seconds left, then GO (go()). Without
+  // it (the old START, --autostart, tests) play starts at once.
+  function start({ countdown = false } = {}) {
     if (S.phase !== "lobby") return false;
     S.playerCount = scaledCount(active());
     const hp = bossHp(S.playerCount);
     Object.assign(boss, { hp, maxHp: hp });
     buildIsland(chestCount(S.playerCount));
-    S.phase = "playing"; S.phaseT = 0; S.playT = 0;
-    for (const p of Object.values(players)) { spawnAt(p); Object.assign(p, { pressed: [], score: 0, lastChest: null, hitBy: {}, run: null, botBoost: false }); }
-    announce(`Round ${S.round}: ${Contract.OBJECTIVES.boss}`, true);
+    const wait = countdown ? Math.max(0, Number(ROUND.countdownSeconds) || 0) : 0;
+    S.phase = wait > 0 ? "countdown" : "playing"; S.phaseT = 0; S.playT = 0;
+    for (const p of Object.values(players)) { spawnAt(p); Object.assign(p, { pressed: [], score: 0, lastChest: null, hitBy: {}, run: null, botBoost: false, hitAcc: 0 }); }
+    if (wait > 0) announce(`Round ${S.round} starts in ${Math.round(wait)}…`, true);
+    else go();
     sendWorld();
     return true;
   }
+  function go() {
+    S.phase = "playing"; S.phaseT = 0; S.playT = 0;
+    for (const p of Object.values(players)) { p.pressed = []; p.spawnShield = T.spawnShieldSeconds; }
+    announce(`Round ${S.round}: ${Contract.OBJECTIVES.boss}`, true);
+  }
 
-  // 3:00: the gate skills unlock for everyone still missing them and the chests glow (world.assists).
+  // 3:00 (world.assists): the chests glow and every hint jumps to its last step ("Draw a shovel or claws on your
+  // explorer", "Draw DIG"); no skill is ever given (owner, 10 Oct 09:05).
   function startAssists() {
     S.phase = "assists"; S.assists = true;
-    for (const p of active()) setMode(p, p.mode, true);
-    announce("Assists on: every gate skill is unlocked and the chests glow!", true);
+    announce("3:00! The chests glow. Missing a skill? Draw it now!", true);
     sendWorld();
   }
 
@@ -557,7 +672,11 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   function endRound(reason) {
     S.phase = "scoreboard"; S.phaseT = 0;
     const list = active();
-    const scores = list.map((p) => [p.name, p.score]).sort((a, b) => b[1] - a[1]);
+    // v1.3: bots are fillers: every human ranks above every bot (each group by points, ties in join order), so a bot
+    // only wins a round with no humans in it, and the banner and the scoreboard always name the same winner.
+    const byScore = (a, b) => b[1] - a[1];
+    const rows = (bots) => ordered(list).filter((p) => !!p.bot === bots).map((p) => [p.name, p.score]).sort(byScore);
+    const scores = [...rows(false), ...rows(true)];
     const winner = scores.length && scores[0][1] > 0 ? scores[0][0] : null;
     for (const [name, score] of scores) {
       const row = session[name] || (session[name] = { stars: 0, total: 0 });
@@ -649,39 +768,66 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     fx("explode", rock.pos, rock.type === "crystal" ? 0x67e8f9 : 0xa8a29e, rock.size);
     const p = players[owner];
     if (p) {
-      p.score += SCORING[rock.type] != null ? SCORING[rock.type] : SCORING.rock;
+      addScore(p, SCORING[rock.type] != null ? SCORING[rock.type] : SCORING.rock);
       if (type.heal) p.hp = Math.min(T.shipHp, p.hp + type.heal);
     }
+    // Finding #15: a destroyed rock is gone for the round, never replaced: a new rock id makes every screen rebuild its
+    // whole rock field (render.js setRocks), and a field of TUNING.rockCount rocks lasts a 4:00 round.
     rocks = rocks.filter((r) => r !== rock);
-    rocks.push(spawnRock());
     if (type.blastRadius) for (const q of active()) if (q.mode === "space" && dist(q.pos, rock.pos) < type.blastRadius) hurt(q, type.blastDamage, null);
+    // Splitters (not in play in v1) are the one exception: their halves are new rocks (a rebuild on every screen).
     if (type.splitInto) for (let i = 0; i < type.splitInto; i++) rocks.push(spawnRock("stone", add(rock.pos, randomPoint(rock.size, rock.size + 2)), rock.size / 2));
   }
 
   const invulnerable = (p) => p.landingFor > 0 || p.takeoffFor > 0 || p.spawnShield > 0 || p.drawingUntil > S.t;
+  // The spawn shield lasts until the player moves (any non-zero input) or uses any skill, at most spawnShieldSeconds.
+  const moved = (p) => { if (S.phase === "playing" || S.phase === "assists") p.spawnShield = 0; };
+  const inputOn = (p) => Object.values(p.keys).some(Boolean) || Object.values(p.axes).some((a) => a && (a.x || a.y));
+  // Scores never go below 0 (v1.3): returns the change actually made.
+  const addScore = (p, n) => { const was = p.score; p.score = Math.max(0, p.score + n); return p.score - was; };
+  // A personal plain-words line on one human's phone (toast kind "info").
+  const tell = (name, text, verb = null) => { const q = players[name]; if (q && !q.bot) send({ type: "toast", player: q.name, kind: "info", verb, text, sketch: null, ghost: null }); };
+
+  // The hit marker (v1.3): a human hurt by a player or the boss hears from where, at most HIT_PER_SECOND times a
+  // second (the damage in between adds up). dir: where the attacker is on the victim's screen, as the tractor's.
+  function hitNotice(p, amount, from, src) {
+    if (p.bot || !from) return;
+    p.hitAcc = (p.hitAcc || 0) + amount;
+    if (S.t - p.hitSentAt < 1 / HIT_PER_SECOND) return;
+    const m = { type: "hit", player: p.name, from, amount: Math.round(p.hitAcc) };
+    if (src) m.dir = screenDir(p, { pos: src });
+    p.hitSentAt = S.t; p.hitAcc = 0;
+    send(m);
+  }
 
   // PvP everywhere: ships in space, explorers on the island. Ruthless: a kill within stealSeconds of the victim
-  // opening a chest steals stealShare of that chest's points.
-  function hurt(p, amount, by, how = null) {
+  // opening a chest steals stealShare of that chest's points (only a human killer steals). how: a mischief kind
+  // (mine, tractor) or "boss"; src: where the hit came from (the hit marker), default the attacker's position.
+  function hurt(p, amount, by, how = null, src = null) {
     if (p.dead || invulnerable(p)) return;
     // A bot remembers the humans who hit it: it shoots back at them for BOT_REVENGE_SECONDS (botThink).
     if (p.bot && by && players[by] && !players[by].bot) p.hitBy[by] = S.t;
     if (p.shielding) { fx("spark", p.pos, p.color, 2, p.mode); return; }
     p.hp -= amount;
     fx("hit", p.pos, 0xf97316, 1, p.mode);
+    const attacker = by && by !== p.name ? players[by] : null;
+    hitNotice(p, amount, attacker ? attacker.name : how === "boss" ? "boss" : null, src || (attacker && attacker.mode === p.mode ? attacker.pos : null));
     if (p.hp > 0) return;
-    p.hp = 0; p.dead = true; p.deadFor = 0; p.drilling = false; p.digging = false;
+    p.hp = 0; p.dead = true; p.deadFor = 0; p.drilling = false; p.digging = false; p.tractor = null;
     fx("explode", p.pos, p.color, p.mode === "space" ? 8 : 3, p.mode);
-    const killer = by && by !== p.name ? players[by] : null;
-    p.score += SCORING.killed; // dying costs points however it happens
+    const killer = attacker;
+    addScore(p, SCORING.killed); // dying costs points however it happens (never below 0)
     if (killer) {
-      if (!p.bot) killer.score += SCORING.kill; // bots are fillers: farming them pays nothing
+      if (!p.bot) addScore(killer, SCORING.kill); // bots are fillers: farming them pays nothing
       announce(`${killer.name} ✕ ${p.name}${how && MISCHIEF_ICON[how] ? ` ${MISCHIEF_ICON[how]}` : ""}`);
       const chest = p.lastChest;
-      if (chest && S.playT - chest.at <= T.stealSeconds) {
-        const stolen = Math.round(chest.points * T.stealShare);
-        killer.score += stolen; p.score -= stolen;
-        announce(`💰 ${killer.name} stole ${stolen} points from ${p.name}!`);
+      if (chest && !killer.bot && S.playT - chest.at <= T.stealSeconds) {
+        const stolen = -addScore(p, -Math.round(chest.points * T.stealShare));
+        if (stolen > 0) {
+          addScore(killer, stolen);
+          announce(`💰 ${killer.name} stole ${stolen} points from ${p.name}!`);
+          tell(p.name, `${killer.name} stole ${stolen} of your points`);
+        }
       }
     } else announce(`${p.name} was destroyed`);
     // The victim's own phone says who and when it comes back (v1.0 playtest: 7 deaths with no message).
@@ -689,8 +835,9 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     p.lastChest = null;
   }
 
-  // Any weapon hurts the boss. The last hit scores, whoever lands it: stealing it from the top damage dealer is allowed.
-  // Bots are fillers: when one lands the final blow, the +1000 goes to the human who did the most damage.
+  // Any weapon hurts the boss. The last hit scores, whoever lands it: stealing it from the top damage dealer is allowed
+  // ("X stole the boss from Y", and Y's phone hears it). Bots are fillers: when one lands the final blow, the +1000 goes
+  // to the human who did the most damage.
   function hitBoss(amount, owner, at) {
     if (boss.dead) return;
     boss.hp = Math.max(0, boss.hp - amount);
@@ -702,15 +849,16 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     const p = players[owner];
     const humanTop = Object.entries(boss.damageBy).filter(([n]) => players[n] && !players[n].bot).sort((a, b) => b[1] - a[1])[0];
     const scorer = p && !p.bot ? p : humanTop ? players[humanTop[0]] : null;
-    if (scorer) scorer.score += SCORING.bossLastHit;
+    if (scorer) addScore(scorer, SCORING.bossLastHit);
     fx("explode", boss.pos, 0xef4444, 30);
     planet = { x: planetAt.x, y: planetAt.y, z: planetAt.z, radius: T.planet.radius, landRange: T.planet.landRange };
-    rocks = rocks.map((r) => (dist(r.pos, planet) < planet.radius + 10 + r.size ? spawnRock() : r));
+    // Rocks where the planet appears are removed, never replaced (finding #15: a new rock id rebuilds every field).
+    rocks = rocks.filter((r) => dist(r.pos, planet) >= planet.radius + 10 + r.size);
     if (p && p.bot) announce(`💥 The swarm brought the boss down!${scorer ? ` ${scorer.name} did the most damage: +${SCORING.bossLastHit}.` : ""} ${Contract.OBJECTIVES.planet}`, true);
-    else {
-      const stole = p && humanTop && humanTop[0] !== p.name ? ` (stolen from ${humanTop[0]})` : "";
-      announce(`💥 ${p ? p.name : "Someone"} landed the last hit on the boss${stole}! ${Contract.OBJECTIVES.planet}`, true);
-    }
+    else if (p && humanTop && humanTop[0] !== p.name) {
+      announce(`💥 ${p.name} stole the boss from ${humanTop[0]}! +${SCORING.bossLastHit}. ${Contract.OBJECTIVES.planet}`, true);
+      tell(humanTop[0], `${p.name} stole the boss kill`);
+    } else announce(`💥 ${p ? p.name : "Someone"} destroyed the boss!${p ? ` +${SCORING.bossLastHit}.` : ""} ${Contract.OBJECTIVES.planet}`, true);
     bossShots = [];
     sendWorld();
   }
@@ -727,9 +875,9 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     car.wrecked = true;
     fx("explode", pos, 0xf97316, 6, "planet");
     const wrecker = by && by !== car.player ? players[by] : null;
-    if (wrecker) wrecker.score += SCORING.wreck;
+    if (wrecker) addScore(wrecker, SCORING.wreck);
     announce(wrecker ? `🔧 ${wrecker.name} wrecked ${car.player}'s ship (+${SCORING.wreck})` : `🔧 ${car.player}'s ship was wrecked`);
-    send({ type: "toast", player: car.player, kind: "info", verb: "takeoff", text: `${wrecker ? wrecker.name : "Someone"} wrecked your parked ship! Draw a new ship to take off`, sketch: null, ghost: null });
+    tell(car.player, `${wrecker ? wrecker.name : "Someone"} wrecked your ship: draw a new ship to take off`, "takeoff");
     sendWorld();
   }
   const leaving = (c) => players[c.player] && players[c.player].takeoffFor > 0; // its owner is taking off in it
@@ -784,20 +932,19 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       const lure = decoys.length ? decoys.find((d) => d.mode === "space" && dist(d.pos, s.pos) < SHIP_RADIUS + 1) : null;
       if (lure) { hitDecoy(lure, T.boss.shotDamage, null); return false; }
       const ship = active().find((q) => q.mode === "space" && !q.dead && dist(q.pos, s.pos) < SHIP_RADIUS + 1);
-      if (ship) { hurt(ship, T.boss.shotDamage, null); return false; }
+      if (ship) { hurt(ship, T.boss.shotDamage, null, "boss", boss.pos); return false; }
       return s.life > 0;
     });
   }
 
   function rockCollisions(p) {
-    if (p.stun > 0 || p.dead || p.mode !== "space" || p.drawingUntil > S.t) return;
+    if (p.stun > 0 || p.dead || p.mode !== "space" || invulnerable(p)) return; // spawn shield, drawing, landing: pass through
     const rock = rocks.find((r) => dist(r.pos, p.pos) < r.size + (p.shielding ? 4 : SHIP_RADIUS));
     if (!rock) return;
     fx("explode", rock.pos, p.shielding ? p.color : 0xf97316, rock.size);
-    if (!p.shielding) { p.stun = T.stunSeconds; p.score += SCORING.hitByRock; }
+    if (!p.shielding) { p.stun = T.stunSeconds; addScore(p, SCORING.hitByRock); }
     if (!p.shielding && p.tractor && p.tractor.until + 0.5 > S.t) { const by = p.tractor.by; p.tractor = null; hurt(p, TRACTOR_ROCK_DAMAGE, by, "tractor"); }
-    rocks = rocks.filter((r) => r !== rock);
-    rocks.push(spawnRock());
+    rocks = rocks.filter((r) => r !== rock); // gone for the round (finding #15)
     worldDirty = true;
   }
 
@@ -815,6 +962,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   function land(p) {
     if (!planet || p.mode !== "space" || p.landingFor > 0 || dist(p.pos, planet) > planet.radius + planet.landRange) return;
     startAnim(p, "land");
+    pickBay(p); // the bay the shot ends on (tick bay) and the ship parks in (touchdown)
     p.landingFor = T.planet.landingSeconds;
     fx("land", p.pos, p.color, 6);
   }
@@ -837,7 +985,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     if (car && car.wrecked) {
       if (S.t - (p.refusedAt.wreck ?? -Infinity) >= T.refusalToastSeconds) {
         p.refusedAt.wreck = S.t;
-        send({ type: "toast", player: p.name, kind: "info", verb: "takeoff", text: "Your ship is wrecked. Draw a new ship to take off", sketch: null, ghost: null });
+        send({ type: "toast", player: p.name, kind: "info", verb: "takeoff", text: "Your ship is wrecked: draw a new ship to take off", sketch: null, ghost: null });
       }
       return;
     }
@@ -926,7 +1074,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     const chest = chests.find((c) => !c.buried && !c.open && dist2(c, p.pos) <= ISL.pickupRange);
     if (!chest) return;
     chest.open = true; chest.by = p.name;
-    p.score += SCORING.chest;
+    addScore(p, SCORING.chest);
     p.lastChest = { at: S.playT, points: SCORING.chest };
     fx("treasure", { x: chest.x, y: islandFeet(chest.x, chest.z), z: chest.z }, p.color, 20, "planet");
     announce(`💎 ${p.name} opened a chest (+${SCORING.chest})`);
@@ -1004,10 +1152,13 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   const gap = (a, b) => (a.mode === "space" ? dist(a.pos, b.pos) : dist2(a.pos, b.pos));
   const reach = (p, verb) => MISCHIEF[verb].range * (p.mode === "planet" ? ISLAND_REACH : 1);
 
-  function rivalNear(p, range) {
+  // 25 players: a rival already under that same effect is skipped (the next nearest gets it), so nobody is kept
+  // scrambled, inked or pulled for good by a crowd.
+  const underIt = (q, verb) => (verb === "emp" && q.empFor > 0) || (verb === "inkbomb" && q.inkFor > 0) || (verb === "tractor" && !!q.tractor && q.tractor.until > S.t);
+  function rivalNear(p, range, verb = null) {
     let best = null, bestD = Infinity;
     for (const q of active()) {
-      if (q === p || q.mode !== p.mode || !exposed(q)) continue;
+      if (q === p || q.mode !== p.mode || !exposed(q) || (verb && underIt(q, verb))) continue;
       const d = gap(p, q);
       if (d <= range && d < bestD) { best = q; bestD = d; }
     }
@@ -1041,7 +1192,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     if ((p.cd[verb] || 0) > 0) return;
     if (verb === "mine") return dropMine(p, cfg);
     if (verb === "decoy") return dropDecoy(p, cfg);
-    const q = rivalNear(p, reach(p, verb));
+    const q = rivalNear(p, reach(p, verb), verb);
     if (!q) return nobody(p, verb);
     cool(p, verb, cfg.cooldown);
     if (verb === "emp") {
@@ -1061,7 +1212,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     const t = p.tractor;
     if (!t || t.until <= S.t) return;
     const by = players[t.by];
-    if (!by || by.dead || by.mode !== p.mode) { p.tractor = null; return; }
+    if (!by || by.dead || by.mode !== p.mode || invulnerable(p)) { p.tractor = null; return; }
     const v = p.mode === "space" ? sub(by.pos, p.pos) : { x: by.pos.x - p.pos.x, y: 0, z: by.pos.z - p.pos.z };
     const d = len(v), step = Math.min(Math.max(0, d - 4), t.speed * dt);
     if (step <= 0) return;
@@ -1076,6 +1227,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     if (own.length >= MINES_PER_PLAYER) mines = mines.filter((m) => m !== own[0]);
     mines.push({ id: nextId++, owner: p.name, mode: p.mode, pos: at, until: S.t + cfg.life, armedAt: S.t + MINE_ARM_SECONDS, color: p.color, damage: cfg.damage });
     fx("mine", at, p.color, 1.5, p.mode);
+    announce(`${MISCHIEF_ICON.mine} ${p.name} dropped a mine`);
   }
 
   // A human rival who comes close sets it off: stunned, SCORING.mineHit points and hurt (a shield eats it whole).
@@ -1089,8 +1241,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       fx("explode", m.pos, m.color, m.mode === "space" ? 4 : 2, m.mode);
       if (q.shielding) { fx("spark", q.pos, q.color, 2, q.mode); return false; }
       q.stun = Math.max(q.stun, T.stunSeconds);
-      q.score += SCORING.mineHit;
-      strike(q, "mine", players[m.owner] || { name: m.owner, color: m.color }, { seconds: T.stunSeconds, points: -SCORING.mineHit }, `${q.name} hit ${m.owner}'s mine (${SCORING.mineHit})`);
+      const lost = Math.abs(addScore(q, SCORING.mineHit)); // what the score floor actually let it take (never -0)
+      strike(q, "mine", players[m.owner] || { name: m.owner, color: m.color }, { seconds: T.stunSeconds, points: lost }, `${q.name} hit ${m.owner}'s mine${lost ? ` (-${lost})` : ""}`);
       hurt(q, m.damage, m.owner, "mine");
       return false;
     });
@@ -1112,6 +1264,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     decoys.push({ id: nextId++, owner: p.name, mode: p.mode, pos, dir: space ? forward : { x: forward.x, y: 0, z: forward.z }, yaw: p.yaw,
       until: S.t + cfg.seconds, hp: cfg.hp, color: p.color, speed: space ? T.cruiseSpeed : ISL.walkSpeed * 0.6 });
     fx("decoy", pos, p.color, 3, p.mode);
+    announce(`${MISCHIEF_ICON.decoy} ${p.name} sent out a decoy`);
   }
 
   function updateDecoys(dt) {
@@ -1268,6 +1421,9 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     if (S.phase === "lobby") {
       for (const p of list) p.pressed = [];
       if (autostartSeconds != null && S.phaseT >= autostartSeconds) start();
+    } else if (S.phase === "countdown") {
+      for (const p of list) p.pressed = [];
+      if (S.phaseT >= (Number(ROUND.countdownSeconds) || 0)) { go(); sendWorld(); }
     } else if (S.phase === "scoreboard") {
       for (const p of list) p.pressed = [];
       if (S.phaseT >= ROUND.scoreboardSeconds) newRound();
@@ -1304,6 +1460,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       }
       if (p.bot) botThink(p, dt);
       const presses = p.pressed; p.pressed = [];
+      if (p.spawnShield > 0 && (presses.length || inputOn(p))) p.spawnShield = 0; // moved or used a skill
       for (const verb of presses) if (S.phase !== "scoreboard") press(p, verb);
       if (S.phase === "scoreboard") return;
       if (p.landingFor > 0 || p.takeoffFor > 0) continue;
@@ -1340,19 +1497,21 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       assists: S.assists, playerCount: S.playerCount, result: S.result,
       leaderboard: leaderboard(),
     };
-    if (entities) m.entities = Object.fromEntries(active().filter((p) => p.entity).map((p) => [p.name, p.entity]));
+    if (entities) m.entities = Object.fromEntries(ordered().filter((p) => p.entity).map((p) => [p.name, p.entity]));
     return m;
   }
 
   // The session leaderboard: stars (rounds won), then total points; players still here only.
   function leaderboard() {
-    return active().map((p) => ({ name: p.name, stars: (session[p.name] || {}).stars || 0, total: (session[p.name] || {}).total || 0 }))
-      .sort((a, b) => b.stars - a.stars || b.total - a.total);
+    // v1.3: humans first (bots are fillers), each group by stars, then points.
+    return active().map((p) => ({ name: p.name, bot: !!p.bot, stars: (session[p.name] || {}).stars || 0, total: (session[p.name] || {}).total || 0 }))
+      .sort((a, b) => a.bot - b.bot || b.stars - a.stars || b.total - a.total).map(({ bot, ...row }) => row);
   }
 
   function clock() {
     if (S.phase === "lobby") return autostartSeconds == null ? 0 : r2(Math.max(0, autostartSeconds - S.phaseT));
     if (S.phase === "scoreboard") return r2(Math.max(0, ROUND.scoreboardSeconds - S.phaseT));
+    if (S.phase === "countdown") return r2(Math.max(0, (Number(ROUND.countdownSeconds) || 0) - S.phaseT));
     return r2(S.playT);
   }
 
@@ -1372,7 +1531,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     return {
       type: "tick", t: Date.now(), round: S.round, phase: S.phase, clock: clock(),
       left: S.phase === "playing" || S.phase === "assists" ? r2(Math.max(0, ROUND.maxSeconds - S.playT)) : 0,
-      players: active().map((p) => {
+      players: ordered().map((p) => { // humans first, then bots
         const out = {
           name: p.name, color: p.color, mode: p.mode, x: r1(p.pos.x), y: r1(p.pos.y), z: r1(p.pos.z),
           yaw: r2(p.yaw), pitch: r2(p.pitch), roll: r2(p.roll || 0), hp: Math.round(p.hp), score: p.score,
@@ -1384,7 +1543,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
         if (!p.bot) out.drawingsLeft = budget.left(p.name); // bots never draw: keeps the tick small
         if (p.dead) out.respawnIn = r2(Math.max(0, T.respawnSeconds - p.deadFor));
         // The landing / take-off shot ends on this bay (island x, z): the same slot the server parks the ship in.
-        if ((p.landingFor > 0 || p.takeoffFor > 0) && landing) { const b = bay(p); out.bay = [r1(b.x), r1(b.z)]; }
+        if ((p.landingFor > 0 || p.takeoffFor > 0) && landing) { const b = bay(p); out.bay = [r1(b.x), r1(b.z)]; } // = its parked entry
         return out;
       }),
       bullets: bullets.slice(-TICK_MAX_BULLETS).map((b) => [b.id, r1(b.pos.x), r1(b.pos.y), r1(b.pos.z), b.color, b.mode === "planet" ? 1 : 0]),

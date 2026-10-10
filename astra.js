@@ -41,7 +41,16 @@ const fs = require("fs");
 const path = require("path");
 const Contract = require("./contract.js");
 const Verbs = require("./verbs.js");
-const Anims = require("./anims.js");
+// anims.js belongs to another lane: a broken copy mid-edit must not take entity creation down with it (the entity then
+// comes without anims and world.js wires them on the next mode switch). Retried on every use until it loads.
+let AnimsLib = null;
+function animsLib() {
+  if (!AnimsLib) {
+    try { AnimsLib = require("./anims.js"); } catch (err) { console.log(`astra: anims.js unavailable (${err.message})`); }
+  }
+  return AnimsLib;
+}
+animsLib();
 
 const API_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_MODEL = "gpt-6.1-sol";
@@ -145,7 +154,7 @@ function promptFor(kind, source, region, opts = {}) {
       "You read ONE hand-drawn button that a player just added to their phone game controller.",
       input,
       `The image shows only that ONE new control, cropped to it (a photo may be turned by 90 degrees). It will sit on the pad at x=${region.x}, y=${region.y}, w=${region.w}, h=${region.h} (fractions); you do not need to place it.`,
-      "looksLike: \"controller\" if it is a button: a shape with a word or an icon in it, or just a word, an icon or an arrow. \"entity\" if it is instead a picture of a thing: a spaceship, rocket, vehicle, person, stick figure, robot, animal or creature. \"nothing\" if it is blank or unreadable scribbles. thing: what such a picture shows (ship, person, car, bike, animal, creature, object), \"none\" for a button.",
+      "looksLike: \"controller\" if it is a button: a shape with a word or an icon in it, or just a word, an icon or an arrow. \"entity\" if it is instead a picture of a thing: a spaceship, rocket, vehicle, person, stick figure, robot, animal or creature. \"nothing\" if it is blank or unreadable scribbles. thing: what such a picture shows (ship, person, car, bike, animal, creature, object), \"none\" for a button. When looksLike is \"entity\", thing is never \"none\": pick the closest (spaceship, rocket, UFO or plane → ship; person, astronaut, stick figure or robot → person; car, truck, rover or tank → car; bicycle, motorbike or scooter → bike; dog, cat, horse or any animal → animal; monster, alien or blob → creature; anything else → object).",
       ...control,
       ...pad,
       ...expect,
@@ -156,7 +165,7 @@ function promptFor(kind, source, region, opts = {}) {
   return [
     "You read a hand-drawn game controller for a phone held in landscape. Players draw their own buttons and sticks.",
     input,
-    "First, looksLike: \"controller\" if the drawing is a game controller: sticks, D-pads, arrows, boxes or circles with words or icons, even a single button. \"entity\" if it is instead a picture of a thing: a spaceship, rocket, plane, car, bike, person, astronaut, robot, animal or creature (notes, labels or arrows written around a picture do not make it a controller). \"nothing\" if it is blank or random scribbles. thing: what such a picture shows (ship, person, car, bike, animal, creature, object), \"none\" for a controller.",
+    "First, looksLike: \"controller\" if the drawing is a game controller: sticks, D-pads, arrows, boxes or circles with words or icons, even a single button. \"entity\" if it is instead a picture of a thing: a spaceship, rocket, plane, car, bike, person, astronaut, robot, animal or creature (notes, labels or arrows written around a picture do not make it a controller). \"nothing\" if it is blank or random scribbles. thing: what such a picture shows (ship, person, car, bike, animal, creature, object), \"none\" for a controller. When looksLike is \"entity\", thing is never \"none\": pick the closest (spaceship, rocket, UFO or plane → ship; person, astronaut, stick figure or robot → person; car, truck, rover or tank → car; bicycle, motorbike or scooter → bike; dog, cat, horse or any animal → animal; monster, alien or blob → creature; anything else → object).",
     "Then buttons: every drawn control when looksLike is \"controller\"; [] otherwise.",
     ...control,
     "Rectangles: x, y are the top-left corner and w, h the size, all as fractions (0 to 1) of the whole image, origin top left. Make each rectangle hug the drawn shape.",
@@ -226,23 +235,33 @@ function entityPrompt(kind, source) {
     ? "The image is a finger drawing made on the phone screen."
     : "The image is usually a PHOTO of a notebook page, cropped to the drawing and possibly turned by 90 degrees. Ignore paper lines, grids, shadows and fingers.";
   const table = Verbs.SKILLS[world].map((v) => `${v}: ${Verbs.PARTS[v]}`).join("; ");
-  const looks = "looksLike: \"entity\" for any picture of a thing (a ship, rocket, vehicle, person, robot, animal, creature or object), even a rough one. \"controller\" ONLY if the drawing is a game-controller layout instead: joystick circles, D-pads, arrows, or boxes and circles labelled with action words (FIRE, BOOST, LAND, DIG...), with no vehicle or creature drawn. \"nothing\" if it is blank.";
+  const looks = kind === "ship"
+    ? "looksLike: \"entity\" for any picture of a thing (a ship, rocket, plane, vehicle, person, robot, animal, creature or object), even a rough one: it becomes this player's ship as drawn. \"controller\" ONLY if the drawing is a game-controller layout instead: joystick circles, D-pads, arrows, or boxes and circles labelled with action words (FIRE, BOOST, LAND, DIG...), with no vehicle or creature drawn. \"nothing\" if it is blank."
+    : "looksLike: \"entity\" for any picture of a thing (a person, astronaut, robot, animal, creature, car, bike, rover, even a spaceship or rocket), even a rough one: it becomes this player's explorer as drawn. \"controller\" ONLY if the drawing is a game-controller layout instead: joystick circles, D-pads, arrows, or boxes and circles labelled with action words (FIRE, BOOST, DIG, DRILL...), with no vehicle or creature drawn. \"nothing\" if it is blank.";
   // Mischief parts (v1.3, PLAN.md "Mischief"), the same on ships and explorers.
-  const mischief = `a zigzag lightning bolt → emp; a magnet (a U or horseshoe shape, often with lines coming off its tips) → tractor; spikes along the back, or bombs hanging behind or under it → mine; an octopus, a squid or an ink bottle → inkbomb; a second, smaller copy of the ${kind === "ship" ? "ship" : "explorer"} drawn next to it → decoy`;
+  const mischief = `a zigzag lightning bolt → emp (part "lightning bolt"); a magnet (a U or horseshoe shape, often with lines coming off its tips) → tractor (part "magnet"); spikes along the back, or bombs hanging behind or under it → mine (part "spikes" or "bombs"); an octopus, a squid or an ink bottle → inkbomb (part "octopus", "squid" or "ink bottle"); a second, smaller copy of the ${kind === "ship" ? "ship" : "explorer"} drawn next to it → decoy (part "mini copy")`;
   const hints = kind === "ship"
-    ? `How parts look: wavy tongues of fire behind the ship or under a rocket = exhaust flames → boost; a tube or barrel = cannon → shoot; struts with feet under the ship = landing legs → land; a big circle or bubble around the whole ship = shield → shield; a small circle or bulb with straight rays fanning out = lamp → flare; a stick with a dish or ball = antenna → scan; a plus sign or cross = red cross → heal; a ball with a fuse = bomb → blast; ${mischief}. Windows, a cockpit, fins and wings unlock nothing.`
-    : `How parts look: a shovel, spade or big claws on the feet or hands → dig; a drill: any hand-held tool or front part ending in a cone or point with ridges, zigzag or spiral lines, even with a gun-like grip → drill; a gun or blaster with a straight barrel → shoot; a jetpack or exhaust with flames → boost; a torch or lamp with rays → flare; a shield → shield; an antenna or radar dish → scan; a red cross → heal; ${mischief}. The eyes of a face and a helmet visor unlock nothing; wheels and legs are how it moves (no skill).`;
+    ? `How parts look: wavy tongues of fire behind the ship or under a rocket = exhaust flames → boost; a tube, barrel or laser = cannon → shoot; struts with feet under the ship = landing legs → land; a parachute → land; a big circle or bubble around the whole ship = shield → shield; a small circle or bulb with straight rays fanning out = lamp → flare; a stick with a dish or ball = antenna → scan; a big eye → scan; a plus sign or cross = red cross → heal; a ball with a fuse = bomb → blast; a swirl or portal → teleport; a cape or a ghost sheet → invisible; ${mischief}. A drill or saw on a ship counts as a weapon: shoot (there is no drill in space). Windows, a cockpit, fins and wings unlock nothing.`
+    : `How parts look: a shovel, spade or big claws on the feet or hands → dig; a drill: any hand-held tool or front part ending in a cone or point with ridges, zigzag or spiral lines, even with a gun-like grip → drill; a saw or a pickaxe → drill; a gun or blaster with a straight barrel → shoot; a jetpack or exhaust with flames → boost; springs or big boots → jump; a torch or lamp with rays → flare; a shield → shield; an antenna, a radar dish or a big eye → scan; a red cross → heal; a ball with a fuse → blast; a swirl, a portal or a magic wand → teleport; a cape or a ghost sheet → invisible; ${mischief}. The eyes of a face and a helmet visor unlock nothing; wheels and legs are how it moves (no skill).`;
+  const type = kind === "ship"
+    ? "You read a hand-drawn SPACESHIP for a party game. type is always \"ship\"."
+    : [
+      "You read a hand-drawn EXPLORER for a party game: what this player walks or drives around a planet with. type is how it moves:",
+      "- \"person\": a person, astronaut, robot, alien, stick figure or anything standing on two legs.",
+      "- \"quadruped\": any animal on four legs (dog, cat, horse, cow, dinosaur, lion...).",
+      "- \"bike\": a bicycle, motorbike or scooter, with or without a rider.",
+      "- \"car\": a car, truck, rover, buggy, tank, train or any other vehicle on wheels or tracks.",
+      "- \"blob\": everything else: blobs, slimes, snakes, worms, birds, fish, ghosts, balls, a spaceship or rocket without wheels.",
+    ].join("\n");
   return [
-    kind === "ship"
-      ? "You read a hand-drawn SPACESHIP for a party game. type is always \"ship\"."
-      : "You read a hand-drawn EXPLORER that walks or drives on a planet. type: person (a person, astronaut, or robot on two legs), car, bike (bicycle or motorbike), quadruped (any four-legged animal) or blob (anything else: blobs, snakes, birds, fish...).",
+    type,
     input,
     looks,
-    "parts: every distinct part that was deliberately drawn on it (cannon, exhaust flames, wheels, shovel, legs...), each with the centre of the part as x, y fractions of the image (origin top left). At most 12.",
-    `Skills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still move). Part → skill: ${table}.`,
+    "parts: every distinct part that was deliberately drawn on it, each with the centre of the part as x, y fractions of the image (origin top left). At most 12. Name each part in plain words a player would use, lowercase, one to three words: \"cannon\", \"exhaust flames\", \"landing legs\", \"shovel\", \"drill\", \"lightning bolt\", \"wheels\".",
+    `Skills are unlocked ONLY by drawn parts. A plain body unlocks nothing (it can still ${kind === "ship" ? "fly" : "move"}). Part → skill: ${table}.`,
     hints,
-    "Be generous: when a part is unclear or only roughly fits, unlock the closest skill. When a part could be either of two things, unlock BOTH skills: a pointed tool that could be a drill or a gun → drill and shoot; rays that could be a lamp's light or flames → flare and boost. Never unlock a skill with no part on the drawing that could mean it.",
-    "verbs: the unlocked skills. unlocked: one entry per skill, with the part that unlocks it (its name as in parts).",
+    "Be generous: when a part is unclear or only roughly fits, unlock the closest skill. When a part could be either of two things, unlock BOTH skills: a pointed tool that could be a drill or a gun → drill and shoot; rays that could be a lamp's light or flames → flare and boost. Never unlock a skill with no part on the drawing that could mean it. A word written on or next to a part names it (FIRE next to a tube → cannon → shoot).",
+    "verbs: the unlocked skills. unlocked: one entry per unlocked skill, with the name of the part that unlocks it, exactly as in parts.",
   ].join("\n");
 }
 
@@ -402,11 +421,24 @@ function regionsLayout(regions) {
   try { return out.length ? finishLayout(out, "regions") : null; } catch { return null; }
 }
 
+// ASTRA_MOCK=1 buttons: the verb the game asked for (`expect`), else the first skill of the player's world (`where`,
+// space when unknown) that is not on the pad yet. Never LAND on the planet, never DIG / DRILL in space.
+const MOCK_BUTTONS = { space: ["land", "shoot", "boost"], planet: ["dig", "drill", "shoot"] };
+function mockButtonAction(extra = {}) {
+  if (extra.expect && ACTIONS.includes(extra.expect) && !Verbs.STICKS.includes(extra.expect)) return extra.expect;
+  const list = MOCK_BUTTONS[extra.where === "planet" ? "planet" : "space"];
+  const on = new Set((Array.isArray(extra.pad) ? extra.pad : []).map((c) => c && c.action));
+  return list.find((v) => !on.has(v)) || list[0];
+}
+
+// How the game writes a skill on a button nobody labelled: "INK BOMB", not "INKBOMB".
+const labelWord = (action) => (typeof Verbs.labelOf === "function" ? Verbs.labelOf(action) : String(action).toUpperCase());
+
 function mockLayout(kind, hash, region, extra = {}) {
   const j = (i) => (parseInt(hash.slice(i * 2, i * 2 + 2), 16) / 255) * 0.06; // deterministic jitter, 0..0.06
   if (kind === "button") {
-    const action = extra.expect && ACTIONS.includes(extra.expect) && !Verbs.STICKS.includes(extra.expect) ? extra.expect : "land";
-    return finishLayout([{ type: "button", action, label: action.toUpperCase(), ...region }], "model");
+    const action = mockButtonAction(extra);
+    return finishLayout([{ type: "button", action, label: labelWord(action), ...region }], "model");
   }
   const fromInk = regionsLayout(extra.inkRegions);
   if (fromInk) return fromInk;
@@ -559,7 +591,7 @@ function startEntry(hash, kind, image, region, source, extra) {
         const fromInk = kind === "controller" ? regionsLayout(extra.inkRegions) : null;
         if (fromInk) return { ok: true, reading: { value: fromInk, looksLike: null, thing: null, wrong: false }, ms, outcome: `${why} → ink regions` };
         if (kind === "button" && extra.expect && !Verbs.STICKS.includes(extra.expect)) {
-          try { return { ok: true, reading: { value: finishLayout([{ type: "button", action: extra.expect, label: extra.expect.toUpperCase(), ...region }], "model"), looksLike: null, thing: null, wrong: false }, ms, outcome: `${why} → expected ${extra.expect}` }; } catch {}
+          try { return { ok: true, reading: { value: finishLayout([{ type: "button", action: extra.expect, label: labelWord(extra.expect), ...region }], "model"), looksLike: null, thing: null, wrong: false }, ms, outcome: `${why} → expected ${extra.expect}` }; } catch {}
         }
         return { ok: false, error: entry.timedOut ? "timeout" : "generation unavailable", ms, outcome: why };
       }
@@ -603,14 +635,42 @@ function entityFromModel(kind, data) {
     if (u && skills.includes(u.verb) && !unlocked.some((x) => x.verb === u.verb)) unlocked.push({ verb: u.verb, part: String(u.part || "drawing").trim().toLowerCase().slice(0, 24) || "drawing" });
   }
   for (const v of Array.isArray(data.verbs) ? data.verbs : []) {
-    if (skills.includes(v) && !unlocked.some((x) => x.verb === v)) unlocked.push({ verb: v, part: (parts[0] && parts[0].name) || "drawing" });
+    if (skills.includes(v) && !unlocked.some((x) => x.verb === v)) unlocked.push({ verb: v, part: partFor(v, parts) });
   }
   return finishEntity(type, unlocked, parts, "model");
 }
 
+// A skill the model listed only in `verbs`: the drawn part whose name matches what unlocks it ("shovel" for dig),
+// else "drawing" (the card then shows the skill alone, never a wrong part like "dig (wheels)").
+const words = (text) => String(text || "").toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 2).map((w) => w.replace(/(es|s)$/, ""));
+function partFor(verb, parts) {
+  const v = Verbs.VERBS[verb] || {};
+  const want = new Set(words(`${Verbs.PARTS[verb] || ""} ${v.hint || ""} ${(v.grantedBy || []).join(" ")}`));
+  const hit = parts.find((p) => words(p.name).some((w) => want.has(w)));
+  return hit ? hit.name : "drawing";
+}
+
 function finishEntity(type, unlocked, parts, source) {
   const verbs = Verbs.entityVerbs(type, unlocked.map((u) => u.verb));
-  return { type, rig: Verbs.RIG_OF[type] || "blob", verbs, unlocked: unlocked.filter((u) => verbs.includes(u.verb)), parts, source };
+  const kept = unlocked.filter((u) => verbs.includes(u.verb));
+  return { type, rig: Verbs.RIG_OF[type] || "blob", verbs, unlocked: kept, parts, source, card: cardFor(type, kept) };
+}
+
+// entity.card (v1.3, PLAN.md section 0): the unlock card in plain words, "Your ship can: fly, shoot (cannon)", the same
+// text the phone and the TV show (Verbs.cardOf). "" only if verbs.js has no cardOf yet.
+function cardFor(type, unlocked) {
+  try { return typeof Verbs.cardOf === "function" ? String(Verbs.cardOf(type, unlocked) || "") : ""; } catch { return ""; }
+}
+
+// What the phone gets for an entity: a copy with its card and animations. Never throws: a broken anims table costs the
+// anims (world.js wires them again on the next mode switch), never the entity.
+function entityAnswer(kind, value) {
+  let entity;
+  try { entity = structuredClone(value); } catch { entity = devKitEntity(kind); }
+  if (typeof entity.card !== "string" || !entity.card) entity.card = cardFor(entity.type, entity.unlocked);
+  let anims = {};
+  try { anims = wireAnimations(entity.rig, entity.verbs) || {}; } catch (err) { console.log(`astra ${kind}: no anims (${err.message})`); }
+  return { ...entity, anims };
 }
 
 // The generous development kit: every gate skill (ASTRA_MOCK=1, no key, a timeout or a failed call).
@@ -634,7 +694,21 @@ const log = (kind, player, hit, ms, outcome, speculative) =>
 
 const VERB_IDS = new Set([...Object.keys(Verbs.VERBS), ...Verbs.MOVES]);
 
+// A finished ship / explorer always comes back (owner, v1.3: "make sure the entity creation works"): the only entity
+// answers with ok: false are the wrong-kind refusals ("looks like a controller", "nothing to read"), "superseded" (a
+// newer call from the same player) and a malformed request. An exception anywhere → the generous dev kit.
 async function generate(body) {
+  try {
+    return await generateOnce(body);
+  } catch (err) {
+    const kind = body && body.kind;
+    if (!ENTITY_KINDS[kind]) throw err;
+    console.log(`astra ${kind} ${Contract.cleanName(body.player) || "-"} failed (${err && err.message}) → dev kit`);
+    return { ok: true, entity: entityAnswer(kind, devKitEntity(kind)) };
+  }
+}
+
+async function generateOnce(body) {
   body = body || {};
   const kind = body.kind;
   const player = Contract.cleanName(body.player);
@@ -650,7 +724,9 @@ async function generate(body) {
   const expect = expectRaw && VERB_IDS.has(expectRaw) ? expectRaw : null;
   const pad = kind === "button" ? (Array.isArray(body.pad) ? cleanPad(body.pad) : pads.get(player) || []) : [];
   const inkRegions = kind === "controller" && Array.isArray(body.inkRegions) ? body.inkRegions.slice(0, 40) : null;
-  const hash = sha1(kind + image + (region ? JSON.stringify(region) : "") + (expect ? `expect:${expect}` : "") + (pad.length ? `pad:${pad.map((c) => c.action).join(",")}` : ""));
+  // where (v1.3, from server.js): the player's world now, "space" | "planet"; the mock button answers a skill of it.
+  const where = kind === "button" && (body.where === "space" || body.where === "planet") ? body.where : null;
+  const hash = sha1(kind + image + (region ? JSON.stringify(region) : "") + (expect ? `expect:${expect}` : "") + (pad.length ? `pad:${pad.map((c) => c.action).join(",")}` : "") + (where ? `where:${where}` : ""));
   const slotKey = `${player}:${kind}`;
 
   // The newest request for this player and kind wins; the older one resolves "superseded".
@@ -665,7 +741,7 @@ async function generate(body) {
   if (!cached) {
     entry = inflight.get(hash);
     hit = entry ? "joined" : "miss";
-    if (!entry) entry = startEntry(hash, kind, image, region, source, { expect, pad, inkRegions });
+    if (!entry) entry = startEntry(hash, kind, image, region, source, { expect, pad, inkRegions, where });
     entry.owners.add(token);
     token.entry = entry;
   }
@@ -709,14 +785,18 @@ function answerOf(kind, result, anyway, { region, expect } = {}) {
   if (!result.ok) return { ok: false, error: result.error, ...(result.looksLike ? { looksLike: result.looksLike } : {}) };
   const reading = result.reading;
   const looks = reading.looksLike ? { looksLike: reading.looksLike } : {};
-  if (reading.wrong && !anyway) return { ok: false, error: wrongKindError(kind, reading), ...looks, ...(reading.thing ? { thing: reading.thing } : {}) };
+  // A picture in the controller or button step always names its thing (the phone words it: "That looks like your
+  // ship"); "object" when the model gave none.
+  const thing = reading.thing || (!ENTITY_KINDS[kind] && reading.looksLike === "entity" ? "object" : null);
+  if (reading.wrong && !anyway) return { ok: false, error: wrongKindError(kind, reading), ...looks, ...(thing ? { thing } : {}) };
   let value = reading.value;
   if (!value && kind === "controller") value = defaultLayout();
   if (!value && kind === "button" && expect) {
     try { value = finishLayout([{ type: "button", action: expect, label: "", ...region }], "model"); } catch {}
   }
+  if (!value && ENTITY_KINDS[kind]) value = devKitEntity(kind);
   if (!value) return { ok: false, error: "unreadable button", ...looks };
-  if (ENTITY_KINDS[kind]) return { ok: true, entity: withAnims(structuredClone(value)), ...looks };
+  if (ENTITY_KINDS[kind]) return { ok: true, entity: entityAnswer(kind, value), ...looks };
   return { ok: true, layout: structuredClone(value), ...looks };
 }
 
@@ -725,7 +805,6 @@ const outcomeOf = (r) => {
   const what = !v ? "nothing usable" : v.buttons ? `ok ${v.buttons.length} control(s)` : `ok ${v.type} [${v.verbs.join(" ")}] (${v.source})`;
   return r.looksLike ? `${what} looksLike=${r.looksLike}${r.thing ? `/${r.thing}` : ""}` : what;
 };
-const withAnims = (entity) => ({ ...entity, anims: wireAnimations(entity.rig, entity.verbs) });
 
 // Resolve a superseded call, and abort its model request if nobody else is waiting for that image.
 function release(token) {
@@ -756,9 +835,11 @@ const cloneEntry = (e, verbSet) => {
 };
 
 function wireAnimations(type, verbs) {
-  const row = Anims.get(type);
+  const Anims = animsLib();
+  if (!Anims || typeof Anims.get !== "function") return undefined; // world.js caches truthy tables only: retried later
+  const row = Anims.get(type) || {};
   const verbSet = new Set();
-  const slots = new Set(Anims.ALWAYS);
+  const slots = new Set(Array.isArray(Anims.ALWAYS) ? Anims.ALWAYS : []);
   for (const item of Array.isArray(verbs) ? verbs : []) {
     const id = typeof item === "string" ? item : item && item.verb;
     const verb = Verbs.VERBS[id];
@@ -788,6 +869,7 @@ const _internals = {
   TIMEOUT_MS, MOCK_MS, HEDGE_MS, SCHEMAS, ACTIONS, ENTITY_KINDS, MAX_OUTPUT_TOKENS, LOOKS, THINGS, entityFromModel, devKitEntity,
   entityPrompt, buildRequest, promptFor, extractText, parseJson, cleanControl, layoutFromModel, readAnswer, mockLayout,
   cleanRegion, sha1, wrongKindError, hedged, regionsLayout, modelId, REGION_VERBS,
+  entityAnswer, cardFor, mockButtonAction, MOCK_BUTTONS,
 };
 
 module.exports = { generate, defaultLayout, wireAnimations, _internals };

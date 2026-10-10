@@ -65,7 +65,7 @@
     emp: { modes: ["space", "planet"], params: { cooldown: [10, 20, 20], seconds: [3, 6, 5], range: [40, 200, 150] }, hint: "lightning bolts. Scrambles the nearest rival's buttons",
       requires: {}, slot: "use", synonyms: ["EMP", "LIGHTNING", "BOLT", "SHOCK", "SCRAMBLE", "ELECTRIC", "THUNDER", "STORM"], tags: ["mischief", "electric"], cost: 3,
       grantedBy: ["a lightning bolt"] },
-    inkbomb: { modes: ["space", "planet"], params: { cooldown: [10, 20, 15], seconds: [2, 4, 4], range: [40, 200, 150] }, hint: "octopuses, squids, ink bottles. Splats ink over the nearest rival's screen",
+    inkbomb: { modes: ["space", "planet"], params: { cooldown: [10, 20, 15], seconds: [4, 10, 10], range: [40, 200, 150] }, hint: "octopuses, squids, ink bottles. Splats ink over the nearest rival's screen",
       requires: {}, slot: "secondary", synonyms: ["INK", "INKBOMB", "INK BOMB", "SPLAT", "OCTOPUS", "SQUID", "BLOT", "BLIND"], tags: ["mischief", "ink"], cost: 2,
       grantedBy: ["an octopus", "a squid", "an ink bottle"], label: "ink bomb" },
     decoy: { modes: ["space", "planet"], params: { cooldown: [10, 20, 18], seconds: [4, 12, 8], hp: [10, 60, 30] }, hint: "a second, smaller copy. A fake you that draws fire",
@@ -124,6 +124,31 @@
     if (type === "car" || type === "bike") set.delete("jump");
     const order = [...SKILLS[world], ...(INNATE[type] || [])];
     return [...new Set([...order.filter((v) => set.has(v)), ...set])];
+  }
+
+  // v1.3: the unlock card in plain words, the same on the phone, the TV and in /generate answers (entity.card):
+  //   cardOf("ship", [{ verb: "shoot", part: "cannon" }]) → "Your ship can: fly, shoot (cannon)"
+  const CARD_WHAT = { ship: "ship", person: "explorer", car: "car", bike: "bike", quadruped: "animal", blob: "explorer" };
+  const CARD_MOVE = { ship: ["fly"], person: ["walk", "jump"], car: ["drive"], bike: ["drive"], quadruped: ["run", "jump"], blob: ["bounce", "jump"] };
+  const own = (o, k) => typeof k === "string" && Object.prototype.hasOwnProperty.call(o, k);
+  function cardOf(type, unlocked) {
+    const t = own(CARD_MOVE, type) ? type : "blob";
+    const seen = new Set(CARD_MOVE[t]);
+    const items = [...CARD_MOVE[t]];
+    for (const u of Array.isArray(unlocked) ? unlocked : []) {
+      if (!u || !own(VERBS, u.verb) || seen.has(u.verb)) continue;
+      seen.add(u.verb);
+      const word = String((VERBS[u.verb].label) || u.verb).toLowerCase();
+      // A part name keeps whole words (at most 24 characters).
+      let part = String(u.part || "").toLowerCase().replace(/[^a-z0-9 '-]/g, " ").replace(/\s+/g, " ").trim();
+      if (part.length > 24) part = part.slice(0, 25).replace(/\s+\S*$/, "") || part.slice(0, 24);
+      items.push(part && part !== "drawing" && part !== word ? `${word} (${part})` : word);
+    }
+    // At most 200 characters, cut between skills (never mid-word).
+    const head = `Your ${CARD_WHAT[t]} can: `;
+    let text = head + items.join(", ");
+    while (text.length > 200 && items.length > 1) { items.pop(); text = `${head}${items.join(", ")}…`; }
+    return text.slice(0, 200);
   }
 
   function clampParams(verb, params) {
@@ -190,6 +215,7 @@
   const Verbs = {
     VERBS, MOVES, STICKS, META, SLOTS, POWER_BUDGET, DEFAULT_ABILITIES, LABELS, clampParams, resolveLabel, supports,
     ENTITY_TYPES, PLANET_TYPES, RIG_OF, INNATE, SKILLS, PARTS, GATE_SKILLS, WEAPONS, DEV_KIT, MISCHIEF, worldOf, entityVerbs, labelOf,
+    cardOf,
   };
   root.Verbs = Verbs;
   if (typeof module !== "undefined") module.exports = Verbs;

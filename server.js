@@ -15,6 +15,7 @@ const os = require("os");
 const path = require("path");
 const { pipeline } = require("stream");
 const Contract = require("./contract");
+const Verbs = require("./verbs");
 const { createWorld, mergeLayout, withSteer } = require("./world");
 
 const PORT = Number(process.env.PORT) || 8000;
@@ -47,7 +48,7 @@ const TYPES = {
 const ASSET_EXTS = new Set([".png", ".jpg", ".webp", ".glb", ".gltf", ".bin", ".mp3", ".ogg", ".wav", ".js", ".json"]);
 
 const botsArg = process.argv.indexOf("--bots");
-const BOTS = botsArg > 0 ? Math.max(0, Math.min(32, Number(process.argv[botsArg + 1]) || 0)) : 0;
+const BOTS = botsArg > 0 ? Math.max(0, Math.min(25, Number(process.argv[botsArg + 1]) || 0)) : 0; // 25 players at most (humans take bots' seats)
 const autoArg = process.argv.indexOf("--autostart");
 const AUTOSTART = autoArg > 0 && Number.isFinite(Number(process.argv[autoArg + 1])) ? Math.max(0, Number(process.argv[autoArg + 1])) : null;
 
@@ -68,7 +69,8 @@ function logOnce(what, err) {
 // without the HTML, and never the HTML-only upgrade). A stream that names nobody gets everything, as before.
 
 const streams = new Map(); // res → { player, big }
-const PERSONAL = new Set(["toast", "mischief", "cooldown"]);
+const hasStream = (player) => { for (const who of streams.values()) if (who.player === player) return true; return false; };
+const PERSONAL = new Set(["toast", "mischief", "cooldown", "hit"]); // v1.3: hit = the victim's hit marker
 const sse = (m) => `data: ${JSON.stringify(m)}\n\n`;
 function write(res, line) {
   if (res.writableLength > MAX_BUFFERED) { streams.delete(res); res.destroy(); return; }
@@ -100,7 +102,29 @@ function loadAstra() {
 }
 function wireAnimations(type, verbs) {
   const a = loadAstra();
-  return a && typeof a.wireAnimations === "function" ? a.wireAnimations(type, verbs) : undefined;
+  try { return a && typeof a.wireAnimations === "function" ? a.wireAnimations(type, verbs) : undefined; } catch { return undefined; }
+}
+
+// v1.3 (owner: "make sure the entity creation works"): a finished ship / explorer drawing never fails silently. When
+// Astra cannot answer at all (not loaded, threw, a timeout or an error it did not turn into an entity itself) the
+// player still gets a usable entity: the generous dev kit (every gate skill, source "devkit"), wearing their drawing.
+// Refusals (a controller drawn in the ship step, a blank page) and bad requests keep their plain message.
+const ENTITY_NO_FALLBACK = /^(looks like|nothing to read|no drawings left|slow down|superseded|kind is|player required|image must|image too large|region too small|join first|name taken)/;
+function fallbackEntity(kind) {
+  const world = kind === "ship" ? "space" : "planet";
+  const type = kind === "ship" ? "ship" : "person";
+  const kit = (Verbs.DEV_KIT[world] || []).map((u) => ({ verb: u.verb, part: u.part }));
+  const verbs = Verbs.entityVerbs(type, kit.map((u) => u.verb));
+  const unlocked = kit.filter((u) => verbs.includes(u.verb));
+  const entity = {
+    type, rig: Verbs.RIG_OF[type] || "blob", verbs, unlocked,
+    parts: unlocked.map((u, i) => ({ name: u.part, x: Math.round((0.2 + 0.08 * i) * 1000) / 1000, y: 0.5 })),
+    source: "devkit",
+  };
+  if (typeof Verbs.cardOf === "function") entity.card = Verbs.cardOf(type, unlocked);
+  const anims = wireAnimations(entity.rig, verbs);
+  if (anims) entity.anims = anims;
+  return entity;
 }
 
 // ---- Drawn ships and explorers -----------------------------------------------------------------------------------
@@ -140,13 +164,29 @@ function drawnEntity(player, entity) {
   if (p && p.entity === entity) { entity.image = url; return entity; }
   return { ...entity, image: url };
 }
+// v1.3: every parked ship on the landing pad carries its owner's ship drawing (island.parked[].image), so a screen
+// that connects after they landed (their current entity is the explorer) still shows the drawn ship. The world's own
+// parked entries are never mutated: the message gets copies.
+function withParkedImages(island) {
+  if (!island || !Array.isArray(island.parked) || !island.parked.length) return island;
+  let changed = false;
+  const parked = island.parked.map((c) => {
+    const url = c && drawnImages[c.player] && drawnImages[c.player].ship;
+    if (!url || c.image === url) return c;
+    changed = true;
+    return { ...c, image: url };
+  });
+  return changed ? { ...island, parked } : island;
+}
 function withDrawings(m) {
   if (m && m.type === "entity") {
     const entity = drawnEntity(m.player, m.entity);
     return entity === m.entity ? m : { ...m, entity };
   }
-  if (m && m.type === "world" && m.entities) {
-    for (const name of Object.keys(m.entities)) m.entities[name] = drawnEntity(name, m.entities[name]);
+  if (m && m.type === "world") {
+    if (m.entities) for (const name of Object.keys(m.entities)) m.entities[name] = drawnEntity(name, m.entities[name]);
+    const island = withParkedImages(m.island);
+    if (island !== m.island) m = { ...m, island };
   }
   return m;
 }
@@ -321,12 +361,32 @@ function readJson(req, limit = BODY_LIMIT) {
 
 const json = (res, status, body) => res.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end(JSON.stringify(body));
 
+// Name-to-device binding (v1.0 review #19, additive): /join binds a name to the phone's random device token; a
+// /input or /generate that carries a token (`device`, or `token`) for a name bound to ANOTHER device is refused.
+// Requests without a token are accepted as before (older phones), and bots' names are never usable by a phone.
+const tokenOf = (body) => {
+  const t = body && (typeof body.device === "string" ? body.device : typeof body.token === "string" ? body.token : null);
+  return t && /^[\w-]{8,64}$/.test(t) ? t : null;
+};
+function boundElsewhere(player, body) {
+  const p = player && world.players[player];
+  if (!p) return false;
+  if (p.bot) return true;
+  const token = tokenOf(body);
+  return !!(token && p.device && p.device !== token);
+}
+
+// → "ok" | "unknown" (never joined: no ghost players, v1.0 review #18) | "taken" | "bad"
 function input(msg) {
-  if (!msg || typeof msg !== "object") return;
+  if (!msg || typeof msg !== "object") return "bad";
   msg = { ...msg, player: Contract.cleanName(msg.player) };
   if (msg.type === "input") msg.action = Contract.normaliseAction(msg.action);
-  if (Contract.CHECKS.input(msg).length) return;
-  world.handleInput(msg);
+  if (Contract.CHECKS.input(msg).length) return "bad";
+  // A phone whose own event stream is open (render.js names it: /events?player=<name>) is re-adopted after a server
+  // restart; a name nobody's screen is watching is dropped.
+  if (!world.players[msg.player] && !(hasStream(msg.player) && world.join(msg.player, tokenOf(msg)))) return "unknown";
+  if (boundElsewhere(msg.player, msg)) return "taken";
+  return world.handleInput(msg) === false ? "unknown" : "ok";
 }
 
 async function generate(body) {
@@ -395,12 +455,18 @@ function perf(sample) {
 async function handlePost(req, res, url) {
   const body = await readJson(req, SMALL_BODY[url.pathname] || BODY_LIMIT);
   if (url.pathname === "/input") {
-    (Array.isArray(body) ? body.slice(0, 64) : [body]).forEach(input);
+    // 204 as before; v1.3 (additive): 409 "join first" when a message named a player who never joined (the phone
+    // should POST /join again), 403 "name taken" when its device token belongs to another phone.
+    const outcomes = new Set((Array.isArray(body) ? body.slice(0, 64) : [body]).map(input));
+    if (outcomes.has("taken")) return json(res, 403, { ok: false, error: "name taken" });
+    if (outcomes.has("unknown")) return json(res, 409, { ok: false, error: "join first" });
     return res.writeHead(204).end();
   }
   if (url.pathname === "/start") {
-    // The big screen's START button: lobby → playing. Anything else is a no-op.
-    return world.start() ? json(res, 200, { ok: true, round: world.round }) : json(res, 409, { ok: false, error: "not in the lobby", phase: world.phase });
+    // The big screen's START button: lobby → playing. Anything else is a no-op. v1.3: { countdown: true } plays the
+    // server's 3-2-1 (phase "countdown", every phone counts with the TV) before playing.
+    const countdown = body.countdown === true || Number(body.countdown) > 0;
+    return world.start({ countdown }) ? json(res, 200, { ok: true, round: world.round, phase: world.phase }) : json(res, 409, { ok: false, error: "not in the lobby", phase: world.phase });
   }
   if (url.pathname === "/join") {
     // device (optional): a token the phone keeps; a name in use by another phone becomes "name2" (renamed: true).
@@ -415,12 +481,29 @@ async function handlePost(req, res, url) {
     // refusals come back as Astra says them (looksLike, thing) and spend nothing.
     const player = Contract.cleanName(body.player);
     const finished = !body.speculative;
+    // v1.3: a drawing from a name that has not joined (a phone that outlived a server restart) joins it first, so the
+    // drawing lands on a real player (setEntity / setLayout never create players: no ghosts). A name bound to
+    // another phone, or a bot's name, is refused.
+    if (player && !world.players[player] && typeof body.image === "string" && body.image.startsWith("data:image/") && !world.join(player, tokenOf(body))) {
+      return json(res, 400, { ok: false, error: "the game is full", message: "The game is full right now.", drawingsLeft: world.drawingsLeft(player) });
+    }
+    if (player && boundElsewhere(player, body)) {
+      return json(res, 403, { ok: false, error: "name taken", message: "That name is playing on another phone. Join with a new name.", drawingsLeft: world.drawingsLeft(player) });
+    }
     if (!finished && player && !speculativeOk(player)) return json(res, 200, { ok: false, error: "slow down", message: "", drawingsLeft: world.drawingsLeft(player) });
     const where = world.drawingWorld(player);
     if (finished && player && world.drawingsLeft(player)[where] <= 0) {
       return json(res, 200, { ok: false, error: "no drawings left", message: plainMessage(body.kind, "no drawings left"), drawingsLeft: world.drawingsLeft(player) });
     }
-    let { status, result } = await generate(body);
+    // where: the player's world now ("space" | "planet"), so Astra (and its mock) reads a button as the one that world
+    // needs (no LAND on the planet).
+    let { status, result } = await generate({ ...body, where });
+    // A finished ship / explorer always comes back as an entity (fallbackEntity), unless it was refused.
+    if (finished && player && DRAWING_KINDS[body.kind] && !(result && result.ok) && !ENTITY_NO_FALLBACK.test(String((result && result.error) || ""))) {
+      logOnce(`generate ${body.kind} fell back to the dev kit`, (result && result.error) || "no answer");
+      status = 200;
+      result = { ok: true, entity: fallbackEntity(body.kind), fallback: true };
+    }
     if (result && result.ok && finished && player && !world.spendDrawing(player, where)) result = { ok: false, error: "no drawings left" };
     if (result && result.ok && player && (body.kind === "controller" || body.kind === "button") && result.layout) {
       // Never stuck: a controller with no way to turn gets a steer stick (auto: true) where there is room.
@@ -440,11 +523,16 @@ async function handlePost(req, res, url) {
       // player drives one, else at the next mode switch (an explorer drawn in space shows up on landing). The drawn
       // look rides along as `image`.
       const image = keepDrawing(player, body.kind, body.image);
+      if (typeof result.entity.card !== "string" && typeof Verbs.cardOf === "function") result = { ...result, entity: { ...result.entity, card: Verbs.cardOf(result.entity.type, result.entity.unlocked) } };
       const before = world.players[player] && world.players[player].entity;
       const now = world.setEntity(player, body.kind, result.entity);
       result = { ...result, entity: image ? { ...result.entity, image } : result.entity };
       // setEntity already broadcast when the skills changed; else the new look alone still has to go out.
       if (image && now && now === before && kindOfEntity(now) === body.kind) broadcast({ type: "entity", player, entity: now });
+      // A ship redrawn while landed: the parked ship on the pad shows the new drawing on every screen
+      // (island.parked[].image, added by withDrawings).
+      const p = world.players[player];
+      if (image && body.kind === "ship" && p && p.mode === "planet") broadcast(world.worldMessage({ entities: false }));
     }
     if (result && !result.ok) result = { ...result, message: plainMessage(body.kind, result.error) };
     return json(res, status, player && result ? { ...result, drawingsLeft: world.drawingsLeft(player) } : result);

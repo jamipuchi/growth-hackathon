@@ -38,7 +38,7 @@ const devKitEntity = (kind) => {
   const world = kind === "ship" ? "space" : "planet";
   const type = kind === "ship" ? "ship" : "person";
   const unlocked = Verbs.DEV_KIT[world].map((u) => ({ ...u }));
-  return { type, rig: Verbs.RIG_OF[type], verbs: Verbs.entityVerbs(type, unlocked.map((u) => u.verb)), unlocked, parts: [], source: "devkit" };
+  return { type, rig: Verbs.RIG_OF[type], verbs: Verbs.entityVerbs(type, unlocked.map((u) => u.verb)), unlocked, parts: [], source: "devkit", card: Verbs.cardOf(type, unlocked) };
 };
 
 async function run(route, seed) {
@@ -70,7 +70,10 @@ async function run(route, seed) {
           w.setEntity(player, body.kind, e);
           json = { ok: true, entity: e };
         } else {
-          const layout = { buttons: [{ type: "button", action: "land", label: "LAND", ...body.region }], source: "model" };
+          // As ASTRA_MOCK=1 does: the button the player was asked for (expect, the gate verb), else LAND.
+          const asked = body.expect ? Contract.normaliseAction(body.expect) : "";
+          const action = Verbs.VERBS[asked] ? asked : "land";
+          const layout = { buttons: [{ type: "button", action, label: action.toUpperCase(), ...body.region }], source: "model" };
           w.setLayout(player, layout, body.kind);
           json = { ok: true, layout };
         }

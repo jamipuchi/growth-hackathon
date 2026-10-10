@@ -17,7 +17,8 @@ const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const clamp = (v, lo = -1, hi = 1) => Math.max(lo, Math.min(hi, v));
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
-const GATE_REGION = { drill: { x: 0.38, y: 0.08, w: 0.18, h: 0.2 }, land: { x: 0.58, y: 0.08, w: 0.18, h: 0.2 }, dig: { x: 0.38, y: 0.3, w: 0.18, h: 0.2 } };
+// Below the phone HUD band (the top ~30%, astra-html.js --hud): where a player adds a button without a ghost box.
+const GATE_REGION = { drill: { x: 0.38, y: 0.32, w: 0.18, h: 0.2 }, land: { x: 0.58, y: 0.32, w: 0.18, h: 0.2 }, dig: { x: 0.38, y: 0.56, w: 0.18, h: 0.2 } };
 // Which hint (rules.js gate + need) a drawing answers: the ship and explorer are "part" hints, buttons "button" hints.
 // "legs" is a second ship drawing: the ship reached the planet without landing legs (land "part" hint).
 const GATE_HINT = { ship: ["weapon", "part"], legs: ["land", "part"], explorer: [null, "part"], land: ["land", "button"], dig: ["dig", "button"], drill: ["drill", "button"] };
@@ -177,13 +178,15 @@ export function createDriver({ route = "expert", me = "e2e", drawSeconds = 3, no
         const ghost = (D.toasts.slice().reverse().find((x) => x.ghost && x.ghost.action === name) || {}).ghost;
         const region = ghost ? { x: ghost.x, y: ghost.y, w: ghost.w, h: ghost.h } : GATE_REGION[name];
         const sent = now();
-        post("/generate", { player: me, kind: "button", image: pngDataUrl(name.toUpperCase()), region, source: "draw", speculative: false, requestId: `e2e-${name}-${sent}` }).then((r) => {
+        // expect: the word the player wrote in the box (the real model reads it from the drawing; the mock cannot, so
+        // the driver says it, as the phone does for a ghost box).
+        post("/generate", { player: me, kind: "button", image: pngDataUrl(name.toUpperCase()), region, expect: name, source: "draw", speculative: false, requestId: `e2e-${name}-${sent}` }).then((r) => {
           const ms = now() - sent;
           const ok = !!(r.json && r.json.ok);
           const actions = ok ? r.json.layout.buttons.map((b) => b.action) : [];
           D.generates.push({ gate: name, ok, ms, status: r.status, actions, error: r.json && r.json.error, drawingsLeft: r.json && r.json.drawingsLeft });
           if (!ok) D.issues.push(`POST /generate button for ${name} failed: ${r.status} ${r.json && r.json.error}`);
-          else if (!actions.includes(name)) D.issues.push(`mock /generate for ${name} returned ${actions.join(",")} (astra mockLayout always answers LAND); inputs still sent`);
+          else if (!actions.includes(name)) D.issues.push(`/generate button for ${name} returned ${actions.join(",")}; inputs still sent`);
           g.state = "done";
           stage(`button-${name}`, { ms, actions });
         });

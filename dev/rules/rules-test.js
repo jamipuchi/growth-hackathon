@@ -160,8 +160,9 @@ test("a long gap between active ticks does not skip steps", () => {
 function mulberry(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let r = Math.imul(seed ^ (seed >>> 15), 1 | seed); r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r; return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
 const overlaps = (a, b) => Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) > 1e-9 && Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) > 1e-9;
 
+// v1.3: ghost boxes stay below the phone HUD band (rules.js GHOST.top = 0.3), so only room below it counts.
 function freeBoxExists(buttons) {
-  for (let y = 0; y <= 0.82 + 1e-9; y += 0.005) for (let x = 0; x <= 0.78 + 1e-9; x += 0.005) {
+  for (let y = 0.3; y <= 0.82 + 1e-9; y += 0.005) for (let x = 0; x <= 0.78 + 1e-9; x += 0.005) {
     const box = { x, y, w: 0.22, h: 0.18 };
     if (!buttons.some((b) => overlaps(box, b))) return true;
   }
