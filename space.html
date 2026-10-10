@@ -602,7 +602,7 @@ const COPY = {
   brand: "SPACE PARTY",
   hall: "★ HALL OF FAME", // v1.6: the host's button (lobby and results) → hall-of-fame.html
   // v1.9.1: the full-screen hall after every round (hallAuto): the line at its bottom
-  hallAuto: { hint: "TAP OR ENTER TO CLOSE", next: "NEXT ROUND IN {n} · TAP OR ENTER TO CLOSE" },
+  hallAuto: { hint: "T: THIS ROUND / ALL ROUNDS · TAP OR ENTER TO CLOSE", next: "NEXT ROUND IN {n} · T: THIS ROUND / ALL · TAP OR ENTER TO CLOSE" },
   // v1.9 (owner 13:41): the round length and the lobby auto-start beside START
   length: { round: "ROUND · MIN", auto: "AUTO-START", min: "{m}", secs: "{s} S", off: "OFF", toast: "{m}-MINUTE ROUNDS", toastWait: "AUTO-START {s} S AFTER THE FIRST READY PLAYER",
     toastWaitOff: "AUTO-START OFF · PRESS START", startingIn: "STARTING IN {n}", startingInReady: "STARTING IN {n} · {r} READY", lobbyOnly: "PICK THE LENGTH IN THE LOBBY" },
@@ -2027,8 +2027,9 @@ $("hallBtn").addEventListener("keyup", (e) => { if (e.key === " ") e.preventDefa
 // A round's end starts judging on the server by itself (server.js hallWatch). Here, once the results' podium ceremony is over
 // (every step shown, then HALL_HOLD_MS to take it in: about 8 s into a three-place ceremony; 2.5 s after results that show
 // at once: no ceremony, a page opened late, the host's Enter), the hall covers the whole screen: hall-of-fame.html?embed=1&judge=1
-// in a frame, the live hall with its scores filling in ("JUDGING n/m"), or the examples (EXAMPLES label) when nothing of
-// this session can be ranked. The lobby carries on underneath (the line at the bottom shows its NEXT ROUND IN n). It closes on
+// in a frame, the live hall with its scores filling in ("JUDGING n/m"), or the bundled hall (no label; owner 14:45) when
+// nothing of this session can be ranked. v1.9.1 (owner 14:47): &round=<the round that just ended> opens it on THIS ROUND
+// (only that round's drawings); T switches THIS ROUND / ALL ROUNDS (forwarded to the frame: postMessage "hall-scope"). The lobby carries on underneath (the line at the bottom shows its NEXT ROUND IN n). It closes on
 // a tap, Enter or Esc, and by itself when the next round's 3-2-1 (or play) starts. Results left before the hall came open it in
 // the lobby. Once per round; never for a mock screen (__bigscreen.hall(on) opens / closes it); ?nohall turns it off.
 const HALL_AUTO = !params.has("nohall");
@@ -2047,7 +2048,7 @@ function hallOpen() {
   const f = document.createElement("iframe");
   f.title = "Hall of Fame";
   f.tabIndex = -1;
-  f.src = "/hall-of-fame.html?embed=1&judge=1";
+  f.src = `/hall-of-fame.html?embed=1&judge=1${Number.isFinite(H.shownFor) && H.shownFor >= 0 ? `&round=${H.shownFor}` : ""}`;
   box.prepend(f);
   hallHint();
   box.classList.add("on");
@@ -2076,9 +2077,17 @@ function hallAutoTick() {
 }
 setInterval(hallAutoTick, 250);
 $("hallOver").addEventListener("click", () => { sfxUnlock(); sfxPlay("click"); hallClose(); });
-// Enter / Esc / Space close it and do nothing else (Enter would START in the lobby): this runs before the page's keys.
+// Enter / Esc / Space close it and do nothing else (Enter would START in the lobby), T goes to the frame: this runs before
+// the page's keys.
 addEventListener("keydown", (e) => {
   if (!hallAuto.open || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "t" || e.key === "T") { // THIS ROUND / ALL ROUNDS in the frame (it takes no input itself)
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    const f = $("hallOver").querySelector("iframe");
+    if (!e.repeat && f && f.contentWindow) { sfxPlay("click"); f.contentWindow.postMessage({ type: "hall-scope", scope: "toggle" }, location.origin); }
+    return;
+  }
   if (e.key !== "Enter" && e.key !== "Escape" && e.key !== " ") return;
   e.preventDefault();
   e.stopImmediatePropagation();

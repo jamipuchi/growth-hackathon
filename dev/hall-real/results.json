@@ -1,0 +1,169 @@
+{
+ "judgedAt": "2026-10-10T12:42:30.857Z",
+ "api": "https://api.openai.com/v1/decisions",
+ "model": "gpt-6-luna",
+ "calls": 16,
+ "judged": 16,
+ "results": {
+  "monster-truck": {
+   "scores": {
+    "creativity": 56,
+    "effort": 67,
+    "readability": 86,
+    "fun": 72
+   },
+   "score": 70,
+   "comment": "Built for speed. Blink and it's gone."
+  },
+  "color-robot": {
+   "scores": {
+    "creativity": 49,
+    "effort": 68,
+    "readability": 76,
+    "fun": 53
+   },
+   "score": 62,
+   "comment": "Too cute to lose."
+  },
+  "color-person": {
+   "scores": {
+    "creativity": 47,
+    "effort": 74,
+    "readability": 75,
+    "fun": 51
+   },
+   "score": 62,
+   "comment": "Too cute to lose."
+  },
+  "horse-saddle": {
+   "scores": {
+    "creativity": 36,
+    "effort": 68,
+    "readability": 75,
+    "fun": 56
+   },
+   "score": 59,
+   "comment": "Too cute to lose."
+  },
+  "color-messy": {
+   "scores": {
+    "creativity": 50,
+    "effort": 50,
+    "readability": 68,
+    "fun": 52
+   },
+   "score": 55,
+   "comment": "Built for speed. Blink and it's gone."
+  },
+  "color-topview": {
+   "scores": {
+    "creativity": 25,
+    "effort": 50,
+    "readability": 85,
+    "fun": 50
+   },
+   "score": 53,
+   "comment": "Built for speed. Blink and it's gone."
+  },
+  "chunky": {
+   "scores": {
+    "creativity": 36,
+    "effort": 49,
+    "readability": 65,
+    "fun": 48
+   },
+   "score": 50,
+   "comment": "Built for speed. Blink and it's gone."
+  },
+  "saucer": {
+   "scores": {
+    "creativity": 21,
+    "effort": 49,
+    "readability": 80,
+    "fun": 49
+   },
+   "score": 50,
+   "comment": "Too cute to lose."
+  },
+  "rocket": {
+   "scores": {
+    "creativity": 15,
+    "effort": 42,
+    "readability": 78,
+    "fun": 34
+   },
+   "score": 42,
+   "comment": "Built for speed. Blink and it's gone."
+  },
+  "nose-drill": {
+   "scores": {
+    "creativity": 24,
+    "effort": 25,
+    "readability": 73,
+    "fun": 38
+   },
+   "score": 40,
+   "comment": "Built for speed. Blink and it's gone."
+  },
+  "cannon-flames": {
+   "scores": {
+    "creativity": 20,
+    "effort": 27,
+    "readability": 68,
+    "fun": 45
+   },
+   "score": 40,
+   "comment": "Built for speed. Blink and it's gone."
+  },
+  "photo-bubble": {
+   "scores": {
+    "creativity": 13,
+    "effort": 39,
+    "readability": 72,
+    "fun": 26
+   },
+   "score": 38,
+   "comment": "Minimalist masterpiece. Less is more... right?"
+  },
+  "bike-lamp": {
+   "scores": {
+    "creativity": 4,
+    "effort": 39,
+    "readability": 76,
+    "fun": 30
+   },
+   "score": 37,
+   "comment": "Minimalist masterpiece. Less is more... right?"
+  },
+  "jaume-jet": {
+   "scores": {
+    "creativity": 18,
+    "effort": 26,
+    "readability": 67,
+    "fun": 27
+   },
+   "score": 35,
+   "comment": "Built for speed. Blink and it's gone."
+  },
+  "dog-claws": {
+   "scores": {
+    "creativity": 30,
+    "effort": 25,
+    "readability": 25,
+    "fun": 47
+   },
+   "score": 32,
+   "comment": "Made the whole room laugh."
+  },
+  "blob": {
+   "scores": {
+    "creativity": 0,
+    "effort": 25,
+    "readability": 13,
+    "fun": 25
+   },
+   "score": 16,
+   "comment": "Too cute to lose."
+  }
+ }
+}
