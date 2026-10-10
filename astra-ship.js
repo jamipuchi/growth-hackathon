@@ -99,7 +99,7 @@ function prompt(source) {
   ].join("\n");
 }
 
-function request(image, { source = "photo", model = "gpt-6.1-sol", tier = "ultrafast", effort = "low", maxTokens = 1800, detail = "low" } = {}) {
+function request(image, { source = "photo", model = "gpt-6.1-sol", tier = "ultrafast", effort = "medium", maxTokens = 1800, detail = "low" } = {}) {
   const req = {
     model,
     input: [{ role: "user", content: [{ type: "input_text", text: prompt(source) }, { type: "input_image", image_url: image, detail }] }],

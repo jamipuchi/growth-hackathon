@@ -41,8 +41,11 @@
 //
 // Env: OPENAI_API_KEY (else a .env next to this file; set but empty means no key, the .env is not read),
 // OPENAI_MODEL (only a gpt-6.1-sol snapshot: the model is pinned), OPENAI_SERVICE_TIER ("" or "none" omits it),
-// OPENAI_REASONING_EFFORT (default "low"; "" or "none" omits it), ASTRA_MOCK=1 (no network, deterministic layouts
-// after 300 ms).
+// OPENAI_REASONING_EFFORT (default "medium", owner 12:41: "a bit more effort for sol"; "" or "none" omits it; also
+// used by the ship / body spec calls), ASTRA_TIMEOUT_MS (9000: the whole reading, retry included; at most 13000 so
+// the phone's 15 s request never gives up first), ASTRA_HEDGE_MS (5000), ASTRA_RETRY_BEFORE_MS (4000),
+// ASTRA_SPEC_TIMEOUT_MS (14000), ASTRA_SPEC_HEDGE_MS (8000) (each a positive number of ms, read at startup),
+// ASTRA_MOCK=1 (no network, deterministic layouts after 300 ms).
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
@@ -81,8 +84,15 @@ const specLibFor = (kind) => (kind === "ship" ? shipSpecLib() : kind === "explor
 const API_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_MODEL = "gpt-6.1-sol";
 const DEFAULT_TIER = "ultrafast";
-const DEFAULT_EFFORT = "low";
-const TIMEOUT_MS = 4000;
+const DEFAULT_EFFORT = "medium"; // owner 12:41: "a bit more effort for sol, it's ok if it takes 2-3 seconds more"
+// The timeouts below fit medium effort (low answered in 1-2 s; medium needs the 2-3 s more), each overridable by env.
+const envMs = (name, fallback) => {
+  const v = Number(process.env[name]);
+  return Number.isFinite(v) && v > 0 ? v : fallback;
+};
+// controller.html gives up on /generate after 15 s (GENERATE_MS): the whole reading, retry included, ends before that.
+const PHONE_BUDGET_MS = 13000;
+const TIMEOUT_MS = Math.min(envMs("ASTRA_TIMEOUT_MS", 9000), PHONE_BUDGET_MS);
 const MOCK_MS = 300;
 const MAX_BUTTONS = 16;
 const MAX_IMAGE_CHARS = 4 * 1024 * 1024;
@@ -90,16 +100,18 @@ const MAX_IMAGE_CHARS = 4 * 1024 * 1024;
 // leave room for both; measured live (dev/gen-corpus): answers use ≤ 400 tokens, reasoning included.
 const MAX_OUTPUT_TOKENS = { controller: 2000, button: 1200, ship: 1600, explorer: 1600 };
 const RETRY_OUTPUT_TOKENS = 4000;
-const RETRY_BEFORE_MS = 1800; // a retry only starts if it can still finish inside the timeout
-// Tail latency: most answers take 1-2 s, but a call sometimes hangs past the 4 s timeout (2 of 101 in the corpus run).
-// If the first request has not answered after HEDGE_MS, an identical second one starts; the first answer wins.
-const HEDGE_MS = 2200;
+// A retry only starts if it can still finish inside the timeout (it never outlives it: the timeout aborts it too).
+const RETRY_BEFORE_MS = Math.min(envMs("ASTRA_RETRY_BEFORE_MS", 4000), TIMEOUT_MS);
+// Tail latency: a call sometimes hangs (2 of 101 in the low-effort corpus run hung past the old 4 s timeout). If the
+// first request has not answered after HEDGE_MS, an identical second one starts; the first answer wins.
+const HEDGE_MS = envMs("ASTRA_HEDGE_MS", 5000);
 const MAX_PARTS = 12;
 // The ship spec call (v1.4): its own budget and timeout; it runs next to the entity call, so the unlock card never waits
-// for it longer than SPEC_GRACE_MS (measured 10 Oct: p50 3.0 s, p90 3.3 s, 200-600 output tokens on gpt-6.1-sol).
+// for it longer than SPEC_GRACE_MS (measured 10 Oct at low effort: p50 3.0 s, p90 3.3 s, 200-600 output tokens on
+// gpt-6.1-sol; medium takes a few seconds more, and a late spec still reaches every screen through onShipSpec).
 const SPEC_OUTPUT_TOKENS = 1800;
-const SPEC_TIMEOUT_MS = 9000;
-const SPEC_HEDGE_MS = 5000;
+const SPEC_TIMEOUT_MS = envMs("ASTRA_SPEC_TIMEOUT_MS", 14000);
+const SPEC_HEDGE_MS = envMs("ASTRA_SPEC_HEDGE_MS", 8000);
 const SPEC_GRACE_MS = 100; // owner: the spec must not slow the unlock card (measured 10:08: a 700 ms grace did, 4 of 5)
 const MAX_SPECS = 300;
 const LOOKS = ["controller", "entity", "nothing"];
@@ -1099,11 +1111,11 @@ const _internals = {
   },
   state: () => ({ cache: cache.size, inflight: inflight.size, slots: slots.size, pads: pads.size, defaultTierOnly: defaultTierOnly() }),
   padOf: (player) => (pads.get(Contract.cleanName(player)) || []).map((c) => ({ ...c })),
-  TIMEOUT_MS, MOCK_MS, HEDGE_MS, SCHEMAS, ACTIONS, ENTITY_KINDS, MAX_OUTPUT_TOKENS, LOOKS, THINGS, entityFromModel, devKitEntity, plainEntity,
+  DEFAULT_EFFORT, TIMEOUT_MS, MOCK_MS, HEDGE_MS, RETRY_BEFORE_MS, PHONE_BUDGET_MS, SCHEMAS, ACTIONS, ENTITY_KINDS, MAX_OUTPUT_TOKENS, LOOKS, THINGS, entityFromModel, devKitEntity, plainEntity,
   entityPrompt, buildRequest, promptFor, extractText, parseJson, cleanControl, layoutFromModel, readAnswer, mockLayout,
   cleanRegion, sha1, wrongKindError, hedged, regionsLayout, modelId, REGION_VERBS,
   entityAnswer, cardFor, mockButtonAction, MOCK_BUTTONS,
-  shipSpec, specFor, specRequest, releaseSpec, SPEC_GRACE_MS, SPEC_TIMEOUT_MS,
+  shipSpec, specFor, specRequest, releaseSpec, SPEC_GRACE_MS, SPEC_TIMEOUT_MS, SPEC_HEDGE_MS,
 };
 
 module.exports = { generate, defaultLayout, wireAnimations, onShipSpec, newRound, _internals };

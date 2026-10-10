@@ -5,7 +5,8 @@ const path = require("path");
 const assert = require("assert");
 
 process.env.OPENAI_API_KEY = "sk-test-not-a-real-key"; // set first so astra.js never looks for a .env
-for (const k of ["OPENAI_MODEL", "OPENAI_SERVICE_TIER", "OPENAI_REASONING_EFFORT", "ASTRA_MOCK"]) delete process.env[k];
+const TIMING_ENV = ["ASTRA_TIMEOUT_MS", "ASTRA_HEDGE_MS", "ASTRA_RETRY_BEFORE_MS", "ASTRA_SPEC_TIMEOUT_MS", "ASTRA_SPEC_HEDGE_MS"];
+for (const k of ["OPENAI_MODEL", "OPENAI_SERVICE_TIER", "OPENAI_REASONING_EFFORT", "ASTRA_MOCK", ...TIMING_ENV]) delete process.env[k];
 
 const Contract = require("../../contract.js");
 const Astra = require("../../astra.js");
@@ -96,9 +97,9 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     assert.strictEqual(opts.headers.Authorization, "Bearer sk-test-not-a-real-key");
     assert.strictEqual(req.model, "gpt-6.1-sol");
     assert.strictEqual(req.service_tier, "ultrafast");
-    // v1-gen-quality: reasoning effort defaults to low (accepted by gpt-6.1-sol, faster), and the budget leaves room
-    // for the reasoning tokens (a 200-token button budget ran out in play: "incomplete: max_output_tokens").
-    assert.deepStrictEqual(req.reasoning, { effort: "low" });
+    // Reasoning effort defaults to medium (owner 12:41: "a bit more effort for sol"; it was low), and the budget leaves
+    // room for the reasoning tokens (a 200-token button budget ran out in play: "incomplete: max_output_tokens").
+    assert.deepStrictEqual(req.reasoning, { effort: "medium" });
     assert.ok(req.max_output_tokens >= 1200 && req.max_output_tokens <= 4000);
     assert.deepStrictEqual(req.text.format.schema.required, ["looksLike", "thing", "buttons"]);
     const [text, img] = req.input[0].content;
@@ -214,8 +215,8 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
   let timeoutMs;
   // v1.0 review: a timeout used to answer the default layout as a success (charged, under the wrong ink). Now: the
   // drawing's own ink regions when the phone sent them, the expected button, else an honest timeout (nothing spent).
-  await test("4 s timeout → the ink regions (controller) or the expected verb (button), else a timeout error", async () => {
-    assert.strictEqual(_internals.TIMEOUT_MS, 4000);
+  await test("9 s timeout → the ink regions (controller) or the expected verb (button), else a timeout error", async () => {
+    assert.strictEqual(_internals.TIMEOUT_MS, 9000);
     fakeFetch(() => ({ ...answer({ buttons: [] }), delay: 60000 }));
     const t0 = Date.now();
     const ink = [{ x: 0.05, y: 0.45, w: 0.28, h: 0.5, round: true }, { x: 0.7, y: 0.55, w: 0.12, h: 0.2 }, { x: 0.55, y: 0.6, w: 0.1, h: 0.18 }, { x: 0.9, y: 0.1, w: 0.01, h: 0.01 }];
@@ -226,7 +227,7 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
       Astra.generate({ player: "bea", kind: "button", image: image("slow-exp"), region: { x: 0.5, y: 0.1, w: 0.2, h: 0.2 }, expect: "dig" }),
     ]);
     timeoutMs = Date.now() - t0;
-    assert.ok(timeoutMs >= 3990 && timeoutMs < 4300, `took ${timeoutMs} ms`);
+    assert.ok(timeoutMs >= 8990 && timeoutMs < 9300, `took ${timeoutMs} ms`);
     assert.deepStrictEqual(c, { ok: false, error: "timeout" }, "no default layout passed off as the drawing");
     assert.deepStrictEqual(b, { ok: false, error: "timeout" });
     assert.ok(ci.ok && ci.layout.source === "regions", JSON.stringify(ci));
@@ -593,17 +594,17 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
   });
 
   await test("hedged request: a hung call gets a twin after HEDGE_MS, the first answer wins; fast failures are not hedged", async () => {
-    assert.strictEqual(_internals.HEDGE_MS, 2200);
+    assert.strictEqual(_internals.HEDGE_MS, 5000);
     fakeFetch((req, i) => ({ ...answer({ looksLike: "controller", thing: "none", buttons: [{ type: "button", label: "FIRE", action: "shoot", x: 0.6, y: 0.5, w: 0.2, h: 0.3 }] }), delay: i === 1 ? 60000 : 300 }));
     const t0 = Date.now();
     const r = await Astra.generate({ player: "ana", kind: "controller", image: image("hung") });
     const ms = Date.now() - t0;
     assert.ok(r.ok && r.layout.source === "model", r.error);
-    assert.ok(ms >= 2450 && ms < 3200, `took ${ms} ms`);
+    assert.ok(ms >= 5250 && ms < 6000, `took ${ms} ms`);
     assert.strictEqual(calls.length, 2);
     assert.strictEqual(calls[0].aborted, true, "the hung call is aborted");
     // A fast failure is not hedged: a 400 is reported at once (one call); a 500 gets one quick transient retry
-    // (250 ms later), never the 2.2 s twin.
+    // (250 ms later), never the 5 s twin.
     fakeFetch(() => ({ status: 400, text: "bad request" }));
     const t1 = Date.now();
     const f = await Astra.generate({ player: "ana", kind: "controller", image: image("fast-fail") });
@@ -614,6 +615,18 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     const f5 = await Astra.generate({ player: "ana", kind: "controller", image: image("fast-fail-500") });
     assert.deepStrictEqual(f5, { ok: false, error: "OpenAI HTTP 500" });
     assert.ok(Date.now() - t2 < 900 && calls.length === 2, `a 5xx: one quick retry, no hedge (${calls.length} calls in ${Date.now() - t2} ms)`);
+  });
+
+  await test("timings for medium effort: defaults, env overrides, and the phone budget cap", async () => {
+    const t = _internals;
+    assert.deepStrictEqual([t.DEFAULT_EFFORT, t.TIMEOUT_MS, t.HEDGE_MS, t.RETRY_BEFORE_MS, t.SPEC_TIMEOUT_MS, t.SPEC_HEDGE_MS], ["medium", 9000, 5000, 4000, 14000, 8000]);
+    assert.ok(t.TIMEOUT_MS <= t.PHONE_BUDGET_MS && t.PHONE_BUDGET_MS < 15000, "the reading, retry included, ends before the phone's 15 s GENERATE_MS");
+    assert.ok(t.RETRY_BEFORE_MS < t.TIMEOUT_MS && t.HEDGE_MS < t.TIMEOUT_MS && t.SPEC_HEDGE_MS < t.SPEC_TIMEOUT_MS);
+    const read = (env) => JSON.parse(require("child_process").execFileSync(process.execPath, ["-e",
+      `const t = require(${JSON.stringify(path.join(__dirname, "../../astra.js"))})._internals; process.stdout.write(JSON.stringify([t.TIMEOUT_MS, t.HEDGE_MS, t.RETRY_BEFORE_MS, t.SPEC_TIMEOUT_MS, t.SPEC_HEDGE_MS]))`],
+      { env: { ...process.env, ASTRA_MOCK: "1", ...env }, encoding: "utf8" }));
+    assert.deepStrictEqual(read({ ASTRA_TIMEOUT_MS: "7000", ASTRA_HEDGE_MS: "3000", ASTRA_RETRY_BEFORE_MS: "2500", ASTRA_SPEC_TIMEOUT_MS: "12000", ASTRA_SPEC_HEDGE_MS: "6000" }), [7000, 3000, 2500, 12000, 6000]);
+    assert.deepStrictEqual(read({ ASTRA_TIMEOUT_MS: "60000", ASTRA_RETRY_BEFORE_MS: "90000", ASTRA_HEDGE_MS: "abc", ASTRA_SPEC_TIMEOUT_MS: "-5" }), [13000, 5000, 13000, 14000, 8000], "capped to the phone budget; junk falls back");
   });
 
   console.log = realLog;

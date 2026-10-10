@@ -245,7 +245,7 @@ async function main() {
   let r = await gen();
   const body = requests[0] && requests[0].body;
   check("model: valid answer used (source model), controls listed, style score returned", r.ok && r.source === "model" && r.controls.length === 3 && r.html === GOOD && r.style.score === 7 && !r.warnings, { source: r.source, controls: r.controls.length, style: r.style });
-  check("request: gpt-6.1-sol, ultrafast, effort low, image detail low, instructions, store false, layout centres and rarities", body && body.model === "gpt-6.1-sol" && body.service_tier === "ultrafast" && body.reasoning.effort === "low" && body.store === false &&
+  check("request: gpt-6.1-sol, ultrafast, effort medium, image detail low, instructions, store false, layout centres and rarities", body && body.model === "gpt-6.1-sol" && body.service_tier === "ultrafast" && body.reasoning.effort === "medium" && body.store === false &&
     body.input[0].content.some((c) => c.type === "input_image" && c.detail === "low") && /SPACE PARTY/.test(body.instructions) && /centre 19vw 62.5vh/.test(body.input[0].content[0].text) &&
     /action "shoot", label "FIRE", rarity gold/.test(body.input[0].content[0].text) && /action "boost", label "BOOST", rarity blue/.test(body.input[0].content[0].text) && /NOT thin sci-fi lines/.test(body.input[0].content[0].text), { max_output_tokens: body && body.max_output_tokens });
   requests.length = 0;

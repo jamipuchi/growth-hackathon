@@ -1,6 +1,6 @@
 // Astra HTML: the drawn controller, written by Sol as one self-contained HTML document (PLAN.md section 0, "The
 // controller is written by Sol as HTML"). One gpt-6.1-sol call (Responses API, service tier ultrafast, reasoning
-// effort low) gets the photo of the drawing plus the layout Astra already read from it and returns a FORTNITE-style
+// effort medium) gets the photo of the drawing plus the layout Astra already read from it and returns a FORTNITE-style
 // controller (owner, 9 October 23:55): chunky slanted tiles in rarity colours (gold weapons, purple powers, blue
 // the rest), thick white borders, hard dark drop shadows, heavy condensed ITALIC capitals in white with a dark
 // outline, big touch targets and playful pop-ins; NOT thin sci-fi lines (no 1-2 px neon outlines, no wireframe or
@@ -34,7 +34,7 @@
 // Env: OPENAI_API_KEY (else a .env next to this file, the same loader as astra.js; a key that is present but blank
 // means NO key and .env is not consulted), OPENAI_MODEL (pinned to gpt-6.1-sol: only a value starting with
 // "gpt-6.1-sol", e.g. a dated snapshot, is used; anything else is ignored with one warning),
-// OPENAI_SERVICE_TIER ("" or "none" omits it), ASTRA_HTML_EFFORT (default low), ASTRA_HTML_TIMEOUT_MS,
+// OPENAI_SERVICE_TIER ("" or "none" omits it), ASTRA_HTML_EFFORT (default medium), ASTRA_HTML_TIMEOUT_MS,
 // ASTRA_HTML_CALL_LOG (append one JSON line per HTTP request to the model), ASTRA_MOCK=1 (no network: the
 // template, at once).
 const crypto = require("crypto");
@@ -46,7 +46,7 @@ const Verbs = require("./verbs.js");
 const API_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_MODEL = "gpt-6.1-sol";
 const DEFAULT_TIER = "ultrafast";
-const DEFAULT_EFFORT = "low";
+const DEFAULT_EFFORT = "medium"; // owner 12:41: "a bit more effort for sol" (was low; 45 s timeout kept)
 const TIMEOUT_MS = 45000;
 const MAX_HTML_BYTES = 60 * 1024;
 const MAX_OUTPUT_TOKENS = 12000;

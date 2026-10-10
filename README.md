@@ -46,6 +46,10 @@ PORT=8000 HTTPS_PORT=8443 node server.js [--bots N]
 - **OpenAI key:** put `OPENAI_API_KEY=...` in a `.env` file next to `server.js` (git-ignored), or set it in the
   environment. Never commit or print it.
 - **Offline:** `ASTRA_MOCK=1 node server.js` needs no key: drawings get fixed answers and every gate skill.
+- **Sol effort and timeouts:** `OPENAI_REASONING_EFFORT` (drawing reads and ship / body specs) and `ASTRA_HTML_EFFORT`
+  (the controller HTML) default to `medium`. Timeouts in ms: `ASTRA_TIMEOUT_MS` (9000, capped at 13000 so the phone
+  never gives up first), `ASTRA_HEDGE_MS` (5000), `ASTRA_RETRY_BEFORE_MS` (4000), `ASTRA_SPEC_TIMEOUT_MS` (14000),
+  `ASTRA_SPEC_HEDGE_MS` (8000), `ASTRA_HTML_TIMEOUT_MS` (45000).
 - `--bots N` adds N scripted ships (fillers for tests and small groups; a round holds at most 25 players in total).
 - `?perf` on any page shows fps and draw calls; `node perf-report.js --since 10m` checks every device against the budgets.
 
