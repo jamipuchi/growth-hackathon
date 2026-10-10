@@ -216,8 +216,16 @@
    *              mines: [[id, x, y, z, mode, color]],                     // v1.3: mines (newest 16), mode as bullets;
    *                                                                      // color = the owner's
    *              decoys: [[id, x, y, z, yaw, color, owner, mode]],        // v1.3 (newest 16): draw the owner's entity
-   *              mode? }                                                 // v1.6: "endless" as world.mode (absent in the
+   *              mode?,                                                  // v1.6: "endless" as world.mode (absent in the
    *                                                                      // demo); left is then 0: no cap (HUD shows ∞)
+   *              waiting?: [{ name, color, ready, drawingsLeft }] }      // v1.7 (owner 12:26, server readyGate): out of
+   *                                                                      // the lobby, the players NOT in this round (not
+   *                                                                      // ready at START, or joined later): no ship, no
+   *                                                                      // score, not in players; their phone keeps
+   *                                                                      // drawing and they play the next round with
+   *                                                                      // those drawings. ready = ship + controller
+   *                                                                      // done (ENDLESS: they enter as soon as ready).
+   *                                                                      // In the lobby flags.ready = ship + controller.
    *                                                                      // (their drawing) there, facing yaw
    *            15 per second. In "planet" mode x, z are island coordinates and y is the feet height.
    *
@@ -363,6 +371,9 @@
    *                                                  // tick.countdown 3, 2, 1), then "playing"; countdown: false (or 0)
    *                                                  // starts at once (tests). The TV posts at once and shows the 3-2-1
    *                                                  // from the phase (no local countdown before the POST)
+   *                                                  // v1.7: 409 { ok: false, error: "nobody is ready", ready: 0 }
+   *                                                  // when no human has a ship and a controller yet; only the ready
+   *                                                  // players enter (the rest wait: tick.waiting). 200 adds ready: n
    * POST /mode      { endless: true | false }        → { ok, mode: "endless"|"demo", phase } | 409 { ok: false, error:
    *                                                  // "not in the lobby", phase, mode } | 501 (no endless mode). v1.6:
    *                                                  // the big screen's ENDLESS switch (host key E); it holds until
@@ -505,6 +516,7 @@
     check(errors, Array.isArray(m.bullets) && Array.isArray(m.bossShots) && Array.isArray(m.flares), "tick: bullets, bossShots, flares");
     check(errors, (m.mines === undefined || Array.isArray(m.mines)) && (m.decoys === undefined || Array.isArray(m.decoys)), "tick: mines, decoys");
     check(errors, m.mode === undefined || m.mode === "endless", "tick: mode is absent or \"endless\""); // v1.6
+    check(errors, m.waiting === undefined || (Array.isArray(m.waiting) && m.waiting.every((w) => w && isStr(w.name))), "tick: waiting is absent or a list of { name }"); // v1.7
     return errors;
   }
 

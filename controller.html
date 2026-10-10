@@ -513,6 +513,17 @@
   .redo { display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .redo .btn { min-height: 48px; }
   .redo span { font: 700 11px/1 var(--f-body); color: #d9d0ff; text-shadow: 0 2px 0 rgb(10 6 30 / 0.8); }
+  /* v1.7 (owner 12:26): not in this round (not ready at START, or joined later): a strip on every screen, the drawing goes on */
+  #waitStrip { position: fixed; left: 50%; top: calc(var(--st) + 6px); z-index: 29; transform: translateX(-50%); width: max-content; max-width: 92vw; padding: 5px 16px 6px; display: flex; flex-direction: column; align-items: center; gap: 1px;
+    text-align: center; pointer-events: none; color: #fff; background: linear-gradient(180deg, rgb(58 42 154 / 0.94), rgb(23 16 79 / 0.94)); border: 3px solid var(--gold); border-radius: 8px; box-shadow: 0 4px 0 rgb(0 0 0 / 0.35); }
+  #waitStrip.hidden { display: none; }
+  /* waiting out a round on the play screen: no round HUD, the pad dimmed and inert (the server ignores it), the banner on top */
+  body.waiting #hud .objpanel, body.waiting #hud .timer, body.waiting #hud .hc, body.waiting .score { visibility: hidden; }
+  body.waiting #area { opacity: .35; pointer-events: none; }
+  #waitStrip b { font: italic 800 17px/1.05 "Barlow Condensed", system-ui, sans-serif; letter-spacing: .02em; color: var(--gold); }
+  #waitStrip span { font: italic 800 14px/1.1 "Barlow Condensed", system-ui, sans-serif; letter-spacing: .02em; }
+  #waitStrip em { font: 700 12px/1.1 "Barlow", system-ui, sans-serif; font-style: normal; color: #e7dcff; }
+  #waitStrip em:empty { display: none; }
   #go { position: fixed; inset: 0; z-index: 9; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; }
   #go b { font: 900 italic 150px/0.8 var(--f-head); text-transform: uppercase; color: var(--gold); -webkit-text-stroke: 11px var(--ink); paint-order: stroke fill; text-shadow: 0 10px 0 rgb(10 6 30 / 0.6); }
   #go.on { animation: goPop 1.15s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
@@ -863,6 +874,7 @@
   <div id="hintLine" role="status"><span id="hintLineText"></span></div>
   <div id="redrawMenu" class="hidden"></div>
   <div id="go"><b data-copy="go"></b></div>
+  <div id="waitStrip" class="hidden" role="status"><b></b><span></span><em></em></div>
   <div id="dead" aria-live="assertive">
     <div class="dcard">
       <h2 id="deadTitle" class="hd" data-copy="dead.title"></h2>
@@ -1129,6 +1141,9 @@ const COPY = {
   },
   // A skill that was just used: its control greys out and counts down. The tip shows when you press it.
   cool: { tip: "{name} · READY IN {n} S" },
+  // v1.7 (owner 12:26): only the ready players (ship + controller done) are in a round; the others wait for the next one
+  waiting: { title: "ROUND IN PROGRESS", draw: "FINISH YOUR DRAWINGS, YOU'RE IN THE NEXT ROUND", ready: "YOU'RE IN THE NEXT ROUND",
+    drawEndless: "FINISH YOUR DRAWINGS TO JUMP IN", joining: "JUMPING IN…", left: "{t} LEFT IN THIS ROUND", soon: "NEXT ROUND IN A MOMENT" },
   wait: {
     title: "YOU'RE IN!", sub: "Wait for the host to press START on the big screen",
     ready: "I'M READY", readyDone: "READY ✓", redrawShip: "REDRAW SHIP", redrawController: "REDRAW CONTROLLER", uses: "uses 1 drawing",
@@ -1336,6 +1351,8 @@ const S = {
   held: {},                  // sticks held right now (sandbox): axis -> true
   net: { phase: null },      // from the newest tick, on every screen (the renderer may be paused)
   round: (() => { const r = store.get("round"); return Number.isFinite(r) ? r : null; })(),   // v1.5: the round my drawings belong to
+  waiting: false,            // v1.7: I am not in this round (tick.waiting lists me): I keep drawing for the next one
+  waitedIn: (() => { const r = store.get("waitedIn"); return Number.isFinite(r) ? r : null; })(),   // v1.7: the round I waited out (its end keeps my drawings)
   drawingDown: false,        // "drawing" is down on the server (a draw sheet is open during play)
 };
 
@@ -3046,7 +3063,7 @@ async function enterPlay() {
   closeAdd();
   show("play");
   hitRect = null;
-  setStep(S.phase === "playing" || S.phase === "assists" ? "play" : "wait");
+  setStep(!S.waiting && (S.phase === "playing" || S.phase === "assists") ? "play" : "wait");
   if (S.layout) { buildHits(); paintInk(); }
   placeHudBtn();
   ensureCtl();       // Sol's controller frame (the DOM controls just built work until it is live, and always when it cannot be used)
@@ -3099,8 +3116,10 @@ async function startRenderer() {
 // "1 · DRAW YOUR SHIP". Kept: the name, the colour, the device token and this phone's settings (sound, haptics, tips seen).
 function noteRound(round) {
   if (!Number.isFinite(round) || round === S.round) return;
-  const had = S.round !== null;
+  const had = S.round !== null, prev = S.round;
   S.round = round; store.set("round", round);
+  // v1.7: I waited out the round that ended (not ready at START, or joined during it): the server kept my drawings for this one
+  if (had && S.waitedIn !== null && S.waitedIn === prev) return;
   if (had) freshRound();
 }
 function freshRound() {
@@ -3127,8 +3146,42 @@ function onNetTick(m) {
   if (me && me.drawingsLeft) setLeft(me.drawingsLeft);
   S.net.phase = m.phase;
   S.endless = m.mode === "endless"; // v1.6 ENDLESS (tick.mode, absent in the demo)
+  // v1.7 (owner 12:26): tick.waiting lists who is not in this round; my drawings then carry over to the next one
+  const wait = Array.isArray(m.waiting) ? m.waiting.find((w) => w && w.name === S.player) || null : null;
+  if (wait && wait.drawingsLeft) setLeft(wait.drawingsLeft);
+  if (wait && S.waitedIn !== m.round) { S.waitedIn = m.round; store.set("waitedIn", m.round); }
+  else if (!wait && me && m.phase !== "lobby" && S.waitedIn === m.round) { S.waitedIn = null; store.set("waitedIn", null); }   // ENDLESS: I am in now
+  syncWaiting(wait, m);
+  if (m.phase === "lobby" && me) syncReadyLook(!!(me.flags && me.flags.ready));
   syncDrawing();
   syncCountdown(m);
+}
+// v1.7: the ROUND IN PROGRESS strip (any screen) and, on the play screen, the wait banner instead of the pad
+function syncWaiting(wait, m) {
+  const on = !!wait, el = $("waitStrip");
+  if (on) {
+    const live = (m.phase === "playing" || m.phase === "assists") && m.mode !== "endless" && Number.isFinite(m.left);
+    const sub = wait.ready ? (S.endless ? COPY.waiting.joining : COPY.waiting.ready) : (S.endless ? COPY.waiting.drawEndless : COPY.waiting.draw);
+    const t = live ? COPY.waiting.left.replace("{t}", fmt(m.left)) : m.phase === "scoreboard" ? COPY.waiting.soon : "";
+    const b = el.children[0], sp = el.children[1], em = el.children[2];
+    if (b.textContent !== COPY.waiting.title) b.textContent = COPY.waiting.title;
+    if (sp.textContent !== sub) sp.textContent = sub;
+    if (em.textContent !== t) em.textContent = t;
+    if ($("bannerSub").textContent !== sub && S.screen === "play") $("bannerSub").textContent = sub;
+  }
+  if (on === S.waiting) return;
+  S.waiting = on;
+  el.classList.toggle("hidden", !on);
+  document.body.classList.toggle("waiting", on);
+  $("bannerTitle").textContent = on ? COPY.waiting.title : COPY.wait.title;
+  if (!on) $("bannerSub").textContent = COPY.wait.sub;
+  if (S.screen === "play" && (m.phase || S.phase)) onPhase(m.phase || S.phase, null);
+}
+function syncReadyLook(ready) {
+  const b = $("readyBtn");
+  if (b.classList.contains("green") === ready) return;
+  b.textContent = ready ? COPY.wait.readyDone : COPY.wait.ready;
+  b.classList.toggle("green", ready);
 }
 // ---- v1.5: the event stream from JOIN. The 3-2-1 after START is a server phase every phone counts down with (owner, 10 Oct 10:00), but the
 // game's stream (render.js) only opens at the first play screen: a phone still on its very first drawing saw no countdown. So JOIN opens a
@@ -3263,7 +3316,7 @@ function updateHud() {
   if (radar && !hudOff) radar.update(h.radar || [], me && me.mode === "planet" ? 100 : 300);   // v1.5: hidden by the HUD switch: no work
   // phases: lobby → the wait banner, playing → GO!, scoreboard → the results; v1.5: a new round clears every drawing (noteRound)
   if (h.phase !== S.phase) onPhase(h.phase, h);
-  if (h.phase === "scoreboard") renderResults(h);
+  if (h.phase === "scoreboard" && !S.waiting) renderResults(h);
   // landing and take-off are a predefined animation with no control: the overlay fades to 20 %
   const flags = (me && me.flags) || {};
   const locked = !!(flags.landing || flags.takingOff);
@@ -3284,8 +3337,8 @@ function updateHud() {
 function onPhase(phase, h) {
   S.phase = phase;
   document.body.dataset.phase = phase || "";
-  const lobby = phase === "lobby", board = phase === "scoreboard";
-  $("banner").classList.toggle("hidden", !lobby);
+  const lobby = phase === "lobby", board = phase === "scoreboard" && !S.waiting;   // v1.7: who waited sees no results of a round they did not play
+  $("banner").classList.toggle("hidden", !(lobby || S.waiting));
   $("resultsSheet").classList.toggle("hidden", !board);
   if (board) { closeSheets("resultsSheet"); closeAdd(); releaseAll(); hudCache.resRows = null; hudCache.resNext = null; hudCache.resParty = null; if (coach) coach.hide(); }
   // a new round starts clean: no leftover ghost box or sketch hint (the server's hint ladder starts again), nothing cooling down
@@ -3299,7 +3352,7 @@ function onPhase(phase, h) {
 function syncPlayStep() {
   if (S.screen !== "play") return;
   if (SHEETS.some((id) => id !== "resultsSheet" && !$(id).classList.contains("hidden")) || !$("add").classList.contains("hidden")) return;
-  setStep(S.phase === "scoreboard" ? "results" : S.phase === "playing" || S.phase === "assists" ? "play" : "wait");
+  setStep(S.waiting ? "wait" : S.phase === "scoreboard" ? "results" : S.phase === "playing" || S.phase === "assists" ? "play" : "wait");
 }
 // text: a countdown number when phone-extras.js (its big 3-2-1) is missing; none = GO!
 function showGo(text) {
@@ -3318,6 +3371,8 @@ let cdLast = null, cdPhase = null;
 function syncCountdown(m) {
   const phase = m && m.phase, was = cdPhase;
   cdPhase = phase;
+  // v1.7: not in this round: no 3-2-1 and no GO! (an ENDLESS player who jumps in mid-play gets none either)
+  if (S.waiting) { if (was === "countdown" && countdownFx) countdownFx.hide(); cdLast = null; return; }
   if (phase === "countdown") {
     const n = Number.isFinite(m.countdown) ? Math.round(m.countdown) : Math.ceil(Number(m.clock) || 0);
     if (n >= 1 && n !== cdLast) {

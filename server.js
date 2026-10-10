@@ -377,21 +377,39 @@ function serveHall(req, res, url) {
 // sent again is read afresh and costs a drawing) and Astra's saved copies of those players' drawings. Kept: the players
 // (name, colour, device token) and the session stars (world.js).
 function freshRound(round, names) {
-  for (const k of Object.keys(drawnImages)) delete drawnImages[k];
-  drawingFiles.clear();
-  shipSpecs.clear();
+  // v1.7 (owner 12:26, world readyGate): names = only the players who PLAYED the round that ended. A player who waited
+  // keeps their drawings (re-keyed to this round's ?v=, so serveDrawing still serves them), their ship spec and Sol's
+  // controller; everything of the others is cleared as before.
+  const wiped = new Set(names);
+  const keptHashes = new Set();
+  for (const k of Object.keys(drawnImages)) {
+    if (wiped.has(k)) { delete drawnImages[k]; continue; }
+    for (const family of Object.keys(drawnImages[k])) {
+      const buf = drawingFiles.get(`${k}-${family}`);
+      if (!buf) { delete drawnImages[k][family]; continue; }
+      keptHashes.add(specKey(vOfUrl(drawnImages[k][family])));
+      drawnImages[k][family] = `/drawings/${k}-${family}.png?v=${drawingV(buf)}`;
+    }
+  }
+  for (const key of [...drawingFiles.keys()]) { const who = key.replace(/-(ship|explorer)$/, ""); if (wiped.has(who) || !drawnImages[who]) drawingFiles.delete(key); }
+  for (const v of [...shipSpecs.keys()]) if (!keptHashes.has(v)) shipSpecs.delete(v);
   for (const k of Object.keys(ctrl)) {
+    if (!wiped.has(k)) continue;
     const job = ctrl[k] && ctrl[k].job;
     if (job && !job.done) { try { job.controller.abort(); } catch {} }
     delete ctrl[k];
   }
-  for (const k of Object.keys(speculativeAt)) delete speculativeAt[k];
+  for (const k of Object.keys(speculativeAt)) if (wiped.has(k)) delete speculativeAt[k];
   try { if (astra && typeof astra.newRound === "function") astra.newRound({ players: names }); } catch (err) { logOnce("astra round reset failed", err); }
   try { if (astraHtml && typeof astraHtml.newRound === "function") astraHtml.newRound(); } catch (err) { logOnce("astra-html round reset failed", err); }
-  console.log(`round ${round}: a fresh start (drawings, controllers and their caches cleared for ${names.length} player(s))`);
+  // the kept ships' new URLs reach every screen once the new lobby is out (the world sends the round's messages first)
+  const kept = Object.keys(drawnImages);
+  if (kept.length) setImmediate(() => { for (const k of kept) { const p = world.players[k]; if (p && p.entity) broadcast({ type: "entity", player: k, entity: p.entity }); } });
+  console.log(`round ${round}: a fresh start (drawings, controllers and their caches cleared for ${names.length} player(s)${kept.length ? `, kept for ${kept.length} who waited` : ""})`);
 }
 
-const world = createWorld({ broadcast, autoStart: true, wireAnimations, autostartSeconds: AUTOSTART, onRoundReset: freshRound });
+// v1.7 readyGate (owner 12:26): only the ready players (ship + controller) enter a round; START needs one of them.
+const world = createWorld({ broadcast, autoStart: true, wireAnimations, autostartSeconds: AUTOSTART, onRoundReset: freshRound, readyGate: true });
 for (let i = 1; i <= BOTS; i++) world.addBot(`bot${i}`);
 // v1.6 ENDLESS: guarded, so a world.js without the endless hooks still runs (the demo).
 const canEndless = () => typeof world.setEndless === "function" && typeof world.endSession === "function";
@@ -647,8 +665,11 @@ async function handlePost(req, res, url) {
     // tools that need play now. Anything but the lobby is a no-op (409).
     const off = (v) => v === false || v === 0 || v === "0" || v === "false";
     const countdown = !(off(body.countdown) || off(url.searchParams.get("countdown")));
+    // v1.7 (owner 12:26): the host can start whenever at least one player is ready (ship + controller); only they get in
+    const ready = typeof world.readyCount === "function" ? world.readyCount() : null;
+    if (world.phase === "lobby" && world.readyGate && ready === 0) return json(res, 409, { ok: false, error: "nobody is ready", phase: world.phase, ready: 0 });
     if (!world.start({ countdown })) return json(res, 409, { ok: false, error: "not in the lobby", phase: world.phase });
-    return json(res, 200, { ok: true, round: world.round, phase: world.phase, ...(world.countdown ? { countdown: world.countdown } : {}) });
+    return json(res, 200, { ok: true, round: world.round, phase: world.phase, ...(ready != null ? { ready } : {}), ...(world.countdown ? { countdown: world.countdown } : {}) });
   }
   if (url.pathname === "/mode") {
     // v1.6 ENDLESS (endless.js): the big screen's ENDLESS switch, { endless: true | false }. Only in the lobby (it holds for
