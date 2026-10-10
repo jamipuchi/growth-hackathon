@@ -98,6 +98,15 @@ const ASSETS = {
     const loader = phone ? { loadAsync: (url) => loadShrunkTexture(url, 1024, 512) } : undefined;
     return m.createSpaceEnvironment({ variant: "space", intensity: 1, lightingIntensity: 0.4, ...(loader ? { loader } : {}) });
   },
+  // A-003 decorative violet / magenta cloud arcs round the boss: the module's createNebula, built per round by
+  // SpaceWorld.buildCloud at the server's nebula. Null on failure: the old additive puff batch stays.
+  nebula: async () => (await import(assetUrl("A-003-nebula/nebula.js"))).createNebula,
+  // A-002 giant foreground rocks (60-120 m, ONE draw call for all, 256 triangles each), placed per round by SpaceWorld.setLook
+  // beside the spawn -> boss corridor. Null on failure: the procedural huge decorative rocks stay.
+  foreground: async ({ seed, rocks }) => (await import(assetUrl("A-002-rocks/foreground.js"))).createForegroundRocks({ seed, rocks }),
+  // A-007 camera-mounted cockpit (1,366 triangles, 3 calls, no textures), phone only: startGame hangs it on the camera and
+  // fits it (fitToCamera). Null on failure: the procedural clip-space frame stays.
+  cockpit: async () => (await import(assetUrl("A-007-cockpit/cockpit.js"))).createCockpit(),
   // A-005 island kit: its terrain and instanced props (palms with LOD and breeze, bushes, rocks, cliffs). The game
   // keeps its own cheap water, sky and lights (the Water add-on stays off the phone, PLAN.md section 4). Phones get
   // fewer props and a triangle cap that leaves room for players, chests and effects.
@@ -108,6 +117,9 @@ const ASSETS = {
     for (const o of [kit.water, kit.sky, kit.sunlight, kit.ambient]) if (o) o.visible = false;
     return kit;
   },
+  // A-010 pooled effects (explosions, sparks, flare, scan rings, hex shields, dust, dirt, gold): the module itself; each world
+  // builds its own system from it (WorldFx). The browser caches the import, so both worlds share one module.
+  fx: async () => import(assetUrl("A-010-fx/fx.js")),
 };
 const assetCache = new Map();
 function loadAsset(name, ...args) {
@@ -182,14 +194,16 @@ function canvasTexture(w, h, draw) {
 // Unlike THREE.Points it has no point-size limit, and puffs fade out when the camera gets close (no overdraw).
 const BB_VERT = /* glsl */ `
   attribute vec3 iPos; attribute float iSize; attribute vec4 iColor;
-  uniform float uNearFade;
+  uniform float uNearFade; uniform float uMaxAng;
   varying vec2 vUv; varying vec4 vColor;
   void main() {
     vec4 mv = modelViewMatrix * vec4(iPos, 1.0);
     float a = iColor.a;
     if (uNearFade > 0.0) a *= smoothstep(iSize * 0.2 * uNearFade, iSize * 0.8 * uNearFade, -mv.z);
     if (a < 0.003 || iSize <= 0.0 || mv.z > 0.0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
-    mv.xy += position.xy * iSize;
+    // uMaxAng (particles): a quad never spans more than uMaxAng x its distance, so a puff next to the camera cannot fill the view
+    float sz = uMaxAng > 0.0 ? min(iSize, uMaxAng * -mv.z) : iSize;
+    mv.xy += position.xy * sz;
     gl_Position = projectionMatrix * mv;
     vUv = uv; vColor = vec4(iColor.rgb, a);
   }`;
@@ -211,7 +225,7 @@ const BB_FRAG_NORMAL = /* glsl */ `
     gl_FragColor = vec4(vColor.rgb, g * vColor.a * uFade);
   }`;
 class BillboardBatch {
-  constructor(capacity, { map = null, nearFade = 0, renderOrder = 10, normal = false } = {}) {
+  constructor(capacity, { map = null, nearFade = 0, renderOrder = 10, normal = false, maxAng = 0 } = {}) {
     this.capacity = capacity;
     const base = new THREE.PlaneGeometry(1, 1);
     const g = new THREE.InstancedBufferGeometry();
@@ -231,7 +245,7 @@ class BillboardBatch {
     this.material = new THREE.ShaderMaterial({
       vertexShader: BB_VERT,
       fragmentShader: normal ? BB_FRAG_NORMAL : BB_FRAG,
-      uniforms: { uMap: { value: map }, uUseMap: { value: map ? 1 : 0 }, uNearFade: { value: nearFade }, uFade: { value: 1 } },
+      uniforms: { uMap: { value: map }, uUseMap: { value: map ? 1 : 0 }, uNearFade: { value: nearFade }, uMaxAng: { value: maxAng }, uFade: { value: 1 } },
       transparent: true,
       depthWrite: false,
       blending: normal ? THREE.NormalBlending : THREE.AdditiveBlending,
@@ -261,8 +275,9 @@ class BillboardBatch {
 // Pooled particles drawn through one BillboardBatch: trails, sparks, explosions, dust, gold bursts.
 class Particles {
   constructor(capacity, { normal = false, renderOrder = 12 } = {}) {
-    // nearFade: a puff that fills the screen (a fireball the camera sits in) fades out instead of whiting it out
-    this.batch = new BillboardBatch(capacity, { renderOrder, nearFade: 1, normal });
+    // nearFade: a puff that fills the screen (a fireball the camera sits in) fades out instead of whiting it out; maxAng: and it
+    // never spans more than half its distance (a ~14 degree half-angle, under half the TV's height), however big it was emitted
+    this.batch = new BillboardBatch(capacity, { renderOrder, nearFade: 1, normal, maxAng: 0.5 });
     this.mesh = this.batch.mesh;
     this.cap = capacity;
     this.n = 0;
@@ -358,6 +373,121 @@ class RingPool {
   }
 }
 
+// A-010 effects (assets/A-010-fx): one pooled system per world scene (billboard sprites, planar rings, hex shields: at most 3 draw
+// calls however many effects overlap), built lazily from ASSETS.fx. Null-safe: until (unless) it loads, `ok` is false and the
+// callers keep their ad hoc Particles / RingPool effects. Sizes go through size(): grown with the camera distance so they read on
+// the TV, never wider on screen than `cap` x their distance (a burst next to the camera cannot fill the view and white it out
+// under bloom). The frame loop updates only the world on screen: a world that comes back after a gap drops what it held (A-010
+// would resume the paused effects). Shields: shield() for each shielded view every frame; a view that stops asking (flag off,
+// impostor, dead, in the landing shot, disposed) loses its bubble in the next update().
+class WorldFx {
+  constructor(world, mode) {
+    this.world = world;
+    this.sys = null;
+    this.lights = [];
+    this.frame = 0;
+    this.lastT = -1;
+    this.shields = new Map(); // view → { h, f, s, x, y, z }: its bubble's handle, the frame it was last asked for, its size and place
+    this.queue = []; // delayed spawns (the boss's chain of blasts): { at, kind, x, y, z, base, cap, color, face }
+    this.o = { size: 1, color: undefined, direction: undefined, normal: undefined, duration: undefined }; // spawn options (A-010 copies them)
+    this.p = v3();
+    this.d = v3();
+    this.warned = false;
+    const phone = world.phone, island = mode === "planet";
+    this.ref = island ? (phone ? 25 : 30) : phone ? 50 : 70; // m: past this an effect grows with its distance (x1 .. this.grow)
+    this.grow = phone ? 2 : 3.5;
+    this.sweep = (r, v) => { if (r.f !== this.frame) { r.h.stop(); this.shields.delete(v); } };
+    loadAsset("fx").then((m) => {
+      if (!m) return;
+      try {
+        // Phone: smaller pools and no light (a light switching on recompiles the PBR shaders: a hitch on iPhone). Shields for 25 on
+        // both (a slot holds a bubble only while its ship has a mesh, so their triangles follow the mesh cap). No boost emitters:
+        // the streak engine trails stay.
+        this.sys = m.createFxSystem({ scene: world.scene, seed: island ? 29 : 17, maxParticles: phone ? 448 : 1024, maxRings: phone ? 12 : 24, maxShields: phone ? 26 : 32, maxEmitters: 0, maxLights: phone ? 0 : 1 });
+        // The TV's flare light stays in the light count at intensity 0 (A-010 hides it between flares): the PBR shader variant of
+        // that light count is compiled once at load, never at the first flare mid-round.
+        this.sys.object3d.traverse((o) => { if (o.isLight) { o.visible = true; this.lights.push(o); } });
+      } catch (e) { console.warn("[render] A-010 effects unavailable:", e?.message || e); this.sys = null; }
+    });
+  }
+  get ok() { return !!this.sys; }
+  // An effect's size at p: `base` grown with the camera distance (x1 .. this.grow past this.ref m) so it reads on the TV, capped at
+  // `cap` x the distance. A-010 at size s spans ~3 s (an explosion's fireball), so cap 0.06 keeps a blast within ~10 degrees of its
+  // centre however close to the camera it goes off.
+  size(p, base, cap) {
+    const c = this.world.camPos, d = Math.max(1, Math.hypot(p.x - c.x, p.y - c.y, p.z - c.z));
+    return Math.max(0.05, Math.min(base * clamp(d / this.ref, 1, this.grow), cap * d));
+  }
+  // From p towards the camera (space: rings face it, sparks fly at it), or undefined right at the camera.
+  toCam(p) {
+    const c = this.world.camPos, d = this.d.set(c.x - p.x, c.y - p.y, c.z - p.z);
+    return d.lengthSq() > 1e-4 ? d : undefined;
+  }
+  // One effect (an A-010 kind or alias) at p, size s; dir = the sparks' direction and the rings' normal (default: up). A handle, or
+  // null without A-010 (or when it refuses the input, e.g. a non-finite position).
+  spawn(kind, p, s, color, dir, duration) {
+    if (!this.sys) return null;
+    const o = this.o;
+    o.size = s; o.color = color; o.direction = o.normal = dir; o.duration = duration;
+    try { return this.sys.spawn(kind, p, o); } catch (e) {
+      if (!this.warned) { this.warned = true; console.warn("[render] A-010 spawn failed:", e?.message || e); }
+      return null;
+    }
+  }
+  // The same `delay` seconds from now, sized from the camera when it goes off (face: its rings face the camera).
+  later(delay, kind, x, y, z, base, cap, color, face) {
+    if (this.sys) this.queue.push({ at: this.lastT + delay, kind, x, y, z, base, cap, color, face });
+  }
+  // The hex bubble of `view` this frame at (x, y, z), size s (radius 2.5 s): true when A-010 draws it (the caller hides its own
+  // mesh), false without A-010 (the caller's mesh stays). Not asked this frame = no bubble (swept in update()).
+  shield(view, x, y, z, s) {
+    if (!this.sys) return false;
+    let r = this.shields.get(view);
+    // a fresh bubble when its slot was cleared or recycled, or its ship's scale changed a lot (the lobby showcase, a landing dive);
+    // checked every 16 frames only: a pop-in (scale 0 → 1.15 → 1 in 0.3 s) must not respawn it, and restart its fade-in, every frame
+    if (r && (this.frame & 15) === 0 && (!r.h.active || s > r.s * 1.4 || s < r.s * 0.7)) { r.h.stop(); this.shields.delete(view); r = null; }
+    if (!r) {
+      const h = this.spawn("shield", this.p.set(x, y, z), s, undefined, undefined, Infinity);
+      if (!h) return false;
+      r = { h, f: 0, s, x, y, z };
+      this.shields.set(view, r);
+    } else if ((r.x - x) * (r.x - x) + (r.y - y) * (r.y - y) + (r.z - z) * (r.z - z) > 4e-4) {
+      // moved 2 cm or more (A-010's setPosition allocates: the lobby bob of 25 shielded ships must not call it every frame)
+      r.h.setPosition(this.p.set(x, y, z));
+      r.x = x; r.y = y; r.z = z;
+    }
+    r.f = this.frame;
+    return true;
+  }
+  // Once per frame for BOTH worlds (A-010's README: a hidden scene's effects must age too, or what was spawned into it while hidden
+  // would all play at once on its first view): the shown world calls it at the end of its update(), after its views asked for their
+  // bubbles; the frame loop calls the hidden world's (nobody asks: its bubbles go). A gap of more than 2 s (the page was paused or
+  // hidden) drops what it held instead of resuming it; a single long frame does not.
+  update(dt, t) {
+    const S = this.sys;
+    if (!S) return;
+    if (this.lastT >= 0 && t - this.lastT > 2) { S.clear(); this.shields.clear(); this.queue.length = 0; }
+    this.lastT = t;
+    this.shields.forEach(this.sweep); // the bubbles nobody asked for this frame
+    this.frame++;
+    const q = this.queue;
+    if (q.length) {
+      let n = 0;
+      for (let i = 0; i < q.length; i++) {
+        const e = q[i];
+        if (e.at > t) { q[n++] = e; continue; }
+        const p = this.p.set(e.x, e.y, e.z);
+        this.spawn(e.kind, p, this.size(p, e.base, e.cap), e.color, e.face ? this.toCam(p) : undefined);
+      }
+      q.length = n;
+    }
+    S.update(dt);
+    for (let i = 0; i < this.lights.length; i++) this.lights[i].visible = true;
+  }
+  // A new round: every effect and bubble goes (the pools stay). The TV's flare light stays in the light count (no recompile).
+  clear() { this.sys?.clear(); this.shields.clear(); this.queue.length = 0; for (let i = 0; i < this.lights.length; i++) this.lights[i].visible = true; }
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // Drawn entities (inflate.js). The server sends every entity again on each mode switch, redraw and unlock (and for
 // every player at once), so a drawing is inflated ONCE per (URL, kind, quality, colour): a queue builds at most one mesh
@@ -383,7 +513,9 @@ class DrawnCache {
     this.loading = 0;
     this.built = 0;
   }
-  configure(phone) { this.cap = phone ? 16 : 40; this.quality = phone ? "phone" : "big"; }
+  // The phone's game view inflates at "lite" (2.6k triangles a body: up to 22 drawings share the 120k budget with the world; an old
+  // inflate.js without it falls back to "phone"); the TV at "big".
+  configure(phone) { this.cap = phone ? 16 : 40; this.quality = phone ? "lite" : "big"; }
   usable() { return entInflateState >= 0; }
   // A view's claim on a drawing. Entry states: queued → loading → loaded → ready | failed.
   acquire(url, kind, color) {
@@ -519,10 +651,11 @@ function entReset(map) {
   for (const [k, v] of Object.entries(map)) if (v) entNote(k, v);
 }
 const entRig = { person: "person", car: "car", bike: "car", quadruped: "quadruped", blob: "blob" };
-const entSize = { person: 1.8, car: 2.8, bike: 1.9, quadruped: 2.0, blob: 1.4 };
-// Shield bubble [centre height, scale x, y, z] and the marker height above the head, per planet type.
-const entShield = { person: [0.95, 1, 1.15, 1], car: [0.75, 1.0, 0.85, 1.45], bike: [0.75, 0.7, 0.95, 1.1], quadruped: [0.85, 0.85, 0.9, 1.3], blob: [0.7, 0.75, 0.75, 0.75] };
-const entMarkY = { person: 2.3, car: 1.9, bike: 1.9, quadruped: 1.7, blob: 1.4 };
+// Longest side in metres, the same as inflate.js KIND[type].size (a drawn car is ~4 m like a real one, a person 1.8 m tall).
+const entSize = { person: 1.8, car: 4.0, bike: 2.0, quadruped: 2.0, blob: 1.4 };
+// Shield bubble [centre height, scale x, y, z] (the island's bubble has a 1.25 m radius) and the marker height above the head, per planet type.
+const entShield = { person: [0.95, 1, 1.15, 1], car: [0.85, 1.1, 1.0, 1.75], bike: [0.75, 0.7, 0.95, 1.15], quadruped: [0.85, 0.85, 0.9, 1.3], blob: [0.7, 0.75, 0.75, 0.75] };
+const entMarkY = { person: 2.3, car: 2.3, bike: 1.9, quadruped: 1.7, blob: 1.4 };
 const ENT_TAU = Math.PI * 2;
 function entHash(s) {
   let h = 2166136261;
@@ -649,6 +782,9 @@ function entToy(type, colorHex) {
   geos.push(geo);
   root.add(new THREE.Mesh(geo, mat));
   for (const o of socketList) root.add(o);
+  // The toy is modelled ~2.6 m long; a car is shown ~4 m like a drawn one (entSize), so the whole toy scales (wheel radii too: spin speed).
+  const k = type === "car" ? entSize.car / 2.6 : 1;
+  root.scale.setScalar(k);
   const out = [];
   for (const w of wheels) {
     const pivot = new THREE.Group();
@@ -657,7 +793,7 @@ function entToy(type, colorHex) {
     pivot.add(new THREE.Mesh(w.geo, mat));
     root.add(pivot);
     geos.push(w.geo);
-    out.push({ pivot, radius: w.R, drawn: false });
+    out.push({ pivot, radius: w.R * k, drawn: false });
   }
   return { object3d: root, sockets: sock, materials: [mat], wheels: out, toy: true, dispose() { root.removeFromParent(); mat.dispose(); for (const g of geos) g.dispose(); } };
 }
@@ -802,9 +938,9 @@ class ParkedShip extends ShipModel {
     this.saved = null;
     if (this.model && this.model.setEnginePower) this.model.setEnginePower(0.35);
   }
-  // The owner's DRAWN ship: the drawing URL the server may put on the parked entry itself (island.parked[].image), else the last SHIP
-  // entity seen for that player (entShips: kept apart from the current entity, which is the explorer once they have landed; a
-  // screen that connected after they landed only has it if the server sent it).
+  // The owner's DRAWN ship: the drawing URL the server puts on the parked entry itself (island.parked[].image, v1.3 server: also for a
+  // screen that connected or reloaded after they landed), else the last SHIP entity seen for that player (entShips: kept apart from the
+  // current entity, which is the explorer once they have landed). No drawing at all: the default ship.
   entityFor(q) {
     if (q.image) {
       if (!this.imgEnt || this.imgEnt.image !== q.image) this.imgEnt = { type: "ship", image: q.image };
@@ -1086,7 +1222,11 @@ class ExplorerView {
       const wh = model.wheels;
       if (wh) for (let i = 0; i < wh.length; i++) wh[i].pivot.rotation.x -= (clamp(fwdSpeed, -40, 40) * dt) / wh[i].radius;
     }
-    this.shield.visible = !!model && !!(p.flags.spawnShield || p.flags.shield);
+    // Hex bubble (radius 1.25 x the type's shape): A-010's batched round shield once loaded (one draw for all of them; none for an
+    // invisible rival or in my own cockpit), else this mesh; a bubble nobody asks for is swept by efx.update().
+    const shS = this.shield.scale;
+    this.shield.visible = !!model && !!(p.flags.spawnShield || p.flags.shield) && !(ctx.cockpit && p.name === ctx.me) && !(p.flags.invisible && p.name !== ctx.me) &&
+      !isl.efx.shield(this, g.position.x, g.position.y + this.shield.position.y * g.scale.y, g.position.z, 0.5 * Math.max(shS.x, shS.y, shS.z) * g.scale.x);
     if (p.flags.digging && Math.random() < dt * 14) {
       const f = forwardOf(p.yaw, 0, isl.tmp);
       isl.particles.emit(p.x + f.x * 0.8, ground + 0.2, p.z + f.z * 0.8, (Math.random() - 0.5) * 3, 3 + Math.random() * 3, (Math.random() - 0.5) * 3, 0.8, 0.35, 0.15, DIRT, 1.0, 0.5, 12);
@@ -1425,6 +1565,14 @@ function puffTexture() {
   t.colorSpace = THREE.NoColorSpace;
   return t;
 }
+// The A-003 cloud (SpaceWorld.buildCloud): its radius against the server's nebula radius (220 m: the arcs sit ~150-170 m out,
+// round the mothership and the fight, its hollow centre keeps the boss clear) and its additive opacity (A-003's 0.22 default
+// reads faint against A-011's bright sky; the phone's 24 puffs get a little more than the TV's 80).
+const NEBULA_SCALE = 1.15, NEBULA_OPACITY = { phone: 0.34, big: 0.3 };
+// A-011's dim nebula-interior sky (SpaceWorld.updateSky, TV only): in when the camera is closer to the nebula centre than IN x its
+// radius, out again past OUT x (the gap stops flapping on the edge), at most one switch per SKY_SWITCH_GAP s: every switch decodes a
+// 2048 x 1024 panorama (the helper frees the other one), and the boss fight, right at the nebula's edge, would cross it constantly.
+const SKY_NEBULA_IN = 0.75, SKY_NEBULA_OUT = 1.6, SKY_SWITCH_GAP = 20;
 
 // Hex shield bubble (cyan, translucent, fresnel rim), shared material, one mesh per ship (hidden when off).
 const SHIELD_MAT = () => new THREE.ShaderMaterial({
@@ -1481,7 +1629,28 @@ function placeholderExplorer(color) {
 // One ship: its drawing or the A-009 default ship (see ShipModel) in the player colour, engine glow + trail, hex shield,
 // animator. A far ship is an impostor (SpaceWorld.planLod): no mesh, a glow sprite plus its engine glow. In the lobby
 // every ship spins slowly on the spot and pops in (a scale bounce) when its model first appears.
-const FAR_PARTS = 70; // metres: a default ship further from the camera than this draws only its hull
+// metres: a default ship further from the camera than this draws only its hull (1 call instead of 3; was 70: the TV boss fight
+// peaked at 115 of its 120 calls before A-010 and A-002's foreground came in)
+const FAR_PARTS = 45;
+// The TV forces the humans' drawings on screen (s.human), but only the nearest of them up to the mesh cap: 25 humans must not
+// mean 25 x 3 draw calls. The others compete with the bots by distance in entPlanLod; one that has a mesh counts 25 % closer
+// (no flicker between two humans at the same distance).
+function lodHumans(items, cap) {
+  let n = 0;
+  for (let i = 0; i < items.length; i++) if (items[i].forced) n++;
+  while (n < cap) {
+    let best = null, bd = Infinity;
+    for (let i = 0; i < items.length; i++) {
+      const s = items[i];
+      if (!s.human || s.forced) continue;
+      const d = s.lodDist * (s.wantMesh ? 0.75 : 1);
+      if (d < bd) { bd = d; best = s; }
+    }
+    if (!best) break;
+    best.forced = true;
+    n++;
+  }
+}
 class ShipView extends ShipModel {
   constructor(space, name, color) {
     // body: the animator's root (its transform stays identity; the animator moves the model under its own pivot).
@@ -1606,7 +1775,10 @@ class ShipView extends ShipModel {
     }
     const shown = !!this.model;
     if (shown) this.farParts(!lobby && this.lodDist > (this.partsFar ? FAR_PARTS * 0.8 : FAR_PARTS)); // hysteresis; the lobby showcase keeps every part
-    this.shield.visible = shown && !!(p.flags.shield || p.flags.spawnShield);
+    // Hex bubble (radius 2.6): A-010's batched shield once loaded (one draw for all of them; none for an invisible rival, in my own
+    // cockpit or in a dive), else this mesh. A bubble nobody asks for (dead, impostor, landing shot, gone) is swept by efx.update().
+    this.shield.visible = shown && !!(p.flags.shield || p.flags.spawnShield) && !hideSelf && !p.flags.landing && !(p.flags.invisible && p.name !== ctx.me) &&
+      !this.space.efx.shield(this, g.position.x, g.position.y, g.position.z, 1.04 * g.scale.x);
     if (shown) {
       this.setOpacity(p.flags.invisible ? (p.name === ctx.me ? 0.35 : 0.12) : 1);
       if (this.model.setEnginePower) this.model.setEnginePower(p.flags.boost ? 2.2 : 1);
@@ -2234,8 +2406,20 @@ class SpaceWorld {
     this.bossLight = new THREE.PointLight(0xff2a1a, 0, 280, 1.6);
     scene.add(this.bossLight);
     scene.add(makeStars(phone ? 3500 : 7000));
+    this.skyBusy = false;   // an A-011 variant switch is in flight (updateSky)
+    this.skyFailed = false; // a variant failed to load: the sky that is up stays
+    // The decorative cloud round the boss (World look): A-003's violet / magenta arcs (buildCloud, one per round at the server's
+    // nebula) once the module loads; until then, or if it fails, the old additive puff batch (this.nebula, filled in setWorld)
+    // stands in. setNebulaFade drives whichever is live; nebulaFlare lights the A-003 cloud round a FLARE.
     this.nebula = new BillboardBatch(phone ? 40 : 70, { map: puffTexture(), nearFade: 1.6, renderOrder: 5 });
     scene.add(this.nebula.mesh);
+    this.cloud = null;     // this round's A-003 nebula
+    this.cloudMake = null; // A-003's createNebula, once loaded
+    this.cloudSeed = 1;
+    this.cloudFade = 1;
+    this.cloudTmp = v3();
+    loadAsset("nebula").then((make) => { if (make) { this.cloudMake = make; this.buildCloud(); } });
+    this.fore = null; // A-002's giant foreground rocks of this round (setLook)
     this.glow = new BillboardBatch(512, { renderOrder: 14 });
     scene.add(this.glow.mesh);
     this.particles = new Particles(phone ? 1800 : 4000);
@@ -2262,6 +2446,7 @@ class SpaceWorld {
     this.flash = 0; // 1 right after a huge explosion (the boss dies), falling to 0 over FLASH_SECONDS: the frame loop dims bloom / exposure by it
     this.dummy = new THREE.Object3D();
     worldSound.reset();
+    this.efx = new WorldFx(this, "space"); // A-010 effects + hex shields (null-safe until it loads; fx() keeps the ad hoc bursts meanwhile)
   }
 
   // The key light's direction (towards the light) and the rim light opposite, a little below.
@@ -2288,12 +2473,68 @@ class SpaceWorld {
         b.add(n.x + Math.cos(th) * s * r, n.y + u * r * 0.5, n.z + Math.sin(th) * s * r, n.radius * (0.45 + rnd() * 0.6), c.r, c.g, c.b, 0.05 + rnd() * 0.06);
       }
       b.end();
+      this.cloudSeed = Math.floor(w.seed) || 1;
+      this.buildCloud(); // A-003 (when loaded) takes over from the puffs
     }
     const boss = w.targets.find((t) => t.kind === "boss");
     this.setLook(w, boss);
     this.setRocks(w);
     this.setBoss(boss);
     this.setPlanet(w.planet);
+  }
+
+  // This round's A-003 cloud at the server's nebula (a new one per round: its arcs and texture are seeded): 'low' = 24 puffs /
+  // 48 triangles on the phone, 'high' = 80 / 160 on the TV, ONE draw call and one 128 px texture either way. The puff batch
+  // retires (hidden) while it lives and comes back if it fails.
+  buildCloud() {
+    const n = this.nebulaAt;
+    if (!this.cloudMake || !n) return;
+    this.cloud?.dispose();
+    this.cloud = null;
+    try {
+      const c = this.cloudMake({ radius: n.radius * NEBULA_SCALE, seed: this.cloudSeed, quality: this.phone ? "low" : "high", opacity: this.cloudOpacity() });
+      c.object3d.position.set(n.x, n.y, n.z);
+      this.scene.add(c.object3d);
+      this.cloud = c;
+    } catch (e) { entWarn("A-003 nebula (puffs stay)", e); }
+    this.nebula.mesh.visible = !this.cloud;
+  }
+  cloudOpacity() { return (this.phone ? NEBULA_OPACITY.phone : NEBULA_OPACITY.big) * this.cloudFade; }
+  // k = 1 normal .. 0 gone: the landing / take-off shot's sky dome hides the starfield, so the additive clouds (they would glow
+  // through it) fade with it. Drives the A-003 cloud, or the puff batch's uFade in fallback mode (kept in step either way).
+  setNebulaFade(k) {
+    this.cloudFade = clamp(Number.isFinite(k) ? k : 1, 0, 1);
+    this.nebula.material.uniforms.uFade.value = this.cloudFade;
+    if (this.cloud) this.cloud.setOpacity(this.cloudOpacity());
+  }
+  // A FLARE at world `pos` lights the A-003 cloud round it for 14 s (world-fx calls this from fx()). setFlare wants root-local
+  // coordinates; flares far outside the cloud are ignored (a new flare replaces the last one, so they must not cancel a near one).
+  nebulaFlare(pos, strength = 1) {
+    const c = this.cloud, n = this.nebulaAt;
+    if (!c || !n || !pos) return;
+    try {
+      c.object3d.updateMatrixWorld();
+      const p = c.object3d.worldToLocal(this.cloudTmp.set(pos.x, pos.y, pos.z));
+      if (p.length() > n.radius * NEBULA_SCALE * 2) return;
+      c.setFlare(p, clamp(Number.isFinite(strength) ? strength : 1, 0, 4));
+    } catch (e) { entWarn("A-003 flare", e); }
+  }
+  // A-011's dim nebula-interior sky while the camera is inside the boss's nebula, the bright one outside (hysteresis
+  // SKY_NEBULA_IN / OUT, SKY_SWITCH_GAP s apart), one switch in flight at most: the helper keeps the old sky up until the new image
+  // is in. A failed load stops the switching. Not on the phone: a 2048 px decode + canvas shrink mid-fight is a visible hitch there.
+  updateSky(cam) {
+    const env = this.env, n = this.nebulaAt;
+    if (this.phone || !env || !n || this.skyBusy || this.skyFailed) return;
+    const d = Math.hypot(cam.x - n.x, cam.y - n.y, cam.z - n.z);
+    const want = d < n.radius * (env.variant === "nebula" ? SKY_NEBULA_OUT : SKY_NEBULA_IN) ? "nebula" : "space";
+    if (want === env.variant) return;
+    const now = performance.now();
+    if (now - (this.skyAt || -1e9) < SKY_SWITCH_GAP * 1000) return;
+    this.skyAt = now;
+    this.skyBusy = true;
+    env.setVariant(want)
+      .catch((e) => { this.skyFailed = true; entWarn("A-011 sky variant", e); })
+      .finally(() => { this.skyBusy = false; });
   }
 
   // Once per round: the sun, the planet in view (locked) and the decorative rocks.
@@ -2323,6 +2564,19 @@ class SpaceWorld {
     const huge = new DecoField(plan.huge, [chunkyRockGeometry(3, 31, 13, 0.65), chunkyRockGeometry(3, 47, 14, 0.65), chunkyRockGeometry(3, 59, 12, 0.65)], 30);
     this.scene.add(small.group, huge.group);
     this.deco.push(small, huge);
+    // A-002's giant foreground rocks (plan.fore: TV 12, phone 6, one draw call for all) replace the procedural huge ones (3 calls)
+    // once they load; the previous round's are disposed at once. The procedural ones stay if the asset fails (or nothing fit).
+    this.fore?.dispose();
+    this.fore = null;
+    const gen = (this.foreGen = (this.foreGen || 0) + 1);
+    if (plan.fore.length) loadAsset("foreground", { seed: Math.floor(w.seed) || 1, rocks: plan.fore }).then((f) => {
+      if (!f) return;
+      if (gen !== this.foreGen) { f.dispose(); return; }
+      this.fore = f;
+      this.scene.add(f.object3d);
+      huge.dispose();
+      this.deco = this.deco.filter((d) => d !== huge);
+    });
   }
 
   setRocks(w) {
@@ -2411,9 +2665,11 @@ class SpaceWorld {
       // The big bang: hundreds of additive puffs the size of a ship piled up on one spot used to white the screen out for seconds
       // (bloom on top). Fewer, dimmer puffs (they also fade out near the camera, see Particles), and the bloom / exposure
       // give way for the first seconds (this.flash, read by the frame loop).
-      const pos = v3(b.x, b.y, b.z);
-      this.particles.burst(pos, new THREE.Color(0xff6a2a), 90, 40, 2.0, 5, 1, { boost: 1.9, drag: 1.2, spread: 10 });
-      this.particles.burst(pos, new THREE.Color(0xffd27a), 40, 25, 1.4, 7, 2, { boost: 1.9, drag: 1.6, spread: 6 });
+      // With A-010 loaded the fx `explode` (size 30) already draws the big blast and its chain over the hull: only a third of these
+      // puffs then (debris colour round the chain), never two full bursts on one spot.
+      const pos = v3(b.x, b.y, b.z), k = this.efx?.ok ? 0.33 : 1;
+      this.particles.burst(pos, new THREE.Color(0xff6a2a), Math.round(90 * k), 40, 2.0, 5, 1, { boost: 1.9, drag: 1.2, spread: 10 });
+      this.particles.burst(pos, new THREE.Color(0xffd27a), Math.round(40 * k), 25, 1.4, 7, 2, { boost: 1.9, drag: 1.6, spread: 6 });
       this.rings.spawn(pos, 0xff7a3a, 70, 1.6);
       this.rings.spawn(pos, 0xffd27a, 120, 2.2);
       this.flash = 1;
@@ -2475,11 +2731,15 @@ class SpaceWorld {
       s.hadMesh = s.wantMesh;
       if (p.flags.dead || p.mode !== "space") { s.wantMesh = false; continue; }
       s.lodDist = Math.hypot(p.x - cam.x, p.y - cam.y, p.z - cam.z);
-      s.forced = s.transit || p.name === ctx.me || p.name === subject || (!this.phone && !p.flags.bot); // the TV always shows the humans' drawings
+      s.forced = s.transit || p.name === ctx.me || p.name === subject;
+      s.human = !this.phone && !p.flags.bot; // the TV shows the humans' drawings first (lodHumans)
       items.push(s);
     }
-    // the TV lobby shows all 25 (a 5 x 5 wall of showcase ships); in play 16 meshes, the rest are glows
-    entPlanLod(items, this.phone, this.phone ? 8 : ctx.lobby ? 30 : 16, 450, 520, this.lodOrder || (this.lodOrder = []), t);
+    // the TV lobby shows all 25 (a 5 x 5 wall of showcase ships); in play 12 meshes (the TV boss fight's budget: 12 x 3 calls of
+    // default ships), the rest are glows
+    const cap = this.phone ? 8 : ctx.lobby ? 30 : 12;
+    lodHumans(items, cap);
+    entPlanLod(items, this.phone, cap, 450, 520, this.lodOrder || (this.lodOrder = []), t);
   }
 
   // ---- per-frame ----
@@ -2527,6 +2787,12 @@ class SpaceWorld {
     } else this.flareLight.intensity = 0;
     this.updateBoss(dt, t, camera);
     this.updatePlanet(dt, t, ctx, camera);
+    // World-look assets: the A-003 cloud's drift / breathing and its near-camera fade (a throw retires it for the puff batch),
+    // then A-011's sky variant (dim inside the nebula).
+    if (this.cloud) {
+      try { this.cloud.update(dt, camera); } catch (e) { entWarn("A-003 nebula update (puffs back)", e); this.cloud.dispose(); this.cloud = null; this.nebula.mesh.visible = true; }
+    }
+    this.updateSky(camera.position);
     for (const f of this.deco) f.update(t);
     if (this.deco[0]) this.deco[0].group.visible = this.farRocks; // the lowest quality tier drops the small decorative field
     this.glow.end();
@@ -2534,6 +2800,8 @@ class SpaceWorld {
     this.rings.update(dt, camera);
     this.cullRocks(camera.position, t);
     if (this.flash > 0) this.flash = Math.max(0, this.flash - dt / FLASH_SECONDS);
+    // A-010 effects: this scene's clock (after the ships asked for their hex bubbles: the unasked ones go), the boss's delayed blasts.
+    this.efx.update(dt, t);
   }
 
   // Player bullets (mode 0) and boss shots as laser streaks: cylindrical billboards along their motion (the interpolated
@@ -2585,8 +2853,16 @@ class SpaceWorld {
       const w = tmp.copy(st.tipBeacons[i]).applyMatrix4(B.group.matrixWorld);
       g.add(w.x, w.y, w.z, Math.max(4.6, far * 1.3) * (0.8 + 0.3 * on), 3 * on, 0.35 * on, 0.22 * on, 1);
     }
+    // THE enemy from anywhere on the map (World look): past ~350 m a pulsing red eye of constant screen size (~2 degrees; bloom
+    // catches its HDR centre) set in front of the hull towards the camera, so the armour never hides it, and a stronger halo.
+    // Glow-batch quads: no draw call, the same on the phone.
+    const farK = clamp((dist - 350) / 450, 0, 1);
     g.add(b.x, b.y, b.z, Math.max(hull * 1.3, dist * 0.025) * (0.9 + 0.2 * pulse), 2.2, 0.35, 0.2, 0.45); // the core
-    g.add(b.x, b.y, b.z, Math.max(150, dist * 0.2), 0.3 + 0.12 * pulse, 0.03, 0.05, 0.5);               // the halo
+    g.add(b.x, b.y, b.z, Math.max(150, dist * 0.2), (0.3 + 0.12 * pulse) * (1 + 0.6 * farK), 0.03, 0.05, 0.5); // the halo
+    if (farK > 0) {
+      const e = tmp.copy(camera.position).sub(B.group.position).multiplyScalar(st.extent / dist).add(B.group.position);
+      g.add(e.x, e.y, e.z, dist * 0.035 * (0.85 + 0.3 * pulse), 3.6 * farK, 0.4 * farK, 0.28 * farK, 1);  // the eye
+    }
     this.bossLight.position.set(b.x, b.y, b.z);
     this.bossLight.intensity = 320 * (0.85 + 0.3 * pulse);
     // World hint of an older server (armour > 0): a glowing hairline crack where the armour is weakest.
@@ -2630,16 +2906,52 @@ class SpaceWorld {
     const pos = v3(m.pos.x, m.pos.y, m.pos.z);
     const c = new THREE.Color(m.color ?? 0xffffff);
     const size = m.size || 1;
-    const P = this.particles;
+    const P = this.particles, F = this.efx;
+    if (m.kind === "flare") this.nebulaFlare?.(pos, clamp(size / TUNING.flare.radius, 0.15, 1)); // the A-003 cloud lights up round it (a teleport's small flare a little)
+    const mischief = m.kind === "emp" || m.kind === "inkbomb" || m.kind === "tractor" || m.kind === "mine" || m.kind === "decoy";
+    if (F.ok && !mischief && m.kind !== "crack") {
+      // A-010 (sizes grown with the camera distance for the TV and capped near the camera: WorldFx.size; rings face the camera,
+      // sparks fly at it). The ad hoc bursts below stay as the fallback until (unless) it loads, and for crack (no A-010 kind).
+      const k = m.kind, at = F.toCam(pos);
+      if (k === "explode") {
+        if (size >= 12) {
+          // The boss (size 30): a blast at its core, then a chain over the hull for ~1.3 s (3 on the phone, 6 on the TV), each one
+          // sized from the camera when it goes off: a mothership breaking up, never one screen-filling fireball.
+          const R = TUNING.boss.radius * BOSS_HULL_K, n = this.phone ? 3 : 6;
+          F.spawn("explosion_large", pos, F.size(pos, R * 0.3, 0.06), undefined, at);
+          for (let i = 0; i < n; i++) {
+            const u = Math.random() * 2 - 1, th = Math.random() * 6.283, s = Math.sqrt(1 - u * u) * R * 0.8;
+            F.later(0.12 + i * 0.2, "explosion_medium", pos.x + Math.cos(th) * s, pos.y + u * R * 0.8, pos.z + Math.sin(th) * s, R * 0.18, 0.06, undefined, true);
+          }
+          this.flash = Math.max(this.flash, 0.6);
+        } else {
+          // small (rock bits, mines) / medium (ships, decoys, big rocks): A-010's fireball, the colour of what blew up in the debris
+          F.spawn(size < 4 ? "explosion_small" : "explosion_medium", pos, F.size(pos, size * (size < 4 ? 0.6 : 0.5), 0.06), undefined, at);
+          P.burst(pos, c, Math.min(24, 8 + size * 1.5), 5 + size * 1.5, 0.9, clamp(size * 0.25, 0.5, 1.6), 0.1, { boost: 2.2, drag: 1.4, spread: size * 0.4 });
+        }
+      } else if (k === "blast") F.spawn("blast", pos, F.size(pos, size / 12, 0.06), m.color, at);
+      // the flare's light (TV) is 70 x size² at 24 x size m: size <= 2.5 keeps it from blowing out the flarer's own hull
+      else if (k === "flare") F.spawn("flare", pos, Math.min(2.5, F.size(pos, 2 * clamp(size / TUNING.flare.radius, 0.15, 1), 0.08)), m.color ?? 0xfff1c2, at);
+      // rings to 8 x size: capped at 0.15 x the distance they still fly out past the screen's edges, like the old 250 m ring
+      else if (k === "scan") F.spawn("scan", pos, F.size(pos, (m.size || TUNING.scan.range) / 8, 0.15), undefined, at);
+      else if (k === "drill") F.spawn("drill", pos, F.size(pos, 1, 0.15), undefined, at);
+      else if (k === "respawn") F.spawn("respawn", pos, F.size(pos, 1.1, 0.15), m.color ?? 0x22d3ee, at);
+      else if (k === "land") F.spawn("scan", pos, F.size(pos, 0.9, 0.15), m.color, at); // a landing dive / a lift-off: a ping in the player's colour
+      else F.spawn("spark", pos, F.size(pos, 0.5 + size * 0.3, 0.15), m.color, at); // hit, spark
+      return;
+    }
     switch (m.kind) {
-      case "explode":
-        // A white-hot flash, an orange fireball, the player's colour in the debris, and a shock ring for the bigger ones.
-        P.burst(pos, new THREE.Color(0xfff0c8), 8, size * 3, 0.3, size * 2.6, size * 0.7, { boost: 4 });
-        P.burst(pos, new THREE.Color(0xffa040), Math.min(50, 10 + size * 3), size * 3.2, 0.7, size * 1.6, size * 0.4, { boost: 3.2, drag: 1.6 });
-        P.burst(pos, c, Math.min(60, 14 + size * 4), 6 + size * 2.5, 1.1, Math.max(0.6, size * 0.35), 0.1, { boost: 2.5, drag: 1.2, spread: size * 0.6 });
-        if (size >= 3) this.rings.spawn(pos, 0xffb060, size * 2.2, 0.8);
+      case "explode": {
+        // A white-hot flash, an orange fireball, the player's colour in the debris, and a shock ring for the bigger ones. Without
+        // A-010 the boss's size 30 made 50 additive puffs 48 m wide (a white screen): puff sizes stop at size 6.
+        const sz = Math.min(size, 6);
+        P.burst(pos, new THREE.Color(0xfff0c8), 8, sz * 3, 0.3, sz * 2.6, sz * 0.7, { boost: 4 });
+        P.burst(pos, new THREE.Color(0xffa040), Math.min(50, 10 + sz * 3), sz * 3.2, 0.7, sz * 1.6, sz * 0.4, { boost: 3.2, drag: 1.6 });
+        P.burst(pos, c, Math.min(60, 14 + sz * 4), 6 + sz * 2.5, 1.1, Math.max(0.6, sz * 0.35), 0.1, { boost: 2.5, drag: 1.2, spread: sz * 0.6 });
+        if (size >= 3) this.rings.spawn(pos, 0xffb060, sz * 2.2, 0.8);
         if (size >= 12) this.flash = Math.max(this.flash, 0.6);
         break;
+      }
       case "blast":
         P.burst(pos, c, 60, size * 2.5, 0.9, 2.5, 0.2, { boost: 3 });
         this.rings.spawn(pos, m.color ?? 0xffffff, size * 1.2, 0.8);
@@ -2684,7 +2996,9 @@ class SpaceWorld {
   clearForRound() {
     this.particles.clear();
     this.mischief.clear();
+    this.efx.clear(); // A-010: every effect, bubble and pending boss blast of the last round goes
     worldSound.reset();
+    this.skyFailed = false; // world-assets: a new round may retry A-011's nebula sky after a failed load
   }
 }
 
@@ -2809,8 +3123,9 @@ function placeholderBoss(s) {
 //                                      multiplier, pan -1..1, size "small" | "medium" | "large" (explosions). false until unlocked.
 //   sfx.setMuted(bool)  sfx.muted  sfx.unlocked  sfx.ready  sfx.loop(name, opts) → { stop(), setPan(), setVolume() } (held actions)
 // Names pages may use (UI only): click pop hint unlock. Every game sound is played by WorldSound below (laser bossLaser explosion
-// explosionBig hit crack drill dig land touch takeoff chest scan flare boost emp ink tractor mine death respawn kill start win
-// countdown): pages must not play those, or they would sound twice. Nothing here ever throws.
+// explosionBig hit hitmark crack drill dig land touch takeoff chest scan flare boost emp ink tractor mine death respawn kill steal
+// start win countdown, and the held boost / drill / dig loops): pages must not play those, or they would sound twice. Nothing here
+// ever throws.
 // <sound>  (the Node tests in dev/v12-client/render read everything from here to </sound>)
 // name → [sfx.js name, playback-rate factor]
 const SFX_MAP = {
@@ -2822,6 +3137,7 @@ const SYNTH_MAP = {
   emp: ["zap", 1], ink: ["zap", 0.7], tractor: ["zap", 0.55], mine: ["explosion", 1.3], death: ["explosionBig", 1], kill: ["chest", 1.3],
   respawn: ["pop", 1.3], crack: ["explosion", 0.75], shield: ["boost", 0.8], "ui-tap": ["click", 1], "countdown-go": ["start", 1],
   "explosion-large": ["explosionBig", 1], "explosion-small": ["explosion", 1.2], "explosion-medium": ["explosion", 1],
+  steal: ["chest", 0.8], hitmark: ["click", 1.6],
 };
 const sfxLoader = () => import("./sfx.js");
 const inertLoop = Object.freeze({ stop() {}, setPan() {}, setVolume() {} });
@@ -3194,6 +3510,16 @@ const sfx = (() => {
 // ship; the followed player on the big screen) and the sound pans with where it is on screen. Both worlds call tick() once per
 // frame and fx() for their fx messages. One event, one sound: a mischief hit on my phone arrives as a `mischief` message AND as the
 // fx burst on my ship: whichever comes first plays, the other is skipped for 600 ms (sup / fxAt).
+// The held loops (WorldSound.loopTick): the sfx.js loop, the tick flag that holds it, its reference distance (m) and level. A loop starts
+// once its flag has been held LOOP_HOLD_MS (a tap is just the boost whoosh; a hold adds the roar under it). Boost is the subject's
+// alone; a drill or a dig is heard from whoever is nearest (the server sends no fx for them: the loop is their sound).
+const LOOP_HOLD_MS = 300;
+const BOSS_HIT_COL = 0xef4444, HEAL_COL = 0x4ade80; // world.js fx("hit") colours: the boss was hit / a heal (a player hit is orange)
+const LOOP_KINDS = [
+  { kind: "boost", flag: "boost", subjectOnly: true, ref: 60, v: 0.55 },
+  { kind: "drill", flag: "drilling", subjectOnly: false, ref: 35, v: 0.8 },
+  { kind: "dig", flag: "digging", subjectOnly: false, ref: 30, v: 0.85 },
+];
 class WorldSound {
   constructor() {
     this.game = null;
@@ -3212,29 +3538,86 @@ class WorldSound {
     this.meDead = false; // the phone's own ship was down last tick
     this.sup = Object.create(null); // mischief kind → performance.now() until which its fx sound is skipped
     this.fxAt = Object.create(null); // mischief kind → performance.now() of its last fx sound
+    this.pan = 0; // the pan gain() worked out last
+    // Held actions as loops (sfx.loop): one per kind, carried by the loudest player doing it (LOOP_KINDS). h = the handle, who = the
+    // carrier, t0 = when it started (a loop is renewed every 24 s: sfx.js stops a forgotten one after maxSeconds), at = last re-aim,
+    // cand / since = the would-be carrier and since when it holds (LOOP_HOLD_MS).
+    this.loops = LOOP_KINDS.map((k) => ({ kind: k.kind, flag: k.flag, subjectOnly: k.subjectOnly, ref: k.ref, v: k.v, h: null, who: null, t0: 0, at: 0, cand: null, since: 0 }));
+    // MY last bullets (id, last position, unit direction when known, when seen): a hit fx just ahead of where one vanished is MY hit →
+    // the confirm tick (hitmark).
+    this.myShots = Array.from({ length: 24 }, () => ({ id: -1, x: 0, y: 0, z: 0, dx: 0, dy: 0, dz: 0, dir: false, t: 0 }));
   }
   attach(game) { this.game = game; }
-  reset() { this.boost.clear(); this.shot.clear(); this.bullets.clear(); this.shots.clear(); this.phase = null; this.count = NaN; this.meDead = false; }
-  // One sound at a place: quieter with distance, silent from the other world (unless `global` is given), panned by screen side.
-  at(name, x, y, z, mode, o = {}) {
+  reset() { this.boost.clear(); this.shot.clear(); this.bullets.clear(); this.shots.clear(); this.phase = null; this.count = NaN; this.meDead = false; this.hush(); for (const s of this.myShots) s.id = -1; }
+  // Every held loop off at once (a new round, the page paused or hidden: nothing may hum on behind the draw screen).
+  hush() {
+    for (const l of this.loops) if (l.h) { try { l.h.stop(0.12); } catch { /* ignore */ } l.h = null; l.who = null; }
+  }
+  // How loud a sound at a place is for the listener (0 = silent): quieter with distance, silent from the other world (unless `global`
+  // is given). Sets this.pan by screen side.
+  gain(x, y, z, mode, v, ref, global) {
     const L = this.L;
-    let v = o.v === undefined ? 1 : o.v, pan = 0;
-    if (L.ok) {
-      if (mode !== L.mode) {
-        if (!(o.global > 0)) return;
-        v *= o.global;
-      } else {
-        const k = Math.hypot(x - L.x, y - L.y, z - L.z) / (o.ref || 60);
-        v /= 1 + k * k;
-        const c = this.cam;
-        if (c) {
-          const R = this.right, dx = x - c.x, dy = y - c.y, dz = z - c.z;
-          pan = clamp(((dx * R[0] + dy * R[1] + dz * R[2]) / (Math.hypot(dx, dy, dz) + 8)) * 1.1, -0.85, 0.85);
+    this.pan = 0;
+    if (!L.ok) return v * 0.5;
+    if (mode !== L.mode) return global > 0 ? v * global : 0;
+    const k = Math.hypot(x - L.x, y - L.y, z - L.z) / (ref || 60);
+    v /= 1 + k * k;
+    const c = this.cam;
+    if (c) {
+      const R = this.right, dx = x - c.x, dy = y - c.y, dz = z - c.z;
+      this.pan = clamp(((dx * R[0] + dy * R[1] + dz * R[2]) / (Math.hypot(dx, dy, dz) + 8)) * 1.1, -0.85, 0.85);
+    }
+    return v;
+  }
+  // One sound at a place (see gain()).
+  at(name, x, y, z, mode, o = {}) {
+    const v = this.gain(x, y, z, mode, o.v === undefined ? 1 : o.v, o.ref, o.global);
+    if (v < 0.03) return;
+    sfx.play(name, { volume: v, pitch: o.pitch, pan: this.pan, size: o.size });
+  }
+  // The held loops, once per frame: the carrier of each kind is the loudest player with that flag (the subject at full volume; boost is
+  // the subject's alone). Started once the carrier has held it LOOP_HOLD_MS (the rising edge is the one-shot whoosh, so a tap sounds
+  // once), re-aimed every 100 ms, renewed every 24 s, stopped when nobody near does it. Nothing starts before audio is unlocked (an
+  // inert handle would never be retried).
+  loopTick(snap, subj) {
+    const now = performance.now(), live = sfx.unlocked;
+    for (const l of this.loops) {
+      let best = null, bv = 0, bpan = 0;
+      if (live) {
+        for (const p of snap.players) {
+          const f = p.flags;
+          if (!f || !f[l.flag] || f.dead || f.invisible && p !== subj) continue;
+          if (l.subjectOnly && p !== subj) continue;
+          const v = p === subj ? l.v : this.gain(p.x, p.y, p.z, p.mode === "planet" ? "planet" : "space", l.v, l.ref, 0);
+          if (v > bv) { bv = v; best = p; bpan = p === subj ? 0 : this.pan; }
         }
       }
-    } else v *= 0.5;
-    if (v < 0.03) return;
-    sfx.play(name, { volume: v, pitch: o.pitch, pan, size: o.size });
+      if (!best || bv < 0.04) { l.cand = null; if (l.h) { l.h.stop(0.15); l.h = null; l.who = null; } continue; }
+      if (best.name !== l.cand) { l.cand = best.name; l.since = now; }
+      if (l.h && now - l.t0 > 24000) { l.h.stop(0.05); l.h = null; }
+      if (!l.h) {
+        if (now - l.since < LOOP_HOLD_MS) continue;
+        l.h = sfx.loop(l.kind, { volume: bv, pan: bpan, maxSeconds: 25 });
+        l.t0 = l.at = now;
+        l.who = best.name;
+        continue;
+      }
+      if (now - l.at > 100 || l.who !== best.name) { l.at = now; l.who = best.name; l.h.setVolume(bv); l.h.setPan(bpan); }
+    }
+  }
+  // A hit just ahead of where one of MY bullets was last drawn (the sampled bullet trails the server by ~100 ms plus a tick: up to ~25 m
+  // in space) and close to its line → true. r = how far off the line still counts (the target's size). Bullets seen only once (no
+  // direction yet) never count: an impact behind or beside my shot is someone else's.
+  myHit(p, mode, r) {
+    const now = performance.now(), reach = 28 + r; // bullets fly 140 m/s in both worlds: ~14-20 m short when the hit arrives
+    for (const s of this.myShots) {
+      if (s.id < 0 || !s.dir || now - s.t > 260) continue;
+      const vx = p.x - s.x, vy = p.y - s.y, vz = p.z - s.z;
+      const along = vx * s.dx + vy * s.dy + vz * s.dz;
+      if (along < -3 || along > reach) continue;
+      if (vx * vx + vy * vy + vz * vz - along * along < r * r) { s.id = -1; return true; }
+    }
+    return false;
   }
   // A mischief fx sound, unless the personal one of this very hit has just played (see the class comment).
   mischiefAt(kind, name, p, mode, o) {
@@ -3257,7 +3640,14 @@ class WorldSound {
       const was = this.phase;
       this.phase = phase;
       if (was === "lobby" && phase === "playing") sfx.play("start", { volume: 0.85 });
-      else if (was && was !== "scoreboard" && phase === "scoreboard") sfx.play("win", { volume: 0.85 });
+      else if (was && was !== "scoreboard" && phase === "scoreboard") {
+        // The winner's phone gets the full fanfare; every other phone a softer one (the TV: the room's). One sound either way.
+        let top = null;
+        for (const p of snap.players) if (!top || (p.score || 0) > (top.score || 0)) top = p;
+        const phoneMe = this.game && this.game.screen === "phone" ? this.game.player : null;
+        const iWon = !!phoneMe && !!top && top.name === phoneMe;
+        sfx.play("win", { volume: iWon ? 1 : phoneMe ? 0.6 : 0.9 });
+      }
     }
     // The last 10 s of the round: one beep per second, higher for the last three.
     const g = this.game, tk = g && g.snaps && g.snaps.latest;
@@ -3282,7 +3672,7 @@ class WorldSound {
       names.add(p.name);
       const f = p.flags || {};
       const b = !!f.boost;
-      if (b && !this.boost.get(p.name)) this.at("boost", p.x, p.y, p.z, p.mode, { v: 0.55, ref: 70 });
+      if (b && !this.boost.get(p.name)) this.at("boost", p.x, p.y, p.z, p.mode, { v: 0.55, ref: 70 }); // the whoosh; a held boost adds the loop (loopTick)
       this.boost.set(p.name, b);
       const st = f.landing ? "land" : f.takingOff ? "takeoff" : "";
       if (st && st !== (this.shot.get(p.name) || "")) this.at(st, p.x, p.y, p.z, p.mode, { v: 0.9, ref: 110 });
@@ -3292,10 +3682,19 @@ class WorldSound {
     // Bullets: a laser zap for every new one close to the listener (the subject's own at full volume).
     const cur = this.bTmp;
     cur.clear();
+    const now = performance.now(), ms = this.myShots;
     for (const b of snap.bullets) {
       cur.add(b[0]);
-      if (this.bullets.has(b[0])) continue;
       const mine = L.color !== null && b[4] === L.color;
+      if (mine) { // remember where MY bullet is and where it heads (its slot, else the stalest one); b[6..8] = its step this tick
+        let s = ms[0];
+        for (let i = 0; i < ms.length; i++) { if (ms[i].id === b[0]) { s = ms[i]; break; } if (ms[i].t < s.t) s = ms[i]; }
+        if (s.id !== b[0]) s.dir = false;
+        s.id = b[0]; s.x = b[1]; s.y = b[2]; s.z = b[3]; s.t = now;
+        const len = b.length > 8 ? Math.hypot(b[6], b[7], b[8]) : 0;
+        if (len > 1e-3) { s.dx = b[6] / len; s.dy = b[7] / len; s.dz = b[8] / len; s.dir = true; }
+      }
+      if (this.bullets.has(b[0])) continue;
       this.at("laser", b[1], b[2], b[3], b[5] ? "planet" : "space", { v: mine ? 0.6 : 0.22, ref: 45, pitch: 0.92 + (b[0] % 7) * 0.025 });
     }
     this.bTmp = this.bullets;
@@ -3309,11 +3708,21 @@ class WorldSound {
     }
     this.sTmp = this.shots;
     this.shots = curS;
+    this.loopTick(snap, subj);
   }
-  // announce lines: "<me> ✕ <victim>" (+ " 💣" / " 🧲") is MY kill (a phone only).
+  // announce lines: "<me> ✕ <victim>" (+ " 💣" / " 🧲") is MY kill (a phone only). Steals (world.js: "💰 <thief> stole <n> points from
+  // <victim>!", "💥 <thief> stole the boss from <victim>! ..."): the steal sting for the thief and (lower) the victim, and on the TV.
   announce(m) {
     const me = this.game && this.game.screen === "phone" ? this.game.player : null;
-    if (me && m && typeof m.text === "string" && m.text.startsWith(me + " ✕ ")) sfx.play("kill", { volume: 0.9 });
+    const text = m && typeof m.text === "string" ? m.text : "";
+    if (!text) return;
+    if (me && text.startsWith(me + " ✕ ")) sfx.play("kill", { volume: 0.9 });
+    const st = /^💰 (\S+) stole \d+ points from (\S+?)!/.exec(text) || /^💥 (\S+) stole the boss from (\S+?)!/.exec(text)
+      || /^💥 (\S+) landed the last hit on the boss \(stolen from (\S+?)\)/.exec(text); // (the v1.2 wording)
+    if (!st) return;
+    if (!me) sfx.play("steal", { volume: 0.7 });
+    else if (st[1] === me) sfx.play("steal", { volume: 0.95, delay: 0.25 }); // after my kill sting
+    else if (st[2] === me) sfx.play("steal", { volume: 0.9, pitch: 0.78 });
   }
   // The personal mischief message (only the victim's / the owner's phone gets it): what hit me, at full volume. The fx burst on my
   // ship (same kind, within 600 ms) is skipped; and if that fx sound was first, this one is.
@@ -3337,6 +3746,13 @@ class WorldSound {
     if (!p) return;
     const mode = m.mode === "planet" ? "planet" : "space";
     const size = Number(m.size) || 1;
+    // MY shot landed (a hit, a chip off a rock or a rock / ship blown up just ahead of my bullet): the crisp confirm tick on top of the
+    // world's impact, full on my phone, softer for the TV's followed player. The fx sits at the target's centre: its size widens the line
+    // (a rock chip always comes with size 1: allow the biggest rock, 11 m). A heal (green hit) is nobody's shot.
+    if ((m.kind === "hit" || m.kind === "spark" || (m.kind === "explode" && size < 12)) && m.color !== HEAL_COL && this.L.color !== null
+      && this.myHit(p, mode, (mode === "planet" ? 2 : 4) + (m.kind === "explode" ? size : m.kind === "spark" ? (mode === "planet" ? 2 : 11) : 0))) {
+      sfx.play("hitmark", { volume: this.game && this.game.screen === "phone" ? 0.9 : 0.45, pitch: m.kind === "explode" ? 0.85 : 1 });
+    }
     switch (m.kind) {
       case "explode":
         if (size >= 12) this.at("explosionBig", p.x, p.y, p.z, mode, { v: 1, ref: 220 });
@@ -3344,7 +3760,14 @@ class WorldSound {
         break;
       case "blast": this.at("explosion", p.x, p.y, p.z, mode, { v: 0.6, ref: 90, size: "medium", pitch: 1.25 }); break;
       case "crack": this.at("crack", p.x, p.y, p.z, mode, { v: 0.8, ref: 120 }); break;
-      case "hit": this.at("hit", p.x, p.y, p.z, mode, { v: 0.7, ref: 50 }); break;
+      // world.js colours a hit: red = the boss was hit (a deep armour clang heard from further away), green = a heal (a soft shimmer,
+      // never a hit), orange = a ship / explorer / decoy hit (dry; ON me, on my phone: a heavy, close thump instead).
+      case "hit":
+        if (m.color === HEAL_COL) this.at("respawn", p.x, p.y, p.z, mode, { v: 0.4, ref: 40, pitch: 1.4 });
+        else if (mode === "space" && m.color === BOSS_HIT_COL) this.at("hit", p.x, p.y, p.z, mode, { v: 0.85, ref: 150, pitch: 0.62 });
+        else if (this.game && this.game.screen === "phone" && this.L.ok && mode === this.L.mode && Math.hypot(p.x - this.L.x, p.y - this.L.y, p.z - this.L.z) < 4) sfx.play("hit", { volume: 1, pitch: 0.72 });
+        else this.at("hit", p.x, p.y, p.z, mode, { v: 0.7, ref: 50 });
+        break;
       case "spark": this.at("hit", p.x, p.y, p.z, mode, { v: 0.35, ref: 40, pitch: 1.5 }); break;
       case "drill": this.at("drill", p.x, p.y, p.z, mode, { v: 0.7, ref: 40 }); break;
       case "dig": this.at("dig", p.x, p.y, p.z, mode, { v: 0.9, ref: 30 }); break;
@@ -3470,10 +3893,11 @@ class StreakBatch {
 }
 // ---------------------------------------------------------------------------------------------------------------
 // World look: decorative rocks (never collide; the gameplay rocks are the A-002 ones). Two fields, each a few instanced
-// meshes (one per shape): a dense field of small chunky rocks around the boss that thins out, and 8-14 HUGE low-poly
-// rocks drifting 120-500 m to the side of the spawn -> boss -> planet line, so they slide past the camera in the
-// foreground (the reference picture). They tumble and bob in the vertex shader (no CPU work per frame) and dissolve
-// when the camera comes inside them, so nothing ever clips through the camera.
+// meshes (one per shape): a dense field of small chunky rocks around the boss and along the spawn -> boss corridor, and
+// 8-14 HUGE low-poly rocks drifting 120-500 m to the side of the spawn -> boss -> planet line, so they slide past the camera
+// in the foreground (the reference picture); A-002's giant foreground rocks take their place once loaded (SpaceWorld.setLook).
+// They tumble and bob in the vertex shader (no CPU work per frame) and dissolve when the camera comes inside them, so
+// nothing ever clips through the camera.
 const ROCK_TINTS = ["#8f7b6a", "#a38a72", "#7d6c5e", "#9a8470", "#86766a", "#6f6a72"].map((c) => new THREE.Color(c)); // warm greys and browns; the last (cool) one is not used
 const PLANET_VISUAL_MAX = 230; // m: the visual planet seen from the spawn side (1900 m away) is about this big (PLANET_K x distance)
 
@@ -3619,6 +4043,11 @@ function planDecoRocks({ seed, boss, planetAt, gameplay, phone }) {
   const p1 = new THREE.Vector3().crossVectors(routeDir, up).normalize();
   const p2 = new THREE.Vector3().crossVectors(routeDir, p1).normalize();
   const pos = new THREE.Vector3();
+  // What every decorative rock keeps clear of: the v1.3 spawn disc (TUNING.spawnRadius across the line at the origin; the
+  // server keeps its rocks 40 m off it) and, for the big ones, the straight spawn -> boss segment (lineDist).
+  const spawnR = TUNING.spawnRadius ?? 130, spawnKeep = spawnR + (TUNING.spawnClear ?? 35) + 40;
+  const onLine = new THREE.Vector3();
+  const lineDist = () => pos.distanceTo(onLine.copy(routeDir).multiplyScalar(clamp(pos.dot(routeDir), 0, bossPos.length())));
   const tintOf = () => { const k = 0.88 + rnd() * 0.24, w = (rnd() - 0.5) * 0.14; return [k * (1 + w), k, k * (1 - w)]; };
   const clearOfGameplay = (rad) => {
     for (const r of gameplay) {
@@ -3627,20 +4056,28 @@ function planDecoRocks({ seed, boss, planetAt, gameplay, phone }) {
     }
     return true;
   };
-  // Small rocks: 80% crowd around the boss (denser close in), the rest thinly along the route.
+  // Small rocks (World look: the minute of flying to the boss must look rich, not empty): 55% crowd round the boss (denser
+  // close in), 35% fill the spawn -> boss corridor (bigger, 1.5-11 m, out to 320 m from the line; they dissolve round the
+  // camera, so they never block it), 10% thinly beyond the boss towards the planet. Phone 400 x 20 triangles (8k, 2 calls),
+  // TV 900 x 80 (72k, 2 calls); the lowest quality tier drops the whole field (SpaceWorld.update).
   const small = [];
-  const nSmall = phone ? 250 : 600;
+  const nSmall = phone ? 400 : 900;
+  const bossLen = bossPos.length();
   for (let guard = 0; small.length < nSmall && guard < nSmall * 14; guard++) {
-    const rad = 0.7 + Math.pow(rnd(), 2.4) * 5.5;
-    if (rnd() < 0.8) {
+    const zone = rnd();
+    let rad;
+    if (zone < 0.55) {
+      rad = 0.7 + Math.pow(rnd(), 2.4) * 5.5;
       const d = unit(); d.y *= 0.6; d.normalize();
       pos.copy(bossPos).addScaledVector(d, hull + 40 + Math.pow(rnd(), 1.7) * 420);
     } else {
-      pos.copy(routeDir).multiplyScalar(routeLen * (0.08 + rnd() * 0.97));
-      const a = rnd() * Math.PI * 2;
-      pos.addScaledVector(p1, Math.cos(a) * (30 + rnd() * 230)).addScaledVector(p2, Math.sin(a) * (30 + rnd() * 230) * 0.7);
+      const corridor = zone < 0.9;
+      rad = corridor ? 1.5 + Math.pow(rnd(), 1.8) * 9.5 : 0.7 + Math.pow(rnd(), 2.4) * 5.5;
+      pos.copy(routeDir).multiplyScalar(corridor ? bossLen * (0.06 + rnd() * 0.9) : bossLen + (routeLen - bossLen) * rnd());
+      const a = rnd() * Math.PI * 2, l = corridor ? 40 + Math.pow(rnd(), 0.8) * 280 : 30 + rnd() * 230;
+      pos.addScaledVector(p1, Math.cos(a) * l).addScaledVector(p2, Math.sin(a) * l * 0.7);
     }
-    if (pos.length() < 60 + rad || pos.distanceTo(bossPos) < hull + 40 + rad || pos.distanceTo(planetAt) < PLANET_VISUAL_MAX + 20 + rad) continue;
+    if (pos.length() < spawnR + 20 + rad || pos.distanceTo(bossPos) < hull + 40 + rad || pos.distanceTo(planetAt) < PLANET_VISUAL_MAX + 20 + rad) continue;
     if (!clearOfGameplay(rad)) continue;
     const ax = unit();
     small.push({
@@ -3658,7 +4095,7 @@ function planDecoRocks({ seed, boss, planetAt, gameplay, phone }) {
     const a = rnd() * Math.PI * 2;
     pos.copy(routeDir).multiplyScalar(routeLen * (0.04 + rnd() * 0.95));
     pos.addScaledVector(p1, Math.cos(a) * lateral).addScaledVector(p2, Math.sin(a) * lateral * 0.75);
-    if (pos.length() < rad + 120 || pos.distanceTo(bossPos) < hull + rad + 80 || pos.distanceTo(planetAt) < PLANET_VISUAL_MAX + rad + 30) continue;
+    if (pos.length() < rad * 1.5 + spawnKeep || lineDist() < rad * 1.5 + 60 || pos.distanceTo(bossPos) < hull + rad + 80 || pos.distanceTo(planetAt) < PLANET_VISUAL_MAX + rad + 30) continue;
     if (huge.some((h) => Math.hypot(h.x - pos.x, h.y - pos.y, h.z - pos.z) < h.rad + rad + 30)) continue;
     const ax = unit();
     huge.push({
@@ -3667,7 +4104,35 @@ function planDecoRocks({ seed, boss, planetAt, gameplay, phone }) {
       drift: [(rnd() - 0.5) * 40, (rnd() - 0.5) * 24, (rnd() - 0.5) * 40], tint: tintOf(),
     });
   }
-  return { small, huge };
+  // A-002's giant foreground rocks (createForegroundRocks records; diameter 60 / 90 / 120 m; TV 12, phone 6): two near the boss,
+  // two (TV) or one (phone) near the planet, the rest framing the spawn -> boss corridor 150-450 m off the straight line (round
+  // it on a golden-angle spiral: sideways, above, below), clear of the boss, the planet's visual, each other and the gameplay
+  // rocks, so they frame the view and never block the path. v1.3 spawn disc (TUNING.spawnRadius across the line at the origin,
+  // the server keeps rocks 40 m off it): every surface stays >= spawnRadius + spawnClear + 40 (~205 m) from the spawn centre and
+  // >= 70 m from the straight spawn -> boss line, so nobody spawns inside one or flies straight into one. `rad` is 0.6 x the
+  // diameter (a long rock's half-diagonal, not just half its longest span). Own seeded stream: the fields above stay put.
+  const rf = seeded((seed >>> 0) * 40503 + 977);
+  const fore = [];
+  const nFore = phone ? 6 : 12, nBoss = 2, nPlanet = phone ? 1 : 2;
+  const q = new THREE.Quaternion(), eul = new THREE.Euler();
+  for (let guard = 0, k = 0; fore.length < nFore && guard < 600; guard++) {
+    const i = fore.length, where = guard > 300 || i >= nBoss + nPlanet ? 2 : i < nBoss ? 0 : 1; // 0 boss, 1 planet, 2 corridor (a crowded spot gives up)
+    const diameter = where === 2 ? [60, 90, 120][Math.floor(rf() * 3)] : where === 0 ? (rf() < 0.5 ? 90 : 120) : 120;
+    const rad = diameter * 0.6, minLat = Math.max(150, rad + 100);
+    const along = where === 0 ? bossLen + (rf() - 0.5) * 240 : where === 1 ? routeLen - 120 + rf() * 160 : bossLen * (0.1 + rf() * 0.75);
+    const lateral = where === 1 ? PLANET_VISUAL_MAX + rad + 40 + rf() * 120 : minLat + rf() * (450 - minLat);
+    const a = k++ * 2.39996 + rf() * 0.6;
+    pos.copy(routeDir).multiplyScalar(along).addScaledVector(p1, Math.cos(a) * lateral).addScaledVector(p2, Math.sin(a) * lateral * 0.8);
+    // (240 m round the boss's hull stay open: the dogfight happens there, within a bullet's range of ~200 m, and nothing collides
+    // with these opaque rocks: a ship behind one would vanish from the chase camera)
+    if (pos.length() < rad + spawnKeep || pos.distanceTo(bossPos) < hull + rad + 240 || pos.distanceTo(planetAt) < PLANET_VISUAL_MAX + rad + 30) continue;
+    if (lineDist() < rad + 70) continue; // the straight spawn -> boss segment
+    if (fore.some((f) => Math.hypot(f.position[0] - pos.x, f.position[1] - pos.y, f.position[2] - pos.z) < f.diameter * 0.6 + rad + 40)) continue;
+    if (!clearOfGameplay(rad)) continue;
+    q.setFromEuler(eul.set(rf() * 6.28, rf() * 6.28, rf() * 6.28));
+    fore.push({ id: i + 1, diameter, position: [pos.x, pos.y, pos.z], quaternion: [q.x, q.y, q.z, q.w] });
+  }
+  return { small, huge, fore };
 }
 // ---------------------------------------------------------------------------------------------------------------
 // World look: the mothership. The A-001 hull (scaled to 1.25 x the hit radius) gets a tilted ring of dark girders with a
@@ -4145,7 +4610,9 @@ class ChestField {
       if (prev) {
         const p = _p3.set(c.x, y, c.z);
         if (c.kind === "rock" && prev.buried && !c.buried) this.shatter(p);
-        if (c.open && !prev.open) {
+        // the gold of an opened chest: with A-010 loaded the server's `treasure` fx of that same pickup draws it (IslandWorld.fx, at
+        // the lid's height); a second burst here would only drain the particle pool. This one is the fallback without A-010.
+        if (c.open && !prev.open && !isl.efx?.ok) {
           isl.particles.burst(p.clone().setY(y + 1), GOLD, 70, 12, 1.5, 0.55, 0.08, { boost: 2.4, grav: 6, drag: 0.8 });
           isl.rings.spawn(p.clone().setY(y + 1), 0xffd34d, 10, 1.2, true);
         }
@@ -4344,6 +4811,7 @@ class IslandWorld {
     this.camPos = v3();
     this.chestField = new ChestField(this);
     this.chests = this.chestField.records;
+    this.efx = new WorldFx(this, "planet"); // A-010 effects + hex shields (null-safe until it loads; fx() keeps the ad hoc bursts meanwhile)
   }
 
   // A-005 kit over the procedural island (which stays as the fallback and while the kit loads).
@@ -4546,11 +5014,14 @@ class IslandWorld {
       e.hiddenSince = -1;
       e.seen = this.frame;
       e.lodDist = camera.position.distanceTo(this.tmp.set(p.x, p.y, p.z));
-      e.forced = p.name === ctx.me || p.name === subject || (this.big && !p.flags.bot);
+      e.forced = p.name === ctx.me || p.name === subject;
+      e.human = this.big && !p.flags.bot; // the TV shows the humans' drawings first, the nearest up to the cap (lodHumans)
       items.push(e);
       plist.push(p);
     }
-    entPlanLod(items, this.phone, this.phone ? 8 : 14, this.big ? 300 : 220, this.big ? 360 : 260, this.lodOrder || (this.lodOrder = []), t);
+    const ecap = this.phone ? 8 : 14;
+    lodHumans(items, ecap);
+    entPlanLod(items, this.phone, ecap, this.big ? 300 : 220, this.big ? 360 : 260, this.lodOrder || (this.lodOrder = []), t);
     for (let i = 0; i < items.length; i++) {
       try { items[i].step(plist[i], dt, t, ctx); } catch (e) { entWarn(`explorer ${items[i].name}`, e); }
     }
@@ -4586,18 +5057,45 @@ class IslandWorld {
     this.glow.end();
     this.particles.update(dt);
     this.rings.update(dt, camera);
+    // A-010 effects: this scene's clock (after the explorers asked for their hex bubbles: the unasked ones go).
+    this.efx.update(dt, t);
   }
 
   clearForRound() {
     this.particles.clear();
     this.mischief.clear();
+    this.efx.clear();
   }
 
   fx(m) {
     worldSound.fx(m);
     const pos = v3(m.pos.x, m.pos.y, m.pos.z);
     const c = new THREE.Color(m.color ?? 0xffffff);
-    const P = this.particles;
+    const P = this.particles, F = this.efx;
+    const mischief = m.kind === "emp" || m.kind === "inkbomb" || m.kind === "tractor" || m.kind === "mine" || m.kind === "decoy";
+    if (F.ok && !mischief) {
+      // A-010 (sizes grown with the camera distance for the TV and capped near the camera: WorldFx.size); its rings lie flat on
+      // the ground (normal up). The ad hoc bursts below stay as the fallback until (unless) it loads.
+      const k = m.kind, size = m.size || 3;
+      if (k === "dig") F.spawn("dig", pos.setY(pos.y + 0.2), F.size(pos, 1, 0.12));
+      else if (k === "drill") F.spawn("drill", pos.setY(pos.y + 0.9), F.size(pos, 0.8, 0.12), undefined, _up); // sparks up off the boulder
+      else if (k === "treasure") {
+        // chest gold at the lid's height (A-010's glitter is depth-tested: centred on the ground the terrain cuts it), a flat gold ripple
+        F.spawn("gold", pos.setY(pos.y + 1), F.size(pos, 1.6, 0.1));
+        F.spawn("scan", pos.setY(pos.y - 0.85), F.size(pos, 1, 0.15), 0xffd34d);
+      } else if (k === "land") F.spawn("landing", pos.setY(pos.y + 0.1), F.size(pos, 1.6, 0.1));
+      else if (k === "explode") {
+        // an explorer down (island PvP), a parked ship, a mine: A-010's blast at body height, the player's colour in a few sparks
+        F.spawn("explosion", pos.setY(pos.y + 1), F.size(pos, size * 0.35, 0.06));
+        P.burst(pos, c, 14, 6, 0.9, 0.5, 0.1, { boost: 2.2, drag: 1.2, grav: 4 });
+      } else if (k === "respawn") F.spawn("respawn", pos.setY(pos.y + 0.15), F.size(pos, 0.7, 0.15), m.color ?? 0x22d3ee);
+      // the flare's light (TV) is 70 x size² at 24 x size m: size <= 1.2 next to an explorer
+      else if (k === "flare") F.spawn("flare", pos.setY(pos.y + 1.5), Math.min(1.2, F.size(pos, 1.2 * clamp(size / TUNING.flare.radius, 0.15, 1), 0.08)), m.color ?? 0xfff1c2);
+      else if (k === "scan") F.spawn("scan", pos.setY(pos.y + 0.2), F.size(pos, (m.size || TUNING.scan.range) / 8, 0.15));
+      else if (k === "blast") F.spawn("blast", pos.setY(pos.y + 1), F.size(pos, size / 12, 0.06), m.color);
+      else F.spawn("spark", pos.setY(pos.y + 1), F.size(pos, 0.5, 0.15), m.color, _up); // hit, spark
+      return;
+    }
     if (m.kind === "dig") P.burst(pos.setY(pos.y + 0.3), DIRT, 18, 5, 0.8, 0.45, 0.15, { boost: 1, grav: 14, drag: 0.6 });
     else if (m.kind === "drill") P.burst(pos.setY(pos.y + 1.2), GOLD, 16, 9, 0.5, 0.4, 0.05, { boost: 2.6, grav: 8, drag: 1, spread: 1.6 });
     else if (m.kind === "treasure") { P.burst(pos.setY(pos.y + 1), new THREE.Color(0xffd34d), 110, 15, 1.7, 0.6, 0.08, { boost: 2.4, grav: 5, drag: 0.7 }); this.rings.spawn(pos, 0xffd34d, 14, 1.4, true); this.rings.spawn(pos.setY(pos.y + 0.6), 0xfff1c2, 7, 1.0, true); }
@@ -4620,12 +5118,45 @@ const DIRT = new THREE.Color(0x8a6236);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Ticks: buffer, clock offset, interpolation ~100 ms behind the newest tick.
+const SNAP_NONE = Object.freeze([]); // an empty list in a sample (no decoys / mines this tick): nobody writes into a sample
 class Snapshots {
   constructor() {
     this.list = [];
     this.offsets = [];
     this.latest = null;
     this.latestAt = 0;
+    // sample() is pooled (no garbage per frame on the phone): one result object, its arrays, one interpolated player object per
+    // name and the bullet / shot rows, all reused. Every reader takes a sample within its frame (game.lastSnap: projectPlayers and
+    // hud() read the latest one; WorldSound, CameraRig and the worlds keep names and numbers, never a player object or a row).
+    // Decoys stay fresh arrays: MischiefLayer keeps a vanished decoy's row (v.q) 0.4 s to fade it out where it was.
+    this.out = { players: [], bullets: [], bossShots: [], flares: SNAP_NONE, mines: SNAP_NONE, decoys: SNAP_NONE, phase: undefined };
+    this.empty = { players: [], bullets: [], bossShots: [], flares: [], mines: [], decoys: [] };
+    this.pool = new Map(); // name → the reused interpolated player object
+    this.rowsB = []; this.rowsN = []; this.rowsS = []; // bullet rows with a direction, new bullet rows, boss-shot rows
+    this.prune = 0;
+  }
+  // listB's rows interpolated against the older tick's mapA into `out` (rows reused by index from `rows`): [id, x, y, z, color, mode,
+  // dx, dy, dz]; a row new in listB is [id, x, y, z, color, mode] for bullets (from `fresh`), the tick's own row for boss shots.
+  track(listB, mapA, u, out, rows, fresh) {
+    out.length = 0;
+    let n = 0, f = 0;
+    for (let i = 0; i < listB.length; i++) {
+      const q = listB[i], p = mapA.get(q[0]);
+      if (!p) {
+        if (!fresh) { out.push(q); continue; }
+        const r = fresh[f] || (fresh[f] = [0, 0, 0, 0, 0, 0]);
+        f++;
+        r[0] = q[0]; r[1] = q[1]; r[2] = q[2]; r[3] = q[3]; r[4] = q[4]; r[5] = q[5] || 0;
+        out.push(r);
+        continue;
+      }
+      const r = rows[n] || (rows[n] = [0, 0, 0, 0, 0, 0, 0, 0, 0]);
+      n++;
+      r[0] = q[0]; r[1] = lerp(p[1], q[1], u); r[2] = lerp(p[2], q[2], u); r[3] = lerp(p[3], q[3], u); r[4] = q[4]; r[5] = q[5] || 0;
+      r[6] = q[1] - p[1]; r[7] = q[2] - p[2]; r[8] = q[3] - p[3];
+      out.push(r);
+    }
+    return out;
   }
   push(tick) {
     const local = Date.now();
@@ -4643,7 +5174,7 @@ class Snapshots {
   }
   sample() {
     const L = this.list;
-    if (!L.length) return { players: [], bullets: [], bossShots: [], flares: [], mines: [], decoys: [] };
+    if (!L.length) return this.empty;
     const rt = Date.now() - (this.offset || 0) - INTERP_DELAY_MS;
     let a = L[0], b = L[0];
     if (rt >= L[L.length - 1].t) a = b = L[L.length - 1];
@@ -4651,36 +5182,44 @@ class Snapshots {
       for (let i = L.length - 2; i >= 0; i--) if (L[i].t <= rt) { a = L[i]; b = L[i + 1]; break; }
     }
     const u = b === a ? 0 : clamp((rt - a.t) / (b.t - a.t), 0, 1);
-    const players = [];
+    const out = this.out, players = out.players, pool = this.pool;
+    players.length = 0;
     for (const pb of b.tick.players) {
       const pa = a.players.get(pb.name);
       if (!pa || pa.mode !== pb.mode || pa.flags?.dead !== pb.flags?.dead) { players.push(pb); continue; }
       const near = u < 0.5 ? pa : pb;
-      players.push({
-        ...pb, flags: near.flags,
-        x: lerp(pa.x, pb.x, u), y: lerp(pa.y, pb.y, u), z: lerp(pa.z, pb.z, u),
-        yaw: lerpAngle(pa.yaw, pb.yaw, u), pitch: lerp(pa.pitch, pb.pitch, u), roll: lerpAngle(pa.roll, pb.roll, u),
-        shieldEnergy: lerp(pa.shieldEnergy, pb.shieldEnergy, u), boostEnergy: lerp(pa.boostEnergy, pb.boostEnergy, u),
-      });
+      // the tick's player with the moving parts interpolated, on this name's reused object (a key the tick dropped is dropped too)
+      let o = pool.get(pb.name);
+      if (!o) pool.set(pb.name, (o = {}));
+      else for (const k in o) if (!(k in pb)) delete o[k];
+      Object.assign(o, pb);
+      o.flags = near.flags;
+      o.x = lerp(pa.x, pb.x, u); o.y = lerp(pa.y, pb.y, u); o.z = lerp(pa.z, pb.z, u);
+      o.yaw = lerpAngle(pa.yaw, pb.yaw, u); o.pitch = lerp(pa.pitch, pb.pitch, u); o.roll = lerpAngle(pa.roll, pb.roll, u);
+      o.shieldEnergy = lerp(pa.shieldEnergy, pb.shieldEnergy, u); o.boostEnergy = lerp(pa.boostEnergy, pb.boostEnergy, u);
+      players.push(o);
     }
+    // names that left: their objects go now and then (a few hundred frames)
+    if (++this.prune > 600) { this.prune = 0; for (const k of pool.keys()) if (!b.players.has(k)) pool.delete(k); }
     // Bullets: [id, x, y, z, color, mode, dx, dy, dz] (mode 0 = space, 1 = island; old servers send no mode).
-    const track = (listB, mapA, color) => listB.map((q) => {
-      const p = mapA.get(q[0]);
-      if (!p) return color ? [q[0], q[1], q[2], q[3], q[4], q[5] || 0] : q;
-      const x = lerp(p[1], q[1], u), y = lerp(p[2], q[2], u), z = lerp(p[3], q[3], u);
-      return [q[0], x, y, z, q[4], q[5] || 0, q[1] - p[1], q[2] - p[2], q[3] - p[3]];
-    });
+    this.track(b.tick.bullets, a.bullets, u, out.bullets, this.rowsB, this.rowsN);
+    this.track(b.tick.bossShots, a.shots, u, out.bossShots, this.rowsS, null);
     // Decoys [id, x, y, z, yaw, color, owner, mode] glide (they fly / walk on); mines [id, x, y, z, mode, color] sit still.
-    const decoys = (b.tick.decoys || []).map((q) => {
+    const dl = b.tick.decoys;
+    out.decoys = dl && dl.length ? dl.map((q) => {
       const p = a.decoys.get(q[0]);
       return p && p[7] === q[7] ? [q[0], lerp(p[1], q[1], u), lerp(p[2], q[2], u), lerp(p[3], q[3], u), q[4], q[5], q[6], q[7]] : q;
-    });
-    return { players, bullets: track(b.tick.bullets, a.bullets, true), bossShots: track(b.tick.bossShots, a.shots, false), flares: b.tick.flares, mines: b.tick.mines || [], decoys, phase: b.tick.phase };
+    }) : SNAP_NONE;
+    out.flares = b.tick.flares;
+    out.mines = b.tick.mines || SNAP_NONE;
+    out.phase = b.tick.phase;
+    return out;
   }
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// Cockpit window frame (procedural, drawn in clip space so it fits any aspect; leaves > 70% of the view clear).
+// Cockpit window frame (procedural, drawn in clip space so it fits any aspect; leaves > 70% of the view clear). The fallback:
+// startGame swaps it for A-007's camera-mounted cockpit once that loads.
 function cockpitFrame() {
   const pts = [], cols = [];
   const metal = [0.025, 0.03, 0.055], edge = [0.15, 0.75, 0.95];
@@ -4709,6 +5248,18 @@ function cockpitFrame() {
 
 // ---------------------------------------------------------------------------------------------------------------
 // Cameras: chase, cockpit, spectator (cuts at most every 8 s, smooth, shows the island when someone is on it).
+// v1.3 cinematics, never blocking input (the server keeps simulating, only the camera eases): lobby -> play is a 1.6 s swoop
+// over the fleet (TV) / a fly-in from the lobby framing behind my ship with a small fov kick (phone); the boss's death cuts
+// the TV to a 3 s planet reveal (the phone only glances at it for a second); the scoreboard is a slow pull-back orbit round
+// the winner (TV only). The TV director also cuts to key moments fed by rig.note(fx / announce): steals, kills, chest opens,
+// wrecks, mischief, PvP hits (two humans framed over one's shoulder), boss hits; humans before bots, always.
+const MOMENT_N = 24; // the moment pool (preallocated: note() and pickFocus allocate nothing)
+const MOMENT_GAP = 2, MOMENT_MIN = 3; // never a cut within 2 s of the last one; 3 s minimum shot unless a bigger moment comes
+const QUIET_PRIO = 20; // a quiet-time shot counts as a boss hit: a boss hit takes over only from a shot older than MOMENT_MIN
+const PVP_RANGE = 80; // two humans this close, one hit: frame both
+const INTRO_SECONDS = 1.6, REVEAL_DELAY = 1, REVEAL_SECONDS = 3, GLANCE_SECONDS = 1.1;
+const RIG_UP = new THREE.Vector3(0, 1, 0);
+const smooth01 = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 class CameraRig {
   constructor(camera) {
     this.camera = camera;
@@ -4721,6 +5272,116 @@ class CameraRig {
     this.side = 1;
     this.tmp = v3();
     this.f = v3();
+    // update()'s temporaries (it allocates nothing per frame) and its result, reused: read it at once
+    this.lk = v3(); this.P = v3(); this.U = v3(); this.dir = v3(); this.sv = v3(); this.fa = v3();
+    this.q = new THREE.Quaternion(); this.eul = new THREE.Euler(0, 0, 0, "YXZ");
+    this.out = { mode: "spectator", scene: "space", followed: null };
+    // The director's key moments from rig.note(): { name, other, prio, until, at, kind } in the frame clock.
+    this.moments = [];
+    for (let i = 0; i < MOMENT_N; i++) this.moments.push({ name: null, other: null, prio: 0, until: 0, at: 0, kind: "" });
+    this.shotPrio = 0;    // the shot on air: its moment's priority (0 = quiet time)
+    this.holdUntil = 0;   // a moment shot keeps its subject until then
+    this.other = null;    // a moment's second player (PvP, kill, steal, mischief): framed over the subject's shoulder
+    this.hitAt = new Map(); // name -> when that player was last hit (PvP: two humans close with recent hits)
+    this.players = null;  // the last sampled players: note() runs between frames and attributes an fx to them
+    this.wall = performance.now() / 1000; // wall seconds minus the frame clock t (t = 0 now), so note() can stamp moments in the frame clock even before the first frame
+    // Cinematic shots: "intro" (lobby -> play), "reveal" (TV: boss down -> the planet), "glance" (the phone's reveal),
+    // "outro" (TV: the scoreboard). cp0 / cq0 = the intro's start pose; fovAdd = degrees the frame loop adds (phone intro).
+    this.cine = ""; this.cineT0 = 0; this.cineDur = 0; this.cineArc = false;
+    this.cp0 = v3(); this.cq0 = new THREE.Quaternion(); this.cq1 = new THREE.Quaternion(); this.m4 = new THREE.Matrix4();
+    this.fovAdd = 0;
+    this.lastPhase = null; this.revealed = false; this.boomAt = -1e9; this.orbitA = NaN;
+  }
+  // A stream message (handle(): fx and announce) -> the director's moments. Allocation: only an announce's regex match.
+  note(m) {
+    if (!m) return;
+    const now = performance.now() / 1000 - this.wall;
+    if (m.type === "fx") {
+      // only the boss's death is that big (rocks 2-11, ships 8): the reveal (the boss state flip in watch() usually wins)
+      if (m.kind === "explode" && m.size >= 12 && (m.mode || "space") === "space") this.boomAt = now;
+      else if (m.kind === "hit" && m.pos) this.noteHit(m, now);
+      return;
+    }
+    if (m.type !== "announce" || typeof m.text !== "string") return;
+    const s = m.text;
+    let r;
+    if (s.startsWith("💥")) this.boomAt = now; // the boss is down
+    else if ((r = /^💰 (\S+) stole \d+ points from (\S+?)!/u.exec(s))) this.push(r[1], r[2], 80, now, 4, "steal");
+    else if ((r = /^(\S+) ✕ (\S+)/u.exec(s))) { const v = this.find(this.players, r[2]); this.push(r[1], r[2], v && !v.flags.bot ? 75 : 45, now, 3.5, "kill"); }
+    else if ((r = /^💎 (\S+) opened a chest/u.exec(s))) this.push(r[1], null, 60, now, 3.5, "chest");
+    else if ((r = /^🔧 (\S+) wrecked (\S+?)'s ship/u.exec(s))) this.push(r[1], r[2], 55, now, 3, "wreck");
+    else if ((r = /^💣 (\S+) hit (\S+?)'s mine/u.exec(s))) this.push(r[1], null, 40, now, 3, "mine"); // the one stunned by the blast
+    else if ((r = /^(⚡|🦑|🧲|🎭) (\S+) (?:scrambled|inked|pulled|shot) (\S+?)(?:'s|\s|$)/u.exec(s))) this.push(r[2], r[3], r[1] === "🧲" ? 45 : 40, now, 3, "mischief");
+  }
+  // A hit fx carries no player: red = the boss was hit (by the human whose nose points at the spot), orange = a player was
+  // (the one at the spot; a human within PVP_RANGE aiming at a human victim, or hit too in the last 3 s, makes it PvP).
+  noteHit(m, now) {
+    const ps = this.players;
+    if (!ps) return;
+    const mode = m.mode || "space", x = m.pos.x, y = m.pos.y, z = m.pos.z;
+    let humans = 0;
+    for (let i = 0; i < ps.length; i++) if (!ps[i].flags.bot) humans++;
+    if (m.color === 0xef4444) {
+      const a = this.aimer(ps, x, y, z, mode, 320, null, humans > 0);
+      if (a) this.push(a.name, null, QUIET_PRIO, now, 1.5, "boss");
+      return;
+    }
+    if (m.color !== 0xf97316) return; // green = a heal
+    let v = null, vd = 49;
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i];
+      if (p.mode !== mode || p.flags.dead) continue;
+      const d = (p.x - x) * (p.x - x) + (p.y - y) * (p.y - y) + (p.z - z) * (p.z - z);
+      if (d < vd) { v = p; vd = d; }
+    }
+    if (!v) return;
+    this.hitAt.set(v.name, now);
+    if (v.flags.bot) return;
+    let a = this.aimer(ps, v.x, v.y, v.z, mode, PVP_RANGE, v, true);
+    if (!a) {
+      let bd = PVP_RANGE * PVP_RANGE;
+      for (let i = 0; i < ps.length; i++) {
+        const p = ps[i];
+        if (p === v || p.mode !== mode || p.flags.dead || p.flags.bot || !(now - (this.hitAt.get(p.name) ?? -1e9) < 3)) continue;
+        const d = (p.x - v.x) * (p.x - v.x) + (p.y - v.y) * (p.y - v.y) + (p.z - v.z) * (p.z - v.z);
+        if (d < bd) { a = p; bd = d; }
+      }
+    }
+    if (a) this.push(a.name, v.name, 50, now, 2.5, "pvp");
+  }
+  // The player within `range` of the point (humans only when `humans`) whose nose points at it best: the likely shooter.
+  aimer(ps, x, y, z, mode, range, skip, humans) {
+    let best = null, bestS = 0.9;
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i];
+      if (p === skip || p.mode !== mode || p.flags.dead || (humans && p.flags.bot)) continue;
+      const dx = x - p.x, dy = mode === "space" ? y - p.y : 0, dz = z - p.z, d = Math.hypot(dx, dy, dz);
+      if (d > range || d < 0.5) continue;
+      const F = forwardOf(p.yaw || 0, mode === "space" ? p.pitch || 0 : 0, this.fa);
+      const s = (F.x * dx + F.y * dy + F.z * dz) / d - d / (range * 8); // the nearer of two aimers wins
+      if (s > bestS) { best = p; bestS = s; }
+    }
+    return best;
+  }
+  // Queue a moment: the same player's live moment of the same kind is refreshed; else a free slot, else the weakest one.
+  push(name, other, prio, now, ttl, kind) {
+    if (!name) return;
+    const M = this.moments;
+    let slot = null;
+    for (let i = 0; i < M.length && !slot; i++) if (M[i].name === name && M[i].kind === kind && M[i].until > now) slot = M[i];
+    const fresh = !slot;
+    if (fresh) {
+      let w = Infinity;
+      for (let i = 0; i < M.length; i++) { const s = M[i].until > now ? M[i].prio : -1; if (s < w) { w = s; slot = M[i]; } }
+    }
+    slot.name = name; slot.kind = kind; slot.at = now;
+    slot.other = other || (fresh ? null : slot.other);
+    slot.prio = fresh ? prio : Math.max(prio, slot.prio);
+    slot.until = fresh ? now + ttl : Math.max(slot.until, now + ttl);
+  }
+  find(ps, name) {
+    if (ps) for (let i = 0; i < ps.length; i++) if (ps[i].name === name) return ps[i];
+    return null;
   }
   // The place a space player is heading for (a shared vector: read it at once, do not keep it).
   objectiveSpace(game, P) {
@@ -4753,12 +5414,47 @@ class CameraRig {
     const boss = game.space.bossAlive();
     const bossLow = !!boss && boss.hp / (boss.maxHp || 1) < 0.2;
     // A landing or take-off is the best shot in the game: follow that player at once (the shot itself is never cut).
-    let shot = null;
-    for (let i = 0; i < pool.length && !shot; i++) if (pool[i].flags.landing || pool[i].flags.takingOff) shot = pool[i];
-    if (shot && shot.name !== this.focus) {
-      let busy = false;
-      for (let i = 0; i < pool.length; i++) if (pool[i].name === this.focus && (pool[i].flags.landing || pool[i].flags.takingOff)) busy = true;
-      if (!busy) { this.focus = shot.name; this.lastCut = t; this.snapNext = true; this.side *= -1; return shot; }
+    let shot = null, busy = false;
+    for (let i = 0; i < pool.length; i++) {
+      const p = pool[i];
+      if (p.flags.landing || p.flags.takingOff) { if (!shot) shot = p; if (p.name === this.focus) busy = true; }
+    }
+    if (shot && shot.name !== this.focus && !busy) {
+      this.focus = shot.name; this.lastCut = t; this.snapNext = true; this.side *= -1; this.shotPrio = 0; this.holdUntil = 0; this.other = null;
+      return shot;
+    }
+    // Key moments (rig.note), never during the followed player's landing / take-off: the best live one whose subject is in the
+    // round (alive; no bot while a human plays) gets the camera, MOMENT_GAP s after the last cut at the earliest and, unless it
+    // outranks the shot on air (a quiet one counts QUIET_PRIO), MOMENT_MIN s. The subject's own moments keep the camera on it.
+    if (!busy) {
+      const M = this.moments;
+      let mo = null, moP = null, mine = null;
+      for (let i = 0; i < M.length; i++) {
+        const m = M[i];
+        if (m.until <= t || !m.name) continue;
+        const p = this.find(players, m.name);
+        if (!p || p.flags.dead || (humans > 0 && p.flags.bot)) continue;
+        if (m.name === this.focus && (!mine || m.prio > mine.prio)) mine = m;
+        if (!mo || m.prio > mo.prio || (m.prio === mo.prio && m.at > mo.at)) { mo = m; moP = p; }
+      }
+      const age = t - this.lastCut;
+      // Boss hits are the background of the fight (25 players hit it all the time): they rotate at the quiet-time pace, CUT_SECONDS
+      // per hitter, instead of a cut every MOMENT_MIN; the focus's own hits stop holding the camera once that is up.
+      const rotate = mine && mine.kind === "boss" && mo !== mine && age >= CUT_SECONDS;
+      if (mine && mine.prio >= mo.prio && !rotate) {
+        if (mine.until > this.holdUntil) this.holdUntil = mine.until;
+        if (mine.prio > this.shotPrio) this.shotPrio = mine.prio;
+        if (mine.other) this.other = mine.other;
+      } else if (mo && age >= MOMENT_GAP && (age >= (mo.kind === "boss" ? CUT_SECONDS : MOMENT_MIN) || mo.prio > Math.max(this.shotPrio, QUIET_PRIO))) {
+        this.focus = mo.name; this.lastCut = t; this.snapNext = true; this.side *= -1;
+        this.shotPrio = mo.prio; this.holdUntil = mo.until; this.other = mo.other;
+        return moP;
+      }
+      if (this.holdUntil > t) {
+        const p = this.find(players, this.focus);
+        if (p && !p.flags.dead && !(humans > 0 && p.flags.bot)) return p;
+      }
+      this.shotPrio = 0; this.holdUntil = 0; this.other = null; // quiet time: the old rules below
     }
     let best = pool[0], bestScore = this.scoreOf(game, pool[0], bossLow), current = null, currentScore = 0;
     for (let i = 0; i < pool.length; i++) {
@@ -4766,9 +5462,8 @@ class CameraRig {
       if (sc > bestScore) { best = p; bestScore = sc; }
       if (p.name === this.focus) { current = p; currentScore = sc; }
     }
-    const sceneOf = (p) => (p.mode === "planet" ? "planet" : "space");
     const cutAfter = bossLow ? 3 : CUT_SECONDS;
-    if (!current || (best.name !== this.focus && t - this.lastCut >= cutAfter && (sceneOf(best) !== sceneOf(current) || bestScore > currentScore + 25))) {
+    if (!current || (best.name !== this.focus && t - this.lastCut >= cutAfter && ((best.mode === "planet") !== (current.mode === "planet") || bestScore > currentScore + 25))) {
       if (!current || t - this.lastCut >= cutAfter || !this.focus) {
         if (best.name !== this.focus) { this.focus = best.name; this.lastCut = t; this.snapNext = true; this.side *= -1; }
       }
@@ -4832,32 +5527,39 @@ class CameraRig {
     look.set(cx - u.x * lift * tv * dist, cy - u.y * lift * tv * dist, cz - u.z * lift * tv * dist);
   }
   update(dt, t, game, snap) {
-    const cam = this.camera;
-    const me = game.player ? snap.players.find((p) => p.name === game.player) : null;
+    const cam = this.camera, players = snap.players, tv = game.screen !== "phone";
+    this.wall = performance.now() / 1000 - t;
+    this.players = players;
+    const me = game.player ? this.find(players, game.player) : null;
     let mode = game.view;
     let subject = me && !me.flags.dead ? me : null;
     if (mode !== "spectator" && !subject) mode = "spectator";
-    if (mode === "spectator") subject = this.pickFocus(game, snap.players, t);
-    else this.focus = subject.name;
+    const phase = snap.phase;
+    if (mode === "spectator") {
+      // the results (TV): the winner, whoever the director was following
+      const w = tv && phase === "scoreboard" ? this.winnerOf(game, players) : null;
+      if (w) { if (w.name !== this.focus) { this.focus = w.name; this.lastCut = t; this.snapNext = true; } subject = w; }
+      else subject = this.pickFocus(game, players, t);
+    } else this.focus = subject.name;
     const scene = subject?.mode === "planet" ? "planet" : "space";
     if (scene !== this.scene) { this.scene = scene; this.snapNext = true; }
-    const desired = this.tmp, look = v3();
+    this.watch(game, snap, t, mode, subject, tv);
+    const desired = this.tmp, look = this.lk;
     let lamPos = 5, lamLook = 8;
-    const phase = snap.phase;
+    const outro = this.cine === "outro" && mode === "spectator";
     if (!subject && phase === "lobby") {
-      this.lobbyShot(snap.players, t, desired, look, game.screen === "big");
+      this.lobbyShot(players, t, desired, look, game.screen === "big");
       lamPos = lamLook = 2.2;
     } else if (!subject) {
       // Nobody to follow: slow orbit around the boss nebula.
-      const c = game.world?.nebula || { x: 0, y: 0, z: -300, radius: 80 };
-      const a = t * 0.05;
-      const R = (c.radius || 80) * 2.2;
-      desired.set(c.x + Math.sin(a) * R, c.y + R * 0.3, c.z + Math.cos(a) * R);
-      look.set(c.x, c.y, c.z);
+      const c = game.world?.nebula, a = t * 0.05, R = ((c && c.radius) || 80) * 2.2;
+      const cx = c ? c.x : 0, cy = c ? c.y : 0, cz = c ? c.z : -300;
+      desired.set(cx + Math.sin(a) * R, cy + R * 0.3, cz + Math.cos(a) * R);
+      look.set(cx, cy, cz);
       lamPos = lamLook = 1.5;
     } else if (scene === "planet") {
-      const H = game.island.height || (() => 0);
-      const P = v3(subject.x, subject.y, subject.z);
+      const H = game.island.height;
+      const P = this.P.set(subject.x, subject.y, subject.z);
       const F = forwardOf(subject.yaw, 0, this.f);
       if (mode === "cockpit") {
         cam.position.set(P.x, P.y + 1.6, P.z);
@@ -4866,21 +5568,32 @@ class CameraRig {
         this.snapNext = false;
         return this.finish(mode, scene);
       }
+      const Q = mode === "chase" || outro ? null : this.otherOf(players, subject);
       if (mode === "chase") {
         desired.set(P.x - F.x * 6.5, P.y + 3.4, P.z - F.z * 6.5);
         look.set(P.x + F.x * 4, P.y + 1.3, P.z + F.z * 4);
+      } else if (outro) {
+        this.orbit(P, t, desired, look, true);
+        lamPos = 1.4; lamLook = 2;
+      } else if (Q) {
+        // Island PvP / a kill / mischief: over the subject's shoulder towards the other one, both in frame.
+        const d = this.dir.set(Q.x - P.x, 0, Q.z - P.z), dist = d.length();
+        if (dist > 1e-3) d.multiplyScalar(1 / dist); else d.copy(F);
+        desired.set(P.x - d.x * 7 + d.z * 2.4 * this.side, P.y + 3.2, P.z - d.z * 7 - d.x * 2.4 * this.side);
+        look.set(P.x + d.x * dist * 0.55, P.y + 1.2, P.z + d.z * dist * 0.55);
+        lamPos = 2.6; lamLook = 3.5;
       } else {
         const a = t * 0.12 + this.side;
         desired.set(P.x + Math.sin(a) * 15, P.y + 7, P.z + Math.cos(a) * 15);
         look.set(P.x, P.y + 1.2, P.z);
         lamPos = 1.6; lamLook = 3;
       }
-      desired.y = Math.max(desired.y, H(desired.x, desired.z) + 1.5, 1.2);
+      desired.y = Math.max(desired.y, (H ? H(desired.x, desired.z) : 0) + 1.5, 1.2);
     } else {
-      const P = v3(subject.x, subject.y, subject.z);
+      const P = this.P.set(subject.x, subject.y, subject.z);
       const F = forwardOf(subject.yaw, subject.pitch, this.f);
-      const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(subject.pitch, subject.yaw, subject.roll, "YXZ"));
-      const U = v3(0, 1, 0).applyQuaternion(q);
+      const q = this.q.setFromEuler(this.eul.set(subject.pitch || 0, subject.yaw || 0, subject.roll || 0, "YXZ"));
+      const U = this.U.set(0, 1, 0).applyQuaternion(q);
       if (mode === "cockpit") {
         cam.position.copy(P).addScaledVector(F, 0.4).addScaledVector(U, 0.55);
         cam.quaternion.copy(q);
@@ -4888,30 +5601,51 @@ class CameraRig {
         this.snapNext = false;
         return this.finish(mode, scene);
       }
+      const Q = mode === "chase" || outro || phase === "lobby" ? null : this.otherOf(players, subject);
       if (mode === "chase") {
         desired.copy(P).addScaledVector(F, -9).addScaledVector(U, 3.2);
         look.copy(P).addScaledVector(F, 14);
         lamPos = 7; lamLook = 12;
+        if (this.cine === "glance" && t >= this.cineT0) this.glance(game, t, P, F, look);
       } else if (phase === "lobby") {
         // The big screen: every ship that has joined, framed together.
-        this.lobbyShot(snap.players, t, desired, look, game.screen === "big");
+        this.lobbyShot(players, t, desired, look, game.screen === "big");
         lamPos = lamLook = 2.2;
+      } else if (outro) {
+        this.orbit(P, t, desired, look, false);
+        lamPos = 1.4; lamLook = 2;
+      } else if (Q) {
+        // PvP / a kill / a steal / mischief: over the subject's shoulder towards the other one, both in frame.
+        const d = this.dir.set(Q.x - P.x, Q.y - P.y, Q.z - P.z), dist = d.length();
+        if (dist > 1e-3) d.multiplyScalar(1 / dist); else d.copy(F);
+        const side = this.sv.crossVectors(d, RIG_UP);
+        if (side.lengthSq() < 1e-4) side.set(1, 0, 0); else side.normalize();
+        desired.copy(P).addScaledVector(d, -(11 + dist * 0.12)).addScaledVector(side, 5 * this.side);
+        desired.y += 3.5;
+        look.copy(P).addScaledVector(d, dist * 0.55);
+        lamPos = 3; lamLook = 4;
       } else {
         // Cinematic follow: behind and to the side of the subject, the objective in frame beyond it.
         const O = this.objectiveSpace(game, P);
-        const dir = O ? O.clone().sub(P) : F.clone();
+        const dir = O ? this.dir.copy(O).sub(P) : this.dir.copy(F);
         const dist = dir.length();
         dir.normalize();
         if (!Number.isFinite(dir.x) || dist < 1e-3) dir.copy(F);
-        const side = v3().crossVectors(dir, v3(0, 1, 0)).normalize();
+        const side = this.sv.crossVectors(dir, RIG_UP).normalize();
         if (!Number.isFinite(side.x) || side.lengthSq() < 0.5) side.set(1, 0, 0);
         const near = O && dist < 60;
-        desired.copy(P).addScaledVector(dir, near ? -26 : -20).addScaledVector(side, (near ? 14 : 8) * this.side).add(v3(0, near ? 10 : 6, 0));
+        desired.copy(P).addScaledVector(dir, near ? -26 : -20).addScaledVector(side, (near ? 14 : 8) * this.side);
+        desired.y += near ? 10 : 6;
         look.copy(P).addScaledVector(dir, Math.min(dist * 0.45, 40));
         lamPos = 2; lamLook = 2.6;
       }
     }
-    if (this.snapNext) {
+    // The planet reveal (TV) holds its own pose; watch() cuts back to the director when it ends.
+    if (this.cine === "reveal" && t >= this.cineT0 && scene === "space" && mode === "spectator" && this.revealPose(game, (t - this.cineT0) / this.cineDur, desired, look)) {
+      this.pos.copy(desired);
+      this.look.copy(look);
+      this.snapNext = false;
+    } else if (this.snapNext) {
       this.pos.copy(desired);
       this.look.copy(look);
       this.snapNext = false;
@@ -4922,9 +5656,112 @@ class CameraRig {
     cam.position.copy(this.pos);
     cam.up.set(0, 1, 0);
     cam.lookAt(this.look);
+    if (this.cine === "intro") this.introBlend(t);
     return this.finish(mode, scene);
   }
-  finish(mode, scene) { return { mode, scene, followed: this.focus }; }
+  // Phase changes and the boss's death start the cinematic shots; the timed ones end here. fovAdd is set again each frame.
+  watch(game, snap, t, mode, subject, tv) {
+    const phase = snap.phase, cam = this.camera;
+    this.fovAdd = 0;
+    if (phase) {
+      const was = this.lastPhase, clock = game.snaps?.latest?.clock;
+      // lobby -> play, or the first frames of a round that has just started (a phone waking up from its lobby screen)
+      if (phase === "playing" && was !== "playing" && was !== "assists" && (was === "lobby" || (Number.isFinite(clock) && clock < 3)) && subject && mode !== "cockpit") {
+        // From the live lobby framing (the TV's fleet shot; the phone's view of its showcase ship, so the camera eases after the
+        // ship as it launches); a page that was not drawing the lobby starts from the lobby shot of the fleet instead.
+        if (was === "lobby") { this.cp0.copy(cam.position); this.cq0.copy(cam.quaternion); }
+        else {
+          this.lobbyShot(snap.players, t, this.cp0, this.dir, tv);
+          this.m4.lookAt(this.cp0, this.dir, RIG_UP);
+          this.cq0.setFromRotationMatrix(this.m4);
+        }
+        this.cine = "intro"; this.cineT0 = t; this.cineDur = INTRO_SECONDS; this.cineArc = tv;
+        this.snapNext = true; this.lastCut = t;
+      }
+      if (phase === "scoreboard" && was !== "scoreboard" && tv) { this.cine = "outro"; this.cineT0 = t; this.orbitA = NaN; }
+      else if (phase !== "scoreboard" && this.cine === "outro") this.cine = "";
+      this.lastPhase = phase;
+    }
+    // The boss's death, only a fresh one (its planet born < 3 s ago, or the huge bang just noted): the TV cuts to the planet
+    // once the explosion has been seen, the phone glances at it. A page that joins or wakes up later gets nothing.
+    const B = game.space.boss, P = game.space.planet;
+    if (B && !B.dead) this.revealed = false;
+    else if (B && !this.revealed && B.seenAlive && (phase === "playing" || phase === "assists") && ((P && performance.now() - P.born < 3000) || t - this.boomAt < 1.5)) {
+      this.revealed = true;
+      if (mode !== "cockpit" && this.cine !== "intro") { this.cine = tv ? "reveal" : "glance"; this.cineT0 = t + (tv ? REVEAL_DELAY : 0.3); this.cineDur = tv ? REVEAL_SECONDS : GLANCE_SECONDS; }
+    }
+    if ((this.cine === "intro" || this.cine === "reveal" || this.cine === "glance") && t >= this.cineT0 + this.cineDur) {
+      if (this.cine === "reveal") { this.snapNext = true; this.lastCut = t; } // a cut back to the director's shot
+      this.cine = "";
+    }
+  }
+  // The intro: from the start pose to the director's pose (already on the camera) along an arc over the fleet (TV), the look
+  // turning a little ahead of the move; the phone's fly-in adds a small fov kick (the frame loop adds fovAdd).
+  introBlend(t) {
+    const cam = this.camera, u = clamp((t - this.cineT0) / this.cineDur, 0, 1), e = smooth01(u);
+    this.cq1.copy(cam.quaternion);
+    cam.position.lerpVectors(this.cp0, this.pos, e);
+    if (this.cineArc) cam.position.y += clamp(this.cp0.distanceTo(this.pos) * 0.22, 4, 40) * Math.sin(Math.PI * e);
+    cam.quaternion.slerpQuaternions(this.cq0, this.cq1, smooth01(u / 0.85));
+    if (!this.cineArc) this.fovAdd = 7 * Math.sin(Math.PI * u) ** 2;
+  }
+  // The planet reveal: seen from its approach side (its landing region faces the spawn), a little above and to one side, a
+  // slow push-in with a drift; the landing ring (radius + landRange, a billboard round the centre) fills ~70 % of the height.
+  revealPose(game, u, pos, look) {
+    const w = game.world?.planet, L = game.space.planetLook, c = w || L?.root?.position;
+    if (!c) return false;
+    const R = (w?.radius || L?.R || 40) + (w?.landRange || L?.landRange || 25);
+    const A = this.dir;
+    if (L?.approach) A.copy(L.approach); else A.set(-c.x, -c.y, -c.z);
+    if (A.lengthSq() < 1e-6) A.set(0, 0, 1); else A.normalize();
+    const S = this.sv.crossVectors(RIG_UP, A);
+    if (S.lengthSq() < 1e-6) S.set(1, 0, 0); else S.normalize();
+    const e = smooth01(u), D = R * (3.3 - 0.75 * e), a = (0.38 - 0.14 * e) * this.side;
+    pos.set(c.x, c.y, c.z).addScaledVector(A, D * Math.cos(a)).addScaledVector(S, D * Math.sin(a));
+    pos.y += D * 0.26;
+    look.set(c.x, c.y + R * 0.04, c.z);
+    return true;
+  }
+  // The phone's reveal: the chase camera's look leans towards the planet for about a second (not when it is behind the ship).
+  glance(game, t, P, F, look) {
+    const pl = game.world?.planet;
+    if (!pl) return;
+    const dx = pl.x - P.x, dy = pl.y - P.y, dz = pl.z - P.z, d = Math.hypot(dx, dy, dz) || 1;
+    const facing = clamp(((F.x * dx + F.y * dy + F.z * dz) / d + 0.2) / 0.6, 0, 1);
+    const w = 0.4 * Math.sin(Math.PI * clamp((t - this.cineT0) / this.cineDur, 0, 1)) * facing;
+    if (w > 0) look.lerp(this.sv.set(P.x + (dx / d) * 14, P.y + (dy / d) * 14, P.z + (dz / d) * 14), w);
+  }
+  // The results (TV): a slow pull-back orbit round the winner, starting from the camera's own bearing (no swing).
+  orbit(P, t, desired, look, planet) {
+    if (!Number.isFinite(this.orbitA)) this.orbitA = Math.atan2(this.pos.x - P.x, this.pos.z - P.z) - t * 0.08;
+    const k = smooth01((t - this.cineT0) / 6), a = this.orbitA + t * 0.08;
+    const R = planet ? 7 + 13 * k : 16 + 26 * k, h = planet ? 2.5 + 5.5 * k : 4 + 10 * k;
+    desired.set(P.x + Math.sin(a) * R, P.y + h, P.z + Math.cos(a) * R);
+    look.set(P.x, P.y + (planet ? 1.2 : 0), P.z);
+  }
+  // A moment's second player while worth framing with the subject: same world, within PVP_RANGE (a dead one marks the wreck).
+  otherOf(players, subject) {
+    if (!this.other || this.other === subject.name) return null;
+    const q = this.find(players, this.other);
+    if (!q || q.mode !== subject.mode) return null;
+    const dx = q.x - subject.x, dy = q.y - subject.y, dz = q.z - subject.z;
+    return dx * dx + dy * dy + dz * dz < PVP_RANGE * PVP_RANGE ? q : null;
+  }
+  // The round's winner for the results shot: world.result's winner, else the top score in the snap; never a bot while a human plays.
+  winnerOf(game, players) {
+    let humans = 0, best = null;
+    for (let i = 0; i < players.length; i++) if (!players[i].flags.bot) humans++;
+    const w = this.find(players, game.world?.result?.winner);
+    if (w && !(humans > 0 && w.flags.bot)) return w;
+    for (let i = 0; i < players.length; i++) {
+      const p = players[i];
+      if (humans > 0 && p.flags.bot) continue;
+      if (!best || (p.score || 0) > (best.score || 0)) best = p;
+    }
+    return best;
+  }
+  // The camera's result (one reused object: read it at once). The frame loop also calls it while a landing shot owns the camera.
+  finish(mode, scene) { const o = this.out; o.mode = mode; o.scene = scene; o.followed = this.focus; return o; }
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -5123,9 +5960,35 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
   game.sfx = sfx; worldSound.attach(game); // World look: sound (pages call game.sfx.unlock() in their first tap)
   { const pinned = params.get("tier"); if (pinned !== null && /^\d+$/.test(pinned)) game.perf.pin = Number(pinned); } // ?tier=N pins the quality tier (tests, measurements)
   const rig = new CameraRig(camera);
+  // Cockpit view (phone only; hidden in every other view, during the shots and on the TV): A-007's camera-mounted cockpit
+  // once it loads (3 calls, 1,366 triangles, cockpit view only), the procedural clip-space frame (one per scene) until then
+  // or if it fails. The camera is shared by both scenes and can have one parent: showCockpit hangs it in the scene being
+  // drawn only while the cockpit shows (the renderer refreshes the matrixWorld of a PARENTLESS camera only, so a camera left
+  // in a scene that is not drawn would go stale). fitCockpit refits after a resize and whenever the fov (boost kick) changed.
   const frames = [cockpitFrame(), cockpitFrame()];
   game.space.scene.add(frames[0]);
   game.island.scene.add(frames[1]);
+  let cockpit = null, cockpitFov = 0, cockpitAspect = 0;
+  function fitCockpit() {
+    if (!cockpit) return;
+    cockpitFov = camera.fov; cockpitAspect = camera.aspect;
+    try { cockpit.fitToCamera(camera); } catch (e) { console.warn("[render] cockpit fit failed:", e?.message || e); }
+  }
+  function showCockpit(on, scene) {
+    cockpit.object3d.visible = on;
+    const parent = on ? scene : null;
+    if (camera.parent !== parent) { if (parent) parent.add(camera); else camera.removeFromParent(); }
+    if (on && (camera.fov !== cockpitFov || camera.aspect !== cockpitAspect)) fitCockpit();
+  }
+  if (phone) loadAsset("cockpit").then((c) => {
+    if (!c) return;
+    if (disposed) { c.dispose?.(); return; }
+    cockpit = c;
+    c.object3d.visible = false;
+    camera.add(c.object3d);
+    fitCockpit();
+    for (const f of frames) { f.visible = false; f.removeFromParent(); f.geometry.dispose(); f.material.dispose(); }
+  });
 
   // Post: bloom (half resolution on phones), output pass for tone mapping.
   const composer = new EffectComposer(renderer);
@@ -5149,6 +6012,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     composer.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    fitCockpit(); // A-007 keeps its window opening at the new aspect (no-op until it has loaded)
   }
   const ro = new ResizeObserver(() => applySize());
   ro.observe(canvas);
@@ -5213,7 +6077,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     const s = shot;
     shot = null;
     white.style.opacity = 0;
-    game.space.nebula.material.uniforms.uFade.value = 1;
+    game.space.setNebulaFade(1);
     s.ctl.cancel?.();
     if (s.kind === "land") { game.space.scene.add(s.owner.group); s.owner.group.scale.setScalar(1); }
     else { game.island.scene.add(s.owner.group); }
@@ -5225,6 +6089,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     rig.look.copy(camera.position).add(camera.getWorldDirection(v3()).multiplyScalar(12));
     rig.snapNext = false;
     rig.lastCut = (performance.now() - t0) / 1000; // keep the focus a while (no cut right after the shot)
+    if (rig.cine !== "outro") rig.cine = ""; // an intro / reveal the shot cut short does not resume over the hand-back
   }
   function shotSubject(snap) {
     const subjectName = phone ? game.player : game.followed;
@@ -5244,7 +6109,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     else if (!s.ended) s.ended = !s.ctl.update(dt);
     white.style.opacity = s.ctl.whiteout || 0;
     // The sky dome hides the starfield; fade the additive nebula puffs with it (they would glow through the sky).
-    game.space.nebula.material.uniforms.uFade.value = 1 - (s.ctl.skyMix || 0);
+    game.space.setNebulaFade(1 - (s.ctl.skyMix || 0));
     // Hold the last pose until the dust settles and the server has switched the subject's mode (or 2 s at most).
     const want = s.kind === "land" ? "planet" : "space";
     const switched = !subject || subject.flags.dead || (subject.mode === want && !subject.flags.landing && !subject.flags.takingOff);
@@ -5277,6 +6142,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
         break;
       case "fx":
         (m.mode === "planet" ? game.island : game.space).fx(m);
+        rig.note(m);
         emit("fx", m);
         break;
       case "toast":
@@ -5291,6 +6157,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
         break;
       case "announce":
         worldSound.announce(m);
+        rig.note(m);
         emit("announce", m);
         break;
       case "entity":
@@ -5337,7 +6204,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
   }, PERF_POST_SECONDS * 1000);
 
   // ---- pre-warm (iPhone 1% lows): load the shared assets and compile both scenes once, before play starts ----
-  let warmed = false;
+  let warmed = false, fxWarmed = false; // fxWarmed: the TV's second compile once A-010's lights are in (frame loop)
   function warm() {
     warmed = true;
     // The explorer is only prefetched (its rig file), never built here: building and disposing a retargeted A-008
@@ -5450,7 +6317,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     const snap = game.snaps.sample();
     game.lastSnap = snap;
     // During the shot transition.js owns the camera; the followed player stays the same.
-    const cam = shot ? { mode: "chase", scene: "space", followed: rig.focus } : rig.update(dt, t, game, snap);
+    const cam = shot ? rig.finish("chase", "space") : rig.update(dt, t, game, snap); // one reused result object, no allocation
     game.followed = cam.followed;
     const subject = shotSubject(snap);
     if (shot) cam.scene = shot.ctl.scene === game.island.scene ? "planet" : "space";
@@ -5458,27 +6325,40 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     const ctx = { me: game.player, mePlayer: game.player ? snap.players.find((p) => p.name === game.player) : null, subject, cockpit: cam.mode === "cockpit", phone, big, t, serverNow: serverNow(), planet: game.space.planet };
     const W = cam.scene === "planet" ? game.island : game.space;
     W.update(dt, t, snap, ctx, camera);
+    (W === game.space ? game.island : game.space).efx?.update(dt, t); // the hidden world's effects age too (WorldFx.update)
     if (shot) updateShot(dt, subject);
     game.shotState = shot ? { kind: shot.kind, player: shot.player, overlayAlpha: shot.ctl.overlayAlpha } : null;
     if (!shot) {
       // Camera shake and fov kick from the subject's animator (anim.js).
-      const a = subject ? (subject.mode === "planet" ? game.island.explorers.get(subject.name)?.anim : game.space.ships.get(subject.name)?.anim) : null;
+      // (not during the TV's planet reveal: the subject is far from that camera)
+      const a = subject && rig.cine !== "reveal" ? (subject.mode === "planet" ? game.island.explorers.get(subject.name)?.anim : game.space.ships.get(subject.name)?.anim) : null;
       const shake = a ? a.shake || 0 : 0, kick = a ? a.fovKick || 0 : 0;
       if (shake > 0.001) {
         camera.position.x += (Math.sin(t * 61) + Math.sin(t * 43)) * 0.06 * shake;
         camera.position.y += (Math.sin(t * 53) + Math.cos(t * 37)) * 0.06 * shake;
       }
-      const f = baseFov + kick;
+      const f = baseFov + kick + rig.fovAdd; // + the phone intro's fov kick (CameraRig.introBlend)
       if (Math.abs(f - camera.fov) > 0.01) { camera.fov = f; camera.updateProjectionMatrix(); }
     }
-    frames[0].visible = frames[1].visible = cam.mode === "cockpit" && !shot;
+    const inCockpit = phone && cam.mode === "cockpit" && !shot;
+    frames[0].visible = frames[1].visible = inCockpit && !cockpit;
+    if (cockpit) showCockpit(inCockpit, W.scene);
+    // The TV's A-010 systems each bring an always-on (zero-intensity) flare light: the light count changes once when they load, so
+    // both scenes are compiled again right then (usually in the lobby), not at the first island view (the landing shot).
+    if (big && !fxWarmed && game.space.efx?.ok && game.island.efx?.ok) {
+      fxWarmed = true;
+      try { renderer.compile(game.island.scene, camera); renderer.compile(game.space.scene, camera); } catch (e) { /* the first frame compiles it */ }
+    }
     const tier = TIERS[game.perf.tier];
     game.space.farRocks = tier.far;
     // World look: bright and saturated without washing out: more exposure, a livelier island, bloom only on what glows.
     // The island blooms only what is really hot (sun disk, chest glow, sparks): a low threshold veiled the whole island.
-    const flash = cam.scene === "planet" ? 0 : game.space.flash; // a huge bang dims bloom and exposure for a moment: never a white screen
+    // A huge bang (the boss dies: game.space.flash 1 → 0 over FLASH_SECONDS) dims bloom and exposure, eased (smoothstep): held deep
+    // while the blasts are brightest, no visible step when it ends. The sources are bounded as well (WorldFx.size caps every A-010
+    // blast by its camera distance, Particles' maxAng caps a puff's screen size): this keeps the climax from blooming into white.
+    const fl = cam.scene === "planet" ? 0 : game.space.flash, flash = fl * fl * (3 - 2 * fl);
     renderer.toneMappingExposure = (cam.scene === "planet" ? (big ? 0.98 : 1.02) : 1.05) * (1 - 0.3 * flash);
-    bloom.strength = (cam.scene === "planet" ? 0.24 : 0.6) * (1 - 0.65 * flash);
+    bloom.strength = (cam.scene === "planet" ? 0.24 : 0.6) * (1 - 0.7 * flash);
     bloom.radius = cam.scene === "planet" ? 0.4 : 0.5;
     bloom.threshold = cam.scene === "planet" ? 1.0 : 0.9;
     renderer.info.reset();
@@ -5501,9 +6381,9 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     }
   }
   const start = () => { if (!raf && !disposed && !lost && !paused && !document.hidden) { lastT = performance.now(); raf = requestAnimationFrame(frame); } };
-  const onVis = () => (document.hidden ? (cancelAnimationFrame(raf), (raf = 0)) : start());
+  const onVis = () => (document.hidden ? (cancelAnimationFrame(raf), (raf = 0), worldSound.hush()) : start()); // no held loop hums on in a hidden tab
   document.addEventListener("visibilitychange", onVis);
-  const onLost = (e) => { e.preventDefault(); lost = true; cancelAnimationFrame(raf); raf = 0; };
+  const onLost = (e) => { e.preventDefault(); lost = true; cancelAnimationFrame(raf); raf = 0; worldSound.hush(); };
   const onRestored = () => { lost = false; applySize(true); start(); };
   canvas.addEventListener("webglcontextlost", onLost);
   canvas.addEventListener("webglcontextrestored", onRestored);
@@ -5513,7 +6393,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     setView(v) { if (["spectator", "chase", "cockpit"].includes(v)) { game.view = v; rig.snapNext = true; } },
     setPlayer(name) { game.player = name ? Contract.cleanName(name) || name : null; rig.snapNext = true; connect(); }, // a phone's stream is named after its player
     // pause(true): stop drawing (the phone's opaque draw screen covers the 3D view); the stream and the state keep up, pause(false) resumes.
-    pause(on) { paused = !!on; if (paused) { cancelAnimationFrame(raf); raf = 0; } else start(); },
+    pause(on) { paused = !!on; if (paused) { cancelAnimationFrame(raf); raf = 0; worldSound.hush(); } else start(); }, // the frame loop drives the held loops: silence them
     on(event, cb) { (listeners[event] = listeners[event] || []).push(cb); return () => { listeners[event] = listeners[event].filter((f) => f !== cb); }; },
     hud: () => computeHud(game),
     sfx, // World look: the sound synth (same object as the `sfx` export): sfx.unlock() in a first tap, sfx.play("click")
@@ -5541,6 +6421,8 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
       for (const e of game.island.explorers.values()) e.dispose();
       for (const v of game.island.parked.values()) v.dispose();
       DRAWN.clear();
+      worldSound.hush(); // no held loop outlives the game
+      try { cockpit?.dispose?.(); } catch { /* already gone */ }
       composer.dispose?.();
       renderer.dispose();
     },

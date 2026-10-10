@@ -23,6 +23,17 @@
 //   mineHit(screenEl, { by, points = -30, stunSeconds = 1.5, shakeEl })
 //   decoyFooled(screenEl, { by, mine = false, victim })    mine: true is the positive "your decoy worked"
 //   toast(text, { sub, tone = "cyan", seconds = 2.2, screenEl })   tone: cyan | red | violet | gold; max 3, newest on top
+//   hitMarker(screenEl, { angle = null, strength = 1, seconds = 0.9 })  → { done, cancel, el }
+//     Where my ship was hit from: a red crescent on the ellipse inscribed in the safe area (8 % in from its edges),
+//     turned to point at the attacker, with a faint red glow toward that edge. angle in radians, heading-up compass:
+//     0 = ahead (top edge), PI / 2 = right, ±PI = behind, -PI / 2 = left; null / not finite = unknown: a red vignette
+//     on every edge instead. strength 0..1 scales size and opacity. Pops in (120 ms), fades over `seconds`. At most 4
+//     at once (the oldest goes); a hit within 25° of a live one (or a second unknown one) restarts it and returns its
+//     handle. All in one fixed full-screen layer per host, z-index 8500 (made once, left empty between hits).
+//   shieldAura(screenEl, { on = true, label = "" })  → { done, cancel, el }   one per host, idempotent
+//     The spawn shield: a pulsing cyan frame with a faint hex band on the screen edges, fixed, z-index 8400, plus a
+//     slanted cyan chip at the bottom centre when `label` is set. on: true while shown only updates the label
+//     (omitted: kept, "": no chip); on: false fades everything out in 0.3 s, then removes it (el: null if none).
 //   empPermutation(items, seed)  the exact scramble rule (kept self-contained so a frame kit can embed it)
 
 const STYLE_ID = "mfx-styles";
@@ -34,7 +45,14 @@ const TAU = Math.PI * 2;
 const FONT = '"Barlow Condensed","Bebas Neue","Futura-CondensedExtraBold","Futura Condensed ExtraBold","AvenirNextCondensed-Heavy","Avenir Next Condensed","Arial Narrow",Impact,system-ui,sans-serif';
 const DISPLAY = FONT;
 const OUTLINE = "#0b1033";
-const TEXT_OUTLINE = `0 2px 0 ${OUTLINE},1.5px 0 0 ${OUTLINE},-1.5px 0 0 ${OUTLINE},0 -1.5px 0 ${OUTLINE},0 4px 8px rgba(0,0,0,.45)`;
+// Text outline = the phone's own heading look (controller.html .hd, #chipTitle): a real stroke painted under the
+// fill plus a hard drop, so the words read on the brightest sky.
+const INK = "#120a2e";
+const HARD = "#0a0830";
+const STROKE = (w) => `-webkit-text-stroke:${w}px ${INK};paint-order:stroke fill;text-shadow:0 2px 0 rgb(10 6 30 / .5)`;
+// The shield's hex band: one 15 × 26 honeycomb tile (pointy-top cells), stroked in the cyan accent.
+const HEX_TILE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='26' viewBox='0 0 15 26'%3E%3Cpath d='M7.5 0v4.33M0 8.67l7.5-4.34L15 8.67M0 8.67v8.66M15 8.67v8.66M0 17.33l7.5 4.34 7.5-4.34M7.5 21.67V26' fill='none' stroke='%2319d3ff' stroke-width='1.2'/%3E%3C/svg%3E")`;
+const EDGE_BAND = "linear-gradient(90deg,#000,transparent 46px,transparent calc(100% - 46px),#000),linear-gradient(180deg,#000,transparent 46px,transparent calc(100% - 46px),#000)";
 
 const CSS = `
 .mfx{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;z-index:8800;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;font-family:${FONT}}
@@ -53,7 +71,7 @@ const CSS = `
 .mfx-arc .g{stroke:rgba(94,231,255,.4);stroke-width:5}
 .mfx-arc .c{stroke:#effdff;stroke-width:1.4}
 .mfx-emp-chip{position:absolute;left:50%;top:8px;display:flex;align-items:center;gap:10px;padding:6px 18px 6px 8px;white-space:nowrap;isolation:isolate;
-  color:#fff;font:italic 900 20px/1 ${FONT};letter-spacing:.04em;text-transform:uppercase;text-shadow:${TEXT_OUTLINE};transform:translateX(-50%);animation:mfx-chipin .3s cubic-bezier(.26,1.5,.48,1) both}
+  color:#fff;font:italic 900 20px/1 ${FONT};letter-spacing:.04em;text-transform:uppercase;${STROKE(3)};transform:translateX(-50%);animation:mfx-chipin .3s cubic-bezier(.26,1.5,.48,1) both}
 .mfx-emp-chip::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:12px;transform:skewX(-9deg);border:3px solid #fff;
   background:linear-gradient(180deg,#ff8a8a 0%,#ff3048 50%,#a50d2c 100%);box-shadow:0 5px 0 ${OUTLINE},0 9px 16px rgba(0,0,0,.35),inset 0 3px 0 rgba(255,255,255,.35)}
 .mfx-emp-chip i{position:relative;display:block;width:28px;height:28px;border-radius:50%;background:${OUTLINE}}
@@ -61,7 +79,7 @@ const CSS = `
 .mfx-emp-chip circle{fill:none;stroke-width:2.4}
 .mfx-emp-chip .t{stroke:rgba(255,255,255,.22)}
 .mfx-emp-chip .p{stroke:#fff;stroke-linecap:round;stroke-dasharray:50.27;stroke-dashoffset:0;animation:mfx-ering var(--s,5s) linear both}
-.mfx-emp-chip b{position:absolute;left:0;top:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:16px;font-style:normal;letter-spacing:0;color:#fff;text-shadow:none}
+.mfx-emp-chip b{position:absolute;left:0;top:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:16px;font-style:normal;letter-spacing:0;color:#fff;-webkit-text-stroke:0;text-shadow:none}
 @keyframes mfx-eburst{0%{opacity:.85}9%{opacity:.1}18%{opacity:.7}27%{opacity:0}40%{opacity:.55}49%{opacity:.05}62%{opacity:.4}72%,100%{opacity:0}}
 @keyframes mfx-eflick{0%{opacity:0}5%{opacity:.5}8%{opacity:0}33%{opacity:.3}35%{opacity:0}61%{opacity:.45}63%{opacity:0}84%{opacity:.25}86%,100%{opacity:0}}
 @keyframes mfx-ehue{0%{opacity:.8}12%{opacity:0}22%{opacity:.5}34%{opacity:0}52%{opacity:.35}62%,100%{opacity:0}}
@@ -116,7 +134,7 @@ const CSS = `
 .mfx-dc-scan{background:repeating-linear-gradient(0deg,rgba(176,124,255,.3) 0,rgba(176,124,255,.3) 1px,transparent 1px,transparent 3px);opacity:0;animation:mfx-dscan 1.7s linear both}
 .mfx-dc-sweep{position:absolute;left:0;right:0;top:0;height:30%;background:linear-gradient(to bottom,rgba(176,124,255,0),rgba(176,124,255,.4) 70%,rgba(236,222,255,.85) 94%,rgba(176,124,255,0));animation:mfx-dsweep .95s cubic-bezier(.4,0,.2,1) both}
 .mfx-dc-stamp{position:absolute;left:50%;top:46%;padding:6px 20px 2px;border:3px solid currentColor;border-radius:8px;white-space:nowrap;color:#f1e6ff;background:rgba(120,70,255,.2);
-  font:italic 900 62px/1 ${DISPLAY};letter-spacing:.06em;text-shadow:-3px 0 rgba(0,240,255,.9),3px 0 rgba(255,40,200,.9),0 0 18px rgba(176,124,255,.95);
+  font:italic 900 62px/1 ${DISPLAY};letter-spacing:.06em;-webkit-text-stroke:5px ${INK};paint-order:stroke fill;text-shadow:-3px 0 rgba(0,240,255,.9),3px 0 rgba(255,40,200,.9),0 0 18px rgba(176,124,255,.95);
   box-shadow:0 0 16px rgba(176,124,255,.6),inset 0 0 12px rgba(176,124,255,.35);transform:translate(-50%,-50%) rotate(-7deg);animation:mfx-dstamp 1.6s both}
 .mfx-dc-mine .mfx-dc-tint{background:rgba(60,220,255,.15)}
 .mfx-dc-mine .mfx-dc-scan{background:repeating-linear-gradient(0deg,rgba(94,231,255,.3) 0,rgba(94,231,255,.3) 1px,transparent 1px,transparent 3px)}
@@ -145,13 +163,48 @@ const CSS = `
 .mfx-tp{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 24px 8px;text-align:center;max-width:min(86vw,560px);box-sizing:border-box;color:#fff}
 .mfx-tp::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:12px;transform:skewX(-9deg);border:3px solid #fff;
   background:linear-gradient(180deg,var(--t1) 0%,var(--t2) 50%,var(--t3) 100%);box-shadow:0 5px 0 ${OUTLINE},0 9px 16px rgba(0,0,0,.35),inset 0 3px 0 rgba(255,255,255,.35)}
-.mfx-tt{font:italic 900 24px/1 ${FONT};letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;text-shadow:${TEXT_OUTLINE}}
-.mfx-ts{font:italic 800 14px/1.05 ${FONT};letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;text-shadow:${TEXT_OUTLINE}}
+.mfx-tt{font:italic 900 24px/1 ${FONT};letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;${STROKE(3)}}
+.mfx-ts{font:italic 800 14px/1.05 ${FONT};letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;${STROKE(2.4)}}
 .mfx-tone-cyan{--t1:#86dcff;--t2:#2f8bff;--t3:#1647c8}
 .mfx-tone-red{--t1:#ff8a8a;--t2:#ff3048;--t3:#a50d2c}
 .mfx-tone-violet{--t1:#d49bff;--t2:#9d4dff;--t3:#5a1bc4}
 .mfx-tone-gold{--t1:#ffe36e;--t2:#ffb21f;--t3:#d26a06}
 
+.mfx-hl{z-index:8500}
+.mfx-hm-o{position:absolute;left:calc(env(safe-area-inset-left,0px) + 8%);right:calc(env(safe-area-inset-right,0px) + 8%);top:calc(env(safe-area-inset-top,0px) + 8%);bottom:calc(env(safe-area-inset-bottom,0px) + 8%)}
+.mfx-hm{position:absolute;left:50%;top:50%;width:0;height:0}
+.mfx-hm.mfx-hm-vg{left:0;top:0;width:100%;height:100%}
+.mfx-hm-f,.mfx-hm-p{position:absolute;left:0;top:0;width:100%;height:100%}
+.mfx-hm-f{animation:mfx-hm-fade var(--s,.9s) ease-in both}
+.mfx-hm-p{animation:mfx-hm-pop .12s ease-out both}
+.mfx-hm-r1 .mfx-hm-f{animation-name:mfx-hm-fade2}
+.mfx-hm-r1 .mfx-hm-p{animation-name:mfx-hm-bump}
+.mfx-hm-r2 .mfx-hm-p{animation-name:mfx-hm-bump2}
+.mfx-hm-g{position:absolute;left:-120px;top:-96px;width:240px;height:132px;background:radial-gradient(closest-side,rgba(255,59,92,.36),rgba(255,59,92,.13) 55%,rgba(255,59,92,0))}
+.mfx-hm-c{position:absolute;left:-48px;top:-16px;width:96px;height:32px;overflow:visible}
+.mfx-hm-v{box-shadow:inset 0 0 0 3px rgba(255,59,92,.75),inset 0 0 64px 10px rgba(255,59,92,.5)}
+@keyframes mfx-hm-pop{0%{opacity:0;transform:scale(.7)}55%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+@keyframes mfx-hm-bump{0%{transform:scale(1.16)}100%{transform:scale(1)}}
+@keyframes mfx-hm-bump2{0%{transform:scale(1.16)}100%{transform:scale(1)}}
+@keyframes mfx-hm-fade{0%,22%{opacity:1}100%{opacity:0}}
+@keyframes mfx-hm-fade2{0%,22%{opacity:1}100%{opacity:0}}
+
+.mfx-sh{z-index:8400;animation:mfx-sh-in .25s ease-out both}
+.mfx-sh.mfx-back{animation:none}
+.mfx-sh.mfx-out{animation:mfx-sh-out .3s ease-in both}
+.mfx-sh-frame{box-shadow:inset 0 0 0 4px rgb(25 211 255 / .85),inset 0 0 38px rgb(25 211 255 / .55);animation:mfx-sh-pulse 1.3s ease-in-out infinite alternate}
+.mfx-sh-hex{opacity:.3;background:${HEX_TILE} 0 0/24px 41.6px;-webkit-mask-image:${EDGE_BAND};mask-image:${EDGE_BAND};animation:mfx-sh-hexp 1.9s ease-in-out infinite alternate}
+.mfx-sh-chip{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);padding:5px 18px 6px;white-space:nowrap;isolation:isolate;color:#fff;
+  font:italic 900 18px/1 ${FONT};letter-spacing:.05em;text-transform:uppercase;${STROKE(3)};transform:translateX(-50%);animation:mfx-chipin .3s cubic-bezier(.26,1.5,.48,1) both}
+.mfx-sh-chip::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:6px;transform:skewX(-9deg);border:3px solid ${INK};
+  background:linear-gradient(180deg,#7aeaff 0%,#19d3ff 55%,#0aa7d6 100%);box-shadow:0 4px 0 ${HARD}}
+@keyframes mfx-sh-in{from{opacity:0}to{opacity:1}}
+@keyframes mfx-sh-out{from{opacity:1}to{opacity:0}}
+@keyframes mfx-sh-pulse{from{opacity:1}to{opacity:.62}}
+@keyframes mfx-sh-hexp{from{opacity:.34}to{opacity:.1}}
+
+.mfx-rm .mfx-hm-p,.mfx-rm .mfx-sh-frame,.mfx-rm .mfx-sh-hex{animation:none}
+.mfx-rm .mfx-hm-v{opacity:.6}
 .mfx-rm .mfx-emp-tear,.mfx-rm .mfx-emp-sweep,.mfx-rm .mfx-emp-hue,.mfx-rm .mfx-tr-s,.mfx-rm .mfx-tr-r,.mfx-rm .mfx-tr-flare,.mfx-rm .mfx-mine-roll,.mfx-rm .mfx-dc-sweep{display:none}
 .mfx-rm .mfx-emp-tint{animation:none;opacity:.1}
 .mfx-rm .mfx-mine-cracks{animation:none;opacity:.7}
@@ -1348,5 +1401,231 @@ export function toast(text, opts) {
   });
 }
 
+// ---------------------------------------------------------------- hit marker
+
+// Damage direction. One fixed full-screen layer per host, made on the first hit and kept for the next ones (empty it
+// paints nothing; it has no data-mfx, so tests that count effects never see it): an orbit box (the safe area, 8 % in)
+// that holds up to MAX_HITS crescents, plus at most one edge vignette for a hit from an unknown direction. Each
+// crescent or vignette is an effect of its own. A new hit close to a live one restarts it instead: swapping between
+// two identical keyframe names restarts a CSS animation without a reflow.
+const MAX_HITS = 4;
+const HIT_SAME = (25 * Math.PI) / 180;
+const hitLayers = new WeakMap(); // host → { el, orbit, list (crescents, least recently hit first), vig }
+let hitUid = 0; // every crescent's SVG carries its own gradient id
+
+const angDiff = (a, b) => Math.abs(((((a - b) % TAU) + TAU + Math.PI) % TAU) - Math.PI);
+
+// Where the ray from the centre at compass angle a (0 = up, clockwise) meets an ellipse whose radii ratio is
+// q = rx / ry, in units of the radii (u, v in -1..1, v down): the crescent sits right where the attacker is.
+function hitSpot(a, q) {
+  const s = Math.sin(a);
+  const c = Math.cos(a);
+  const n = Math.sqrt(s * s + c * c * q * q) || 1;
+  return { u: s / n, v: (-c * q) / n };
+}
+
+function hitLayerOf(host) {
+  let L = hitLayers.get(host);
+  if (L && L.el.parentNode === host) return L;
+  const el = div("mfx mfx-fixed mfx-hl");
+  el.setAttribute("aria-hidden", "true");
+  L = { el, orbit: div("mfx-hm-o", el), list: [], vig: null };
+  host.appendChild(el);
+  hitLayers.set(host, L);
+  return L;
+}
+
+// The orbit's radii ratio (its box honours the safe areas); the window's while the host is not laid out.
+function orbitRatio(L) {
+  const w = L.orbit.clientWidth || window.innerWidth || 844;
+  const h = L.orbit.clientHeight || window.innerHeight || 390;
+  return w / h;
+}
+
+// Drawn pointing up (outward): a crescent 84 px across and 16 px thick in the middle, light toward the attacker, a
+// dark outline under the fill (paint-order) and a gloss line along the outer edge. "@" is the gradient id.
+const CRESCENT =
+  '<svg class="mfx-hm-c" viewBox="-48 -20 96 32"><defs><linearGradient id="@" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8095"/><stop offset="1" stop-color="#ff3b5c"/></linearGradient></defs>' +
+  '<path d="M-42 8A54.1 54.1 0 0 1 42 8A222.5 222.5 0 0 0-42 8Z" fill="url(#@)" stroke="' + INK + '" stroke-width="6" stroke-linejoin="round" paint-order="stroke"/>' +
+  '<path d="M-30 2A50.1 50.1 0 0 1 30 2" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2.2" stroke-linecap="round"/></svg>';
+
+export function hitMarker(screenEl, opts) {
+  const o = opts || {};
+  const raw = o.angle == null || o.angle === "" ? NaN : +o.angle;
+  const ang = Number.isFinite(raw) ? Math.atan2(Math.sin(raw), Math.cos(raw)) : null; // -PI..PI, or null: unknown
+  const k = clampN(o.strength, 0, 1, 1);
+  const sec = clampN(o.seconds, 0.2, 10, 0.9);
+  try {
+    if (typeof document !== "undefined" && document.body) {
+      const host = hostOf(screenEl);
+      const L = hitLayers.get(host);
+      let near = null;
+      if (L && L.el.parentNode === host) {
+        if (ang == null) near = L.vig;
+        else {
+          let best = HIT_SAME;
+          for (const m of L.list) {
+            const d = angDiff(m.ang, ang);
+            if (d <= best) {
+              best = d;
+              near = m;
+            }
+          }
+        }
+      }
+      if (near && !near.fx.ended) {
+        near.again(ang, k, sec);
+        return near.fx.handle;
+      }
+    }
+  } catch (e) {}
+  return run({ el: null }, (fx) => buildHit(fx, hostOf(screenEl), ang, k, sec));
+}
+
+function buildHit(fx, host, ang, k, sec) {
+  const L = hitLayerOf(host);
+  L.el.classList.toggle("mfx-rm", reducedMotion());
+  const q = ang == null ? 1 : orbitRatio(L); // the one layout read, before anything new is added
+  const root = div("mfx-hm" + (ang == null ? " mfx-hm-vg" : ""));
+  root.setAttribute("data-mfx", "hit");
+  const fade = div("mfx-hm-f", root);
+  if (ang == null) div("mfx-fill mfx-hm-v", fade);
+  else {
+    const pop = div("mfx-hm-p", fade);
+    div("mfx-hm-g", pop);
+    pop.insertAdjacentHTML("beforeend", CRESCENT.replace(/@/g, "mfx-hmg" + ++hitUid));
+  }
+  const m = { fx, ang, k: 0, n: 0, at: performance.now(), timer: 0 };
+  const set = (a, s, secs, ratio) => {
+    m.ang = a;
+    m.k = s;
+    const st = root.style;
+    st.setProperty("--s", secs + "s");
+    st.opacity = (0.55 + 0.45 * s).toFixed(3);
+    if (a == null) return;
+    const p = hitSpot(a, ratio);
+    st.left = (50 + 50 * p.u).toFixed(2) + "%";
+    st.top = (50 + 50 * p.v).toFixed(2) + "%";
+    st.transform = "rotate(" + a.toFixed(4) + "rad) scale(" + (0.75 + 0.25 * s).toFixed(3) + ")";
+  };
+  const arm = (secs) => {
+    clearTimeout(m.timer);
+    m.timer = setTimeout(() => fx.end({ ok: true }), secs * 1000 + 40);
+  };
+  fx.on(() => clearTimeout(m.timer));
+  // another hit close by: its angle, the stronger of the two strengths, a bump instead of the pop, the fade anew
+  m.again = (a, s, secs) => {
+    L.el.classList.toggle("mfx-rm", reducedMotion());
+    set(a, Math.max(m.k, s), secs, a == null ? 1 : orbitRatio(L));
+    const now = performance.now();
+    if (now - m.at > 20) {
+      // one swap per frame or so: two in the same style pass would cancel out and restart nothing
+      m.at = now;
+      m.n++;
+      root.classList.remove(m.n % 2 ? "mfx-hm-r2" : "mfx-hm-r1");
+      root.classList.add(m.n % 2 ? "mfx-hm-r1" : "mfx-hm-r2");
+    }
+    arm(secs);
+    const i = L.list.indexOf(m);
+    if (i >= 0) {
+      L.list.splice(i, 1);
+      L.list.push(m);
+    }
+  };
+  set(ang, k, sec, q);
+  if (ang == null) {
+    if (L.vig && !L.vig.fx.ended) L.vig.fx.end({ superseded: true });
+    L.vig = m;
+    fx.on(() => {
+      if (L.vig === m) L.vig = null;
+    });
+    fx.add(root, L.el);
+  } else {
+    while (L.list.length >= MAX_HITS) L.list.shift().fx.end({ superseded: true }); // the least recently hit makes room
+    L.list.push(m);
+    fx.on(() => {
+      const i = L.list.indexOf(m);
+      if (i >= 0) L.list.splice(i, 1);
+    });
+    fx.add(root, L.orbit);
+  }
+  arm(sec);
+  fx.handle.el = root;
+}
+
+// ---------------------------------------------------------------- spawn shield
+
+const shields = new WeakMap(); // host → the shield on it
+
+export function shieldAura(screenEl, opts) {
+  const o = opts || {};
+  const on = o.on === undefined ? true : !!o.on;
+  let st = null;
+  try {
+    if (typeof document !== "undefined" && document.body) {
+      const host = hostOf(screenEl);
+      st = shields.get(host) || null;
+      if (st && (st.fx.ended || st.root.parentNode !== host)) {
+        st.fx.end({ gone: true }); // someone emptied the host: start over
+        st = null;
+      }
+    }
+  } catch (e) {
+    st = null;
+  }
+  if (st) {
+    try {
+      if (on) st.show(o.label);
+      else st.hide();
+    } catch (e) {}
+    return st.fx.handle;
+  }
+  if (!on) return { done: Promise.resolve({ off: true }), cancel() {}, el: null };
+  return run({ el: null }, (fx) => buildShield(fx, hostOf(screenEl), o.label));
+}
+
+function buildShield(fx, host, label) {
+  const root = div("mfx mfx-fixed mfx-sh" + (reducedMotion() ? " mfx-rm" : ""));
+  root.setAttribute("data-mfx", "shield");
+  root.setAttribute("aria-hidden", "true");
+  div("mfx-fill mfx-sh-hex", root);
+  div("mfx-fill mfx-sh-frame", root);
+  const st = { fx, root, chip: null, text: "", leaving: false, timer: 0 };
+  st.setLabel = (v) => {
+    const t = clip(v, 32).trim();
+    if (t === st.text) return;
+    st.text = t;
+    if (!t) {
+      if (st.chip) st.chip.remove();
+      st.chip = null;
+    } else (st.chip || (st.chip = div("mfx-sh-chip", root))).textContent = t;
+  };
+  st.show = (v) => {
+    if (st.leaving) {
+      // back on while fading out: straight to full again, no second fade-in
+      st.leaving = false;
+      clearTimeout(st.timer);
+      root.classList.remove("mfx-out");
+      root.classList.add("mfx-back");
+    }
+    if (v !== undefined) st.setLabel(v);
+  };
+  st.hide = () => {
+    if (st.leaving) return;
+    st.leaving = true;
+    root.classList.remove("mfx-back");
+    root.classList.add("mfx-out");
+    st.timer = setTimeout(() => fx.end({ off: true }), 320);
+  };
+  fx.on(() => clearTimeout(st.timer));
+  st.setLabel(label);
+  fx.add(root, host);
+  shields.set(host, st);
+  fx.on(() => {
+    if (shields.get(host) === st) shields.delete(host);
+  });
+  fx.handle.el = root;
+}
+
 // for tests and tuning; not part of the API
-export const __test = { inkField, inkWalk, makeSplats, BRUSH, GRID, OPEN_BELOW, CLEAR_BELOW, rng };
+export const __test = { inkField, inkWalk, makeSplats, BRUSH, GRID, OPEN_BELOW, CLEAR_BELOW, rng, hitSpot, angDiff, MAX_HITS, HIT_SAME };

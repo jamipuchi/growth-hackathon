@@ -1,6 +1,6 @@
 // inflate.js: a drawing becomes a plush 3D body on the device (PLAN.md section 6, "Look"). No model call.
 //
-//   inflateDrawing(inkImage, { kind: "ship"|"person"|"car"|"bike"|"quadruped"|"blob", size, quality: "phone"|"big",
+//   inflateDrawing(inkImage, { kind: "ship"|"person"|"car"|"bike"|"quadruped"|"blob", size, quality: "phone"|"lite"|"big",
 //                              color, noseUp })
 //     → { object3d, sockets, wheels, radius, materials, triangles, ms, size: {x, y, z},
 //         instance({ color }) → { object3d, sockets, wheels, materials, dispose() },   // a view: shared geometry + texture
@@ -25,21 +25,25 @@
 //   ship   nose, wing_l, wing_r, back, belly, seat, engine_l, engine_r
 //   person head, hand_l, hand_r, feet, back
 //   car, bike, quadruped, blob   front, back, roof, top, seat, mouth, tail, centre (all of them, for every side kind)
-// Budgets: ≤ 4k triangles ("phone"), ≤ 12k ("big") for the body (+ ~200 for wheels), one texture ≤ 512 px.
+// Budgets: ≤ 4k triangles ("phone"), ≤ 2.6k ("lite": the phone's game view), ≤ 12k ("big") for the body (+ ~200 for wheels), one
+// texture ≤ 512 px.
 import * as THREE from "three";
 
 const Q = {
   phone: { maskPx: 112, tris: 4000, texPx: 384, seg: 18 },
   big: { maskPx: 160, tris: 12000, texPx: 512, seg: 28 },
+  // The phone's GAME view (render.js DrawnCache): up to 8 ships + 8 explorers + 6 parked ships of drawings share the 120k-triangle
+  // budget with the world, so each body gets 2.6k (the same texture, so the drawing reads as sharp; the preview card keeps "phone").
+  lite: { maskPx: 112, tris: 2600, texPx: 384, seg: 14 },
 };
 // thick: plush half-thickness as a fraction of the biggest inside radius; bevel: how far from the outline the height
 // takes to rise (1 = a plush dome, less = flatter top with rounded edges); minHalf: at least this fraction of the
 // longest side as half-thickness (chunky machines); wheels: how many wheels a drawing is expected to have.
 const KIND = {
   ship: { thick: 0.55, grow: 0.028, closes: [0.035, 0.07, 0.11], backShade: 0.62, size: 3.2 },
-  person: { thick: 0.62, grow: 0.03, closes: [0.03], backShade: 0.62, size: 1.8 },
-  car: { thick: 0.5, grow: 0.026, closes: [0.025, 0.05, 0.09], backShade: 0.66, size: 2.8, side: true, bevel: 0.5, minHalf: 0.2, wheels: 2, twin: true },
-  bike: { thick: 0.5, grow: 0.02, closes: [0.02, 0.04, 0.07], backShade: 0.66, size: 1.9, side: true, bevel: 0.7, minHalf: 0.05, wheels: 2, twin: false },
+  person: { thick: 0.62, grow: 0.03, closes: [0.03], backShade: 0.62, size: 1.8, tall: true },
+  car: { thick: 0.5, grow: 0.026, closes: [0.025, 0.05, 0.09], backShade: 0.66, size: 4.0, side: true, bevel: 0.5, minHalf: 0.2, wheels: 2, twin: true },
+  bike: { thick: 0.5, grow: 0.02, closes: [0.02, 0.04, 0.07], backShade: 0.66, size: 2.0, side: true, bevel: 0.7, minHalf: 0.05, wheels: 2, twin: false },
   quadruped: { thick: 0.9, grow: 0.03, closes: [0.03, 0.06, 0.1], backShade: 0.62, size: 2.0, side: true, bevel: 1 },
   blob: { thick: 1.0, grow: 0.03, closes: [0.03, 0.06], backShade: 0.66, size: 1.4, side: true, bevel: 1 },
 };
@@ -233,7 +237,7 @@ function makeTexture(src, sil, color, texPx) {
   const c = canvas(tw, th);
   const ctx = c.getContext("2d");
   const img = ctx.createImageData(tw, th), d = img.data;
-  const body = PAPER.clone().lerp(new THREE.Color(color), 0.38);
+  const body = PAPER.clone().lerp(new THREE.Color(color), 0.46); // a saturated plush in the player colour (the Fortnite look), the ink still reads
   const br = body.r * 255, bg = body.g * 255, bb = body.b * 255;
   const toSrc = 1 / (s * k);
   let seed = 1234567;
@@ -473,12 +477,13 @@ export function inflateDrawing(inkImage, opts = {}) {
   mark("silhouette");
   const { mask, W, H } = sil;
 
-  // Orientation: grid (x right, y down) → metres. The silhouette's longest side = sizeM.
+  // Orientation: grid (x right, y down) → metres. The silhouette's longest side = sizeM; a person (tall) is sizeM TALL whatever
+  // the arms do (a star-shaped drawing would otherwise shrink to a 1.2 m child), but at most 1.6 x that wide.
   let mx0 = W, my0 = H, mx1 = 0, my1 = 0;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (mask[y * W + x]) { if (x < mx0) mx0 = x; if (x > mx1) mx1 = x; if (y < my0) my0 = y; if (y > my1) my1 = y; }
   mx1 += 1; my1 += 1;
   const sw = mx1 - mx0, sh = my1 - my0;
-  const m = sizeM / Math.max(sw, sh);
+  const m = K.tall ? sizeM / Math.max(sh, sw / 1.6) : sizeM / Math.max(sw, sh);
   const cx = (mx0 + mx1) / 2, cy = (my0 + my1) / 2;
   const noseUp = kind === "ship" ? (opts.noseUp ?? sh > sw * 1.25) : false;
 

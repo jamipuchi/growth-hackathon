@@ -17,6 +17,8 @@ export const SOUNDS = [
   // extras: explosion sizes, the final GO beep, and sounds for the other fx kinds of the game
   "explosion-small", "explosion-medium", "explosion-large", "countdown-go",
   "hit", "crack", "scan", "flare", "death", "respawn",
+  // v1.3: the steal sting (chest points or the boss's last hit snatched) and the hit-confirm tick when MY shot lands
+  "steal", "hitmark",
 ];
 
 // Sounds with a seamless loop variant for held actions. loop() on any other name repeats its one-shot.
@@ -682,9 +684,41 @@ function respawn(sr) {
   return finish(out, sr, { release: 0.18 });
 }
 
+function steal(sr) {
+  // the sneaky grab: a quick upward swipe of noise, three coin pings snatched away, then a cheeky falling "bwoop"
+  const n = round(sr * 0.62), out = new Float32Array(n), nz = noise("steal");
+  const bp = svf(sr);
+  const sw = round(sr * 0.16);
+  for (let i = 0; i < sw; i++) {
+    const t = i / sr;
+    if ((i & 3) === 0) bp.set(900 + 3800 * (t / 0.16), 1.3);
+    bp.run(nz());
+    out[i] += bp.bp * 0.55 * smooth01(t / 0.02) * (1 - t / 0.16);
+  }
+  [[1318.5, 0.1], [1568, 0.15], [2093, 0.2]].forEach(([f, t]) => bell(out, sr, t, f, 0.42, 0.07, SOFT_BELL));
+  const s0 = round(sr * 0.28);
+  let ph = 0;
+  for (let i = s0; i < n; i++) {
+    const t = (i - s0) / sr;
+    ph += (880 * exp(-t / 0.12) + 260) / sr;
+    out[i] += (sin(TAU * ph) + 0.25 * tri(ph)) * 0.5 * min(1, t / 0.006) * exp(-t / 0.13);
+  }
+  reverb(out, sr, 0.15, 0.4);
+  return finish(out, sr, { release: 0.08 });
+}
+
+function hitmark(sr) {
+  // MY shot landed: a crisp, dry confirm (a bright two-partial ping on a tiny click), short so rapid fire stays clean
+  const n = round(sr * 0.12), out = new Float32Array(n), nz = noise("hitmark");
+  bell(out, sr, 0, 2637, 0.6, 0.025, [[1, 1, 1], [1.5, 0.35, 0.6]]);
+  const bp = svf(sr).set(3200, 1.6), cl = round(sr * 0.02);
+  for (let i = 0; i < cl; i++) { bp.run(nz()); out[i] += bp.bp * 0.8 * (1 - i / cl); }
+  return finish(out, sr, { attack: 0.002, release: 0.03, lp: 7500 });
+}
+
 const RECIPES = {
   laser, boost, shield, drill, dig, land, takeoff, chest, kill, emp, ink, tractor, mine, hint, countdown, win,
-  hit, crack, scan, flare, death, respawn,
+  hit, crack, scan, flare, death, respawn, steal, hitmark,
   "ui-tap": uiTap, "countdown-go": countdownGo,
   explosion: (sr) => explosion(sr, "medium"),
   "explosion-small": (sr) => explosion(sr, "small"),
@@ -804,7 +838,7 @@ const LEVEL = {
   "explosion-small": 0.22, "explosion-medium": 0.3, "explosion-large": 0.36, win: 0.3, chest: 0.27, kill: 0.26, mine: 0.28,
   death: 0.25, takeoff: 0.24, "countdown-go": 0.28, countdown: 0.2, boost: 0.2, shield: 0.18, land: 0.18, emp: 0.22, ink: 0.19,
   respawn: 0.2, tractor: 0.18, drill: 0.18, dig: 0.19, crack: 0.18, scan: 0.16, flare: 0.17, laser: 0.13, hit: 0.12,
-  "ui-tap": 0.09, hint: 0.13, "loop:drill": 0.12, "loop:dig": 0.14, "loop:tractor": 0.12, "loop:boost": 0.15, "loop:shield": 0.08,
+  "ui-tap": 0.09, hint: 0.13, steal: 0.24, hitmark: 0.11, "loop:drill": 0.12, "loop:dig": 0.14, "loop:tractor": 0.12, "loop:boost": 0.15, "loop:shield": 0.08,
 };
 function loudness(x, sr) {
   const hpa = exp((-TAU * 250) / sr), lpa = 1 - exp((-TAU * 6000) / sr), w = min(x.length, round(sr * 0.1));
@@ -822,13 +856,13 @@ function loudness(x, sr) {
   return sqrt(best / w);
 }
 // Random pitch spread per play (+-) so a burst of the same sound does not phase into a machine-gun comb.
-const VARY = { laser: 0.05, hit: 0.06, "ui-tap": 0.03, dig: 0.05, "explosion-small": 0.05, "explosion-medium": 0.04, "explosion-large": 0.03, land: 0.04, crack: 0.05 };
+const VARY = { laser: 0.05, hit: 0.06, hitmark: 0.04, "ui-tap": 0.03, dig: 0.05, "explosion-small": 0.05, "explosion-medium": 0.04, "explosion-large": 0.03, land: 0.04, crack: 0.05 };
 // Loops start with a short spin-up (the playback rate rises) and wind down when stopped.
 const SPIN = { drill: 0.7, boost: 0.8, tractor: 0.85, shield: 0.92 };
 
 // Idle-time render order: what the first seconds of a round need comes first.
 const ORDER = [
-  "ui-tap", "laser", "hit", "explosion-small", "explosion-medium", "countdown", "countdown-go", "boost", "shield", "chest", "kill",
+  "ui-tap", "laser", "hit", "hitmark", "explosion-small", "explosion-medium", "countdown", "countdown-go", "boost", "shield", "chest", "kill", "steal",
   "land", "dig", "drill", "takeoff", "emp", "ink", "tractor", "mine", "hint", "win", "explosion-large", "crack", "scan", "flare",
   "death", "respawn",
 ].concat(LOOPS.map((n) => "loop:" + n));

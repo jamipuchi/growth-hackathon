@@ -17,9 +17,23 @@ export const ICON_SVG = {
   steal: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.2" fill="#ffcb3d" stroke="#120a2e" stroke-width="2.2"/><circle cx="12" cy="12" r="5.9" fill="none" stroke="#b86a00" stroke-width="1.6"/><path d="M12 7v10M14.7 9.4c-.5-1.2-4.2-1.6-4.7.3-.5 2 4.8 1 4.7 3.4-.1 1.8-4 1.8-4.8.2" fill="none" stroke="#8a4a0a" stroke-width="1.8" stroke-linecap="round"/></svg>',
   stun: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.4l2.6 6.1 6.6.6-5 4.4 1.5 6.5L12 16.6 6.3 20l1.5-6.5-5-4.4 6.6-.6z" fill="#fff36a" stroke="#120a2e" stroke-width="2" stroke-linejoin="round"/></svg>',
   ko: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 5.5l13 13M18.5 5.5l-13 13" stroke="#120a2e" stroke-width="7.4" stroke-linecap="round"/><path d="M5.5 5.5l13 13M18.5 5.5l-13 13" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg>',
+  // v1.3: the big moments of a round (wrecked parked ship, chest, boss down, landing, round won)
+  wreck: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.6 3.2a5 5 0 0 0-5.5 6.6L3.4 15.5a2.3 2.3 0 0 0 3.2 3.2l5.7-5.7a5 5 0 0 0 6.6-5.5l-3 3-2.8-.6-.6-2.8z" fill="#e8ecff" stroke="#120a2e" stroke-width="2" stroke-linejoin="round"/></svg>',
+  chest: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5h18v8.6a1.6 1.6 0 0 1-1.6 1.6H4.6A1.6 1.6 0 0 1 3 19.1z" fill="#c9791a" stroke="#120a2e" stroke-width="2" stroke-linejoin="round"/><path d="M3 10.5C3 6.3 6 3.6 12 3.6s9 2.7 9 6.9z" fill="#ffb92e" stroke="#120a2e" stroke-width="2" stroke-linejoin="round"/><rect x="9.8" y="9.2" width="4.4" height="5.4" rx="1" fill="#fff36a" stroke="#120a2e" stroke-width="1.6"/></svg>',
+  boss: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6c5 0 8.6 3.4 8.6 7.8 0 2.7-1.3 4.4-3 5.4v3.4c0 .9-.7 1.6-1.6 1.6H8c-.9 0-1.6-.7-1.6-1.6v-3.4c-1.7-1-3-2.7-3-5.4C3.4 6 7 2.6 12 2.6z" fill="#fff" stroke="#120a2e" stroke-width="2" stroke-linejoin="round"/><circle cx="8.6" cy="11" r="2.2" fill="#e0183f"/><circle cx="15.4" cy="11" r="2.2" fill="#e0183f"/><path d="M10.4 17.4v2.4M13.6 17.4v2.4" stroke="#120a2e" stroke-width="1.6"/></svg>',
+  planet: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.6" fill="#19d3ff" stroke="#120a2e" stroke-width="2"/><ellipse cx="12" cy="12" rx="11" ry="4" fill="none" stroke="#fff" stroke-width="2.2" transform="rotate(-20 12 12)"/></svg>',
+  win: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 19.2L2.4 7.4l5.8 4.8L12 4.4l3.8 7.8 5.8-4.8-1 11.8z" fill="#ffcb3d" stroke="#120a2e" stroke-width="2" stroke-linejoin="round"/></svg>',
 };
 // Words on the chips. The page passes its own (COPY table) through opts.labels; these defaults only keep old callers working.
-const DEFAULT_LABELS = { emp: "EMP", ink: "INK", pull: "PULL", mine: "MINE", decoy: "DECOY", steal: "STEAL", stun: "STUN", ko: "KO" };
+const DEFAULT_LABELS = { emp: "EMP", ink: "INK", pull: "PULL", mine: "MINE", decoy: "DECOY", steal: "STEAL", stun: "STUN", ko: "KO",
+  wreck: "WRECK", chest: "CHEST", boss: "BOSS", planet: "LAND", win: "WIN" };
+// The punchlines of the fun kill-feed lines (parseFeedLine → fun). The page passes its own through opts.lines (its COPY table).
+export const DEFAULT_LINES = {
+  emp: "BUTTONS SCRAMBLED!", ink: "SPLAT!", pull: "YOINK!", hit: "HIT", s: "'S", mine: "BOOM! {n}", fellFor: "FELL FOR",
+  stole: "+{n} STOLEN!", lastHit: "LAST HIT! BOSS DOWN!", lastHitStolen: "STOLE THE LAST HIT FROM", swarm: "BOSS DOWN!",
+  topDamage: "DID THE MOST DAMAGE", wreck: "SHIP WRECKED!", chest: "OPENED A CHEST!", landed: "LANDED ON THE PLANET",
+  rebuilt: "REBUILT THEIR SHIP", wins: "WINS THE ROUND!",
+};
 const escHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 function chipEl(key, label) {
   const c = document.createElement("span");
@@ -60,6 +74,40 @@ export function injectStyles() {
 .bse-chip.decoy{--ca:#ffa5ee;--cb:#e03fc4}
 .bse-chip.steal,.bse-chip.stun{--ca:#ffe27a;--cb:#ffb000;color:#241400;-webkit-text-stroke:0;text-shadow:0 .1em 0 rgb(255 255 255/.5)}
 .bse-chip.ko{--ca:#ff8aa0;--cb:#e0183f}
+.bse-chip.wreck{--ca:#b9c2e8;--cb:#5d6aa8}
+.bse-chip.chest,.bse-chip.win{--ca:#ffe27a;--cb:#ffb000;color:#241400;-webkit-text-stroke:0;text-shadow:0 .1em 0 rgb(255 255 255/.5)}
+.bse-chip.boss{--ca:#ff6f8b;--cb:#c0102f}
+.bse-chip.planet{--ca:#7fe3ff;--cb:#1f7dff}
+
+/* fun lines: player names are their colour, the punchline is gold */
+.bse-feed-item .bse-nm{white-space:nowrap}
+.bse-feed-item .bse-punch{color:#ffe27a;white-space:nowrap}
+.bse-feed-item.ko .bse-punch{color:#ffb3c0}
+/* opts.side "left": the feed hangs from the bottom-left corner (the TV), newest line at the bottom */
+.bse-feed.bse-left{align-items:flex-start}
+.bse-feed.bse-left .bse-feed-item{text-align:left;transform:translateX(-2.4em) scale(.92);padding:.32em 1.15em .44em 1.05em}
+.bse-feed.bse-left .bse-feed-item::before{border-right:.1em solid rgb(255 255 255/.6);border-left:.42em solid var(--c,#9fd8ff)}
+.bse-feed.bse-left .bse-feed-item.in{transform:none}
+.bse-feed.bse-left .bse-feed-item.out{transform:translateX(-1em)}
+
+/* live map (createMiniMap): chunky slanted header plates over rounded map tiles */
+.bse-map{--bse-fh:"Barlow Condensed",Impact,"Arial Narrow",system-ui,sans-serif;--bse-ink:#120a2e;--bse-shadow:#0a0830;
+  font-size:var(--bse-fs,10px);display:flex;flex-direction:column;gap:.7em;pointer-events:none}
+.bse-map-panel{position:relative}
+.bse-map-panel.planet{display:none}
+.bse-map-panel.planet.on{display:block;animation:bse-pop .45s cubic-bezier(.34,1.56,.64,1) both}
+.bse-map-hd{position:absolute;left:.6em;top:-.9em;z-index:2;display:flex;align-items:center;gap:.5em;padding:.18em .9em .26em .7em;isolation:isolate;
+  font:italic 900 1.35em/1 var(--bse-fh);text-transform:uppercase;letter-spacing:.06em;color:#fff;-webkit-text-stroke:.14em var(--bse-ink);paint-order:stroke fill}
+.bse-map-hd::before{content:"";position:absolute;inset:0;z-index:-1;transform:skewX(-10deg);border-radius:.3em;background:linear-gradient(180deg,#b45cff,#8a3dff);
+  border:.13em solid #fff;box-shadow:0 .2em 0 var(--bse-shadow)}
+.bse-map-panel.planet .bse-map-hd::before{background:linear-gradient(180deg,#4fd1ff,#1f7dff)}
+.bse-map-hd b{font-weight:900;color:#ffe27a}
+.bse-map-hd b:empty{display:none}
+.bse-map-cv{position:relative;width:100%;aspect-ratio:1/1;border-radius:1em;overflow:hidden;border:.22em solid #fff;
+  box-shadow:0 0 0 .16em var(--bse-ink),0 .4em 0 .16em var(--bse-shadow);
+  background:radial-gradient(circle at 50% 40%,rgb(64 40 170/.92),rgb(16 12 60/.94) 75%)}
+.bse-map-panel.planet .bse-map-cv{aspect-ratio:4/3;background:radial-gradient(circle at 50% 45%,rgb(70 150 96/.94),rgb(22 70 60/.95) 80%)}
+.bse-map-cv canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 
 .bse-feed{position:absolute;top:1.8em;right:2.2em;display:flex;flex-direction:column;align-items:flex-end;gap:.5em;
   pointer-events:none;z-index:25;font-family:var(--bse-fb)}
@@ -477,11 +525,50 @@ function colourSegments(text, names) {
 
 // The server's announce lines carry one emoji per mischief (⚡ emp, 🦑 inkbomb, 🧲 tractor, 💣 mine, 🎭 decoy, 💰 steal): they become
 // coloured icon chips. "bob ✕ ana" (+ " 💣" / " 🧲" for a mischief kill) becomes name · KO chip · name (· chip). Every other emoji is dropped.
-const ICON_OF = { "⚡": "emp", "\u{1F991}": "ink", "\u{1F9F2}": "pull", "\u{1F4A3}": "mine", "\u{1F3AD}": "decoy", "\u{1F4B0}": "steal" };
-const ICON_RE = /(⚡|\u{1F991}|\u{1F9F2}|\u{1F4A3}|\u{1F3AD}|\u{1F4B0})️?/gu;
+// v1.3 adds 🔧 wreck, 💎 chest, 💥 boss down, 🏆 round won.
+const ICON_OF = { "⚡": "emp", "\u{1F991}": "ink", "\u{1F9F2}": "pull", "\u{1F4A3}": "mine", "\u{1F3AD}": "decoy", "\u{1F4B0}": "steal",
+  "\u{1F527}": "wreck", "\u{1F48E}": "chest", "\u{1F4A5}": "boss", "\u{1F3C6}": "win" };
+const ICON_RE = /(⚡|\u{1F991}|\u{1F9F2}|\u{1F4A3}|\u{1F3AD}|\u{1F4B0}|\u{1F527}|\u{1F48E}|\u{1F4A5}|\u{1F3C6})️?/gu;
 const EMOJI_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{2693}\u{2695}-\u{26FF}]️?/gu;
-// → { lead: [chip keys before the words], tail: [chip keys after them], text, kill: [killer, victim] | null, ko: bool }
-export function parseFeedLine(raw) {
+
+// Fun lines: the server's plain sentences ("ana scrambled bob's buttons") become "ANA [EMP] BOB  BUTTONS SCRAMBLED!": names in
+// their colours, an icon chip for the trick, a gold punchline. Segments: { n: name } | { c: chip key } | { t: text, g?: glued to
+// the previous piece } | { p: punchline }. A line the patterns do not know falls back to the plain text (plus its emoji chips),
+// so a reworded server line still reads fine.
+const NM = "([a-z0-9]{1,20})";
+const fill = (tpl, n) => String(tpl).replace("{n}", n == null ? "" : n).replace(/\s+/g, " ").trim();
+const FUN = [
+  [new RegExp(`^${NM} scrambled ${NM}'s buttons`, "i"), (m, L) => [{ n: m[1] }, { c: "emp" }, { n: m[2] }, { p: L.emp }]],
+  [new RegExp(`^${NM} inked ${NM}'s screen`, "i"), (m, L) => [{ n: m[1] }, { c: "ink" }, { n: m[2] }, { p: L.ink }]],
+  [new RegExp(`^${NM} pulled ${NM}\\b`, "i"), (m, L) => [{ n: m[1] }, { c: "pull" }, { n: m[2] }, { p: L.pull }]],
+  [new RegExp(`^${NM} hit ${NM}'s mine(?: \\((-?\\d+)\\))?`, "i"), (m, L) => [{ n: m[1] }, { t: L.hit }, { n: m[2] }, { t: L.s, g: true }, { c: "mine" }, { p: fill(L.mine, m[3] ? m[3].replace("-", "−") : "") }]],
+  [new RegExp(`^${NM} shot ${NM}'s decoy`, "i"), (m, L) => [{ n: m[1] }, { t: L.fellFor }, { n: m[2] }, { t: L.s, g: true }, { c: "decoy" }]],
+  [new RegExp(`^${NM} stole (\\d+) points from ${NM}`, "i"), (m, L) => [{ n: m[1] }, { c: "steal" }, { n: m[3] }, { p: fill(L.stole, m[2]) }]],
+  [new RegExp(`^${NM} landed the last hit on the boss \\(stolen from ${NM}\\)`, "i"), (m, L) => [{ n: m[1] }, { c: "boss" }, { p: L.lastHitStolen }, { n: m[2] }]],
+  [new RegExp(`^${NM} landed the last hit on the boss`, "i"), (m, L) => [{ n: m[1] }, { c: "boss" }, { p: L.lastHit }]],
+  [/^the swarm brought the boss down!?(?: ([a-z0-9]{1,20}) did the most damage)?/i, (m, L) => [{ c: "boss" }, { p: L.swarm }].concat(m[1] ? [{ n: m[1] }, { t: L.topDamage }] : [])],
+  [new RegExp(`^${NM} wrecked ${NM}'s ship(?: \\(\\+?(\\d+)\\))?`, "i"), (m, L) => [{ n: m[1] }, { c: "wreck" }, { n: m[2] }, { p: L.wreck + (m[3] ? ` +${m[3]}` : "") }]],
+  [new RegExp(`^${NM}'s ship was wrecked`, "i"), (m, L) => [{ c: "wreck" }, { n: m[1] }, { p: L.wreck }]],
+  [new RegExp(`^${NM} opened a chest(?: \\(\\+?(\\d+)\\))?`, "i"), (m, L) => [{ c: "chest" }, { n: m[1] }, { p: L.chest + (m[2] ? ` +${m[2]}` : "") }]],
+  [new RegExp(`^${NM} landed on the planet`, "i"), (m, L) => [{ c: "planet" }, { n: m[1] }, { t: L.landed }]],
+  [new RegExp(`^${NM} rebuilt their ship`, "i"), (m, L) => [{ c: "wreck" }, { n: m[1] }, { t: L.rebuilt }]],
+  [new RegExp(`\\b${NM} wins round \\d+`, "i"), (m, L) => [{ c: "win" }, { n: m[1] }, { p: L.wins }]],
+];
+// → { lead: [chip keys before the words], tail: [chip keys after them], text, kill: [killer, victim] | null, ko: bool,
+//     fun: [segments] | null }. lines = the punchline words (DEFAULT_LINES or the page's own).
+export function parseFeedLine(raw, lines) {
+  const out = parseFeedBase(raw);
+  out.fun = null;
+  if (!out.kill && !out.ko) {
+    const L = lines || DEFAULT_LINES;
+    for (const [re, build] of FUN) {
+      const m = re.exec(out.text);
+      if (m) { out.fun = build(m, L); break; }
+    }
+  }
+  return out;
+}
+function parseFeedBase(raw) {
   const lead = [], tail = [];
   const src = String(raw).replace(/⚔️?/g, "✕");
   let text = src.replace(ICON_RE, (m, ch, at) => {
@@ -500,14 +587,40 @@ export function parseFeedLine(raw) {
 // push(text, colour, names?, kind?): colour = the line's accent (the lead player's colour); names = [[name, colour], …] (or a Map)
 // paints every player name in the text in its own colour; kind "hint" = a smaller purple line, "quiet" = a small dim line that
 // is dropped first (a kill between two bots). opts.labels = the words on the chips ({ emp, ink, pull, mine, decoy, steal, ko }).
+// opts.side "left" = hang from the bottom-left corner (the page places it), newest line at the bottom; opts.lines = punchline words.
 export function createKillFeed(container, opts = {}) {
   injectStyles();
   const max = opts.max || 5;
   const life = opts.life || 6000;
   const labels = Object.assign({}, DEFAULT_LABELS, opts.labels || {});
+  const lines = Object.assign({}, DEFAULT_LINES, opts.lines || {});
   const el = document.createElement("div");
-  el.className = "bse-feed";
+  el.className = "bse-feed" + (opts.side === "left" ? " bse-left" : "");
   container.appendChild(el);
+  // name (any case) → colour, from the names the page passes ([[name, colour]] or a Map)
+  function colourOf(name, names) {
+    if (!names) return null;
+    const low = String(name).toLowerCase();
+    for (const [n, col] of names) if (String(n).toLowerCase() === low) return col;
+    return null;
+  }
+  // One fun line: names in their colours, chips, plain words, the gold punchline; a space between pieces except around chips.
+  function addSegments(parent, segs, names) {
+    let afterChip = true;
+    for (const s of segs) {
+      if (s.c) { parent.appendChild(chipEl(s.c, labels[s.c])); afterChip = true; continue; }
+      const piece = s.n != null ? s.n : s.p != null ? s.p : s.t;
+      if (!piece) continue;
+      if (!afterChip && !s.g) parent.appendChild(document.createTextNode(" "));
+      afterChip = false;
+      if (s.t != null) { parent.appendChild(document.createTextNode(s.t)); continue; }
+      const sp = document.createElement("span");
+      sp.className = s.n != null ? "bse-nm" : "bse-punch";
+      if (s.n != null) { const col = colourOf(s.n, names); if (col) sp.style.color = col; }
+      sp.textContent = piece;
+      parent.appendChild(sp);
+    }
+  }
   const items = [];
   let lastSig = "", lastAt = 0;
 
@@ -531,7 +644,7 @@ export function createKillFeed(container, opts = {}) {
     }
   }
   function push(text, colour = "#9fd8ff", names, kind) {
-    const line = parseFeedLine(text);
+    const line = parseFeedLine(text, lines);
     const now = Date.now();
     const sig = line.lead.join() + "|" + line.text + "|" + line.tail.join();
     if (!line.text && !line.lead.length && !line.tail.length) return;
@@ -543,13 +656,16 @@ export function createKillFeed(container, opts = {}) {
     d.className = "bse-feed-item" + (kind ? ` ${kind}` : "") + (line.ko ? " ko" : "");
     d.style.setProperty("--c", colour);
     d.dataset.line = String(text); // the server's line as sent (tests and tours read it; the screen shows chips instead of the emoji)
-    for (const k of line.lead) d.appendChild(chipEl(k, labels[k]));
-    if (line.kill) {
-      addText(d, line.kill[0], names);
-      d.appendChild(chipEl("ko", labels.ko));
-      addText(d, line.kill[1], names);
-    } else if (line.text) addText(d, line.text, names);
-    for (const k of line.tail) d.appendChild(chipEl(k, labels[k]));
+    if (line.fun) addSegments(d, line.fun, names); // a known trick or moment: the fun version
+    else {
+      for (const k of line.lead) d.appendChild(chipEl(k, labels[k]));
+      if (line.kill) {
+        addText(d, line.kill[0], names);
+        d.appendChild(chipEl("ko", labels.ko));
+        addText(d, line.kill[1], names);
+      } else if (line.text) addText(d, line.text, names);
+      for (const k of line.tail) d.appendChild(chipEl(k, labels[k]));
+    }
     el.appendChild(d);
     const item = { el: d, quiet };
     items.push(item);
@@ -830,5 +946,277 @@ export function createNameTags(container, opts = {}) {
   return {
     el: layer, update, setMode, setInfo,
     destroy: () => { removeEventListener("resize", onResize); if (document.fonts && document.fonts.removeEventListener) document.fonts.removeEventListener("loadingdone", onFonts); layer.remove(); },
+  };
+}
+
+/* ---------- live map (the TV) ---------- */
+
+// createMiniMap(container, { labels: { space, planet } }) → { el, draw(state), destroy }. Two tiles:
+//   SPACE: the route laid out bottom → top (spawn, the boss, the planet beyond it; the planet is dim and shielded until the boss is
+//          down), every ship in space as a dot in its colour (humans big with a white rim, bots small), the followed one ringed and named.
+//   PLANET (shown once the planet is open or someone is on it): the landing pad, parked ships (a wrecked one is a red cross), every
+//          chest (closed: a glowing gold X for a buried one, a rock with a gold heart for a locked one, a ring for the dig progress;
+//          open: dim with a tick in the opener's colour) and the explorers.
+// state = { world (the world message), players: [{ name, color, x, z, mode, bot, dead, invisible }], followed, colours (Map
+// name → colour), t (seconds, for the pulses), chests: "2/7" (the header count) }. Pure 2D canvas, a few hundred draw ops.
+export function createMiniMap(container, opts = {}) {
+  injectStyles();
+  const labels = Object.assign({ space: "SPACE", planet: "PLANET" }, opts.labels || {});
+  const root = document.createElement("div");
+  root.className = "bse-map";
+  function panel(kind, title) {
+    const el = document.createElement("div");
+    el.className = "bse-map-panel " + kind;
+    el.innerHTML = '<div class="bse-map-hd"><span></span><b></b></div><div class="bse-map-cv"><canvas></canvas></div>';
+    el.querySelector(".bse-map-hd span").textContent = title;
+    root.appendChild(el);
+    return { el, count: el.querySelector(".bse-map-hd b"), countText: "", canvas: el.querySelector("canvas"), g: null, w: 0, h: 0 };
+  }
+  const SP = panel("space", labels.space), PL = panel("planet", labels.planet);
+  container.appendChild(root);
+  let sized = false, planetOn = false;
+  const ro = typeof ResizeObserver === "function" ? new ResizeObserver(() => { sized = false; }) : null;
+  if (ro) { ro.observe(SP.canvas); ro.observe(PL.canvas); }
+  const onResize = () => { sized = false; };
+  addEventListener("resize", onResize);
+  function fit(P) {
+    const r = P.canvas.getBoundingClientRect();
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+    if (w !== P.w || h !== P.h) { P.w = P.canvas.width = w; P.h = P.canvas.height = h; }
+    if (!P.g && w && h) P.g = P.canvas.getContext("2d");
+  }
+  const TAU = Math.PI * 2;
+  const FONT = '"Barlow Condensed", Impact, "Arial Narrow", sans-serif';
+  // a chunky dot: dark outline, white rim (humans), colour fill
+  function dot(g, x, y, r, col, k, human, alpha) {
+    g.globalAlpha = alpha;
+    g.beginPath(); g.arc(x, y, r, 0, TAU);
+    g.lineWidth = (human ? 5 : 3) * k; g.strokeStyle = "#120a2e"; g.stroke();
+    if (human) { g.lineWidth = 2.4 * k; g.strokeStyle = "#fff"; g.stroke(); }
+    g.fillStyle = col; g.fill();
+    g.globalAlpha = 1;
+  }
+  function cross(g, x, y, r, col, k, w) {
+    g.lineCap = "round";
+    g.beginPath(); g.moveTo(x - r, y - r); g.lineTo(x + r, y + r); g.moveTo(x + r, y - r); g.lineTo(x - r, y + r);
+    g.lineWidth = (w + 3.5) * k; g.strokeStyle = "#120a2e"; g.stroke();
+    g.lineWidth = w * k; g.strokeStyle = col; g.stroke();
+  }
+  function label(g, text, x, y, k, col) {
+    g.font = `italic 900 ${Math.round(17 * k)}px ${FONT}`;
+    g.textAlign = "center"; g.textBaseline = "bottom";
+    g.lineJoin = "round"; g.lineWidth = 5 * k; g.strokeStyle = "#120a2e";
+    const t = String(text).toUpperCase();
+    g.strokeText(t, x, y); g.fillStyle = col || "#fff"; g.fillText(t, x, y);
+  }
+  function ring(g, x, y, r, k, t) { // the followed player's pulsing ring
+    g.beginPath(); g.arc(x, y, r * (1 + 0.12 * Math.sin(t * 6)), 0, TAU);
+    g.lineWidth = 6 * k; g.strokeStyle = "#120a2e"; g.stroke();
+    g.lineWidth = 3 * k; g.strokeStyle = "#fff"; g.stroke();
+  }
+  const inBox = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+
+  function drawSpace(s) {
+    const P = SP, g = P.g, W = P.w, H = P.h;
+    if (!g || !W || !H) return;
+    g.clearRect(0, 0, W, H);
+    const world = s.world;
+    if (!world) return;
+    const k = W / 300, t = s.t || 0;
+    const boss = Array.isArray(world.targets) ? world.targets.find((x) => x.kind === "boss") : null;
+    // The route points up: along = the spawn → boss direction (the planet lies beyond the boss on the same line).
+    let ux = 0, uz = -1;
+    if (boss) { const l = Math.hypot(boss.x, boss.z); if (l > 1) { ux = boss.x / l; uz = boss.z / l; } }
+    const vx = -uz, vz = ux;
+    const C = globalThis.Contract;
+    const offset = (opts.planetOffset) || (C && C.TUNING && C.TUNING.planet && C.TUNING.planet.offset) || 600;
+    let pl = world.planet || null, locked = false;
+    if (!pl && boss) { const l3 = Math.hypot(boss.x, boss.y || 0, boss.z) || 1; pl = { x: boss.x + (boss.x / l3) * offset, z: boss.z + (boss.z / l3) * offset, radius: 40 }; locked = true; }
+    const along = (x, z) => x * ux + z * uz, across = (x, z) => x * vx + z * vz;
+    const top = pl ? along(pl.x, pl.z) : boss ? along(boss.x, boss.z) + 300 : 1200;
+    const a0 = -200, a1 = Math.max(600, top + 200), span = a1 - a0;
+    const pad = 16 * k, sc = (Math.min(W, H) - 2 * pad) / span;
+    const X = (x, z) => W / 2 + across(x, z) * sc, Y = (x, z) => H - pad - (along(x, z) - a0) * sc;
+    // faint grid rings around the spawn, the dashed route
+    g.lineWidth = 1.5 * k; g.strokeStyle = "rgba(180,200,255,.16)";
+    for (let r = 400; r < span * 1.3; r += 400) { g.beginPath(); g.arc(X(0, 0), Y(0, 0), r * sc, 0, TAU); g.stroke(); }
+    g.setLineDash([9 * k, 9 * k]); g.lineDashOffset = -t * 18 * k;
+    g.lineWidth = 3.5 * k; g.strokeStyle = "rgba(255,255,255,.42)";
+    g.beginPath(); g.moveTo(X(0, 0), Y(0, 0));
+    if (boss) g.lineTo(X(boss.x, boss.z), Y(boss.x, boss.z));
+    if (pl) g.lineTo(X(pl.x, pl.z), Y(pl.x, pl.z));
+    g.stroke(); g.setLineDash([]);
+    // spawn pad
+    g.beginPath(); g.arc(X(0, 0), Y(0, 0), 9 * k, 0, TAU); g.lineWidth = 6 * k; g.strokeStyle = "#120a2e"; g.stroke(); g.lineWidth = 3 * k; g.strokeStyle = "#19d3ff"; g.stroke();
+    // nebula glow around the boss
+    const neb = world.nebula;
+    if (neb) {
+      const nx = X(neb.x, neb.z), ny = Y(neb.x, neb.z), nr = Math.max(26 * k, (neb.radius || 200) * sc);
+      const gr = g.createRadialGradient(nx, ny, 0, nx, ny, nr);
+      gr.addColorStop(0, "rgba(220,90,255,.42)"); gr.addColorStop(1, "rgba(120,60,255,0)");
+      g.fillStyle = gr; g.beginPath(); g.arc(nx, ny, nr, 0, TAU); g.fill();
+    }
+    // the planet: dim + dashed shield while locked, bright with a pulsing landing ring once open
+    let onPlanet = 0;
+    for (const p of s.players || []) if (p.mode === "planet") onPlanet++;
+    if (pl) {
+      const px = X(pl.x, pl.z), py = inBox(Y(pl.x, pl.z), pad, H - pad), pr = Math.max(15 * k, (pl.radius || 40) * sc * 1.6);
+      g.globalAlpha = locked ? 0.5 : 1;
+      const gr = g.createRadialGradient(px - pr * 0.35, py - pr * 0.35, pr * 0.1, px, py, pr);
+      gr.addColorStop(0, "#9ff0ff"); gr.addColorStop(0.55, "#2b9bff"); gr.addColorStop(1, "#1a3fb0");
+      g.beginPath(); g.arc(px, py, pr, 0, TAU); g.lineWidth = 5 * k; g.strokeStyle = "#120a2e"; g.stroke(); g.fillStyle = gr; g.fill();
+      g.globalAlpha = 1;
+      if (locked) {
+        g.setLineDash([5 * k, 6 * k]); g.lineWidth = 2.5 * k; g.strokeStyle = "rgba(160,220,255,.8)";
+        g.beginPath(); g.arc(px, py, pr + 5 * k, 0, TAU); g.stroke(); g.setLineDash([]);
+      } else {
+        const q = (t * 0.8) % 1;
+        g.globalAlpha = 1 - q; g.lineWidth = 4 * k; g.strokeStyle = "#7dffb0";
+        g.beginPath(); g.arc(px, py, pr + (4 + 16 * q) * k, 0, TAU); g.stroke(); g.globalAlpha = 1;
+      }
+      if (onPlanet) label(g, "×" + onPlanet, px + pr + 8 * k, py + 9 * k, k, "#7dffb0");
+    }
+    // the boss: a red skull plate with its health as a gold arc; a grey cross once it is down
+    if (boss) {
+      const bx = X(boss.x, boss.z), by = Y(boss.x, boss.z), br = Math.max(13 * k, (boss.radius || 20) * sc * 1.8);
+      if (boss.dead) {
+        g.globalAlpha = 0.6; g.beginPath(); g.arc(bx, by, br, 0, TAU); g.fillStyle = "#4a4560"; g.fill(); g.globalAlpha = 1;
+        cross(g, bx, by, br * 0.55, "#c9c4dc", k, 4);
+      } else {
+        const pulse = 1 + 0.07 * Math.sin(t * 5);
+        g.beginPath(); g.arc(bx, by, br * pulse, 0, TAU);
+        g.lineWidth = 6 * k; g.strokeStyle = "#120a2e"; g.stroke(); g.lineWidth = 3 * k; g.strokeStyle = "#fff"; g.stroke();
+        g.fillStyle = "#ff3b5c"; g.fill();
+        g.fillStyle = "#120a2e"; g.beginPath(); g.arc(bx - br * 0.32, by - br * 0.08, br * 0.22, 0, TAU); g.arc(bx + br * 0.32, by - br * 0.08, br * 0.22, 0, TAU); g.fill();
+        const hp = Math.max(0, Math.min(1, (boss.hp || 0) / (boss.maxHp || 1)));
+        g.lineCap = "round";
+        g.beginPath(); g.arc(bx, by, br * pulse + 7 * k, -Math.PI / 2, -Math.PI / 2 + TAU * hp);
+        g.lineWidth = 7 * k; g.strokeStyle = "#120a2e"; g.stroke(); g.lineWidth = 4 * k; g.strokeStyle = "#ffcb3d"; g.stroke();
+      }
+    }
+    // ships in space: bots first (small), then humans (big), the followed one last with its ring and name
+    let fol = null;
+    for (let pass = 0; pass < 2; pass++) {
+      for (const p of s.players || []) {
+        if (p.mode !== "space" || p.invisible || (pass === 0) !== !!p.bot) continue;
+        const x = inBox(X(p.x, p.z), 6 * k, W - 6 * k), y = inBox(Y(p.x, p.z), 6 * k, H - 6 * k);
+        if (p.name === s.followed) { fol = { p, x, y }; continue; }
+        if (p.dead) { cross(g, x, y, (p.bot ? 3.5 : 5.5) * k, p.color, k, p.bot ? 2 : 3); continue; }
+        dot(g, x, y, (p.bot ? 4.2 : 8) * k, p.color, k, !p.bot, p.bot ? 0.8 : 1);
+      }
+    }
+    if (fol) {
+      const { p, x, y } = fol;
+      ring(g, x, y, 15 * k, k, t);
+      if (p.dead) cross(g, x, y, 6 * k, p.color, k, 3.5); else dot(g, x, y, 9 * k, p.color, k, true, 1);
+      label(g, p.name, inBox(x, 40 * k, W - 40 * k), y < 50 * k ? y + 42 * k : y - 19 * k, k, p.color);
+    }
+  }
+
+  function drawPlanet(s) {
+    const P = PL, g = P.g, W = P.w, H = P.h;
+    if (!g || !W || !H) return;
+    g.clearRect(0, 0, W, H);
+    const world = s.world;
+    if (!world) return;
+    const k = W / 300, t = s.t || 0;
+    const chests = Array.isArray(world.chests) ? world.chests : [];
+    const isl = world.island || {};
+    const land = isl.landing || null;
+    // Frame: the landing pad and every chest (fixed for the round), at least 90 m across; explorers outside are kept on the edge.
+    let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+    const grow = (x, z) => { if (x < x0) x0 = x; if (x > x1) x1 = x; if (z < z0) z0 = z; if (z > z1) z1 = z; };
+    if (land) grow(land.x, land.z);
+    for (const c of chests) grow(c.x, c.z);
+    if (!Number.isFinite(x0)) { x0 = z0 = -45; x1 = z1 = 45; }
+    const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+    const pad = 22 * k;
+    const sc = Math.min((W - 2 * pad) / Math.max(90, x1 - x0 + 24), (H - 2 * pad) / Math.max(68, z1 - z0 + 24));
+    const X = (x) => W / 2 + (x - cx) * sc, Y = (z) => H / 2 + (z - cz) * sc;
+    g.lineWidth = 1.5 * k; g.strokeStyle = "rgba(255,255,255,.12)";
+    const step = 20 * sc;
+    if (step > 8 * k) {
+      for (let x = (W / 2) % step; x < W; x += step) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+      for (let y = (H / 2) % step; y < H; y += step) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+    }
+    // landing pad
+    if (land) {
+      const lx = X(land.x), ly = Y(land.z);
+      g.beginPath(); g.arc(lx, ly, 13 * k, 0, TAU); g.fillStyle = "rgba(10,6,30,.45)"; g.fill();
+      g.lineWidth = 6 * k; g.strokeStyle = "#120a2e"; g.stroke(); g.lineWidth = 3 * k; g.strokeStyle = "#19d3ff"; g.stroke();
+    }
+    // parked ships: a small plate in the owner's colour; wrecked = a red cross
+    for (const v of Array.isArray(isl.parked) ? isl.parked : []) {
+      const vx = inBox(X(v.x), 8 * k, W - 8 * k), vy = inBox(Y(v.z), 8 * k, H - 8 * k);
+      if (v.wrecked) { cross(g, vx, vy, 6 * k, "#ff3b5c", k, 4); continue; }
+      const col = (s.colours && s.colours.get(v.player)) || "#c8c2ff";
+      g.save(); g.translate(vx, vy); g.rotate(Math.PI / 4);
+      g.fillStyle = col; g.lineWidth = 3 * k; g.strokeStyle = "#120a2e";
+      g.fillRect(-5 * k, -5 * k, 10 * k, 10 * k); g.strokeRect(-5 * k, -5 * k, 10 * k, 10 * k); g.restore();
+    }
+    // chests
+    const glow = 1 + (world.assists ? 0.22 : 0.1) * Math.sin(t * 4);
+    for (const c of chests) {
+      const x = X(c.x), y = Y(c.z);
+      if (c.open) {
+        g.globalAlpha = 0.55;
+        g.beginPath(); g.arc(x, y, 9 * k, 0, TAU); g.fillStyle = "#3d3a58"; g.fill(); g.lineWidth = 3 * k; g.strokeStyle = "#120a2e"; g.stroke();
+        g.globalAlpha = 1;
+        const col = (c.by && s.colours && s.colours.get(c.by)) || "#ffffff";
+        g.lineCap = "round"; g.lineJoin = "round";
+        g.beginPath(); g.moveTo(x - 4.5 * k, y); g.lineTo(x - 1 * k, y + 3.8 * k); g.lineTo(x + 5 * k, y - 4 * k);
+        g.lineWidth = 6 * k; g.strokeStyle = "#120a2e"; g.stroke(); g.lineWidth = 3 * k; g.strokeStyle = col; g.stroke();
+        continue;
+      }
+      const r = 11 * k * glow;
+      const gr = g.createRadialGradient(x, y, 0, x, y, r * 2);
+      gr.addColorStop(0, "rgba(255,214,90,.55)"); gr.addColorStop(1, "rgba(255,214,90,0)");
+      g.fillStyle = gr; g.beginPath(); g.arc(x, y, r * 2, 0, TAU); g.fill();
+      if (c.kind === "rock") {
+        g.beginPath();
+        for (let i = 0; i < 7; i++) { const a = (i / 7) * TAU, rr = r * (0.82 + 0.18 * ((i * 37) % 5) / 4); g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+        g.closePath(); g.lineWidth = 4 * k; g.strokeStyle = "#120a2e"; g.stroke(); g.fillStyle = "#8d86a3"; g.fill();
+        g.beginPath(); g.arc(x, y, r * 0.38, 0, TAU); g.fillStyle = "#ffcb3d"; g.fill(); g.lineWidth = 2 * k; g.stroke();
+      } else cross(g, x, y, r * 0.62, "#ffcb3d", k, 5);
+      if (c.dug > 0) {
+        g.lineCap = "round";
+        g.beginPath(); g.arc(x, y, r + 5 * k, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, c.dug));
+        g.lineWidth = 6 * k; g.strokeStyle = "#120a2e"; g.stroke(); g.lineWidth = 3.5 * k; g.strokeStyle = "#7dffb0"; g.stroke();
+      }
+    }
+    // explorers
+    let fol = null;
+    for (let pass = 0; pass < 2; pass++) {
+      for (const p of s.players || []) {
+        if (p.mode !== "planet" || p.invisible || (pass === 0) !== !!p.bot) continue;
+        const x = inBox(X(p.x), 6 * k, W - 6 * k), y = inBox(Y(p.z), 6 * k, H - 6 * k);
+        if (p.name === s.followed) { fol = { p, x, y }; continue; }
+        if (p.dead) { cross(g, x, y, (p.bot ? 3.5 : 5.5) * k, p.color, k, p.bot ? 2 : 3); continue; }
+        dot(g, x, y, (p.bot ? 4.2 : 8) * k, p.color, k, !p.bot, p.bot ? 0.8 : 1);
+      }
+    }
+    if (fol) {
+      const { p, x, y } = fol;
+      ring(g, x, y, 15 * k, k, t);
+      if (p.dead) cross(g, x, y, 6 * k, p.color, k, 3.5); else dot(g, x, y, 9 * k, p.color, k, true, 1);
+      label(g, p.name, inBox(x, 40 * k, W - 40 * k), y < 50 * k ? y + 42 * k : y - 19 * k, k, p.color);
+    }
+  }
+
+  function draw(s) {
+    if (!s || !s.world) return;
+    let any = !!s.world.planet;
+    if (!any) for (const p of s.players || []) if (p.mode === "planet") { any = true; break; }
+    if (any !== planetOn) { planetOn = any; PL.el.classList.toggle("on", any); sized = false; }
+    const ct = s.chests || "";
+    if (ct !== PL.countText) { PL.countText = ct; PL.count.textContent = ct; }
+    if (!sized) { fit(SP); if (planetOn) fit(PL); sized = true; }
+    drawSpace(s);
+    if (planetOn) drawPlanet(s);
+  }
+  return {
+    el: root, draw,
+    destroy: () => { if (ro) ro.disconnect(); removeEventListener("resize", onResize); root.remove(); },
   };
 }

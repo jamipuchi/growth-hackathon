@@ -14,6 +14,8 @@
 //     fallbackHtml,              // mounted instead when the frame navigates away, floods, never reports ready
 //     requiredActions,           //   within readyTimeoutMs, or reports none of requiredActions' controls
 //     readyTimeoutMs = 2500, rate = 60, pageCsp = true,   // pageCsp: see below
+//     momentaryActions,          // one-shot skills (BLAST, LAND, EMP...): a switch (data-toggle) bound to one fires once per
+//                                // tap (press, release 120 ms later) and never stays "on" (it took two taps per use)
 //   }) → handle {
 //     iframe, ready (Promise<controls>), controls(), releaseAll(), destroy(), setDisabled(actions), busy(),
 //     replace(html, { waitIdleMs = 4000 }) → Promise<boolean>,  // load another document hidden, go live when it
@@ -56,6 +58,7 @@ function kit(cfg) {
   "use strict";
   const P = window.parent;
   const D = document;
+  const MOMENTARY = new Set(Array.isArray(cfg.momentary) ? cfg.momentary : []);
   const ROOT = D.documentElement;
   const controls = [];        // { el, action, kind, label, knob, down, on, x, y, rect, sent }
   const pointers = new Map(); // pointerId → { c, rect }
@@ -220,7 +223,11 @@ function kit(cfg) {
   }
   function releaseAll() {
     pointers.clear();
-    for (const c of controls) releaseControl(c, true);
+    for (const c of controls) {
+      releaseControl(c, true);
+      // a switch that was on is off now (its release goes out below): the next tap turns it on again instead of being lost
+      if (c.kind === "toggle" && c.on) { c.on = false; c.el.classList.remove("is-on"); }
+    }
     for (const a of [...held.keys()]) { held.set(a, 1); release(a); }
   }
 
@@ -231,6 +238,12 @@ function kit(cfg) {
     e.preventDefault();
     const { c, h } = found;
     if (c.kind === "toggle") {
+      if (MOMENTARY.has(c.action)) { // a switch for a one-shot skill: one use per tap, never latched
+        press(c.action);
+        setDown(c, true);
+        setTimeout(() => { release(c.action); setDown(c, false); }, 120);
+        return;
+      }
       c.on = !c.on;
       c.el.classList.toggle("is-on", c.on);
       if (c.on) press(c.action); else release(c.action);
@@ -435,6 +448,7 @@ export function mountController(container, html, opts = {}) {
   const rate = Math.max(1, Math.min(240, opts.rate | 0 || 60));
   const readyTimeoutMs = opts.readyTimeoutMs == null ? 2500 : opts.readyTimeoutMs;
   const required = (opts.requiredActions || []).map((a) => String(a).toLowerCase()).filter((a) => allowed.has(a));
+  const momentary = (opts.momentaryActions || []).map((a) => String(a).toLowerCase()).filter((a) => allowed.has(a) && !STICKS.includes(a)).slice(0, 64);
   const call = (fn, ...args) => { if (typeof fn === "function") try { fn(...args); } catch (err) { console.error(err); } };
   const now = () => performance.now();
 
@@ -590,7 +604,7 @@ export function mountController(container, html, opts = {}) {
       else if (rec === next) dropNext("navigate");
     };
     f.addEventListener("load", rec.onload);
-    f.srcdoc = buildSrcdoc(markup, { ch: rec.ch, scheme });
+    f.srcdoc = buildSrcdoc(markup, { ch: rec.ch, scheme, momentary });
     f.ctrlSandbox = handle;
     rec.el = f;
     return rec;

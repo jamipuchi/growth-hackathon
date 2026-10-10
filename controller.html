@@ -180,12 +180,26 @@
     .dfoot .fl { flex: 1; }
   }
 
+  /* ---- Screen and sheet transitions: everything that opens fades in (the 3D play screen does not) ---- */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .sheet, #draw, #join { animation: fadeIn 0.22s ease-out both; }
+  .rwrap, .xwrap, .reswrap { animation: pop 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.4) both; }
+
   /* ---- Sheets: generating, wrong drawing, results, explorer... ---- */
   .sheet { position: fixed; inset: 0; z-index: 8; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center;
     background: rgb(8 6 28 / 0.9); padding: calc(var(--st) + 12px) calc(var(--sr) + 16px) calc(var(--sb) + 12px) calc(var(--sl) + 16px); }
   .spinner { width: 46px; height: 46px; border-radius: 50%; border: 6px solid rgb(255 255 255 / 0.16); border-top-color: var(--gold); animation: spin 0.8s linear infinite; }
   #gen { z-index: 9; }
   #gen h2 { font-size: 30px; }
+  /* the drawing being read: a white card with a light sweeping over it */
+  .genpic { position: relative; width: min(46vw, 210px); height: min(30vh, 150px); padding: 8px; overflow: hidden; background: #fff; border: 4px solid var(--ink); border-radius: 10px;
+    box-shadow: 0 6px 0 var(--hard), 0 0 26px rgb(255 203 61 / 0.35); transform: rotate(-2deg); animation: pop 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.4) both; }
+  .genpic img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .genpic .scan { position: absolute; left: 0; right: 0; top: 0; height: 34%; background: linear-gradient(transparent, rgb(255 203 61 / 0.45), transparent); animation: scan 1.1s ease-in-out infinite alternate; }
+  @keyframes scan { from { transform: translateY(-40%); } to { transform: translateY(230%); } }
+  #genErr { max-width: 420px; font-size: 16px; }
+  #genErr:empty, #genSub:empty { display: none; }
+  @media (max-height: 440px) and (orientation: landscape) { .genpic { height: 30vh; } #gen { gap: 8px; } }
   .dialog { position: relative; z-index: 0; isolation: isolate; width: min(440px, 100%); display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 22px 22px; }
   .dialog::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-3deg); background: linear-gradient(160deg, #3a2a9a, #1a1252); border: 4px solid var(--ink);
     border-radius: 8px; box-shadow: 0 7px 0 var(--hard), 0 0 0 4px var(--gold) inset; }
@@ -234,6 +248,12 @@
   .chips.many .chip { font-size: 14px; padding: 3px 9px 3px 5px; }
   .chips.many .chip small { display: none; }
   .chips.many .chip i { width: 15px; height: 15px; }
+  /* the locked part of the card: the skills this drawing does not have yet, and what to draw for each */
+  .ulock { margin-top: 9px; padding-top: 7px; border-top: 2px dashed rgb(255 255 255 / 0.4); }
+  .ulock .uhead { font-size: 14px; color: #fff; }
+  .ulist { list-style: none; display: flex; flex-direction: column; gap: 3px; margin-top: 5px; }
+  .ulist li { font: 700 13px/1.2 var(--f-body); color: #f1e9ff; text-shadow: 0 2px 0 rgb(10 6 30 / 0.7); animation: pop 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.4) both; animation-delay: calc(var(--i, 0) * 90ms + 450ms); }
+  .ulist li b { font: 900 italic 15px/1 var(--f-head); letter-spacing: 0.03em; text-transform: uppercase; color: var(--gold); -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; margin-right: 4px; }
   /* the controller preview: the drawing, every control outlined and labelled */
   .cprev { width: 100%; display: flex; flex-direction: column; gap: 8px; }
   .cstage { position: relative; width: 100%; height: 0; padding-top: 50%; border: 4px solid var(--cyan); border-radius: 8px; overflow: hidden;
@@ -255,9 +275,15 @@
     .rstage { flex: none; width: min(70vw, 270px); height: min(70vw, 270px); max-height: none; }
   }
   #result[data-group="controller"] .rleft { flex-grow: 1.25; }
+  @media (max-height: 440px) and (orientation: landscape) {     /* the NEXT button stays in view without scrolling */
+    .ucard { padding: 8px 10px 9px; }
+    .ulist li:nth-child(n+3) { display: none; }
+    #result .btn.big { min-height: 54px; font-size: 24px; }
+    #result .rbtns { gap: 8px; }
+  }
 
   /* explorer prompt (orange) and optional controller redraw prompt (cyan) */
-  #explorer, #ctrlPrompt { background: rgb(8 6 28 / 0.9); }
+  #explorer, #ctrlPrompt { background: linear-gradient(rgb(8 6 28 / 0.88), rgb(8 6 28 / 0.72)); }   /* the island stays visible behind the prompt (PLAN: it is live) */
   .xwrap { width: min(760px, 100%); display: flex; flex-direction: column; gap: 10px; }
   .xhead { position: relative; z-index: 0; isolation: isolate; display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 7px 18px 8px 12px; text-align: left; }
   .xhead::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-8deg); background: linear-gradient(90deg, var(--accent), var(--accent2)); border: 3px solid var(--ink); border-radius: 5px; box-shadow: 0 5px 0 var(--hard); }
@@ -283,7 +309,7 @@
   #ink { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.42; pointer-events: none; }
   #hits { position: absolute; inset: 0; touch-action: none; }
   .hit { position: absolute; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; pointer-events: none; border: 3px dashed rgb(255 255 255 / 0.62); border-radius: 16px;
-    background: rgb(255 255 255 / 0.05); transition: transform 0.08s, background 0.12s; }
+    background: rgb(255 255 255 / 0.05); box-shadow: 0 0 0 2px rgb(10 6 30 / 0.3), inset 0 0 0 2px rgb(10 6 30 / 0.22); transition: transform 0.08s, background 0.12s; }   /* the dark rim keeps the box visible on bright scenes */
   .hit .lab { font: 900 italic 14px/1 var(--f-head); letter-spacing: 0.06em; text-transform: uppercase; color: #fff; -webkit-text-stroke: 2.5px var(--ink); paint-order: stroke fill; text-shadow: 0 2px 0 rgb(10 6 30 / 0.6); }
   .hit.stick { border-radius: 50%; }
   .hit.down { background: rgb(25 211 255 / 0.3); border-style: solid; border-color: #fff; transform: scale(0.97); }
@@ -346,6 +372,31 @@
   body[data-phase="lobby"] #tAdd, body[data-phase="lobby"] #tRedraw { display: none; }
   body[data-phase="lobby"] #hud .objpanel, body[data-phase="lobby"] #hud .timer, body[data-phase="scoreboard"] #hud .hc { visibility: hidden; }
   #radar { width: 84px; height: 84px; display: block; }
+  /* a dark scrim behind the HUD: its words read on the white sand of the island and the pink nebula */
+  #hud::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: calc(var(--st) + 122px); z-index: -1; pointer-events: none;
+    background: linear-gradient(rgb(8 6 28 / 0.6), rgb(8 6 28 / 0.32) 55%, rgb(8 6 28 / 0)); }
+  #hud .hr { gap: 10px; align-items: flex-start; }
+  /* my points, with a +N / -N pop on every change (a steal shows as a red minus) */
+  .score { position: relative; z-index: 0; isolation: isolate; display: flex; flex-direction: column; align-items: flex-end; min-width: 78px; padding: 4px 14px 6px; }
+  .score::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-9deg); background: rgb(13 11 46 / 0.86); border: 3px solid var(--ink); border-radius: 5px; box-shadow: 0 4px 0 var(--hard); }
+  #scoreN { font: 900 italic 27px/1 var(--f-head); font-variant-numeric: tabular-nums; color: var(--gold); -webkit-text-stroke: 2.6px var(--ink); paint-order: stroke fill; }
+  #scoreRank { margin-top: 2px; font: 900 italic 12px/1 var(--f-head); letter-spacing: 0.08em; text-transform: uppercase; color: #fff; -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
+  #scoreRank:empty { display: none; }
+  .spop { position: absolute; right: 6px; top: 100%; margin-top: 5px; white-space: nowrap; pointer-events: none; font: 900 italic 24px/1 var(--f-head); color: var(--gold);
+    -webkit-text-stroke: 2.8px var(--ink); paint-order: stroke fill; text-shadow: 0 3px 0 rgb(10 6 30 / 0.5); animation: spop 1.15s ease-out both; }
+  .spop.neg { color: #ff6a85; }
+  @keyframes spop { 0% { opacity: 0; transform: translateY(-8px) scale(0.6); } 14% { opacity: 1; transform: translateY(0) scale(1.18); } 28% { transform: scale(1); } 75% { opacity: 1; } 100% { opacity: 0; transform: translateY(18px); } }
+  body[data-phase="lobby"] .score { visibility: hidden; }
+  /* the name under each HUD tool, the first few times the play screen opens */
+  .tool::after { content: attr(data-cap); position: absolute; left: 50%; top: calc(100% + 6px); transform: translateX(-50%); white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+    font: 900 italic 12px/1 var(--f-head); letter-spacing: 0.06em; color: #fff; -webkit-text-stroke: 2.2px var(--ink); paint-order: stroke fill; }
+  #hud.caps .tool::after { opacity: 1; }
+  /* hit and spawn-shield feedback when mischief-fx.js (its direction marker and shield aura) is missing */
+  #hurt { position: fixed; inset: 0; z-index: 8; pointer-events: none; opacity: 0; box-shadow: inset 0 0 0 6px rgb(255 59 92 / 0.85), inset 0 0 70px rgb(255 59 92 / 0.6); }
+  #hurt.on { animation: hurt 0.6s ease-out both; }
+  @keyframes hurt { from { opacity: 1; } to { opacity: 0; } }
+  #play.spawn::after { content: ""; position: fixed; inset: 0; z-index: 3; pointer-events: none; box-shadow: inset 0 0 0 4px rgb(25 211 255 / 0.85), inset 0 0 40px rgb(25 211 255 / 0.5); animation: aura 0.7s ease-in-out infinite alternate; }
+  @keyframes aura { from { opacity: 0.55; } to { opacity: 1; } }
 
   /* hold-to-see tooltip and the "locked" tip above a control */
   #tip { position: fixed; left: 0; top: 0; z-index: 7; max-width: min(300px, 62vw); padding: 8px 14px 10px; text-align: center; pointer-events: none; opacity: 0;
@@ -388,6 +439,8 @@
   #toastText { display: block; font: 800 16px/1.2 var(--f-body); color: #fff; text-shadow: 0 2px 0 rgb(10 6 30 / 0.6); }
   #toast[data-kind="hint"] #toastText { color: var(--ink); text-shadow: none; }
   #toastAct { margin-top: 8px; min-height: 48px; font-size: 18px; }
+  /* while the add-a-button sheet is open the toast sits above it, low on the screen (the hint used to hide behind the photo card) */
+  body.adding #toast { z-index: 9; top: auto; bottom: calc(var(--sb) + 64px); }
 
   /* wait banner, GO!, results */
   #banner { position: fixed; left: 50%; top: 50%; z-index: 5; transform: translate(-50%, -48%); width: min(440px, 62vw); display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 18px 20px; text-align: center; isolation: isolate; }
@@ -468,7 +521,7 @@
   .toolbar { position: fixed; top: calc(var(--st) + 8px); left: calc(var(--sl) + 8px); right: calc(var(--sr) + 8px); z-index: 5; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; pointer-events: none; }
   .toolbar > * { pointer-events: auto; }
   .toolbar .grow { flex: 1; pointer-events: none; }
-  #add .camcard { z-index: 2; padding-top: calc(var(--st) + 66px); }
+  #add .camcard { z-index: 2; padding-top: calc(var(--st) + 66px); padding-bottom: calc(var(--sb) + 58px); }   /* the status and the counter sit under it */
   #addDrawStatus { position: fixed; bottom: calc(var(--sb) + 8px); left: 0; right: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; }
 
   #rotate { position: fixed; inset: 0; z-index: 30; display: none; align-items: center; justify-content: center; text-align: center; padding: 30px; background: radial-gradient(ellipse at 50% 30%, #3b2593, #0d0b2e 70%); }
@@ -485,7 +538,8 @@
     #go b { font-size: 120px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .pop, .rtitle, .chip, #resList li, #resTitle, .dicon .still, .spin3d, .dialog .dpic, .flat3d, .ucard::after, #ghost, .timer.low::before, #dead.on .dcard, #deadN.tick { animation: none !important; }
+    .pop, .rtitle, .chip, #resList li, #resTitle, .dicon .still, .spin3d, .dialog .dpic, .flat3d, .ucard::after, #ghost, .timer.low::before, #dead.on .dcard, #deadN.tick, .genpic, .genpic .scan, .spop,
+      .sheet, #draw, #join, .rwrap, .xwrap, .reswrap, .ulist li { animation: none !important; }
     #go.on { animation-duration: 0.6s; }
   }
 </style>
@@ -614,8 +668,9 @@
       </div>
       <div class="timer" id="timer"><span class="tl" data-copy="hud.timeLeft"></span><span id="clock"></span></div>
     </div>
-    <div class="hr"><canvas id="radar"></canvas></div>
+    <div class="hr"><div id="score" class="score"><b id="scoreN">0</b><span id="scoreRank"></span></div><canvas id="radar"></canvas></div>
   </div>
+  <div id="hurt"></div>
   <div id="legend"></div>
   <div id="tip"><span id="tipTitle"></span><span id="tipText"></span></div>
   <div id="banner" class="hidden">
@@ -645,8 +700,10 @@
 </div>
 
 <div id="gen" class="sheet hidden">
+  <div id="genPic" class="genpic hidden"><img id="genImg" alt=""><i class="scan"></i></div>
   <div id="genSpin" class="spinner"></div>
   <h2 id="genTitle" class="hd"></h2>
+  <p id="genSub" class="status"></p>
   <p id="genErr" class="status"></p>
   <div id="genActions" class="row hidden"><button id="genRetry" class="btn" type="button" data-copy="gen.retry"></button><button id="genBack" class="btn blue sm" type="button" data-copy="gen.back"></button></div>
 </div>
@@ -698,7 +755,7 @@
     <label class="btn big bigshot"><svg class="ic" viewBox="0 0 24 24"><use href="#i-camera"/></svg><span data-copy="draw.takePhoto"></span>
       <input id="addInput" type="file" accept="image/*" capture="environment"></label>
     <p class="camhint" id="addHint"></p>
-    <img id="addPreview" class="preview hidden" alt="" style="flex:none;max-height:34vh">
+    <img id="addPreview" class="preview hidden" alt="" style="flex:none;max-height:28vh">
   </div>
   <div id="addDrawStatus"><span id="addStatus" class="status"></span><div id="addCount" class="counter"></div></div>
 </div>
@@ -758,7 +815,7 @@ const COPY = {
   brand: ["SPACE", "PARTY"],
   join: {
     namePlaceholder: "YOUR NAME", button: "JOIN",
-    steps: ["1 · DRAW YOUR SPACESHIP", "2 · DRAW YOUR CONTROLLER", "3 · BEAT THE BOSS, OPEN CHESTS"],
+    steps: ["1 · DRAW YOUR SHIP", "2 · DRAW YOUR CONTROLLER", "3 · BEAT THE BOSS, OPEN CHESTS"],
     badName: "Type a name with letters or numbers",
     full: "The game is full. Ask the host to make room",
     renamed: "{old} WAS TAKEN · YOU ARE {name}",   // the name was in use on another phone: the server gave us "name2"
@@ -781,7 +838,9 @@ const COPY = {
     readingPhoto: "Reading the photo…", photoFound: "Got your photo! Tap USE THIS PHOTO",
     reading: "Reading your drawing…", looksGood: "Looks good! Tap DONE", looksGoodPhoto: "Looks good! Tap USE THIS PHOTO",
     drawFirst: "Draw something first, or skip",
+    tooSmall: "Draw it bigger: use most of the paper",
     noInk: "No drawing found. Draw big and dark, then try again",
+    edge: "Your drawing touches the edge of the photo. Step back so all of it fits, then try again",
     badPhoto: "Could not read that photo. Try again",
     mismatch: {
       ship: "Hmm, that looks like a controller, not a ship",
@@ -792,15 +851,15 @@ const COPY = {
   },
   kinds: {
     ship: {
-      title: "STEP 1 OF 2 · DRAW YOUR SPACESHIP", sub: "it becomes your 3D ship",
-      redraw: { title: "REDRAW YOUR SPACESHIP", sub: "it replaces your 3D ship" },
-      hint: "Draw your ship. Flames add BOOST, a cannon adds SHOOT",
-      photoHint: "Draw your ship big and dark on white paper, then take a photo",
+      title: "1 · DRAW YOUR SHIP", sub: "it becomes your 3D ship",
+      redraw: { title: "REDRAW YOUR SHIP", sub: "it replaces your 3D ship" },
+      hint: "Draw a cannon to SHOOT, flames to BOOST, legs to LAND",
+      photoHint: "Draw your ship big and dark on paper, then take a photo of it",
       skip: "SKIP — plain ship + default buttons",
       example: { a: "flames = BOOST", b: "cannon = SHOOT" },
     },
     controller: {
-      title: "STEP 2 OF 2 · DRAW YOUR CONTROLLER", sub: "these become your buttons",
+      title: "2 · DRAW YOUR CONTROLLER", sub: "these become your buttons",
       redraw: { title: "REDRAW YOUR CONTROLLER", sub: "these replace your buttons" },
       hint: "Draw a circle to steer, and boxes with a word: FIRE, BOOST, LAND",
       photoHint: "Draw your buttons on paper, turn the page sideways, then take a photo",
@@ -810,10 +869,10 @@ const COPY = {
       canNone: "Your plain ship only flies: draw a circle to steer",
     },
     explorer: {
-      title: "DRAW WHAT EXPLORES THE PLANET", sub: "astronaut, car, bike…",
-      redraw: { title: "REDRAW YOUR EXPLORER", sub: "astronaut, car, bike…" },
+      title: "DRAW YOUR EXPLORER", sub: "an astronaut, a car, a bike, an animal…",
+      redraw: { title: "REDRAW YOUR EXPLORER", sub: "an astronaut, a car, a bike, an animal…" },
       hint: "Draw it from the side. A shovel lets it DIG, a drill lets it DRILL",
-      photoHint: "Draw it big and dark on white paper, then take a photo",
+      photoHint: "Draw it big and dark on paper, then take a photo of it",
       skip: "SKIP — plain astronaut (walks and jumps)",
       example: { a: "astronaut", b: "car, from the side" },
     },
@@ -830,10 +889,14 @@ const COPY = {
   },
   gen: {
     reading: { ship: "READING YOUR SHIP…", controller: "READING YOUR CONTROLLER…", explorer: "READING YOUR EXPLORER…", planetController: "READING YOUR CONTROLLER…", button: "ADDING YOUR BUTTON…" },
-    failed: "THAT DID NOT WORK", retry: "TRY AGAIN", back: "BACK",
+    sub: { ship: "Your drawing is becoming a 3D ship", controller: "Finding your buttons", explorer: "Your drawing is becoming a 3D explorer", planetController: "Finding your buttons" },
+    failed: "THAT DID NOT WORK", retry: "TRY AGAIN", redo: "DRAW IT AGAIN", back: "BACK", backGame: "BACK TO THE GAME ▶", newName: "PICK A NEW NAME",
+    free: "This did not use a drawing",
   },
   errors: {
     generic: "Something went wrong. Try again",
+    slow: "That took too long. Tap TRY AGAIN",
+    offline: "Can't reach the game. Check the Wi-Fi, then TRY AGAIN",
     noDrawings: "No drawings left {where} this round",
     unreadable: "Could not read that button. Draw it bigger and try again",
     nothing: "Nothing to read there. Draw bigger and darker, then try again",
@@ -850,12 +913,10 @@ const COPY = {
     controller: { title: "YOUR CONTROLLER!", next: "PLAY ▶", redraw: "REDRAW CONTROLLER", allWork: "Every button works with your {what}", more: "🔒 +{n} more need a drawing on your {what}" },
     uses: "· uses 1 drawing",
     sentence: "Your {what} can: {list}",
+    lockedHead: "🔒 DRAW IT TO UNLOCK",
+    lockedLine: "· draw {part}",
     tips: {
       noWeapon: "No weapon yet: draw a cannon to hurt the boss",
-      noLand: "Tip: landing legs let you LAND on the planet",
-      noDig: "Tip: a shovel lets it DIG up buried chests",
-      noDrill: "Tip: a drill lets it DRILL open rock chests",
-      noDigDrill: "Tip: a shovel lets it DIG, a drill lets it DRILL",
       newButtons: "New power: tap + to draw a button for {list}",
     },
   },
@@ -890,9 +951,12 @@ const COPY = {
     title: "YOU'RE IN!", sub: "Wait for the host to press START on the big screen",
     ready: "I'M READY", readyDone: "READY ✓", redrawShip: "REDRAW SHIP", redrawController: "REDRAW CONTROLLER", uses: "uses 1 drawing",
   },
-  hud: { hp: "HP", shield: "SHIELD", boost: "BOOST", respawn: "BACK IN {n}…", timeLeft: "TIME LEFT", getReady: "GET READY", assists: "ALL POWERS ON" },
+  hud: { hp: "HP", shield: "SHIELD", boost: "BOOST", respawn: "BACK IN {n}…", timeLeft: "TIME LEFT", getReady: "GET READY", assists: "ALL POWERS ON",
+    points: "POINTS", rank: "{r} OF {n}", spawn: "SPAWN SHIELD · YOU CAN'T BE HIT" },
   counter: { left: "{left} OF {max} DRAWINGS LEFT", none: "NO DRAWINGS LEFT {where}", space: "IN SPACE", planet: "ON THE PLANET" },
   tools: { add: "Add a button", redraw: "Redraw", view: "Change the camera", tilt: "Tilt to steer", sound: "Sound" },
+  // the short caption under each HUD tool, shown for a few seconds the first times the play screen opens
+  toolCaps: { add: "BUTTON", redraw: "REDRAW", view: "CAMERA", tilt: "TILT", sound: "SOUND" },
   menu: { ship: "REDRAW SHIP", explorer: "REDRAW EXPLORER", controller: "REDRAW CONTROLLER", uses: "uses 1 drawing" },
   toast: {
     redrawShip: "REDRAW SHIP", redrawExplorer: "REDRAW EXPLORER", added: "{name} added",
@@ -921,6 +985,9 @@ const COPY = {
     chestMe: "CHEST OPENED!", chestMeSub: "+{n} POINTS", chest: "{name} OPENED A CHEST", chestSub: "+{n} POINTS",
     stoleMe: "YOU STOLE {n} POINTS!", stoleMeSub: "FROM {name}", stoleYou: "{name} STOLE {n} POINTS!", stoleYouSub: "FROM YOU", stole: "{name} STOLE {n} POINTS", stoleSub: "FROM {victim}",
     kill: "YOU GOT {name}!", killSub: "+{n} POINTS",
+    lastStolen: "{name} STOLE THE LAST HIT!",
+    wreckedMe: "YOUR SHIP WAS WRECKED!", wreckedMeSub: "REDRAW YOUR SHIP TO TAKE OFF", wrecked: "YOU WRECKED {name}'S SHIP!", wreckedSub: "+{n} POINTS",
+    rebuilt: "SHIP REBUILT!", rebuiltSub: "YOU CAN TAKE OFF AGAIN",
   },
   // Mischief. own: a gold toast when MY skill hit a rival. plain: the words when mischief-fx.js is missing (the effects tell it themselves otherwise).
   mischief: {
@@ -953,7 +1020,7 @@ function applyCopy() {
   $("name").placeholder = COPY.join.namePlaceholder;
   $("placeholder").dataset.t = COPY.placeholder;
   $("example").dataset.tag = $("expExample").dataset.tag = COPY.draw.exampleTag;
-  for (const [id, key] of [["tAdd", "add"], ["tRedraw", "redraw"], ["tView", "view"], ["tTilt", "tilt"], ["tSound", "sound"]]) $(id).setAttribute("aria-label", COPY.tools[key]);
+  for (const [id, key] of [["tAdd", "add"], ["tRedraw", "redraw"], ["tView", "view"], ["tTilt", "tilt"], ["tSound", "sound"]]) { $(id).setAttribute("aria-label", COPY.tools[key]); $(id).dataset.cap = COPY.toolCaps[key]; }
   $("camRotate").setAttribute("aria-label", COPY.draw.turnPhoto);
   $("readyBtn").textContent = COPY.wait.ready;
   $("ctrlRedraw").textContent = COPY.ctrlPrompt.redraw;
@@ -1025,7 +1092,7 @@ const S = {
   drawn: { ship: null, explorer: null },   // the entity answers of my finished drawings (result cards, the controller step)
   drawMode: store.get("drawMode") === "draw" ? "draw" : "photo",
   screen: "join", step: "join",
-  game: null, ghost: null, tilt: null, view: "chase",
+  game: null, gameP: null, ghost: null, tilt: null, view: "chase", wrecked: false,
   lastMode: null, phase: null, explorerAsked: false, sketch: null, sketchNeed: null,
   left: { space: C.TUNING.drawings.space, planet: C.TUNING.drawings.planet },   // drawings left per world this round
   tipAt: {}, legendPending: false, muted: !!store.get("muted"), resultKind: null,
@@ -1063,23 +1130,48 @@ for (const ev of ["gesturestart", "gesturechange", "dblclick", "contextmenu"]) d
 document.addEventListener("touchmove", (e) => { if (e.touches.length > 1 || !(e.target.closest && e.target.closest("input, [data-scroll]"))) e.preventDefault(); }, { passive: false });
 
 // ---------- network ----------
-async function post(path, body) {
-  const res = await fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-  const text = await res.text();
-  try { return JSON.parse(text); } catch { return { ok: res.ok, error: text.slice(0, 120) }; }
+// timeoutMs: give up after that long (a half-open request must never leave a spinner up for good): rejects with "client timeout".
+async function post(path, body, { timeoutMs = 0 } = {}) {
+  const ac = timeoutMs && typeof AbortController === "function" ? new AbortController() : null;
+  const timer = ac ? setTimeout(() => ac.abort(), timeoutMs) : 0;
+  try {
+    const res = await fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined });
+    const text = await res.text();
+    try { return JSON.parse(text); } catch { return { ok: res.ok, error: res.status >= 500 ? "generation unavailable" : "bad answer" }; }
+  } catch (e) {
+    throw new Error(ac && ac.signal.aborted ? "client timeout" : "network");
+  } finally { clearTimeout(timer); }
 }
+// The server answers a finished drawing within its own 4 s model timeout plus a retry; past these the phone stops waiting.
+const GENERATE_MS = 15000, SPECULATIVE_WAIT_MS = 12000;
 // Messages for one action go out in order (a quick tap must never arrive as up-before-down); different actions
 // stay parallel. An axis keeps one request in flight and sends only its latest value after it.
 const chains = {};
 function sendInput(action, down) {
   const body = JSON.stringify({ type: "input", player: S.player, action, down });
-  chains[action] = (chains[action] || Promise.resolve()).then(() => fetch("/input", { method: "POST", headers: { "content-type": "application/json" }, body })).catch(() => {});
+  chains[action] = (chains[action] || Promise.resolve()).then(() => fetch("/input", { method: "POST", headers: { "content-type": "application/json" }, body }))
+    .then((res) => { if (res && res.status === 409) rejoinSoon(); }).catch(() => {});
+}
+// 409 "join first": the server restarted (or forgot me). Join again with the same name and device token, at most once every 3 s; the
+// drawings on this phone stay, and inputs work again from the next press.
+let rejoinAt = -1e9;
+function rejoinSoon() {
+  if (!S.player || performance.now() - rejoinAt < 3000) return;
+  rejoinAt = performance.now();
+  post("/join", { player: S.player, device: DEVICE, token: DEVICE }).then((res) => {
+    if (!res || !res.player) return;
+    if (res.color) { S.color = colorCss(res.color); document.documentElement.style.setProperty("--me", S.color); }
+    if (res.player !== S.player) {
+      S.player = res.player; store.set("player", S.player);
+      try { if (S.game && S.game.setPlayer) S.game.setPlayer(S.player); } catch {}
+    }
+  }).catch(() => {});
 }
 function postAxis(a, axis) {
   if (a.busy) { a.dirty = true; return; }
   a.busy = true; a.dirty = false;
   fetch("/input", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ type: "axis", player: S.player, axis, x: a.x, y: a.y }) })
-    .catch(() => {}).finally(() => { a.busy = false; if (a.dirty) postAxis(a, axis); });
+    .then((res) => { if (res && res.status === 409) rejoinSoon(); }).catch(() => {}).finally(() => { a.busy = false; if (a.dirty) postAxis(a, axis); });
 }
 const axes = {};             // axis -> { x, y, sentAt, timer, busy, dirty }
 function sendAxis(axis, x, y, force) {
@@ -1161,6 +1253,7 @@ async function join(name) {
   }
   document.documentElement.style.setProperty("--me", S.color);
   store.set("player", S.player); store.set("color", S.color);
+  if (S.game && typeof S.game.setPlayer === "function") { try { S.game.setPlayer(S.player); } catch {} }   // joined again under a new name: the view follows
   // A refresh keeps the drawings: the saved controller goes straight to the wait screen.
   if (S.layout) enterPlay();
   else if (store.get("shipDone")) enterDraw("controller");
@@ -1228,12 +1321,18 @@ function strokesBox(strokes) {
   for (const s of strokes) for (const [x, y] of s) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
   return x1 >= x0 ? { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } : null;
 }
+// A tap or a speck is not a drawing: its ink must reach `min` of the pad's height (or the same length across). A single tap used to make a
+// 0 x 0 image ("data:,") that was sent anyway (v1.0 findings).
+function inkTooSmall(strokes, aspect, min = 0.05) {
+  const b = strokesBox(strokes);
+  return !b || Math.max(b.w * aspect, b.h) < min;
+}
 // Export strokes as a canvas: either the whole pad (controller) or cropped to the ink (ship, explorer, button).
 function strokesCanvas(strokes, aspect, { crop = false, bg = "#fff", color = "#111", px = IMAGE_PX, lw = 6 / 390 } = {}) {
   let box = { x: 0, y: 0, w: 1, h: 1 };
   if (crop) {
     const b = strokesBox(strokes);
-    const m = 0.04 * Math.max(b.w * aspect, b.h);
+    const m = Math.max(0.02, 0.04 * Math.max(b.w * aspect, b.h));     // never a 0-size box
     box = { x: b.x - m / aspect, y: b.y - m, w: b.w + 2 * m / aspect, h: b.h + 2 * m };
   }
   const bw = box.w * aspect, bh = box.h;
@@ -1318,7 +1417,9 @@ async function loadBitmap(file) {
   const url = URL.createObjectURL(file);
   try { const img = new Image(); img.src = url; await img.decode(); return img; } finally { setTimeout(() => URL.revokeObjectURL(url), 1000); }
 }
-async function analysePhoto(file) {
+// turn: a portrait photo is turned landscape (the controller page is drawn sideways). Ships, explorers and single buttons keep the way they
+// were drawn: turning a rocket drawn nose-up made it fly backwards and laid an astronaut on its side (v1.0 findings).
+async function analysePhoto(file, { turn = false } = {}) {
   const t0 = performance.now();
   const bmp = await loadBitmap(file);
   const bw = bmp.width || bmp.naturalWidth, bh = bmp.height || bmp.naturalHeight;
@@ -1330,18 +1431,24 @@ async function analysePhoto(file) {
   if (bmp.close) bmp.close();
   const px = ctx.getImageData(0, 0, W, H).data;
   const N = W * H;
-  // V = max(r,g,b) drops light coloured rules and margins; L (luminance) is what the model sees.
-  const Vv = new Uint8Array(N), L = new Uint8Array(N);
+  // V = max(r,g,b) drops light coloured rules and margins; L (luminance) is what the model sees. Ch (chroma = max - min) keeps strongly
+  // coloured pens (red, blue or purple gel, orange, pink) that V alone misses; pale ruled lines stay below its threshold.
+  const Vv = new Uint8Array(N), L = new Uint8Array(N), Ch = new Uint8Array(N);
   for (let i = 0, j = 0; i < N; i++, j += 4) {
     const r = px[j], g = px[j + 1], b = px[j + 2];
     Vv[i] = r > g ? (r > b ? r : b) : (g > b ? g : b);
+    Ch[i] = Vv[i] - (r < g ? (r < b ? r : b) : (g < b ? g : b));
     L[i] = (r * 77 + g * 150 + b * 29) >> 8;
   }
   // Integral image for the local mean: adaptive threshold against the paper, so shadows drop out.
-  const IW = W + 1, I = new Float64Array(IW * (H + 1));
+  // IL: the same for L, the paper's own brightness for the coloured-pen test (coloured paper is not ink; a red pen on it is).
+  const IW = W + 1, I = new Float64Array(IW * (H + 1)), IL = new Uint32Array(IW * (H + 1));
   for (let y = 0; y < H; y++) {
-    let row = 0;
-    for (let x = 0; x < W; x++) { row += Vv[y * W + x]; I[(y + 1) * IW + x + 1] = I[y * IW + x + 1] + row; }
+    let row = 0, rowL = 0;
+    for (let x = 0; x < W; x++) {
+      row += Vv[y * W + x]; I[(y + 1) * IW + x + 1] = I[y * IW + x + 1] + row;
+      rowL += L[y * W + x]; IL[(y + 1) * IW + x + 1] = IL[y * IW + x + 1] + rowL;
+    }
   }
   const R = Math.max(8, Math.round(Math.max(W, H) / 24));
   const mean = new Uint8Array(N), alpha = new Uint8Array(N), ink = new Uint8Array(N);
@@ -1349,31 +1456,52 @@ async function analysePhoto(file) {
     const y0 = Math.max(0, y - R), y1 = Math.min(H, y + R + 1);
     for (let x = 0; x < W; x++) {
       const x0 = Math.max(0, x - R), x1 = Math.min(W, x + R + 1);
+      const area = (y1 - y0) * (x1 - x0);
       const sum = I[y1 * IW + x1] - I[y0 * IW + x1] - I[y1 * IW + x0] + I[y0 * IW + x0];
-      const m = sum / ((y1 - y0) * (x1 - x0));
+      const m = sum / area;
       const i = y * W + x;
       mean[i] = m;
       const t = m * 0.66;
       if (m > 50 && Vv[i] < t) { ink[i] = 1; alpha[i] = Math.min(255, 90 + ((t - Vv[i]) / (t * 0.3)) * 165); }
+      else if (Ch[i] > 90) {        // a coloured pen: clearly darker than the paper around it (its own local brightness)
+        const ml = (IL[y1 * IW + x1] - IL[y0 * IW + x1] - IL[y1 * IW + x0] + IL[y0 * IW + x0]) / area, tc = ml * 0.8;
+        if (ml > 50 && L[i] < tc) { ink[i] = 1; alpha[i] = Math.min(255, 90 + ((tc - L[i]) / (tc * 0.3)) * 165); }
+      }
     }
   }
-  // Drop ink that touches the photo border (table edge, page edge, fingers).
-  const stack = new Int32Array(N); let sp = 0;
-  const seed = (i) => { if (ink[i]) { ink[i] = 0; alpha[i] = 0; stack[sp++] = i; } };
-  for (let x = 0; x < W; x++) { seed(x); seed((H - 1) * W + x); }
-  for (let y = 0; y < H; y++) { seed(y * W); seed(y * W + W - 1); }
-  while (sp) {
-    const i = stack[--sp], x = i % W;
-    if (x > 0) seed(i - 1); if (x < W - 1) seed(i + 1);
-    if (i >= W) seed(i - W); if (i < N - W) seed(i + W);
-  }
+  // Ink that touches the photo border is usually the table, the page edge or a finger: such a blob is dropped when it spans 60 % of the
+  // photo, is solid (over 35 % of its box filled) or is thick (a band, not a pen line). A thin stroke of the drawing that runs off the
+  // photo (a joystick ring at the edge) stays (v1.0 findings: every border blob used to vanish).
+  let ranOff = 0;      // ink of thin strokes dropped only for spanning the photo: the drawing itself ran off the edges
+  const stack = new Int32Array(N), blob = new Int32Array(N), seen = new Uint8Array(N);
+  const thick = Math.max(W, H) / 64;
+  const visit = (i, sp) => { if (ink[i] && !seen[i]) { seen[i] = 1; stack[sp++] = i; } return sp; };
+  const borderBlob = (start) => {
+    if (!ink[start] || seen[start]) return;
+    let sp = visit(start, 0), n = 0, bx0 = W, by0 = H, bx1 = -1, by1 = -1;
+    while (sp) {
+      const i = stack[--sp], x = i % W, y = (i / W) | 0;
+      blob[n++] = i;
+      if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; if (y < by0) by0 = y; if (y > by1) by1 = y;
+      if (x > 0) sp = visit(i - 1, sp); if (x < W - 1) sp = visit(i + 1, sp);
+      if (i >= W) sp = visit(i - W, sp); if (i < N - W) sp = visit(i + W, sp);
+    }
+    const bw = bx1 - bx0 + 1, bh = by1 - by0 + 1;
+    const solid = n > bw * bh * 0.35, band = n / (bw + bh) > thick, span = bw >= W * 0.6 || bh >= H * 0.6;
+    if (!solid && !band && !span) return;
+    for (let k = 0; k < n; k++) { ink[blob[k]] = 0; alpha[blob[k]] = 0; }
+    if (!solid && !band) ranOff += n;
+  };
+  for (let x = 0; x < W; x++) { borderBlob(x); borderBlob((H - 1) * W + x); }
+  for (let y = 0; y < H; y++) { borderBlob(y * W); borderBlob(y * W + W - 1); }
   // Bounding box from rows and columns with at least 2 ink pixels (ignores lone specks).
   const cols = new Uint16Array(W), rows = new Uint16Array(H);
   let count = 0;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (ink[y * W + x]) { cols[x]++; rows[y]++; count++; }
   const first = (a) => a.findIndex((v) => v >= 2), last = (a) => a.length - 1 - [...a].reverse().findIndex((v) => v >= 2);
   const x0 = first(cols), y0 = first(rows);
-  if (x0 < 0 || y0 < 0 || count < 40) throw new Error(COPY.draw.noInk);
+  // nothing left, but thin strokes ran off the photo: the drawing itself did not fit (say so, not "no drawing found")
+  if (x0 < 0 || y0 < 0 || count < 40) throw new Error(ranOff >= 400 ? COPY.draw.edge : COPY.draw.noInk);
   const box = { x: x0, y: y0, w: last(cols) - x0 + 1, h: last(rows) - y0 + 1 };
   // Shading-corrected greyscale (L / local paper brightness) and the ink-only layer.
   const grey = new ImageData(W, H), inkImg = new ImageData(W, H);
@@ -1384,7 +1512,7 @@ async function analysePhoto(file) {
   }
   const gc = document.createElement("canvas"); gc.width = W; gc.height = H; gc.getContext("2d").putImageData(grey, 0, 0);
   const ic = document.createElement("canvas"); ic.width = W; ic.height = H; ic.getContext("2d").putImageData(inkImg, 0, 0);
-  return { W, H, box, grey: gc, ink: ic, turns: box.h > box.w ? 3 : 0, ms: Math.round(performance.now() - t0) };
+  return { W, H, box, grey: gc, ink: ic, turns: turn && box.h > box.w ? 3 : 0, ms: Math.round(performance.now() - t0) };
 }
 // Crop to the ink box + 4 % margin, rotate by quarter turns, scale so the longest side is 512 px.
 function renderPhoto(a) {
@@ -1412,11 +1540,13 @@ const latest = {};           // wire kind -> { requestId, key, promise }
 // inkRegions (connected ink blobs, controller / button), anyway (the player insisted on a drawing that looks wrong).
 function generate(kind, image, { source = "draw", speculative = false, key = null, region, inkRegions, anyway = false } = {}) {
   const requestId = `${S.player}-${Date.now().toString(36)}-${++reqSeq}`;
-  const body = { player: S.player, kind, image, source, speculative, requestId };
+  const body = { player: S.player, device: DEVICE, kind, image, source, speculative, requestId };   // device: the server binds a re-adopted name to this phone
   if (region) body.region = region;
   if (inkRegions && inkRegions.length) body.inkRegions = inkRegions;
   if (anyway) body.anyway = true;
-  const promise = post("/generate", body).catch((e) => ({ ok: false, error: e.message || "network" })).then((r) => {
+  const promise = post("/generate", body, { timeoutMs: speculative ? SPECULATIVE_WAIT_MS : GENERATE_MS }).catch((e) => ({ ok: false, error: e.message || "network" })).then((r) => {
+    r = r && typeof r === "object" ? r : { ok: false, error: "bad answer" };
+    if (r.error === "join first") rejoinSoon();        // the server forgot me (a restart): join again, then TRY AGAIN works
     if (r.drawingsLeft) setLeft(r.drawingsLeft);
     // __spTest.looksLike(v): the next answer carries looksLike: v (to see the wrong-drawing warning without server help)
     if (forceLooks) { r = { ...r, looksLike: forceLooks }; forceLooks = null; }
@@ -1426,12 +1556,25 @@ function generate(kind, image, { source = "draw", speculative = false, key = nul
   return latest[kind];
 }
 const isLatest = (kind, r) => latest[kind] && latest[kind].requestId === r.requestId;
-// An answer that failed, in words a player can act on (the server's own error texts are for developers).
+// An answer that failed, in words a player can act on. The server's `message` is already plain words (server.js plainMessage); its `error`
+// is for developers and is never shown.
 function friendlyError(r) {
   if (r.error === "no drawings left") return tpl(COPY.errors.noDrawings, { where: COPY.where[world()] });
+  if (r.error === "client timeout") return COPY.errors.slow;
+  if (r.error === "network") return COPY.errors.offline;
+  if (typeof r.message === "string" && r.message.trim()) return r.message.trim().slice(0, 140);
   if (r.looksLike === "nothing" || r.error === "nothing to read") return COPY.errors.nothing;
   if (r.error === "unreadable button") return COPY.errors.unreadable;
   return COPY.errors.generic;
+}
+// What a failed answer asks of the player: "none" (no drawings left here: back to the game), "redo" (the drawing itself could not be
+// read: draw it again) or "retry" (slow, offline, the reader busy: send the same drawing again). Nothing is spent in any case.
+function failureKind(r) {
+  const e = String((r && r.error) || "");
+  if (e === "no drawings left") return "none";
+  if (e === "name taken") return "rename";      // this name plays on another phone: only a new name helps
+  if ((r && r.looksLike === "nothing") || /^(nothing to read|no controls found|unreadable button|region too small|no skill called|looks like)/.test(e)) return "redo";
+  return "retry";
 }
 // What does the answer say the drawing really is? Top level, or inside the entity / layout.
 const looksOf = (r) => (r && (r.looksLike || (r.entity && r.entity.looksLike) || (r.layout && r.layout.looksLike))) || null;
@@ -1494,6 +1637,7 @@ function paintDrawChrome() {
 // opts: redraw (a redraw of something I already have: header says REDRAW, CANCEL replaces SKIP), photo (start in photo mode), mode
 function enterDraw(kind, { redraw = false, photo = false, mode = null } = {}) {
   releaseAll();
+  if (addState) closeAdd();          // a toast action tapped over the add-a-button sheet
   closeSheets();
   clearTimeout(specTimer); clearTimeout(genTimer);
   Object.assign(DR, { kind, redraw, busy: false, photo: null, cache: null });
@@ -1572,6 +1716,7 @@ function drawingNow() {
 }
 // A free early call: most of the time the answer is ready before the player taps DONE.
 function sendSpeculative() {
+  if (DR.mode === "draw" && inkTooSmall(padSketch.strokes, padAspectNow())) return;
   const d = drawingNow();
   if (!d) return;
   const kind = DR.kind, wire = KINDS[kind].wire;
@@ -1579,7 +1724,8 @@ function sendSpeculative() {
   setDrawStatus(COPY.draw.reading);
   spec.promise.then((r) => {
     if (latest[wire] !== spec || DR.kind !== kind || S.screen !== "draw") return;
-    setDrawStatus(isWrong(kind, r) ? COPY.draw.mismatch[kind] : DR.mode === "photo" ? COPY.draw.looksGoodPhoto : r.ok ? COPY.draw.looksGood : COPY.draw.tapDone);
+    const photo = DR.mode === "photo";      // a failed early answer is not "looks good": DONE / USE THIS PHOTO will say what went wrong
+    setDrawStatus(isWrong(kind, r) ? COPY.draw.mismatch[kind] : r.ok ? (photo ? COPY.draw.looksGoodPhoto : COPY.draw.looksGood) : photo ? COPY.draw.photoFound : COPY.draw.tapDone);
   });
 }
 
@@ -1600,10 +1746,10 @@ async function onDrawPhoto(file) {
   setDrawStatus(COPY.draw.readingPhoto);
   let p;
   try {
-    const analysis = await analysePhoto(file);
+    const analysis = await analysePhoto(file, { turn: !KINDS[kind].entity });
     p = { analysis, rendered: renderPhoto(analysis) };
     window.__lastPhotoMs = analysis.ms;
-  } catch (e) { return setDrawStatus(e && e.message === COPY.draw.noInk ? COPY.draw.noInk : COPY.draw.badPhoto); }
+  } catch (e) { return setDrawStatus(e && (e.message === COPY.draw.noInk || e.message === COPY.draw.edge) ? e.message : COPY.draw.badPhoto); }
   if (DR.kind !== kind || S.screen !== "draw") return;
   DR.photo = { ...p, key: "photo:" + (++reqSeq) };
   showPhoto();
@@ -1618,7 +1764,11 @@ $("camRotate").onclick = () => {
   showPhoto();
 };
 $("camUse").onclick = () => { if (DR.photo) commit(); };
-$("done").onclick = () => { if (!padSketch.strokes.length) return setDrawStatus(COPY.draw.drawFirst); commit(); };
+$("done").onclick = () => {
+  if (!padSketch.strokes.length) return setDrawStatus(COPY.draw.drawFirst);
+  if (inkTooSmall(padSketch.strokes, padAspectNow())) return setDrawStatus(COPY.draw.tooSmall);
+  commit();
+};
 
 // ---- DONE / USE THIS PHOTO: wait for the early answer, then confirm it (a cache hit that costs 1 drawing) ----
 async function commit({ anyway = false } = {}) {
@@ -1628,19 +1778,19 @@ async function commit({ anyway = false } = {}) {
   DR.busy = true;
   clearTimeout(specTimer);
   const kind = DR.kind, wire = KINDS[kind].wire;
-  showGenSoon(kind);
+  showGenSoon(kind, d.image);
   const spec = latest[wire] && latest[wire].key === d.key ? latest[wire] : null;
   let first = null;
   if (spec) { first = await spec.promise; if (latest[wire] !== spec) { DR.busy = false; hideGen(); return; } }
   // the early answer already says it is the wrong kind of drawing: nothing is committed, ask the player
   if (!anyway && first && isWrong(kind, first)) { DR.busy = false; hideGen(); return showWrong(kind, first); }
-  if (first && !first.ok && first.looksLike === "nothing") { DR.busy = false; return showGenError(first.message); }   // a blank page: refused for free
+  if (first && !first.ok && first.looksLike === "nothing") { DR.busy = false; return showGenError(first); }   // a blank page: refused for free
   const res = await generate(wire, d.image, { source: d.source, speculative: false, key: d.key, inkRegions: d.regions, anyway }).promise;
   DR.busy = false;
   if (!isLatest(wire, res)) { hideGen(); return; }           // superseded by a newer request
   if (!anyway && isWrong(kind, res)) { hideGen(); return showWrong(kind, res); }
   const ok = res.ok && (KINDS[kind].entity ? !!res.entity : !!res.layout && !C.CHECKS.layout(res.layout).length);
-  if (!ok) return showGenError(res.message || COPY.errors.generic);
+  if (!ok) return showGenError(res.ok ? { ok: false, error: "bad answer", message: COPY.errors.generic } : res);
   hideGen();
   onCommitted(kind, res, d);
 }
@@ -1656,25 +1806,46 @@ function onCommitted(kind, res, d) {
     const lay = pad && pad.padLayout && !C.CHECKS.layout(pad.padLayout).length ? pad.padLayout : res.layout;
     applyLayout(lay, d.ink, {});
     S.pad = pad; S.padFailed = false;
+    if (pad && pad.source !== "model") padTemplate = { sig: padActions(pad).join(","), html: pad.html };
     S.legendPending = true;
     showResult(kind, { layout: S.layout, ink: d.ink });
   }
 }
-// "reading your ship…" only shows when the answer takes a moment (a cache hit would just flash it)
-function showGenSoon(kind) { clearTimeout(genTimer); genTimer = setTimeout(() => showGen(kind), 250); }
-function showGen(kind) {
+// "reading your ship…" only shows when the answer takes a moment (a cache hit would just flash it). The drawing itself sits on a card
+// with a light sweeping over it, and one line says what is happening.
+function showGenSoon(kind, image) { clearTimeout(genTimer); genTimer = setTimeout(() => showGen(kind, image), 250); }
+function showGen(kind, image) {
   $("gen").classList.remove("hidden"); $("genSpin").classList.remove("hidden");
   $("genTitle").textContent = COPY.gen.reading[kind] || COPY.gen.reading.ship;
+  setText($("genSub"), COPY.gen.sub[kind] || "");
+  $("genPic").classList.toggle("hidden", !image);
+  if (image) $("genImg").src = image;
   setText($("genErr"), ""); $("genActions").classList.add("hidden");
 }
-function showGenError(msg) {
+// A failed answer: what went wrong in plain words, that it cost nothing, and the one thing to do next (failureKind).
+let genMode = "retry";
+function showGenError(res) {
   clearTimeout(genTimer);
-  $("gen").classList.remove("hidden"); $("genSpin").classList.add("hidden");
-  $("genTitle").textContent = COPY.gen.failed; setText($("genErr"), msg); $("genActions").classList.remove("hidden");
+  genMode = failureKind(res);
+  $("gen").classList.remove("hidden"); $("genSpin").classList.add("hidden"); $("genPic").classList.add("hidden");
+  $("genTitle").textContent = COPY.gen.failed;
+  const unsure = res && (res.error === "client timeout" || res.error === "network");   // the server may still have spent it
+  setText($("genSub"), genMode === "none" || genMode === "rename" || unsure ? "" : COPY.gen.free);
+  setText($("genErr"), (res && res.message) || COPY.errors.generic);
+  $("genRetry").textContent = genMode === "redo" ? COPY.gen.redo : genMode === "rename" ? COPY.gen.newName : COPY.gen.retry;
+  $("genRetry").classList.toggle("hidden", genMode === "none");
+  $("genBack").textContent = genMode === "none" ? COPY.gen.backGame : COPY.gen.back;
+  $("genActions").classList.remove("hidden");
 }
 function hideGen() { clearTimeout(genTimer); $("gen").classList.add("hidden"); }
-$("genRetry").onclick = () => { hideGen(); commit(); };
-$("genBack").onclick = () => hideGen();   // back to the drawing, nothing was lost
+$("genRetry").onclick = () => {
+  hideGen();
+  if (genMode === "rename") { store.set("player", null); show("join"); setStep("join"); $("name").value = ""; return; }   // join under a new name; the drawings stay
+  if (genMode !== "redo") return commit();            // the same drawing again (it was the network or the reader, not the drawing)
+  resetDrawing();                                     // a fresh drawing; in photo mode the camera opens at once (this tap is the gesture)
+  if (DR.mode === "photo") $("camInput").click();
+};
+$("genBack").onclick = () => { hideGen(); if (genMode === "none") backToGame(); };   // back to the drawing (nothing was lost), or to the game
 
 // ---- the wrong kind of drawing ----
 function showWrong(kind, res) {
@@ -1775,10 +1946,16 @@ function entityTip(kind, entity) {
     const missing = (entity.unlocked || []).filter((u) => !layoutHas(u.verb)).map((u) => (COPY.skills[u.verb] || u.verb).toUpperCase());
     if (missing.length) return tpl(COPY.result.tips.newButtons, { list: joinWords(missing) });
   }
-  const T = COPY.result.tips;
-  if (kind === "ship") return !V.WEAPONS.some((w) => verbs.includes(w)) ? T.noWeapon : !verbs.includes("land") ? T.noLand : "";
-  const dig = verbs.includes("dig"), drill = verbs.includes("drill");
-  return !dig && !drill ? T.noDigDrill : !dig ? T.noDig : !drill ? T.noDrill : "";
+  // the locked list on the card already says what to draw for LAND, DIG and DRILL; the one thing it cannot say is why a weapon matters
+  return kind === "ship" && !V.WEAPONS.some((w) => verbs.includes(w)) ? COPY.result.tips.noWeapon : "";
+}
+// The skills worth drawing next, most important first (the gates of the round, then the classics): at most 3 on the card.
+const LOCK_ORDER = { space: ["shoot", "land", "boost", "shield", "emp"], planet: ["dig", "drill", "shoot", "boost", "jump"] };
+function lockedItems(entity, kind) {
+  const verbs = entity.verbs || [], w = kind === "ship" ? "space" : "planet";
+  const can = (v) => (V.VERBS[v] && V.VERBS[v].modes.includes(w)) && !(v === "jump" && (entity.type === "car" || entity.type === "bike"));
+  return LOCK_ORDER[w].filter((v) => can(v) && !verbs.includes(v) && V.PARTS[v]).slice(0, 3)
+    .map((v) => ({ name: verbName(v), text: tpl(COPY.result.lockedLine, { part: V.PARTS[v] }) }));
 }
 function buildUnlockCard(entity, kind, rc) {
   const what = COPY.what[kind === "ship" ? "ship" : "explorer"];
@@ -1795,8 +1972,21 @@ function buildUnlockCard(entity, kind, rc) {
     ul.append(li);
   });
   card.append(head, ul);
+  // "🔒 DRAW IT TO UNLOCK" · "LAND draw landing legs or a parachute": what a full redraw could add (it costs a drawing, so say it here)
+  const locked = lockedItems(entity, kind);
+  if (locked.length) {
+    const box = document.createElement("div"); box.className = "ulock";
+    const lh = document.createElement("div"); lh.className = "uhead"; lh.textContent = COPY.result.lockedHead;
+    const ll = document.createElement("ul"); ll.className = "ulist";
+    locked.forEach((it, i) => {
+      const li = document.createElement("li"); li.style.setProperty("--i", i);
+      const b = document.createElement("b"); b.textContent = it.name;
+      li.append(b, it.text); ll.append(li);
+    });
+    box.append(lh, ll); card.append(box);
+  }
   // "Your ship can: fly, shoot (cannon), boost (flames)", for screen readers and tests
-  card.dataset.text = tpl(COPY.result.sentence, { what, list: items.map(itemText).join(", ") });
+  card.dataset.text = (typeof entity.card === "string" && entity.card.trim()) || tpl(COPY.result.sentence, { what, list: items.map(itemText).join(", ") });
   card.setAttribute("aria-label", card.dataset.text);
   setText($("unlockTip"), entityTip(kind, entity));
 }
@@ -1967,6 +2157,8 @@ async function paintInk() {
   c.width = Math.round(r.width * DPR); c.height = Math.round(r.height * DPR);
   const ctx = c.getContext("2d");
   ctx.clearRect(0, 0, c.width, c.height);
+  // a dark halo under the white ink: the drawing still reads on white sand and bright sky (painted once per layout, not per frame)
+  ctx.shadowColor = "rgba(10, 6, 30, 0.85)"; ctx.shadowBlur = 4 * DPR;
   const base = await loadImg(S.inkBase);
   if (base) ctx.drawImage(base, 0, 0, c.width, c.height);
   for (const b of S.layout ? S.layout.buttons : []) {
@@ -2016,6 +2208,9 @@ function setEntity(e) {
 }
 
 const inside = (b, fx, fy) => fx >= b.x && fx <= b.x + b.w && fy >= b.y && fy <= b.y + b.h;
+// A held button lets go only when the finger slides clearly off it (SLOP_PX past its edge), not when it rolls a few pixels.
+const SLOP_PX = 16;
+const insideSlop = (b, fx, fy, r) => { const sx = SLOP_PX / Math.max(1, r.width), sy = SLOP_PX / Math.max(1, r.height); return fx >= b.x - sx && fx <= b.x + b.w + sx && fy >= b.y - sy && fy <= b.y + b.h + sy; };
 function controlAt(fx, fy) {
   // smallest containing control wins, so a button drawn inside a big stick zone still works
   let best = null;
@@ -2065,7 +2260,7 @@ function releaseAll() {
 // ---- the tip above a control: "🔒 BOOST · draw an exhaust with fire on your ship" (locked), "EMP · READY IN 12 S" (cooling down), or what a
 // held control does (its first 3 holds). Both kinds of controller use these; each passes where its control is on the screen. ----
 const tipsSeen = store.get("tipsSeen") || {};   // each control explains itself the first 3 times it is held
-function tipAt(r, { title = "", text, lock = false, ms = 0 }) {    // r: { left, right, top, bottom, width } in CSS px
+function tipAt(r, { title = "", text, lock = false, ms = 0, sticky = false }) {    // r: { left, right, top, bottom, width } in CSS px; sticky: a release does not hide it
   const el = $("tip");
   $("tipTitle").textContent = title; $("tipTitle").classList.toggle("hidden", !title);
   $("tipText").textContent = text;
@@ -2080,8 +2275,9 @@ function tipAt(r, { title = "", text, lock = false, ms = 0 }) {    // r: { left,
   el.classList.add("on");
   clearTimeout(tipAt.t);
   if (ms) tipAt.t = setTimeout(hideTip, ms);
+  tipAt.stickyUntil = sticky && ms ? performance.now() + ms : 0;
 }
-function hideTip() { clearTimeout(tipAt.t); $("tip").classList.remove("on"); }
+function hideTip() { clearTimeout(tipAt.t); tipAt.stickyUntil = 0; $("tip").classList.remove("on"); }
 const coolLeft = (action) => Math.max(0, ((S.cool[action] || 0) - performance.now()) / 1000);   // seconds until a skill is ready again
 const verbName = (verb) => String(V && V.labelOf ? V.labelOf(verb) : verb).toUpperCase();      // "INK BOMB", not "inkbomb"
 const holdTimers = {};     // action -> the timer of its "what it does" tip
@@ -2095,17 +2291,22 @@ function tipOnPress(action, name, rect) {      // rect: () => where the control 
   const left = coolLeft(act);
   if (left > 0) return tipAt(rect(), { text: tpl(COPY.cool.tip, { name: verbName(act), n: Math.ceil(left) }), ms: 1800 });
   if ((tipsSeen[act] || 0) >= 3) return;
+  const does = COPY.does[act] || (V.VERBS[act] && V.VERBS[act].hint) || "";
+  if (!tipsSeen[act]) {      // the very first touch of each control: its name and what it does, at once, for 2 s (a quick tap does not hide it)
+    tipsSeen[act] = 1; store.set("tipsSeen", tipsSeen);
+    return tipAt(rect(), { title: name, text: does, ms: 2200, sticky: true });
+  }
   clearTimeout(holdTimers[act]);
   holdTimers[act] = setTimeout(() => {      // still held after 450 ms: name it and say in one line what it does
     delete holdTimers[act];
     tipsSeen[act] = (tipsSeen[act] || 0) + 1; store.set("tipsSeen", tipsSeen);
-    tipAt(rect(), { title: name, text: COPY.does[act] || (V.VERBS[act] && V.VERBS[act].hint) || "" });
+    tipAt(rect(), { title: name, text: does });
   }, HOLD_TIP_MS);
 }
 function tipOnRelease(action) {
   const act = C.normaliseAction(action);
   clearTimeout(holdTimers[act]); delete holdTimers[act];
-  if (!lockInfo(act, S.entity || S.drawn.ship) && coolLeft(act) <= 0) hideTip();   // a lock or cooldown tip stays its few seconds
+  if (!lockInfo(act, S.entity || S.drawn.ship) && coolLeft(act) <= 0 && performance.now() > (tipAt.stickyUntil || 0)) hideTip();   // a lock, cooldown or first-use tip stays its few seconds
 }
 const onControlDown = (ctl) => tipOnPress(ctl.b.action, controlName(ctl.b), () => ctl.el.getBoundingClientRect());
 const onControlUp = (ctl) => tipOnRelease(ctl.b.action);
@@ -2145,7 +2346,15 @@ hits.addEventListener("pointerdown", (e) => {
   if (!place) return;
   const ctl = actualOf(place);
   try { hits.setPointerCapture(e.pointerId); } catch {}
-  if (ctl.b.type === "toggle") { ctl.on = !ctl.on; ctl.el.classList.toggle("on", ctl.on); sendInput(ctl.b.action, ctl.on); if (ctl.info) onControlDown(ctl); return; }
+  if (ctl.b.type === "toggle") {
+    const spec = V.VERBS[ctl.b.action];
+    if (spec && !spec.hold) {      // a switch drawn for a one-shot skill (BLAST, LAND...): every tap fires it once, no second tap to "turn it off"
+      onControlDown(ctl);
+      press(ctl, true); setTimeout(() => { press(ctl, false); onControlUp(ctl); }, 120);
+      return;
+    }
+    ctl.on = !ctl.on; ctl.el.classList.toggle("on", ctl.on); sendInput(ctl.b.action, ctl.on); if (ctl.info) onControlDown(ctl); return;
+  }
   pointers.set(e.pointerId, { ctl, place });
   onControlDown(ctl);
   if (ctl.b.type === "stick") { ctl.el.classList.add("down"); moveStick(ctl, e, place); }
@@ -2155,8 +2364,8 @@ hits.addEventListener("pointermove", (e) => {
   const p = pointers.get(e.pointerId);
   if (!p) return;
   if (p.ctl.b.type === "stick") return moveStick(p.ctl, e, p.place);
-  const [fx, fy] = frac(e);
-  if (!inside(p.place.b, fx, fy)) release(e.pointerId);   // sliding off a button releases it
+  const [fx, fy, r] = frac(e);
+  if (!insideSlop(p.place.b, fx, fy, r)) release(e.pointerId);   // sliding off a button releases it
 });
 hits.addEventListener("pointerup", (e) => release(e.pointerId));
 hits.addEventListener("lostpointercapture", (e) => release(e.pointerId));
@@ -2179,6 +2388,7 @@ const padActions = (pad) => [...new Set([...((pad.padLayout && pad.padLayout.but
 function adoptPad(pad, { mount = true } = {}) {
   if (!pad) return;
   S.pad = pad; S.padFailed = false;
+  if (pad.source !== "model") padTemplate = { sig: padActions(pad).join(","), html: pad.html };   // the safe fallback for Sol's own version
   const lay = pad.padLayout;
   if (lay && Array.isArray(lay.buttons) && lay.buttons.length && !C.CHECKS.layout(lay).length) applyLayout(lay, S.inkBase, S.inkButtons);
   if (mount && S.screen === "play") ensureCtl();
@@ -2188,6 +2398,7 @@ async function fetchPad() {
 }
 
 let ctlRun = 0;      // the newest ensureCtl run wins
+let padTemplate = null;   // { sig, html }: the template document of the newest pad; the frame falls back to it when Sol's own HTML fails
 // Make the play screen show the right controller: the sandboxed pad when the module and the server HTML are there, else the DOM controls.
 async function ensureCtl() {
   if (S.screen !== "play") return;
@@ -2225,7 +2436,10 @@ function mountPad(mod) {
   const rec = { handle: null, sig, html: pad.html, source: pad.source, actions, live: false };
   try {
     rec.handle = mod.mountController($("ctl"), pad.html, {
-      allowedActions: actions, requiredActions: actions, fallbackHtml: pad.html,
+      allowedActions: actions, requiredActions: actions,
+      // a switch drawn for a one-shot skill fires once per tap (the kit used to latch it: two taps per use)
+      momentaryActions: actions.filter((a) => V.VERBS[a] && !V.VERBS[a].hold),
+      fallbackHtml: pad.source === "model" && padTemplate && padTemplate.sig === sig ? padTemplate.html : pad.html,
       readyTimeoutMs: 6000,      // the page is busy starting WebGL in the same moment: the kit's 2.5 s default is too tight on a phone
       onPress: (a) => sbPress(rec, a), onRelease: (a) => sbRelease(rec, a), onAxis: (axis, x, y) => sbAxis(rec, axis, x, y),
       onReady: () => sbReady(rec),
@@ -2356,22 +2570,42 @@ async function enterPlay() {
   if (S.layout) { buildHits(); paintInk(); }
   ensureCtl();       // Sol's controller frame (the DOM controls just built work until it is live, and always when it cannot be used)
   maybeLegend();
-  if (!S.game) S.game = await startRenderer();
+  if (!enterPlay.caps) { enterPlay.caps = true; showToolCaps(); }
+  if (!S.gameP) S.gameP = startRenderer();      // once: a second enterPlay must never start a second renderer and event stream
+  const game = await S.gameP;
+  if (S.game !== game) S.game = game;
   syncRendering();
   startHud();
 }
+// render.js and three.js come over the network (three.js from a CDN). If they are slow, the HUD, the wait banner and the controls run on a
+// plain event stream after INTERIM_MS; the 3D view takes over when it is ready (the plain stream is closed then).
+const INTERIM_MS = 4000;
 async function startRenderer() {
   const opts = { canvas: $("game"), screen: "phone", view: S.view, player: S.player };
+  let interim = null;
+  const slow = setTimeout(() => {
+    if (S.game) return;
+    opts.player = S.player;
+    interim = fallbackGame(opts); wireGame(interim); S.game = interim;
+    if (S.screen === "play") startHud();
+  }, INTERIM_MS);
   try {
     const mod = await RM;
     if (!mod) throw new Error("render.js did not load");
+    opts.player = S.player;          // a new name picked while render.js was loading
     const game = await mod.startGame(opts);
+    clearTimeout(slow);
+    if (interim) { try { interim.dispose(); } catch {} }
     $("placeholder").classList.add("hidden");
     wireGame(game);
+    S.game = game;
     return game;
   } catch (e) {
+    clearTimeout(slow);
     console.warn("render.js unavailable, using the plain view", e);
     $("placeholder").classList.add("plain");
+    if (interim) return interim;
+    opts.player = S.player;
     const game = fallbackGame(opts);
     wireGame(game);
     return game;
@@ -2382,7 +2616,7 @@ function fallbackGame({ player }) {
   const handlers = {};
   let tick = null, worldMsg = null;
   const emit = (t, m) => (handlers[t] || []).forEach((cb) => cb(m));
-  const es = new EventSource("/events");
+  const es = new EventSource(player ? `/events?player=${encodeURIComponent(player)}` : "/events");   // named, like render.js: my toasts, hits and pad
   es.onmessage = (ev) => {
     let m; try { m = JSON.parse(ev.data); } catch { return; }
     if (m.type === "tick") tick = m;
@@ -2423,6 +2657,7 @@ function wireGame(game) {
   // Personal messages and the kill feed. render.js sends mischief / cooldown to every phone on older builds: each handler keeps only mine.
   game.on("mischief", onMischief);
   game.on("cooldown", onCooldown);
+  game.on("hit", onHit);
   game.on("generated", onGenerated);
   game.on("announce", onAnnounce);
   // drawingsLeft is not part of hud().me in every build, so read it from the tick too (setLeft does nothing unless it changed). The tick also
@@ -2434,12 +2669,16 @@ function wireGame(game) {
     syncDrawing();
   });
   game.on("entity", (m) => { if (m.player === S.player && m.entity) setEntity(m.entity); });
-  game.on("world", (m) => { if (m.entities && m.entities[S.player]) setEntity(m.entities[S.player]); });
+  game.on("world", (m) => {
+    if (m.entities && m.entities[S.player]) setEntity(m.entities[S.player]);
+    const parked = (m.island && Array.isArray(m.island.parked) && m.island.parked.find((c) => c.player === S.player)) || null;
+    S.wrecked = !!(parked && parked.wrecked);       // my ship on the pad was wrecked: it needs a new ship drawing to take off
+  });
   if (typeof game.entityOf === "function") { const e = game.entityOf(S.player); if (e) setEntity(e); }
 }
 
 // ---------- HUD ----------
-const hudEls = { obj: $("obj"), status: $("status"), clock: $("clock"), objBar: $("objBar"), timer: $("timer") };
+const hudEls = { obj: $("obj"), status: $("status"), clock: $("clock"), objBar: $("objBar"), timer: $("timer"), scoreN: $("scoreN"), scoreRank: $("scoreRank") };
 const vitals = PE ? PE.createVitals($("vitals"), COPY.hud) : null;
 // Radar: hud().radar is heading-up with dz > 0 = AHEAD (render.js computeHud rel(): dz = dot(offset, forward)); createRadar draws y = c - dz * k,
 // so ahead is UP. Checked against both files in v1.2: no change needed.
@@ -2457,6 +2696,8 @@ function updateHud() {
   const me = h.me || null;
   if (me && me.entity) setEntity(me.entity);
   updateDeath(h, me);
+  feelHits(h, me);
+  updateScore(h, me);
   setCached("obj", hudEls.obj, h.phase === "lobby" ? COPY.hud.getReady : String(h.objectiveText || "").toUpperCase());
   setCached("status", hudEls.status, String(h.status || "").toUpperCase());
   // time left to the cap while playing (turns red and pulses under 30 s); the lobby and the scoreboard have no timer
@@ -2568,7 +2809,7 @@ let toastTimer = 0, toastRun = null;
 function toastAction(m) {
   const planet = m.gate === "dig" || m.gate === "drill" || (!m.gate && world() === "planet");
   if (m.kind === "hint" && m.need === "part") return { label: planet ? COPY.toast.redrawExplorer : COPY.toast.redrawShip, run: () => startRedraw(planet ? "explorer" : "ship") };
-  if (m.kind === "info" && m.verb === "takeoff") return { label: COPY.toast.redrawShip, run: () => startRedraw("ship") };   // a wrecked ship
+  if (m.kind === "info" && (m.verb === "takeoff" || /wrecked your|draw a new ship/i.test(String(m.text || "")))) return { label: COPY.toast.redrawShip, run: () => startRedraw("ship") };   // a wrecked ship
   return null;
 }
 function showToast(m) {
@@ -2666,7 +2907,18 @@ function onAnnounce(m) {
   else if ((g = /^\S+\s+(\w+) inked (\w+)'s screen/.exec(t))) { if (g[1] === me) ownMischief("inkbomb", g[2]); }
   else if ((g = /^\S+\s+(\w+) pulled (\w+) in/.exec(t))) { if (g[1] === me) ownMischief("tractor", g[2]); }
   else if ((g = /^\S+\s+(\w+) hit (\w+)'s mine/.exec(t))) { if (g[2] === me) ownMischief("mine", g[1]); }      // "ana hit bob's mine (-30)": bob owns the mine
-  else if ((g = /^\S+\s+(\w+) landed the last hit on the boss/.exec(t))) moment(M.bossDown, { sub: g[1] === me ? tpl(M.bossLastMe, { n: C.SCORING.bossLastHit }) : tpl(M.bossLast, { name: short(g[1]) }), prio: 4 });
+  else if ((g = /^\S+\s+(\w+) (?:landed the last hit on the boss|destroyed the boss|stole the boss from (\w+))/.exec(t))) {
+    // "💥 bob destroyed the boss! +1000" / "💥 bob stole the boss from ana! +1000" (v1.3; older: "… landed the last hit on the boss").
+    // Ruthless: stolen from me when the server says so, or (older wording) when I was fighting it a moment ago
+    const stolen = g[1] !== me && (g[2] ? g[2] === me : performance.now() - bossNearAt < 4000);
+    moment(M.bossDown, { sub: g[1] === me ? tpl(M.bossLastMe, { n: C.SCORING.bossLastHit }) : tpl(stolen ? M.lastStolen : M.bossLast, { name: short(g[1]) }), tone: stolen ? "red" : "gold", prio: 4 });
+  }
+  else if ((g = /^\S+\s+(\w+) wrecked (\w+)'s ship(?: \(\+(\d+)\))?/.exec(t))) {      // "🔧 bob wrecked ana's ship (+150)": a parked ship on the pad
+    if (g[2] === me) moment(M.wreckedMe, { sub: M.wreckedMeSub, tone: "red", prio: 4, ms: 4500 });
+    else if (g[1] === me) moment(tpl(M.wrecked, { name: short(g[2]) }), { sub: tpl(M.wreckedSub, { n: g[3] || C.SCORING.wreck }), prio: 3 });
+  }
+  else if ((g = /^\S+\s+(\w+)'s ship was wrecked/.exec(t))) { if (g[1] === me) moment(M.wreckedMe, { sub: M.wreckedMeSub, tone: "red", prio: 4, ms: 4500 }); }
+  else if ((g = /^(?:\S+\s+)?(\w+) rebuilt their ship/.exec(t))) { if (g[1] === me) moment(M.rebuilt, { sub: M.rebuiltSub, tone: "cyan", prio: 3 }); }   // "🔧 ana rebuilt their ship"
   else if (/brought the boss down/.test(t)) moment(M.bossDown, { sub: M.bossSwarm, prio: 4 });
   else if (/^Assists on/.test(t)) moment(M.powers, { sub: M.powersSub, tone: "violet", prio: 3 });
   else if ((g = /^\S+\s+(\w+) opened a chest \(\+(\d+)\)/.exec(t))) {
@@ -2725,6 +2977,85 @@ function updateDeath(h, me) {
     }
   }
   if (death.on) setDeadN(left);
+}
+
+// ---- getting hit: a red marker on the screen edge toward the nearest rival or the boss (the radar's bearing: who most likely fired), and the
+// cyan spawn shield while a respawned ship cannot be hurt. mischief-fx.js draws both; without it a red flash and a cyan frame do. ----
+let bossNearAt = -1e9;       // when the boss was last within its shot range of me (a last hit by someone else then counts as stolen)
+function feelHits(h, me) {
+  const live = (h.phase === "playing" || h.phase === "assists") && !!me;
+  const flags = (me && me.flags) || {};
+  const hp = me && Number.isFinite(me.hp) ? me.hp : null, prev = hudCache.hp;
+  hudCache.hp = hp;
+  let boss = null;
+  for (const r of h.radar || []) if (r.kind === "boss") { boss = r; break; }
+  if (live && boss && me.mode === "space" && Math.hypot(boss.dx, boss.dz) < C.TUNING.boss.shotRange) bossNearAt = performance.now();
+  // an older server without the "hit" message: guess the direction from the radar when my health drops
+  if (!serverHits && live && prev != null && hp != null && hp < prev - 0.5 && !flags.landing && !flags.takingOff) hitFrom(h, prev - hp, me);
+  const shield = live && !!flags.spawnShield && !flags.dead;
+  if (hudCache.spawn !== shield) { hudCache.spawn = shield; spawnShieldFx(shield); }
+}
+// from: "boss" | "player" (the hit message says who), null = either (an hp drop on an older server)
+function hitFrom(h, dmg, me, from = null) {
+  let best = null, bd = me.mode === "planet" ? 60 : C.TUNING.boss.shotRange;      // only someone close enough to have fired
+  for (const r of h.radar || []) {
+    if (from ? r.kind !== from : r.kind !== "player" && r.kind !== "boss") continue;
+    const d = Math.hypot(r.dx, r.dz);
+    if (d < bd) { bd = d; best = r; }
+  }
+  showHit(best ? Math.atan2(best.dx, best.dz) : null, dmg);      // heading-up: 0 = ahead, +PI/2 = to my right
+}
+function showHit(angle, dmg) {
+  const strength = Math.max(0.35, Math.min(1, (Number(dmg) || 10) / 25));
+  if (MFX && typeof MFX.hitMarker === "function") { try { MFX.hitMarker($("play"), { angle, strength }); return; } catch {} }
+  const el = $("hurt"); el.classList.remove("on"); void el.offsetWidth; el.classList.add("on");
+}
+// { type: "hit", player (me), from (a name | "boss"), amount, dir? }: dir is where the attacker is on my screen (0 = right, PI/2 = up), the
+// marker's angle is heading-up (0 = top, PI/2 = right). Without dir, the radar bearing of the boss or the nearest rival.
+let serverHits = false;
+function onHit(m) {
+  if (!m || (m.player && m.player !== S.player) || S.screen !== "play") return;
+  serverHits = true;
+  if (Number.isFinite(+m.dir)) return showHit(Math.PI / 2 - Number(m.dir), m.amount);
+  let h = null; try { h = S.game && S.game.hud(); } catch {}
+  if (h && h.me) hitFrom(h, m.amount, h.me, m.from === "boss" ? "boss" : "player"); else showHit(null, m.amount);
+}
+function spawnShieldFx(on) {
+  if (!on) $("play").classList.remove("spawn");      // the plain frame may be from before mischief-fx.js loaded
+  if (MFX && typeof MFX.shieldAura === "function") { try { MFX.shieldAura($("play"), { on, label: on ? COPY.hud.spawn : "" }); return; } catch {} }
+  $("play").classList.toggle("spawn", on);
+}
+// ---- my points (top right) and where I stand; every change pops +N or -N under it (a steal is a red minus) ----
+function updateScore(h, me) {
+  if (!me || !Number.isFinite(me.score)) return;
+  const sc = Math.round(me.score), prev = hudCache.score;
+  if (prev !== sc) {
+    hudCache.score = sc;
+    hudEls.scoreN.textContent = sc.toLocaleString("en-US");
+    if (prev != null && (h.phase === "playing" || h.phase === "assists") && Math.abs(sc - prev) < 20000) scorePop(sc - prev);
+  }
+  const list = h.scores || [];
+  let rank = 1;
+  for (const x of list) if (x.name !== me.name && x.score > me.score) rank++;
+  setCached("rank", hudEls.scoreRank, list.length > 1 ? tpl(COPY.hud.rank, { r: ordinal(rank), n: list.length }) : "");
+}
+function scorePop(delta) {
+  const host = $("score"), old = host.querySelectorAll(".spop");
+  if (old.length >= 3) old[0].remove();
+  const el = document.createElement("b"); el.className = "spop" + (delta < 0 ? " neg" : "");
+  el.textContent = (delta > 0 ? "+" : "−") + Math.abs(delta).toLocaleString("en-US");
+  host.append(el);
+  el.addEventListener("animationend", () => el.remove(), { once: true });
+  setTimeout(() => el.remove(), 1600);      // no animation (reduced motion): it still goes
+}
+// The HUD tools say what they are under them, the first three times the play screen opens.
+function showToolCaps() {
+  const seen = store.get("capsSeen") || 0;
+  if (seen >= 3) return;
+  store.set("capsSeen", seen + 1);
+  $("hud").classList.add("caps");
+  clearTimeout(showToolCaps.t);
+  showToolCaps.t = setTimeout(() => $("hud").classList.remove("caps"), 6000);
 }
 
 // ---------- faint sketch hints (riddle step 2) ----------
@@ -2790,10 +3121,10 @@ function openAdd(ghost) {
   const region = ghost ? { x: ghost.x, y: ghost.y, w: ghost.w, h: ghost.h } : largestFree();
   addState = { region, action: ghost ? ghost.action : null, photo: null };
   $("add").classList.remove("hidden");
+  document.body.classList.add("adding");
   syncDrawing();
   updateCounters();
-  const r = areaRect();
-  Object.assign($("addRegion").style, { left: r.left + region.x * r.width + "px", top: r.top + region.y * r.height + "px", width: region.w * r.width + "px", height: region.h * r.height + "px" });
+  placeAddRegion();
   $("addRegion").textContent = addState.action ? addState.action.toUpperCase() : "";
   $("addHint").textContent = addState.action ? tpl(COPY.add.hintGhost, { action: addState.action.toUpperCase() }) : COPY.add.hintPhoto;
   $("addPreview").classList.add("hidden");
@@ -2815,9 +3146,18 @@ function setAddMode(mode) {
   if (!photo) requestAnimationFrame(() => addSketch.resize());
   syncLandscape();
 }
-function closeAdd() { addState = null; $("add").classList.add("hidden"); syncLandscape(); syncDrawing(); }
+// The box to draw the new button in, on the screen (its region is a fraction of the play area): placed again after a resize or rotation,
+// which keeps the strokes (pad fractions) and the photo (v1.0 findings: a resize used to wipe both).
+function placeAddRegion() {
+  if (!addState) return;
+  const r = areaRect(), g = addState.region;
+  Object.assign($("addRegion").style, { left: r.left + g.x * r.width + "px", top: r.top + g.y * r.height + "px", width: g.w * r.width + "px", height: g.h * r.height + "px" });
+}
+function closeAdd() { addState = null; $("add").classList.add("hidden"); document.body.classList.remove("adding"); $("addDone").disabled = false; syncLandscape(); syncDrawing(); }
 $("addSeg").onclick = (e) => { const b = e.target.closest("button"); if (b && b.dataset.mode) setAddMode(b.dataset.mode); };
 $("addUndo").onclick = () => addSketch.undo();
+// CANCEL closes the sheet at once. A button already being read still lands when it answers: the server has spent the drawing and put it on
+// the pad by then, so the phone shows it too (with its ink) instead of a silent half-copy.
 $("addCancel").onclick = () => { closeAdd(); syncPlayStep(); };
 $("addInput").onchange = async (e) => {
   const file = e.target.files[0]; e.target.value = "";
@@ -2825,7 +3165,7 @@ $("addInput").onchange = async (e) => {
   setText($("addStatus"), COPY.draw.readingPhoto);
   let p;
   try { const analysis = await analysePhoto(file); p = { analysis, rendered: renderPhoto(analysis) }; }
-  catch (err) { return setText($("addStatus"), err && err.message === COPY.draw.noInk ? COPY.draw.noInk : COPY.draw.badPhoto); }
+  catch (err) { return setText($("addStatus"), err && (err.message === COPY.draw.noInk || err.message === COPY.draw.edge) ? err.message : COPY.draw.badPhoto); }
   if (!addState) return;
   addState.photo = p;
   $("addPreview").src = p.rendered.image; $("addPreview").classList.remove("hidden");
@@ -2843,23 +3183,28 @@ $("addDone").onclick = async () => {
   } else {
     if (!addSketch.strokes.length) return setText($("addStatus"), COPY.add.drawFirst);
     const r = $("addPad").getBoundingClientRect(), aspect = r.width / Math.max(1, r.height);
+    if (inkTooSmall(addSketch.strokes, aspect, 0.04)) return setText($("addStatus"), COPY.draw.tooSmall);
     image = strokesPNG(addSketch.strokes, aspect, { crop: true });
     inkURL = strokesPNG(addSketch.strokes, aspect, { crop: true, bg: null, color: "#fff" });
     blobs = inkRegionsOf(strokesCanvas(addSketch.strokes, aspect, { crop: true, bg: null, color: "#fff" }));
     source = "draw";
   }
-  const region = addState.region;
+  const region = addState.region, mine = addState;
   setText($("addStatus"), COPY.gen.reading.button);
   $("addDone").disabled = true;
   const res = await generate("button", image, { source, region, inkRegions: regionsInPad(blobs, region) }).promise;
-  $("addDone").disabled = false;
-  if (!isLatest("button", res)) return;
+  if (!isLatest("button", res)) return;                            // a newer try owns the sheet
+  const open = addState === mine;                                  // false: CANCEL was tapped while it was being read
+  if (open) $("addDone").disabled = false;
   const b = res.ok && res.layout && res.layout.buttons && res.layout.buttons[0];
-  if (!b || C.CHECKS.layout({ buttons: [b] }).length) return setText($("addStatus"), !res.message || res.message === COPY.errors.generic || res.message === COPY.errors.unreadable ? COPY.add.fail : res.message);
+  if (!b || C.CHECKS.layout({ buttons: [b] }).length) {
+    if (open) setText($("addStatus"), !res.message || res.message === COPY.errors.generic || res.message === COPY.errors.unreadable ? COPY.add.fail : res.message);
+    return;
+  }
   mergeButton(b, inkURL);
   const pad = padOf(res);
   if (pad) adoptPad(pad, { mount: false });      // the server's pad (the drawn controller plus every added button) as HTML
-  closeAdd(); syncPlayStep();
+  if (open) { closeAdd(); syncPlayStep(); }
   if (pad) ensureCtl();
   showToast({ kind: "info", text: tpl(COPY.toast.added, { name: controlName(b) }) });
 };
@@ -2867,7 +3212,10 @@ function mergeButton(b, inkURL) {
   const nb = { type: b.type || "button", ...b, action: C.normaliseAction(b.action) };
   const buttons = S.layout.buttons.filter((x) => x.action !== nb.action);
   buttons.push(nb);
-  while (buttons.length > MAX_BUTTONS) buttons.shift();
+  while (buttons.length > MAX_BUTTONS) {      // a full pad drops its oldest button, never a stick (the steer stick is drawn first)
+    const i = buttons.findIndex((x) => x.type !== "stick" && x !== nb);
+    buttons.splice(i >= 0 ? i : 0, 1);
+  }
   const inks = { ...S.inkButtons, [nb.action]: inkURL };
   applyLayout({ ...S.layout, buttons }, S.inkBase, inks);
   if (S.ghost && S.ghost.action === nb.action) clearGhost();
@@ -2880,7 +3228,9 @@ $("tRedraw").onclick = () => {
   if (!m.classList.contains("hidden")) return m.classList.add("hidden");
   const planet = world() === "planet";
   m.replaceChildren();
-  for (const [kind, label] of [[planet ? "explorer" : "ship", planet ? COPY.menu.explorer : COPY.menu.ship], [planet ? "planetController" : "controller", COPY.menu.controller]]) {
+  const items = [[planet ? "explorer" : "ship", planet ? COPY.menu.explorer : COPY.menu.ship], [planet ? "planetController" : "controller", COPY.menu.controller]];
+  if (planet && S.wrecked) items.unshift(["ship", COPY.menu.ship]);      // a wrecked ship on the pad: redrawing it is how you take off again
+  for (const [kind, label] of items) {
     const b = document.createElement("button"); b.type = "button"; b.className = "btn blue sm";
     setBtn(b, label, COPY.result.uses);
     b.onclick = () => { m.classList.add("hidden"); startRedraw(kind); };
@@ -2969,7 +3319,7 @@ function onResize() {
     hitRect = null; hideTip();
     if (S.screen === "play" && S.layout) paintInk();
     if (S.screen === "draw") sizePad();
-    if (!$("add").classList.contains("hidden") && addState) openAdd(addState.action ? { ...addState.region, action: addState.action } : null);
+    if (!$("add").classList.contains("hidden") && addState) { placeAddRegion(); if (S.drawMode !== "photo") addSketch.resize(); }
   }, 120);
 }
 window.addEventListener("resize", onResize);
@@ -3046,6 +3396,11 @@ window.__spTest = {
   announce(text, big = false) { onAnnounce({ type: "announce", text, big }); },
   cooldown(verb = "emp", seconds = 12) { onCooldown({ type: "cooldown", player: S.player, verb, seconds }); },
   dead(killer = "bob", seconds = 3) { noteKiller(killer); death.test = { until: performance.now() + seconds * 1000 }; },
+  // v1.3: hit(dir, amount)   a hit from a rival at dir (0 = right, PI/2 = up, the server's convention); spawnShield(on)   the respawn shield;
+  // toolCaps()   the names under the HUD tools for 6 s
+  hit(dir = Math.PI / 2, amount = 20, from = "bob") { onHit({ type: "hit", player: S.player, from, amount, dir }); },
+  spawnShield(on = true) { spawnShieldFx(!!on); },
+  toolCaps() { $("hud").classList.add("caps"); clearTimeout(showToolCaps.t); showToolCaps.t = setTimeout(() => $("hud").classList.remove("caps"), 6000); },
   html(html, kind = "controller", padLayout = null) {
     let lay = padLayout || (kind === "html" && S.pad && S.pad.padLayout) || null;
     if (!lay) {     // the actions the HTML uses, laid out in a grid (only their names matter for the page)
@@ -3062,7 +3417,8 @@ window.__spTest = {
       pad: S.pad ? { source: S.pad.source, bytes: S.pad.html.length, bad: !!S.pad.bad } : null, padFailed: S.padFailed, drawingDown: S.drawingDown, empMap };
   },
   // Jump to a screen with demo data, for screenshots: join, ship, controller, explorerDraw, planetController, shipResult, explorerResult,
-  // controllerResult, wrong (the ship step with the warning), wait/play (the play screen), explorer (the planet prompt), ctrlPrompt, results.
+  // controllerResult, wrong (the ship step with the warning), wait/play (the play screen), explorer (the planet prompt), ctrlPrompt, results,
+  // gen (reading the ship drawing), genError (a drawing that could not be read: DRAW IT AGAIN).
   go(step) {
     const img = (n) => strokesPNG(sampleStrokes(n, 1.6), 1.6, { crop: true });
     switch (step) {
@@ -3073,6 +3429,8 @@ window.__spTest = {
       case "explorerResult": S.drawn.explorer = DEMO.explorer; showResult("explorer", { entity: DEMO.explorer, image: img("car") }); break;
       case "controllerResult": if (!S.layout) applyLayout(defaultLayout(), defaultInk(), {}); showResult("controller", { layout: S.layout, ink: S.inkBase }); break;
       case "wrong": enterDraw("ship"); showWrong("ship", { looksLike: "controller" }); break;
+      case "gen": enterDraw("ship"); showGen("ship", img("ship")); break;
+      case "genError": enterDraw("ship"); showGenError({ ok: false, error: "nothing to read", looksLike: "nothing", message: "We couldn't see a drawing. Draw your ship bigger and darker." }); break;
       case "wait": case "play": backToGame(); break;
       case "explorer": backToGame(); openExplorer(); break;
       case "ctrlPrompt": backToGame(); openCtrlPrompt(); break;
