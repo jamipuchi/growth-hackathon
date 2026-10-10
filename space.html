@@ -319,6 +319,23 @@
   #lobbyCount { padding: .45rem 1.7rem .6rem; font-size: 1.75rem; white-space: nowrap; }
   #lobbyCount b { color: var(--gold); font-weight: inherit; }
   #startNote { font-size: 1.15rem; color: #e4dfff; text-align: center; }
+  /* v1.6 ENDLESS (endless.js): the switch beside START (host key E) and, in an endless game, END under the timer (or ENTER twice) */
+  #startRow { display: flex; align-items: center; gap: 1.8rem; }
+  #endlessBtn { pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem; width: 12rem; height: 6.2rem;
+                border: 0; background: none; font: inherit; color: #fff; --bg: linear-gradient(180deg, rgb(46 34 150 / .96), rgb(22 14 78 / .96)); transition: transform .12s, filter .12s; }
+  #endlessBtn.on { --bg: linear-gradient(180deg, #b45cff, #8a3dff); }
+  #endlessBtn.on::before { animation: glow 1.6s ease-in-out infinite; }
+  #endlessBtn:hover { filter: brightness(1.12); }
+  #endlessBtn:active { transform: translateY(.2rem) scale(.95); }
+  #endlessBtn:focus-visible { outline: .3rem solid #fff; outline-offset: .4rem; }
+  #endlessBtn > .h:first-child { font-size: 2.2rem; }
+  #endlessState { font-size: 1.5rem; padding: .1rem .7rem .15rem; border-radius: .3rem; background: rgb(0 0 0 / .35); }
+  #endlessBtn.on #endlessState { background: #ffd34d; color: #1a0f3a; }
+  #endWrap { position: absolute; left: 0; right: 0; top: 100%; margin-top: 1rem; display: flex; justify-content: center; }
+  #endBtn { pointer-events: auto; cursor: pointer; padding: .35rem 1.1rem .45rem; border: 0; background: none; font: inherit; font-size: 1.5rem; white-space: nowrap;
+            --bg: linear-gradient(180deg, #ff7b92, #ff3b5c); }
+  #endBtn.off { display: none; }
+  #endBtn.armed { animation: throb .8s ease-in-out infinite; }
 
   /* ================= RESULTS ================= */
   #results { position: absolute; inset: 0; overflow: hidden; z-index: 20; background: radial-gradient(ellipse at 38% 42%, rgb(70 40 190 / .55), rgb(8 5 32 / .9) 72%); animation: fadeIn .4s ease-out both; }
@@ -401,6 +418,14 @@
   #resNext { padding: .55rem 2.8rem .7rem; font-size: 2.5rem; white-space: nowrap; animation: popIn .5s var(--pop) .8s both; }
   #resNext b { color: var(--gold); font-weight: inherit; }
 
+  /* v1.6 HALL OF FAME (hall-of-fame.html): the host's button, bottom right of the lobby and the results */
+  #hallBtn { position: absolute; right: 1.8rem; bottom: 1.8rem; z-index: 30; pointer-events: auto; cursor: pointer; border: 0; background: none; font: inherit;
+             padding: .55rem 1.5rem .65rem; font-size: 1.9rem; white-space: nowrap; animation: popIn .5s var(--pop) .4s both; transition: filter .12s; }
+  #hallBtn:hover { filter: brightness(1.12); }
+  #hallBtn:active { transform: translateY(.2rem) scale(.96); }
+  #hallBtn:focus-visible { outline: .3rem solid #fff; outline-offset: .4rem; }
+  #hud:not([data-view=lobby]):not([data-view=results]) #hallBtn { display: none; }
+
   /* keyboard help (H) */
   #keys { position: absolute; left: 50%; bottom: .8rem; transform: translateX(-50%); display: none; max-width: 92vw; padding: .5rem 1.4rem; font-size: 1.05rem; line-height: 1.35; text-align: center; text-transform: none; letter-spacing: .02em;
           background: rgb(10 6 30 / .82); border-radius: .5rem; z-index: 50; }
@@ -432,9 +457,10 @@
       <div id="status" class="h"></div>
     </div>
     <div id="timerBox" class="sk gold">
-      <div class="lbl h dk" data-copy="play.timeLeft"></div>
+      <div id="timeLbl" class="lbl h dk" data-copy="play.timeLeft"></div>
       <div id="timer" class="h hh dk">0:00</div>
       <div id="assistWrap"><div id="assist" class="sk green"><span class="h" data-copy="play.assists"></span></div></div>
+      <div id="endWrap"><button id="endBtn" class="sk off" type="button"><span id="endLabel" class="h hh" data-copy="endless.end"></span></button></div>
     </div>
   </section>
 
@@ -481,9 +507,12 @@
       <div id="lbList"></div>
     </aside>
     <footer id="startZone">
+      <div id="startRow">
       <button id="startBtn" class="sk" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5l15 8.5-15 8.5z" fill="#1a0f3a" stroke="#1a0f3a" stroke-width="2" stroke-linejoin="round"/></svg>
         <span id="startLabel" class="h hh" data-copy="lobby.start"></span></button>
+      <button id="endlessBtn" class="sk" type="button" aria-pressed="false"><span class="h hh" data-copy="endless.title"></span><small id="endlessState" class="h" data-copy="endless.off"></small></button>
+      </div>
       <div id="lobbyCount" class="sk navy h"></div>
       <div id="startNote" class="tx"></div>
     </footer>
@@ -505,6 +534,7 @@
   </section>
 
   <div id="pops"></div>
+  <button id="hallBtn" class="sk gold" type="button"><span class="h hh dk" data-copy="hall"></span></button>
   <div id="keys" class="tx" data-copy="help"></div>
 </div>
 
@@ -514,6 +544,7 @@
 const COPY = {
   title: "Space Party",
   brand: "SPACE PARTY",
+  hall: "★ HALL OF FAME", // v1.6: the host's button (lobby and results) → hall-of-fame.html
   lobby: {
     round: "ROUND {n}",
     joinTitle: "SCAN TO JOIN",
@@ -576,6 +607,7 @@ const COPY = {
   results: {
     timesUp: "TIME'S UP!",
     allChests: "EVERY CHEST IS OPEN!",
+    gameOver: "GAME OVER!", // v1.6 ENDLESS: the host ended the game
     roundOver: "ROUND OVER",
     drumroll: "AND THE WINNER IS…", // under the title while 3rd and 2nd rise
     wins: "{name} WINS!",
@@ -597,11 +629,14 @@ const COPY = {
     rebuilt: "REBUILT THEIR SHIP", wins: "WINS THE ROUND!",
   },
   sound: { on: "SOUND ON", off: "SOUND OFF" },
+  // v1.6 ENDLESS free-for-all (endless.js): the lobby switch, the timer label, END and the toasts.
+  endless: { title: "ENDLESS", on: "ON", off: "OFF", label: "ENDLESS", end: "END GAME", confirm: "ENTER AGAIN TO END",
+    toastOn: "ENDLESS ON · NO CLOCK · PLAY AS LONG AS YOU LIKE", toastOff: "ENDLESS OFF · 4:00 ROUNDS", lobbyOnly: "SWITCH ENDLESS IN THE LOBBY" },
   // Server lines that use game words: shown with these plain words instead (banner and kill feed).
   // The 3:00 line (old server: "Assists on: every gate skill is unlocked…"; now "3:00! The chests glow. Missing a skill? Draw it now!"):
   // nothing is ever unlocked for free (PLAN.md section 0), so the TV says what the phones' big "DRAW A SHOVEL" cards say.
   rewrite: [[/^(assists on\b|3:00! the chests glow\b)/i, "3:00! THE CHESTS GLOW · MISSING A SKILL? DRAW IT NOW!"]],
-  help: "HOST KEYS · ENTER start (or skip the podium) · M sound · H hide this",
+  help: "HOST KEYS · ENTER start (or skip the podium) · E endless on / off · ENTER twice ends an endless game · M sound · H hide this",
   // Only with ?kb (a test player that joins as "keyboard"; a stray key on the party laptop never adds a player).
   helpKb: " · TEST PLAYER: arrows steer · W/S thrust · A/D strafe · Q/E rise / sink · SPACE shoot · SHIFT shield · B boost · F flare · C scan · R drill · L land · T take off · G dig · J jump · V view",
 };
@@ -913,6 +948,52 @@ function localCountdown() {
 $("startBtn").addEventListener("click", startRound);
 $("startBtn").addEventListener("keyup", (e) => { if (e.key === " ") e.preventDefault(); });
 
+// ================= ENDLESS (v1.6, owner 10 Oct 11:53; endless.js) =================
+// The switch beside START (host key E) posts /mode in the lobby; what is on comes back in the world message (world.mode
+// "endless"), so every screen agrees. In an endless game END under the timer (or ENTER twice within 3 s) posts /end: the
+// normal results, then the lobby. The demo (switch OFF) is unchanged.
+const isEndless = () => !!(world && world.mode === "endless");
+let endlessBusy = false, endArmedUntil = 0;
+function syncEndless() {
+  const on = isEndless();
+  flag($("endlessBtn"), "on", on);
+  $("endlessBtn").setAttribute("aria-pressed", on ? "true" : "false");
+  setText($("endlessState"), on ? COPY.endless.on : COPY.endless.off);
+  const armed = on && performance.now() < endArmedUntil;
+  flag($("endBtn"), "off", !on || view !== "play");
+  flag($("endBtn"), "armed", armed);
+  setText($("endLabel"), armed ? COPY.endless.confirm : COPY.endless.end);
+  setText($("timeLbl"), on ? COPY.endless.label : COPY.play.timeLeft);
+}
+async function toggleEndless() {
+  sfxUnlock();
+  sfxPlay("click");
+  $("endlessBtn").blur();
+  if (endlessBusy || starting) return;
+  if (view !== "lobby" || phase !== "lobby") { ptoast(esc(COPY.endless.lobbyOnly), 1400); return; }
+  endlessBusy = true;
+  const want = !isEndless();
+  try {
+    const res = await fetch("/mode", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ endless: want }) });
+    const j = await res.json().catch(() => null);
+    if (res.ok && j) ptoast(esc(j.mode === "endless" ? COPY.endless.toastOn : COPY.endless.toastOff), 1800);
+  } catch (e) { /* the world message says what is on */ }
+  endlessBusy = false;
+  syncEndless();
+}
+async function endGame() {
+  sfxUnlock();
+  if (!isEndless() || view !== "play") return;
+  const now = performance.now();
+  if (now >= endArmedUntil) { endArmedUntil = now + 3000; sfxPlay("click"); syncEndless(); setTimeout(syncEndless, 3100); return; }
+  endArmedUntil = 0;
+  syncEndless();
+  try { await fetch("/end", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }); } catch (e) { /* the ticks say when it ends */ }
+}
+$("endlessBtn").addEventListener("click", toggleEndless);
+$("endlessBtn").addEventListener("keyup", (e) => { if (e.key === " ") e.preventDefault(); });
+$("endBtn").addEventListener("click", endGame);
+
 function leaderboardOf(h) { return Array.isArray(h.leaderboard) ? h.leaderboard : world && Array.isArray(world.leaderboard) ? world.leaderboard : []; }
 function boardHtml(lb, max, hi) {
   if (!lb.length || lb.every((r) => !r.stars && !r.total)) return `<div class="lbempty h">${esc(COPY.lobby.boardEmpty)}</div>`;
@@ -1199,7 +1280,7 @@ function buildResults(r, h) {
   }
   cer.winner = winner;
   cer.final = winner ? fmt(COPY.results.wins, { name: winner }) : have ? COPY.results.nobody : COPY.results.roundOver;
-  cer.reason = have ? (r.reason === "chests" ? COPY.results.allChests : COPY.results.timesUp) : "";
+  cer.reason = have ? (r.reason === "chests" ? COPY.results.allChests : r.reason === "host" ? COPY.results.gameOver : COPY.results.timesUp) : "";
   const pod = $("podium");
   flag(pod, "compact", !winner);
   if (!winner) {
@@ -1438,6 +1519,7 @@ function onHud(h) {
   else if (view === "play") renderPlay(h);
   else if (view === "results") renderResults(h);
   syncAmbience();
+  syncEndless(); // v1.6 ENDLESS: the switch, END and the timer label
 }
 game.on("hud", (h) => { if (!mocked) onHud(h); });
 
@@ -1568,6 +1650,8 @@ addEventListener("keydown", (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (view === "lobby" && key === "Enter") { e.preventDefault(); if (!e.repeat) startRound(); return; }
   if (view === "results" && key === "Enter") { e.preventDefault(); if (!e.repeat) cerFinish(); return; } // the host skips the podium
+  if (view === "lobby" && key === "e") { e.preventDefault(); if (!e.repeat) toggleEndless(); return; } // v1.6 ENDLESS switch
+  if (view === "play" && key === "Enter" && isEndless()) { e.preventDefault(); if (!e.repeat) endGame(); return; } // v1.6: ENTER twice ends it
   if (key === "h") { if (!e.repeat) document.body.classList.toggle("help"); return; }
   if (key === "m") {
     if (e.repeat) return;
@@ -1725,6 +1809,21 @@ if (params.get("mock")) {
   const num = (k) => (params.get(k) == null ? undefined : +params.get(k));
   window.__bigscreen.mock(params.get("mock"), { players: num("players"), bots: num("bots"), left: num("left"), me: num("me"), assists: params.has("assists"), noRounds: params.has("norounds"), nobody: params.has("nobody"), dead: params.has("dead"), crowd: params.has("crowd"), planet: params.has("planet"), reason: params.get("reason") || undefined, ceremony: params.has("ceremony") });
 }
+
+// ================= HALL OF FAME (v1.6, owner 10 Oct 11:57; hall.js, hall-of-fame.html) =================
+// The host's button on the lobby and the results: every drawing of the session ranked by AI, side by side with its 3D.
+// It opens the hall in its own tab (this screen keeps running) with ?judge=1, so judging starts (POST /hall/judge is
+// idempotent: pressing it again only picks up the drawings not judged yet). A blocked pop-up opens it here instead.
+$("hallBtn").addEventListener("click", () => {
+  sfxUnlock();
+  sfxPlay("click");
+  $("hallBtn").blur();
+  const url = "/hall-of-fame.html?judge=1";
+  let w = null;
+  try { w = window.open(url, "spaceparty-hall"); } catch (e) { w = null; }
+  if (!w) location.href = url;
+});
+$("hallBtn").addEventListener("keyup", (e) => { if (e.key === " ") e.preventDefault(); });
 </script>
 </body>
 </html>

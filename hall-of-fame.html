@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hall of Fame · Space Party</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;1,800;1,900&family=Barlow:wght@500;600;700;800&family=Bebas+Neue&display=swap" media="print" onload="this.media='all'">
+<!--
+  hall-of-fame.html (v1.6, owner 10 Oct 11:57): every drawing of the session, ranked by AI (hall.js: the OpenAI Decisions
+  API), shown SIDE BY SIDE with its generation: ships and explorers as a small 3D turntable built from the archived spec
+  (ship3d.js / entity3d.js, inflate.js when there is no spec), controllers as the generated controller HTML (a sandboxed,
+  script-free frame) or, without it, the button layout. Top 3 on a podium, then the list. Polls GET /hall; ?judge=1 (the
+  big screen's HALL OF FAME button) starts judging (POST /hall/judge) on open. One WebGL context for every turntable: each
+  view is rendered in turn and copied into its own 2D canvas, only while it is on screen.
+-->
+<style>
+  :root {
+    --navy: #0d0b2e; --ink: #120a2e; --shadow: #0a0830;
+    --blue: #2b7bff; --blue2: #1f5dff; --purple: #8a3dff; --purple2: #b45cff;
+    --gold: #ffcb3d; --gold2: #ffb000; --silver: #dfe7f5; --bronze: #ff9a4d; --green: #4ade5a; --red: #ff3b5c; --cyan: #19d3ff;
+    --fh: "Barlow Condensed", Impact, "Arial Narrow", system-ui, sans-serif;
+    --fd: "Bebas Neue", "Barlow Condensed", Impact, "Arial Narrow", sans-serif;
+    --fb: Barlow, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --pop: cubic-bezier(.34, 1.56, .64, 1);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; }
+  html { font-size: clamp(13px, min(1.05vw, 1.75vh), 24px); }
+  html, body { min-height: 100%; color: #fff; font-family: var(--fb); font-weight: 700; }
+  body { background: radial-gradient(ellipse at 50% -10%, #3b1d8f 0%, #1a0f52 38%, #0b0726 75%, #05030f 100%) fixed, #05030f; overflow-x: hidden; }
+  body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: repeating-linear-gradient(115deg, rgb(255 255 255 / .03) 0 22px, transparent 22px 64px); }
+  main { position: relative; z-index: 1; max-width: 120rem; margin: 0 auto; padding: 1.4rem 1.6rem 4rem; }
+  .off { display: none !important; }
+
+  /* ---- type ---- */
+  .h { font-family: var(--fh); font-style: italic; font-weight: 800; text-transform: uppercase; letter-spacing: .02em; line-height: 1; color: #fff;
+       -webkit-text-stroke: .1rem var(--ink); paint-order: stroke fill; text-shadow: 0 .2rem 0 rgb(10 6 30 / .55); }
+  .gt { position: relative; display: inline-block; white-space: nowrap; color: var(--ink); -webkit-text-stroke: .14em var(--ink); paint-order: stroke fill;
+        text-shadow: 0 .09em 0 var(--shadow), 0 .13em .2em rgb(0 0 0 / .5); }
+  .gt::after { content: attr(data-t); position: absolute; left: 0; top: 0; color: transparent; -webkit-text-stroke: 0; text-shadow: none;
+        background: linear-gradient(180deg, var(--g1, #fff) 5%, var(--g2, #9fd0ff) 100%); -webkit-background-clip: text; background-clip: text; }
+
+  /* ---- header ---- */
+  header { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem 1.6rem; align-items: center; margin-bottom: 1.2rem; }
+  .back { font: italic 800 1.1rem/1 var(--fh); text-transform: uppercase; color: #fff; text-decoration: none; padding: .55rem 1rem; position: relative; isolation: isolate; }
+  .back::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-8deg); border-radius: .35rem; background: rgb(255 255 255 / .1); border: .15rem solid rgb(255 255 255 / .5); }
+  .title { text-align: center; }
+  .title .gt { font-family: var(--fd); font-size: clamp(3rem, 6.2rem, 14vw); letter-spacing: .04em; --g1: #fff6c8; --g2: var(--gold2); }
+  .title .sub { margin-top: .3rem; font: 600 1rem/1.3 var(--fb); color: rgb(255 255 255 / .75); letter-spacing: .02em; }
+  .title .sub b { color: #fff; }
+  #judgeBtn { font: italic 900 1.3rem/1 var(--fh); text-transform: uppercase; color: #241400; border: 0; background: none; padding: .85rem 1.5rem; cursor: pointer; position: relative; isolation: isolate; }
+  #judgeBtn::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-8deg); border-radius: .4rem; background: linear-gradient(180deg, #ffe27a, var(--gold2)); border: .2rem solid #fff; box-shadow: 0 .35rem 0 var(--shadow); }
+  #judgeBtn:active { transform: translateY(.2rem); }
+  #judgeBtn[disabled] { opacity: .45; cursor: default; }
+
+  .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem 1.4rem; margin: 0 0 1.6rem; }
+  #status { flex: 1 1 22rem; display: flex; align-items: center; gap: 1rem; padding: .7rem 1.3rem; position: relative; isolation: isolate; }
+  #status::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-8deg); border-radius: .4rem; background: linear-gradient(180deg, #3a2a8f, #22175f); border: .18rem solid rgb(255 255 255 / .7); box-shadow: 0 .3rem 0 var(--shadow); }
+  #statusText { font: italic 800 1.35rem/1 var(--fh); text-transform: uppercase; white-space: nowrap; }
+  #statusText .dots::after { content: "…"; animation: blink 1s steps(2) infinite; }
+  .prog { flex: 1; height: .8rem; border-radius: .4rem; background: rgb(0 0 0 / .4); overflow: hidden; transform: skewX(-8deg); min-width: 6rem; }
+  .prog i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--purple2), var(--gold)); transition: width .5s ease; }
+  #status[data-state=done] .prog i { background: linear-gradient(90deg, var(--green), var(--gold)); }
+  .tabs { display: flex; gap: .5rem; }
+  .tabs button { font: italic 800 1.05rem/1 var(--fh); text-transform: uppercase; color: #fff; background: none; border: 0; padding: .6rem 1rem; cursor: pointer; position: relative; isolation: isolate; }
+  .tabs button::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-8deg); border-radius: .35rem; background: rgb(255 255 255 / .08); border: .14rem solid rgb(255 255 255 / .35); }
+  .tabs button[aria-pressed=true]::before { background: linear-gradient(180deg, #3a82ff, var(--blue2)); border-color: #fff; box-shadow: 0 .25rem 0 var(--shadow); }
+
+  /* ---- shared pieces ---- */
+  .pair { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .5rem; }
+  .pane { position: relative; aspect-ratio: 1; border-radius: .6rem; overflow: hidden; }
+  .pane.draw { background: #fff; border: .2rem solid #fff; box-shadow: 0 .3rem 0 var(--shadow), inset 0 0 0 .1rem rgb(0 0 0 / .08); }
+  .pane.draw img { position: absolute; inset: 4%; width: 92%; height: 92%; object-fit: contain; }
+  .pane.gen { background: radial-gradient(circle at 50% 40%, rgb(var(--rgb) / .35), rgb(20 12 60 / .9) 70%); border: .2rem solid rgb(var(--rgb) / .9); box-shadow: 0 .3rem 0 var(--shadow); }
+  .pane.gen canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .pane .tag { position: absolute; left: .4rem; bottom: .35rem; font: italic 800 .75rem/1 var(--fh); letter-spacing: .06em; text-transform: uppercase; padding: .2rem .45rem; border-radius: .25rem; background: rgb(10 6 30 / .7); color: #fff; z-index: 2; }
+  .pane.draw .tag { background: rgb(10 6 30 / .8); }
+  .pane .note { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 1rem; font: italic 800 .9rem/1.2 var(--fh); text-transform: uppercase; color: rgb(255 255 255 / .7); }
+  .arrow { font: italic 900 1.6rem/1 var(--fh); color: var(--gold); -webkit-text-stroke: .08rem var(--ink); paint-order: stroke fill; }
+  /* a controller: the generated HTML (scaled 844x390 phone, sandboxed, no script) or its layout */
+  .pane.gen.ctrl { aspect-ratio: auto; display: grid; place-items: center; }
+  .pane.gen.ctrl .phone { position: relative; width: 100%; aspect-ratio: 844 / 390; overflow: hidden; background: linear-gradient(180deg, #1b4a7a, #0f2347); border-radius: .4rem; }
+  .pane.gen.ctrl iframe { position: absolute; left: 0; top: 0; width: 844px; height: 390px; border: 0; transform-origin: 0 0; pointer-events: none; background: transparent; }
+  .lay { position: absolute; inset: 0; }
+  .lay b { position: absolute; display: grid; place-items: center; overflow: hidden; border-radius: .3rem; border: .12rem solid #fff; background: linear-gradient(180deg, #3a82ff, var(--blue2));
+           font: italic 800 .7rem/1 var(--fh); text-transform: uppercase; color: #fff; -webkit-text-stroke: .04rem var(--ink); paint-order: stroke fill; }
+  .lay b.stick { border-radius: 50%; background: radial-gradient(circle, rgb(255 255 255 / .35) 0 30%, rgb(255 255 255 / .08) 31%); }
+  .lay b.weapon { background: linear-gradient(180deg, #ffe27a, var(--gold2)); color: #241400; -webkit-text-stroke: 0; }
+  .lay b.power { background: linear-gradient(180deg, var(--purple2), var(--purple)); }
+
+  .name { font: italic 900 1.6rem/1 var(--fh); text-transform: uppercase; color: var(--c); -webkit-text-stroke: .12rem var(--ink); paint-order: stroke fill; text-shadow: 0 .18rem 0 rgb(10 6 30 / .6);
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kind { font: 800 .8rem/1 var(--fb); text-transform: uppercase; letter-spacing: .08em; color: rgb(255 255 255 / .7); }
+  .score { font-family: var(--fd); line-height: .9; color: #fff; -webkit-text-stroke: .1rem var(--ink); paint-order: stroke fill; text-shadow: 0 .2rem 0 rgb(10 6 30 / .6); }
+  .score small { font-size: .45em; opacity: .7; }
+  .comment { font: italic 700 1rem/1.25 var(--fb); color: #fff6c8; }
+  .comment:not(:empty)::before { content: "“"; } .comment:not(:empty)::after { content: "”"; }
+  .crit { display: grid; grid-template-columns: auto 1fr auto; gap: .2rem .5rem; align-items: center; font: 800 .7rem/1 var(--fb); text-transform: uppercase; letter-spacing: .06em; color: rgb(255 255 255 / .8); }
+  .crit .m { height: .5rem; border-radius: .25rem; background: rgb(0 0 0 / .4); overflow: hidden; transform: skewX(-8deg); }
+  .crit .m i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--blue), var(--cyan)); transition: width .8s var(--pop); }
+  .crit .m.effort i { background: linear-gradient(90deg, var(--purple), var(--purple2)); }
+  .crit .m.readability i { background: linear-gradient(90deg, #22a35a, var(--green)); }
+  .crit .m.fun i { background: linear-gradient(90deg, var(--gold2), var(--gold)); }
+  .skills { display: flex; flex-wrap: wrap; gap: .3rem; }
+  .skills span { font: 800 .65rem/1 var(--fb); text-transform: uppercase; letter-spacing: .06em; padding: .25rem .45rem; border-radius: .25rem; background: rgb(255 255 255 / .12); border: .1rem solid rgb(255 255 255 / .25); }
+  .state { font: italic 800 .9rem/1 var(--fh); text-transform: uppercase; color: rgb(255 255 255 / .7); }
+  .state.judging { color: var(--gold); }
+  .state.judging::after { content: "…"; animation: blink 1s steps(2) infinite; }
+  .mock { font: 800 .6rem/1 var(--fb); padding: .15rem .3rem; border-radius: .2rem; background: var(--red); color: #fff; vertical-align: middle; }
+
+  /* ---- podium ---- */
+  #podium { display: grid; grid-template-columns: 1fr 1.18fr 1fr; gap: 1.4rem; align-items: end; margin-bottom: 2.2rem; }
+  #podium:empty { display: none; }
+  .card { position: relative; padding: 1.1rem 1.1rem 1.2rem; display: grid; gap: .7rem; isolation: isolate; animation: pop .6s var(--pop) both; }
+  .card::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: .8rem; transform: skewX(-3deg);
+                  background: linear-gradient(180deg, rgb(var(--tier) / .55), rgb(20 12 60 / .92) 55%); border: .25rem solid rgb(var(--tier)); box-shadow: 0 .5rem 0 var(--shadow), 0 0 2.5rem rgb(var(--tier) / .35); }
+  .card { grid-row: 1; } .card.p1 { --tier: 255 203 61; grid-column: 2; } .card.p2 { --tier: 210 222 245; grid-column: 1; } .card.p3 { --tier: 255 154 77; grid-column: 3; }
+  .card.p1 { padding-top: 1.6rem; }
+  .card .medal { position: absolute; top: -1.4rem; left: 50%; transform: translateX(-50%) rotate(-4deg); font-family: var(--fd); font-size: 2.6rem; line-height: 1; padding: .3rem 1.1rem .1rem;
+                 color: #241400; background: linear-gradient(180deg, #fff, rgb(var(--tier))); border: .2rem solid #fff; border-radius: .5rem; box-shadow: 0 .3rem 0 var(--shadow); }
+  .card.p1 .medal { font-size: 3.2rem; }
+  .card .top { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: .6rem; }
+  .card .score { font-size: 4.2rem; }
+  .card.p1 .score { font-size: 5.4rem; }
+  .card.p1 .name { font-size: 2.2rem; }
+
+  /* ---- list ---- */
+  #list { display: grid; grid-template-columns: repeat(auto-fill, minmax(34rem, 1fr)); gap: 1rem 1.2rem; }
+  .row { position: relative; display: grid; grid-template-columns: 3.4rem 13rem 1fr auto; gap: .9rem; align-items: center; padding: .7rem 1rem; isolation: isolate; animation: pop .45s var(--pop) both; }
+  .row::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: .6rem; transform: skewX(-4deg); background: linear-gradient(180deg, #2c2378, #1a1450); border: .16rem solid rgb(255 255 255 / .35); box-shadow: 0 .3rem 0 var(--shadow); }
+  .row .rk { font-family: var(--fd); font-size: 2.4rem; line-height: 1; text-align: center; color: #fff; -webkit-text-stroke: .08rem var(--ink); paint-order: stroke fill; }
+  .row .pair { gap: .3rem; }
+  .row .arrow { font-size: 1rem; }
+  .row .pane { border-width: .15rem; border-radius: .45rem; }
+  .row .pane .tag { display: none; }
+  .row .info { display: grid; gap: .35rem; min-width: 0; }
+  .row .name { font-size: 1.35rem; }
+  .row .comment { font-size: .85rem; }
+  .row .score { font-size: 2.8rem; text-align: right; }
+  .row.unjudged { opacity: .8; }
+
+  #empty { text-align: center; margin: 4rem auto; max-width: 40rem; }
+  #empty .h { font-size: 2.4rem; }
+  #empty p { margin-top: .8rem; font: 600 1.1rem/1.4 var(--fb); color: rgb(255 255 255 / .75); }
+
+  @keyframes pop { from { opacity: 0; transform: translateY(1rem) scale(.94); } to { opacity: 1; transform: none; } }
+  @keyframes blink { 50% { opacity: .2; } }
+  @media (prefers-reduced-motion: reduce) { .card, .row { animation: none; } }
+  @media (max-width: 900px) {
+    header { grid-template-columns: 1fr auto; } .title { grid-column: 1 / -1; grid-row: 1; }
+    #podium { grid-template-columns: 1fr; } .card.p1, .card.p2, .card.p3 { grid-column: auto; grid-row: auto; } .card { margin-top: 1.4rem; }
+    #list { grid-template-columns: 1fr; }
+    .row { grid-template-columns: 2.6rem 9.5rem 1fr auto; gap: .6rem; }
+  }
+</style>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+</head>
+<body>
+<main>
+  <header>
+    <a class="back" href="/space.html" id="back">◀ Back</a>
+    <div class="title">
+      <span class="gt" data-t="HALL OF FAME">HALL OF FAME</span>
+      <div class="sub">Every drawing of the night, ranked by AI · judged by the <b>OpenAI Decisions API</b></div>
+    </div>
+    <button id="judgeBtn" type="button">Judge the drawings</button>
+  </header>
+  <div class="bar">
+    <div id="status" data-state="idle"><span id="statusText">Loading…</span><div class="prog"><i id="progFill"></i></div></div>
+    <div class="tabs" role="group" aria-label="Show">
+      <button type="button" data-f="all" aria-pressed="true">All</button>
+      <button type="button" data-f="ship" aria-pressed="false">Ships</button>
+      <button type="button" data-f="explorer" aria-pressed="false">Explorers</button>
+      <button type="button" data-f="controller" aria-pressed="false">Controllers</button>
+    </div>
+  </div>
+  <section id="podium" aria-label="Top 3"></section>
+  <section id="list" aria-label="Every drawing"></section>
+  <div id="empty" class="off">
+    <div class="h">No drawings yet</div>
+    <p>Play a round: every ship, explorer and controller drawn tonight shows up here, ranked.</p>
+  </div>
+</main>
+
+<script type="module">
+import * as THREE from "three";
+
+const $ = (id) => document.getElementById(id);
+const CRITS = [["creativity", "Creativity"], ["effort", "Effort"], ["readability", "Readable"], ["fun", "Fun"]];
+const KIND_WORD = { ship: "Ship", explorer: "Explorer", controller: "Controller" };
+const TYPE_WORD = { ship: "Ship", person: "Astronaut", car: "Car", bike: "Bike", quadruped: "Animal", blob: "Creature", controller: "Controller" };
+const PLANET_TYPES = new Set(["person", "car", "bike", "quadruped", "blob"]);
+const WEAPONS = new Set(["shoot", "fire", "laser", "blast", "missile", "mine"]);
+const POWERS = new Set(["emp", "ink", "tractor", "decoy", "shield", "invisible", "scan", "flare"]);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const rgbOf = (hex) => { const n = parseInt(String(hex || "#22d3ee").slice(1), 16) || 0x22d3ee; return `${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255}`; };
+const params = new URLSearchParams(location.search);
+
+let data = null, filter = "all", pollTimer = 0;
+
+// ---- 3D: one renderer, many views ------------------------------------------------------------------------------
+// Every turntable is a 2D canvas; the shared WebGL canvas renders one view at a time (viewport in its bottom-left
+// corner) and the pixels are copied over right away. Models are built once per drawing (and spec) and shared by views.
+const GL_SIZE = 768;
+const GL = { renderer: null, scene: null, camera: null, holder: null, tilt: null, rim: null, failed: false };
+const mods = { s3: null, e3: null, inf: null, loading: null };
+const models = new Map(); // entry id → { key, state: "building"|"ready"|"failed", obj, standing, built3d, item, error }
+const views = new Set();  // { canvas, ctx, id, visible }
+const buildQueue = [];
+const io = "IntersectionObserver" in window ? new IntersectionObserver((list) => { for (const e of list) { const v = e.target.__view; if (v) v.visible = e.isIntersecting; } }, { rootMargin: "120px" }) : null;
+
+function initGL() {
+  if (GL.renderer || GL.failed) return !!GL.renderer;
+  try {
+    const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    r.setPixelRatio(1);
+    r.setSize(GL_SIZE, GL_SIZE, false);
+    r.setClearColor(0x000000, 0);
+    r.toneMapping = THREE.ACESFilmicToneMapping;
+    r.toneMappingExposure = 1.1;
+    r.outputColorSpace = THREE.SRGBColorSpace;
+    r.setScissorTest(true);
+    GL.renderer = r;
+  } catch (err) { GL.failed = true; console.warn("[hall] WebGL unavailable:", err?.message || err); return false; }
+  const scene = new THREE.Scene();
+  scene.add(new THREE.HemisphereLight(0xeaf6ff, 0xffd8b0, 1.3));
+  const key = new THREE.DirectionalLight(0xfff0d6, 2.6);
+  key.position.set(2.5, 4, 3);
+  const rim = new THREE.DirectionalLight(0xffffff, 1.8);
+  rim.position.set(-3, 1.5, -2.5);
+  scene.add(key, rim);
+  const tilt = new THREE.Group(), holder = new THREE.Group();
+  tilt.add(holder);
+  scene.add(tilt);
+  Object.assign(GL, { scene, camera: new THREE.PerspectiveCamera(30, 1, 0.1, 50), holder, tilt, rim });
+  return true;
+}
+
+function loadMods() {
+  if (mods.loading) return mods.loading;
+  const soft = (p) => import(p).catch((err) => { console.warn(`[hall] ${p} unavailable:`, err?.message || err); return null; });
+  mods.loading = (async () => {
+    const [s3, inf] = await Promise.all([soft("./ship3d.js"), soft("./inflate.js")]);
+    mods.s3 = s3 && typeof s3.buildShip === "function" ? s3 : null;
+    mods.inf = inf && typeof inf.inflateDrawing === "function" ? inf : null;
+    const e3 = await soft("./entity3d.js");
+    if (e3 && typeof e3.buildEntity === "function") {
+      try { await Promise.race([e3.loadEntityClips?.(), new Promise((r) => setTimeout(r, 5000))]); } catch { /* the model still builds, without clips */ }
+      mods.e3 = e3;
+    }
+  })();
+  return mods.loading;
+}
+
+const specKey = (e) => `${e.id}:${e.spec ? JSON.stringify(e.spec).length + ":" + (e.spec.source || "") : "-"}`;
+function wantModel(e) {
+  if (e.kind === "controller") return;
+  const key = specKey(e);
+  const m = models.get(e.id);
+  if (m && m.key === key) return;
+  if (m && m.state === "building") { m.stale = e; return; }
+  if (m && m.obj) { try { m.item?.dispose?.(); } catch { /* ignore */ } }
+  models.set(e.id, { key, state: "queued", entry: e });
+  buildQueue.push(e.id);
+}
+
+async function buildOne(id) {
+  const m = models.get(id);
+  if (!m || m.state !== "queued") return;
+  m.state = "building";
+  const e = m.entry;
+  try {
+    await loadMods();
+    if (!initGL()) throw new Error("webgl unavailable");
+    const img = new Image();
+    img.src = e.image;
+    await img.decode();
+    const color = parseInt(String(e.color || "#22d3ee").slice(1), 16) || 0x22d3ee;
+    const isShip = e.kind === "ship";
+    const type = isShip ? "ship" : PLANET_TYPES.has(e.type) ? e.type : "person";
+    let item = null, built3d = false;
+    const spec = e.spec && typeof e.spec === "object" ? e.spec : null;
+    if (spec && isShip && spec.hull && mods.s3) {
+      try { item = mods.s3.buildShip(spec, { drawingImage: img, color, quality: "big" }); built3d = true; } catch (err) { console.warn("[hall] ship3d build failed:", err?.message || err); }
+    } else if (spec && !isShip && !spec.hull && typeof spec.type === "string" && spec.type === type && mods.e3) {
+      try { item = mods.e3.buildEntity(spec, { drawingImage: img, color, quality: "big" }); built3d = true; } catch (err) { console.warn("[hall] entity3d build failed:", err?.message || err); }
+    }
+    if (!item && mods.inf) item = mods.inf.inflateDrawing(img, { kind: mods.inf.KINDS?.includes(type) ? type : "ship", quality: "phone", color });
+    if (!item) throw new Error("no 3D builder");
+    const obj = item.object3d;
+    obj.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(obj);
+    const sph = box.getBoundingSphere(new THREE.Sphere());
+    const s = 1 / Math.max(sph.radius, 1e-3);
+    const root = new THREE.Group();
+    obj.scale.multiplyScalar(s);
+    obj.position.sub(sph.center).multiplyScalar(s);
+    root.add(obj);
+    Object.assign(m, { state: "ready", item, obj: root, standing: !isShip, built3d, rimColor: new THREE.Color(color).lerp(new THREE.Color(0xffffff), 0.35) });
+  } catch (err) {
+    Object.assign(m, { state: "failed", error: String(err?.message || err) });
+  }
+  if (m.stale) { const next = m.stale; m.stale = null; try { m.item?.dispose?.(); } catch { /* ignore */ } models.delete(id); wantModel(next); }
+  for (const v of views) if (v.id === id) v.note.textContent = m.state === "failed" ? "3D not available" : "";
+}
+
+function addView(pane, e) {
+  const canvas = document.createElement("canvas");
+  const note = document.createElement("div");
+  note.className = "note";
+  const known = models.get(e.id);
+  note.textContent = known && known.state === "failed" ? "3D not available" : known && known.state === "ready" ? "" : "Building 3D…";
+  pane.append(canvas, note);
+  const v = { canvas, ctx: canvas.getContext("2d"), id: e.id, visible: !io, note, phase: (parseInt(e.id.slice(-4), 16) || 0) % 628 / 100 };
+  canvas.__view = v;
+  if (io) io.observe(canvas);
+  views.add(v);
+  wantModel(e);
+  return v;
+}
+function dropViews(root) {
+  for (const v of [...views]) if (root.contains(v.canvas)) { if (io) io.unobserve(v.canvas); views.delete(v); }
+}
+
+let lastT = performance.now(), frameNo = 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.1, (now - lastT) / 1000);
+  lastT = now;
+  if (document.hidden) return;
+  // at most one build per frame, visible drawings first
+  if (buildQueue.length) {
+    const visibleIds = new Set([...views].filter((v) => v.visible).map((v) => v.id));
+    let i = buildQueue.findIndex((id) => visibleIds.has(id));
+    if (i < 0) i = 0;
+    const [id] = buildQueue.splice(i, 1);
+    buildOne(id);
+  }
+  if (!GL.renderer || (++frameNo & 1)) return; // 30 fps is plenty for a turntable
+  const t = now / 1000;
+  const updated = new Set();
+  for (const v of views) {
+    if (!v.visible || !v.canvas.isConnected) continue;
+    const m = models.get(v.id);
+    if (!m || m.state !== "ready") continue;
+    if (v.note.textContent) v.note.textContent = "";
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const w = Math.max(1, Math.min(GL_SIZE, Math.round(v.canvas.clientWidth * dpr))), h = Math.max(1, Math.min(GL_SIZE, Math.round(v.canvas.clientHeight * dpr)));
+    if (v.canvas.width !== w || v.canvas.height !== h) { v.canvas.width = w; v.canvas.height = h; }
+    if (!updated.has(v.id)) {
+      updated.add(v.id);
+      try { m.item.setEnginePower?.(1); m.item.update?.(dt * 2); } catch { /* ignore */ }
+      const wh = m.item.wheels;
+      if (wh) for (const k of wh) k.pivot.rotation.x -= (dt * 2 * 3.2) / Math.max(0.2, k.radius);
+    }
+    const angle = t * 0.8 + v.phase;
+    GL.holder.rotation.y = angle;
+    GL.tilt.rotation.x = m.standing ? 0.06 : 0.3 + Math.sin(angle * 0.6) * 0.04;
+    GL.tilt.rotation.z = Math.sin(angle * 0.5) * 0.04;
+    GL.rim.color.copy(m.rimColor);
+    const cam = GL.camera;
+    cam.aspect = w / h;
+    cam.updateProjectionMatrix();
+    const vf = (cam.fov * Math.PI) / 360, hf = Math.atan(Math.tan(vf) * cam.aspect);
+    const dist = 1.15 / Math.sin(Math.min(vf, hf));
+    const el = m.standing ? 0.2 : m.built3d ? 0.34 : 0.55;
+    cam.position.set(0, Math.sin(el) * dist, Math.cos(el) * dist);
+    cam.lookAt(0, 0, 0);
+    GL.holder.add(m.obj);
+    GL.renderer.setViewport(0, 0, w, h);
+    GL.renderer.setScissor(0, 0, w, h);
+    GL.renderer.render(GL.scene, cam);
+    GL.holder.remove(m.obj);
+    v.ctx.clearRect(0, 0, w, h);
+    v.ctx.drawImage(GL.renderer.domElement, 0, GL_SIZE - h, w, h, 0, 0, w, h);
+  }
+}
+requestAnimationFrame(frame);
+
+// ---- Controllers: the generated HTML (scaled, sandboxed) or the layout ------------------------------------------
+const ro = "ResizeObserver" in window ? new ResizeObserver((list) => { for (const e of list) { const f = e.target.querySelector("iframe"); if (f) f.style.transform = `scale(${e.contentRect.width / 844})`; } }) : null;
+function controllerPane(pane, e) {
+  pane.classList.add("ctrl");
+  const phone = document.createElement("div");
+  phone.className = "phone";
+  pane.append(phone);
+  fillController(phone, e);
+  if (ro) ro.observe(phone);
+}
+function fillController(phone, e) {
+  const want = e.ctrl || "layout";
+  if (phone.dataset.src === want) return;
+  phone.dataset.src = want;
+  phone.textContent = "";
+  if (e.ctrl) {
+    const f = document.createElement("iframe");
+    f.setAttribute("sandbox", "");
+    f.setAttribute("tabindex", "-1");
+    f.setAttribute("aria-hidden", "true");
+    f.loading = "lazy";
+    f.src = e.ctrl;
+    if (phone.clientWidth) f.style.transform = `scale(${phone.clientWidth / 844})`;
+    phone.append(f);
+  } else {
+    const lay = document.createElement("div");
+    lay.className = "lay";
+    for (const b of (e.layout && e.layout.buttons) || []) {
+      const el = document.createElement("b");
+      const act = String(b.action || "").toLowerCase();
+      el.className = b.type === "stick" ? "stick" : WEAPONS.has(act) ? "weapon" : POWERS.has(act) ? "power" : "";
+      el.style.cssText = `left:${b.x * 100}%;top:${b.y * 100}%;width:${b.w * 100}%;height:${b.h * 100}%`;
+      el.textContent = b.type === "stick" ? "" : b.label || act;
+      lay.append(el);
+    }
+    phone.append(lay);
+  }
+}
+
+// ---- Cards ---------------------------------------------------------------------------------------------------------
+function paneHtml(e) {
+  return `<div class="pane draw"><img alt="" src="${esc(e.image)}" loading="lazy"><span class="tag">Drawing</span></div><div class="arrow">▶</div>` +
+    `<div class="pane gen"><span class="tag">${e.kind === "controller" ? "Generated controller" : "3D generation"}</span></div>`;
+}
+function build(e, kind) {
+  const el = document.createElement(kind === "card" ? "article" : "div");
+  el.className = kind;
+  el.dataset.id = e.id;
+  el.style.setProperty("--c", e.color);
+  el.style.setProperty("--rgb", rgbOf(e.color));
+  const crit = `<div class="crit">${CRITS.map(([k, w]) => `<span>${w}</span><span class="m ${k}"><i data-k="${k}"></i></span><span data-v="${k}"></span>`).join("")}</div>`;
+  if (kind === "card") {
+    el.innerHTML = `<div class="medal"></div><div class="pair">${paneHtml(e)}</div>` +
+      `<div class="top"><div><div class="name"></div><div class="kind"></div></div><div class="score"></div></div>` +
+      `<div class="state"></div><div class="comment"></div>${crit}<div class="skills"></div>`;
+  } else {
+    el.innerHTML = `<div class="rk"></div><div class="pair">${paneHtml(e)}</div>` +
+      `<div class="info"><div class="name"></div><div class="kind"></div><div class="state"></div><div class="comment"></div></div><div class="score"></div>`;
+  }
+  const gen = el.querySelector(".pane.gen");
+  if (e.kind === "controller") controllerPane(gen, e); else addView(gen, e);
+  return el;
+}
+function update(el, e, rank) {
+  const sig = JSON.stringify([rank, e.score, e.judge, e.comment, e.scores, e.ctrl, e.skills, e.mock]);
+  if (e.kind !== "controller") wantModel(e);
+  else { const phone = el.querySelector(".phone"); if (phone) fillController(phone, e); }
+  if (el.dataset.sig === sig) return;
+  el.dataset.sig = sig;
+  const q = (s) => el.querySelector(s);
+  const medal = q(".medal"), rk = q(".rk");
+  if (medal) medal.textContent = rank ? `#${rank}` : "";
+  if (rk) rk.textContent = rank ? `#${rank}` : "–";
+  q(".name").textContent = e.player;
+  q(".kind").textContent = `${TYPE_WORD[e.type] || KIND_WORD[e.kind] || e.kind} · Round ${e.round}${e.final ? "" : " · redrawn"}`;
+  const scored = Number.isFinite(e.score);
+  q(".score").innerHTML = scored ? `${e.score}${e.mock ? ' <span class="mock">MOCK</span>' : ""}` : "";
+  const st = q(".state");
+  st.className = `state ${e.judge}`;
+  st.textContent = scored ? "" : e.judge === "judging" || e.judge === "queued" ? "Judging" : e.judge === "failed" ? "Could not be judged" : e.judge === "skipped" ? "Not judged (limit reached)" : "Not judged yet";
+  q(".comment").textContent = e.comment || "";
+  for (const [k] of CRITS) {
+    const bar = el.querySelector(`i[data-k="${k}"]`), val = el.querySelector(`[data-v="${k}"]`);
+    const v = e.scores && Number.isFinite(e.scores[k]) ? e.scores[k] : null;
+    if (bar) bar.style.width = `${v ?? 0}%`;
+    if (val) val.textContent = v ?? "";
+  }
+  const sk = q(".skills");
+  if (sk) sk.innerHTML = (e.skills || []).map((s) => `<span>${esc(s.verb)}</span>`).join("");
+  el.classList.toggle("unjudged", !scored);
+}
+
+const cards = new Map(), rows = new Map(); // id → element
+function render() {
+  if (!data) return;
+  const all = data.entries.filter((e) => filter === "all" || e.kind === filter);
+  // ranks within the filter: the scored drawings in score order (the server's order), then the rest
+  let r = 0;
+  const ranked = all.map((e) => ({ e, rank: Number.isFinite(e.score) ? ++r : null }));
+  const top = ranked.filter((x) => x.rank && x.rank <= 3);
+  const rest = ranked.filter((x) => !(x.rank && x.rank <= 3));
+  sync($("podium"), cards, top, "card", (el, x) => { el.classList.remove("p1", "p2", "p3"); el.classList.add(`p${x.rank}`); });
+  sync($("list"), rows, rest, "row");
+  $("empty").classList.toggle("off", all.length > 0);
+}
+function sync(host, map, items, kind, decorate) {
+  const keep = new Set(items.map((x) => x.e.id));
+  for (const [id, el] of map) if (!keep.has(id)) { dropViews(el); el.remove(); map.delete(id); }
+  items.forEach((x, i) => {
+    let el = map.get(x.e.id);
+    if (!el) { el = build(x.e, kind); map.set(x.e.id, el); }
+    update(el, x.e, x.rank);
+    if (decorate) decorate(el, x);
+    if (host.children[i] !== el) host.insertBefore(el, host.children[i] || null);
+  });
+}
+
+// ---- Status, polling, judging ------------------------------------------------------------------------------------
+function showStatus() {
+  const j = data && data.judging;
+  const box = $("status"), text = $("statusText"), btn = $("judgeBtn");
+  if (!j) return;
+  const left = j.unjudged + (j.failed || 0);
+  btn.disabled = j.running || !j.total || (!j.unjudged && !(j.failed && !j.running));
+  btn.textContent = j.running ? "Judging…" : j.judged ? (left ? "Judge the rest" : "All judged") : "Judge the drawings";
+  if (!j.total) { box.dataset.state = "empty"; text.textContent = "No drawings yet"; $("progFill").style.width = "0%"; return; }
+  box.dataset.state = j.running ? "running" : "done";
+  const pct = Math.round((100 * j.done) / Math.max(1, j.total));
+  $("progFill").style.width = `${j.running ? pct : j.judged ? 100 : 0}%`;
+  if (j.running) text.innerHTML = `Judging ${j.done}/${j.total}<span class="dots"></span>`;
+  else if (j.judged) text.textContent = `${j.judged} drawing${j.judged === 1 ? "" : "s"} ranked${j.failed ? ` · ${j.failed} could not be judged` : ""}${j.skipped ? ` · ${j.skipped} over the limit` : ""}${j.mock ? " · MOCK SCORES" : ""}`;
+  else text.textContent = `${j.total} drawing${j.total === 1 ? "" : "s"} waiting for the judges`;
+}
+
+async function poll() {
+  clearTimeout(pollTimer);
+  try {
+    const res = await fetch("/hall", { cache: "no-store" });
+    if (res.ok) { data = await res.json(); render(); showStatus(); }
+    else $("statusText").textContent = "The hall is offline";
+  } catch { $("statusText").textContent = "Reconnecting…"; }
+  pollTimer = setTimeout(poll, data && data.judging && data.judging.running ? 1500 : 5000);
+}
+
+async function judge() {
+  $("judgeBtn").disabled = true;
+  try {
+    const res = await fetch("/hall/judge", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+    const out = await res.json().catch(() => null);
+    if (out && out.judging && data) { data.judging = out.judging; showStatus(); }
+  } catch { /* the next poll shows where it stands */ }
+  poll();
+}
+
+$("judgeBtn").addEventListener("click", judge);
+for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("click", () => {
+  filter = b.dataset.f;
+  for (const o of document.querySelectorAll(".tabs button")) o.setAttribute("aria-pressed", String(o === b));
+  render();
+});
+$("back").addEventListener("click", (ev) => { if (history.length > 1 && document.referrer && new URL(document.referrer).origin === location.origin) { ev.preventDefault(); history.back(); } });
+if (params.get("judge") === "1") judge(); else poll();
+loadMods(); // the 3D builders load while the list arrives
+</script>
+</body>
+</html>

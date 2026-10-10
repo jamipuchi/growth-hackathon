@@ -2,8 +2,11 @@
 // through Astra (within each player's drawing budget), Sol's controller HTML (v1.2), and perf samples. The game itself
 // runs in world.js. HTTPS (https.js, self-signed for the LAN) runs next to HTTP with the same handler so phones get
 // tilt and camera.
-// Usage: PORT=8000 HTTPS_PORT=8443 node server.js [--bots N] [--autostart S]      (HTTPS_PORT=0 turns HTTPS off)
+// Usage: PORT=8000 HTTPS_PORT=8443 node server.js [--bots N] [--autostart S] [--endless]      (HTTPS_PORT=0 turns HTTPS off)
 //   The lobby lasts until the big screen's START (POST /start); --autostart S starts every lobby after S seconds.
+//   --endless (or ENDLESS=1), v1.6: the ENDLESS free-for-all (endless.js; off by default, the demo round flow is
+//   unchanged): no clock, join any time, the boss and chests come back, drawings recharge, the host ends it (POST /end).
+//   The big screen's lobby switches it on and off too (POST /mode).
 // Robustness (v1.0 review): no request can throw out of the handler (a malformed target like `GET //` is a 400 or a
 // 404), a world step or tick that throws is logged and skipped, static files stream with pipeline (an aborted download
 // frees its file), a screen that stops reading is dropped, bodies are capped per endpoint, drawings must be real PNGs
@@ -25,7 +28,8 @@ const ASSETS = path.join(ROOT, "assets");
 const PERF_LOG = process.env.PERF_LOG || path.join(ROOT, "perf.log");
 const PERF_LOG_MAX_BYTES = 50 * 1024 * 1024;   // perf.log stops growing past this
 const BODY_LIMIT = 2 * 1024 * 1024;            // POST /generate (a 512 px drawing); the other endpoints are far smaller
-const SMALL_BODY = { "/input": 64 * 1024, "/perf": 16 * 1024, "/join": 4096, "/start": 4096, "/controller-html": 4096 };
+const SMALL_BODY = { "/input": 64 * 1024, "/perf": 16 * 1024, "/join": 4096, "/start": 4096, "/controller-html": 4096, "/mode": 4096, "/end": 4096 };
+Object.assign(SMALL_BODY, { "/hall/judge": 4096, "/hall/reset": 4096 }); // v1.6 hall of fame
 const KEEPALIVE_MS = 15000;
 const MAX_STREAMS = 150;                       // screens connected to /events at once
 const MAX_BUFFERED = 1024 * 1024;              // a screen this far behind (about 150 ticks) has stopped reading: dropped
@@ -40,6 +44,7 @@ const PUBLIC_FILES = new Set([
   "transition.js", "anim.js", "anims.js", "phone-extras.js", "bigscreen-extras.js", "inflate.js", "ship3d.js",
   "ctrl-sandbox.js", "mischief-fx.js", "sfx.js", "controller.webmanifest",
   "entity3d.js", // v1.4: drawn explorers built rigged from their body spec (render.js loads it on demand)
+  "hall-of-fame.html", // v1.6: the hall of fame (hall.js: GET /hall, POST /hall/judge)
 ]);
 const ICONS = path.join(ROOT, "icons");
 const ICON_PATH = /^icons\/[a-z0-9][a-z0-9_.-]{0,63}\.png$/i;   // one level, no dot files, PNG only
@@ -57,6 +62,8 @@ const botsArg = process.argv.indexOf("--bots");
 const BOTS = botsArg > 0 ? Math.max(0, Math.min(25, Number(process.argv[botsArg + 1]) || 0)) : 0; // 25 players at most (humans take bots' seats)
 const autoArg = process.argv.indexOf("--autostart");
 const AUTOSTART = autoArg > 0 && Number.isFinite(Number(process.argv[autoArg + 1])) ? Math.max(0, Number(process.argv[autoArg + 1])) : null;
+// v1.6 ENDLESS (owner, 10 Oct 11:53): --endless or ENDLESS=1 starts the server in the endless free-for-all (endless.js).
+const ENDLESS_AT_START = (() => { try { return require("./endless").fromEnv(); } catch { return false; } })();
 
 const sha1 = (text) => crypto.createHash("sha1").update(text).digest("hex");
 // One log line per distinct problem per 10 s (a broken client must not flood the console).
@@ -178,6 +185,7 @@ function noteShipSpec(v, spec) {
   shipSpecs.delete(v);
   shipSpecs.set(v, spec);
   if (shipSpecs.size > 200) shipSpecs.delete(shipSpecs.keys().next().value);
+  if (hall) { try { hall.noteSpec(v, spec); } catch (err) { logOnce("hall spec failed", err); } } // v1.6: the archived drawing gets it too
 }
 const shipSpecOf = (url) => shipSpecs.get(specKey(vOfUrl(url))) || null;
 
@@ -284,6 +292,7 @@ function startHtmlJob(A, player, padLayout, sig, image) {
       if (r && r.ok && r.source === "model" && ctrl[player] === entry && entry.sig === sig && entry.source !== "model") { // v1.5: not after a new round
         Object.assign(entry, { html: r.html, controls: r.controls, source: "model" });
         broadcast({ type: "generated", player, kind: "html", html: r.html, controls: r.controls, htmlSource: "model", padLayout: entry.padLayout });
+        if (hall && image) { try { hall.noteControllerHtml(image, r.html, "model"); } catch (err) { logOnce("hall html failed", err); } } // v1.6
       }
       return r;
     });
@@ -319,6 +328,46 @@ async function currentHtml(player, wait) {
   return { html: entry.html, controls: entry.controls, source: entry.source, padLayout: entry.padLayout, pending: !!(entry.job && !entry.job.done && entry.job.sig === entry.sig) };
 }
 
+// ---- Hall of fame (v1.6, owner 10 Oct 11:57) ----------------------------------------------------------------------
+// hall.js archives every finished drawing of the session (ship, explorer, controller) the moment it is accepted, so the
+// archive has it before freshRound wipes the round; gameplay still starts from scratch every round. POST /hall/judge
+// ranks them (OpenAI Decisions API), GET /hall lists them, /hall-of-fame.html shows them. Guarded like Astra: a hall.js
+// that fails to load never touches the game. Loaded at start: a restart is a new session (hall.init clears hall/).
+let hall = null, hallTried = false;
+function loadHall() {
+  if (!hallTried) {
+    hallTried = true;
+    try { hall = require("./hall"); hall.init(); } catch (err) { hall = null; console.log(`hall unavailable: ${err.message}`); }
+  }
+  return hall;
+}
+function hallArchive(item) {
+  const H = loadHall();
+  if (H) { try { H.archive(item); } catch (err) { logOnce("hall archive failed", err); } }
+}
+loadHall();
+// GET /hall (the ranked list), /hall/img/<id>.png (an archived drawing), /hall/ctrl/<id>.html (an archived controller's
+// HTML: no script runs, CSP sandbox; the hall shows it in a sandboxed frame).
+function serveHall(req, res, url) {
+  const H = loadHall();
+  if (!H) return json(res, 503, { ok: false, error: "hall unavailable" });
+  if (url.pathname === "/hall") return json(res, 200, H.list());
+  let m = /^\/hall\/img\/([a-z0-9]{1,40})\.png$/.exec(url.pathname);
+  const buf = m && H.image(m[1]);
+  if (buf) {
+    res.writeHead(200, { "Content-Type": "image/png", "Content-Length": buf.length, "Cache-Control": "public, max-age=86400" });
+    return res.end(req.method === "HEAD" ? undefined : buf);
+  }
+  m = /^\/hall\/ctrl\/([a-z0-9]{1,40})\.html$/.exec(url.pathname);
+  const html = m && H.html(m[1]);
+  if (html) {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store",
+      "Content-Security-Policy": "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:" });
+    return res.end(req.method === "HEAD" ? undefined : html);
+  }
+  return res.writeHead(404, { "Content-Type": "text/plain" }).end("not found");
+}
+
 // ---- The world ---------------------------------------------------------------------------------------------------
 
 // v1.5 (owner, 10 Oct 11:31: "Make sure things restart from scratch each round. not possible to reuse drawings etc."):
@@ -344,6 +393,9 @@ function freshRound(round, names) {
 
 const world = createWorld({ broadcast, autoStart: true, wireAnimations, autostartSeconds: AUTOSTART, onRoundReset: freshRound });
 for (let i = 1; i <= BOTS; i++) world.addBot(`bot${i}`);
+// v1.6 ENDLESS: guarded, so a world.js without the endless hooks still runs (the demo).
+const canEndless = () => typeof world.setEndless === "function" && typeof world.endSession === "function";
+if (ENDLESS_AT_START && canEndless()) world.setEndless(true);
 
 setInterval(() => {
   if (!streams.size) return;
@@ -598,6 +650,22 @@ async function handlePost(req, res, url) {
     if (!world.start({ countdown })) return json(res, 409, { ok: false, error: "not in the lobby", phase: world.phase });
     return json(res, 200, { ok: true, round: world.round, phase: world.phase, ...(world.countdown ? { countdown: world.countdown } : {}) });
   }
+  if (url.pathname === "/mode") {
+    // v1.6 ENDLESS (endless.js): the big screen's ENDLESS switch, { endless: true | false }. Only in the lobby (it holds for
+    // the session START begins and every one after, until switched off); every screen hears it from the world message
+    // (`mode: "endless"`, absent in the demo). 409 outside the lobby, 501 with a world.js that has no endless mode.
+    if (!canEndless()) return json(res, 501, { ok: false, error: "no endless mode" });
+    const on = body.endless === true || body.endless === 1 || body.endless === "1" || body.endless === "true" || body.mode === "endless";
+    if (!world.setEndless(on)) return json(res, 409, { ok: false, error: "not in the lobby", phase: world.phase, mode: world.endless ? "endless" : "demo" });
+    return json(res, 200, { ok: true, mode: world.endless ? "endless" : "demo", phase: world.phase });
+  }
+  if (url.pathname === "/end") {
+    // v1.6 ENDLESS: the big screen's END button: the endless session ends now (the normal results, then the lobby). 409
+    // when no endless session is being played (the demo ends by itself: 4:00 or every chest open).
+    if (!canEndless()) return json(res, 501, { ok: false, error: "no endless mode" });
+    if (!world.endSession()) return json(res, 409, { ok: false, error: "no endless session to end", phase: world.phase, mode: world.endless ? "endless" : "demo" });
+    return json(res, 200, { ok: true, round: world.round, phase: world.phase });
+  }
   if (url.pathname === "/join") {
     // device (optional): a token the phone keeps; a name in use by another phone becomes "name2" (renamed: true).
     const joined = world.join(body.player, body.device);
@@ -669,6 +737,8 @@ async function handlePost(req, res, url) {
       const extra = h ? { html: h.html, controls: h.controls, htmlSource: h.source, padLayout } : {};
       result = { ...result, ...extra };
       if (finished) broadcast({ type: "generated", player, kind: body.kind, layout: result.layout, ...extra });
+      // v1.6 hall of fame: the finished controller drawing, its pad and the pad's HTML now (Sol's own follows: noteControllerHtml)
+      if (finished && body.kind === "controller") hallArchive({ player, color: world.players[player] && world.players[player].color, round: world.round, kind: "controller", image: body.image, layout: padLayout, html: h && h.html, htmlSource: h && h.source });
     }
     // v1.5 (QA M1): an unread redraw never takes away a drawing that was read: the player keeps that entity (kept: true)
     // and nothing changes; only a player with no read drawing for that world yet gets the plain entity (never stuck).
@@ -685,6 +755,8 @@ async function handlePost(req, res, url) {
       const image = keepDrawing(player, body.kind, body.image);
       if (image && result.entity.spec) noteShipSpec(vOfUrl(image), result.entity.spec); // v1.4: ship and body specs alike
       if (typeof result.entity.card !== "string" && typeof Verbs.cardOf === "function") result = { ...result, entity: { ...result.entity, card: Verbs.cardOf(result.entity.type, result.entity.unlocked) } };
+      // v1.6 hall of fame: the drawing, its spec (a late one comes through noteShipSpec) and the skills it unlocked
+      if (image) hallArchive({ player, color: world.players[player] && world.players[player].color, round: world.round, kind: body.kind, image: body.image, spec: result.entity.spec || shipSpecOf(image), unlocked: result.entity.unlocked, card: result.entity.card, type: result.entity.type, source: result.entity.source });
       const before = world.players[player] && world.players[player].entity;
       const now = world.setEntity(player, body.kind, result.entity);
       result = { ...result, entity: image ? { ...result.entity, image } : result.entity };
@@ -706,6 +778,15 @@ async function handlePost(req, res, url) {
     const h = await currentHtml(player, body.wait === true);
     if (!h) return json(res, 503, { ok: false, error: "controller html unavailable" });
     return json(res, 200, { ok: true, html: h.html, controls: h.controls, htmlSource: h.source, padLayout: h.padLayout, pending: h.pending });
+  }
+  if (url.pathname === "/hall/judge" || url.pathname === "/hall/reset") {
+    // v1.6 hall of fame: start judging every drawing not judged yet (idempotent: a running judge goes on), or
+    // { confirm: true } starts a brand-new session (the archive, its hall/ copy and the call count are emptied).
+    const H = loadHall();
+    if (!H) return json(res, 503, { ok: false, error: "hall unavailable" });
+    if (url.pathname === "/hall/judge") return json(res, 200, { ok: true, judging: H.judge() });
+    if (body.confirm !== true) return json(res, 400, { ok: false, error: "confirm: true required" });
+    return json(res, 200, H.newSession());
   }
   if (url.pathname === "/perf") {
     if (Contract.CHECKS.perf(body).length) return json(res, 400, { error: Contract.CHECKS.perf(body).join("; ") });
@@ -729,6 +810,7 @@ async function handler(req, res) {
     if (req.method === "GET" && url.pathname === "/events") openStream(req, res, url);
     else if ((req.method === "GET" || req.method === "HEAD") && url.pathname === "/info") json(res, 200, info());
     else if ((req.method === "GET" || req.method === "HEAD") && url.pathname.startsWith("/drawings/")) serveDrawing(req, res, url);
+    else if ((req.method === "GET" || req.method === "HEAD") && /^\/hall(\/|$)/.test(url.pathname)) serveHall(req, res, url); // v1.6
     else if ((req.method === "GET" || req.method === "HEAD") && url.pathname === "/ship-spec") {
       // v1.4: the spec of a ship drawing by its hash (the phone's result card); 404 until Astra has one.
       const spec = shipSpecs.get(specKey(String(url.searchParams.get("v") || "").slice(0, 40))); // v1.5: by the drawing's hash, this round only
@@ -764,6 +846,7 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`Space Party on http://localhost:${PORT}${BOTS ? ` with ${BOTS} bots` : ""}`);
   console.log(`  big screen: http://${ip}:${PORT}/space.html`);
   console.log(`  phones:     http://${ip}:${PORT}/controller.html`);
+  if (canEndless() && world.endless) console.log("  mode:       ENDLESS free-for-all (the host ends it from the big screen)");
 });
 
 if (httpsLib && HTTPS_PORT > 0) {

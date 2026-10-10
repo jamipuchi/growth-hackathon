@@ -13,3 +13,4 @@ perf.log
 dev/**/shots/
 dev/**/*.log
 videos/
+hall/

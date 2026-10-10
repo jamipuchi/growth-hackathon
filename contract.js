@@ -178,7 +178,10 @@
    *                                                                  // v1.3: humans first, then bots
    *              phase,                                              // v1.4: as tick.phase (a world message goes out
    *                                                                  // on every phase change: START, GO, 3:00, the end)
-   *              countdown? }                                        // v1.4: only in phase "countdown", as tick.countdown
+   *              countdown?,                                         // v1.4: only in phase "countdown", as tick.countdown
+   *              mode? }                                             // v1.6: "endless" while the ENDLESS free-for-all is
+   *                                                                  // on (endless.js; absent in the demo). Then: no
+   *                                                                  // clock, result.reason "host" when the host ends it
    *            Sent on connect and whenever any of it changes.
    *
    * tick       { type, t, round, phase, clock, left,                     // clock: lobby = seconds to autostart (0 with no
@@ -212,7 +215,9 @@
    *              flares: [[x, y, z, radius, secondsLeft]],                // the newest 16
    *              mines: [[id, x, y, z, mode, color]],                     // v1.3: mines (newest 16), mode as bullets;
    *                                                                      // color = the owner's
-   *              decoys: [[id, x, y, z, yaw, color, owner, mode]] }       // v1.3 (newest 16): draw the owner's entity
+   *              decoys: [[id, x, y, z, yaw, color, owner, mode]],        // v1.3 (newest 16): draw the owner's entity
+   *              mode? }                                                 // v1.6: "endless" as world.mode (absent in the
+   *                                                                      // demo); left is then 0: no cap (HUD shows ∞)
    *                                                                      // (their drawing) there, facing yaw
    *            15 per second. In "planet" mode x, z are island coordinates and y is the feet height.
    *
@@ -358,6 +363,13 @@
    *                                                  // tick.countdown 3, 2, 1), then "playing"; countdown: false (or 0)
    *                                                  // starts at once (tests). The TV posts at once and shows the 3-2-1
    *                                                  // from the phase (no local countdown before the POST)
+   * POST /mode      { endless: true | false }        → { ok, mode: "endless"|"demo", phase } | 409 { ok: false, error:
+   *                                                  // "not in the lobby", phase, mode } | 501 (no endless mode). v1.6:
+   *                                                  // the big screen's ENDLESS switch (host key E); it holds until
+   *                                                  // switched off; `node server.js --endless` / ENDLESS=1 starts on
+   * POST /end       {}                               → { ok, round, phase: "scoreboard" } | 409 { ok: false, error: "no
+   *                                                  // endless session to end", phase, mode }. v1.6: the big screen's
+   *                                                  // END in an endless session: results (reason "host"), then lobby
    * POST /input     { type: "input", player, action, down }    // v1.3: only a joined player (else 409 "join first";
    *                                                  // world.handleInput returns false for an unknown name; a
    *                                                  // never-joined name whose own /events?player= stream is open
@@ -409,6 +421,31 @@
    *                                                  // wait: true waits for a Sol call still running
    * POST /perf      { player, screen: "phone"|"big", ua, fps, low1, p90ms, calls, tris, textures, tier, w, h, dpr }
    *
+   * Hall of fame (v1.6, owner 10 Oct 11:57; hall.js, hall-of-fame.html). Every finished ship, explorer and controller
+   * drawing of the session is archived when the server accepts it (before a new round wipes gameplay state), in memory
+   * and in hall/ (git-ignored); a server restart or POST /hall/reset starts a new session. Judged by the OpenAI
+   * Decisions API (POST https://api.openai.com/v1/decisions, gpt-6-luna; developers.openai.com/api/docs/guides/decisions):
+   * four score questions (creativity, effort, readability, fun → 0-100 each, score = their mean) and one choice question
+   * (the playful comment, from hall.js COMMENTS). One call per drawing, at most 60 per session, cached by the PNG's hash;
+   * a drawing that could not be judged keeps score null and still shows. ASTRA_MOCK=1 / HALL_MOCK=1: mock scores.
+   * GET  /hall-of-fame.html[?judge=1]                 // the ranked wall (podium + list), each drawing side by side
+   *                                                  // with its generation (3D from spec, or the controller HTML);
+   *                                                  // ?judge=1 starts judging on open (the TV's HALL OF FAME button)
+   * GET  /hall      → { ok, session, startedAt, judging, entries }   // ranked: scored by score (rank 1..n), then
+   *                                                  // the rest (rank null)
+   *   judging: { running, done, judged, failed, skipped, pending, unjudged, total, calls, maxCalls, api, model, mock }
+   *   entries[]: { rank, id, player, color: "#rrggbb", round, kind: "ship"|"explorer"|"controller", type, at, final,
+   *                image: "/hall/img/<id>.png", spec (ship / body spec) | null, layout (controller pad) | null,
+   *                ctrl: "/hall/ctrl/<id>.html" | null, htmlSource, skills: [{ verb, part }], card, source,
+   *                judge: "unjudged"|"queued"|"judging"|"done"|"failed"|"skipped", error, scores: { creativity, effort,
+   *                readability, fun } | null, score: 0-100 | null, comment | null, mock, cached }
+   *                final: false = the player redrew it later in that round
+   * GET  /hall/img/<id>.png | /hall/ctrl/<id>.html    // an archived drawing; an archived controller's HTML (served
+   *                                                  // with a CSP sandbox: no script runs)
+   * POST /hall/judge {}                               → { ok, judging }   // queue every drawing not judged yet
+   *                                                  // (idempotent: a running judge goes on; a failure is retried once)
+   * POST /hall/reset { confirm: true }                → { ok, session }   // a brand-new session: the archive is emptied
+   *
    * Controller layout v2 (PLAN.md section 3):
    *   { buttons: [{ type: "button"|"stick"|"toggle", action, label, x, y, w, h, auto? }],
    *     source: "model"|"default"|"manual"|"regions" }
@@ -448,6 +485,7 @@
     check(errors, Array.isArray(m.chests) && m.chests.every((c) => isNum(c.x) && isNum(c.z) && typeof c.buried === "boolean" && CHEST_KINDS.includes(c.kind)), "world: chests");
     check(errors, Array.isArray(m.leaderboard) && m.leaderboard.every((r) => isStr(r.name) && isNum(r.stars) && isNum(r.total)), "world: leaderboard");
     check(errors, m.result === null || (m.result && Array.isArray(m.result.scores)), "world: result");
+    check(errors, m.mode === undefined || m.mode === "endless", "world: mode is absent or \"endless\""); // v1.6
     return errors;
   }
 
@@ -466,6 +504,7 @@
     });
     check(errors, Array.isArray(m.bullets) && Array.isArray(m.bossShots) && Array.isArray(m.flares), "tick: bullets, bossShots, flares");
     check(errors, (m.mines === undefined || Array.isArray(m.mines)) && (m.decoys === undefined || Array.isArray(m.decoys)), "tick: mines, decoys");
+    check(errors, m.mode === undefined || m.mode === "endless", "tick: mode is absent or \"endless\""); // v1.6
     return errors;
   }
 
