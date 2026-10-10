@@ -72,7 +72,8 @@ const PW_CORE = process.env.PW_CORE || "/Users/jaumepuig/Documents/linkedin/node
 const CACHE = process.env.PW_CACHE || path.join(os.homedir(), "Library/Caches/ms-playwright");
 const newest = (prefix) => { try { return fs.readdirSync(CACHE).filter((d) => new RegExp(`^${prefix}-\\d+$`).test(d)).sort((a, b) => Number(b.split("-").pop()) - Number(a.split("-").pop()))[0]; } catch { return null; } };
 const CHROME = process.env.E2E_CHROME || path.join(CACHE, newest("chromium") || "chromium", "chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing");
-const WEBKIT = process.env.E2E_WEBKIT || path.join(CACHE, newest("webkit") || "webkit", "pw_run.sh");
+// WebKit pinned to webkit-2311 when it exists (as dev/v11-client/lib.mjs: the newer webkit-2368 hangs playwright-core 1.58.2).
+const WEBKIT = process.env.E2E_WEBKIT || (fs.existsSync(path.join(CACHE, "webkit-2311", "pw_run.sh")) ? path.join(CACHE, "webkit-2311", "pw_run.sh") : path.join(CACHE, newest("webkit") || "webkit", "pw_run.sh"));
 const IPHONE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
 
 // What the game builds (inflate.js KIND sizes = render.js entSize; the ship lies flat, side kinds are side views).
@@ -85,6 +86,21 @@ const TRI_BUDGET = { lite: 2600, phone: 4000, big: 12000 };
 const TRI_SLACK = 400;
 const BUILD_MS_TARGET = { tv: 150, phone: 250 };   // soft: PLAN.md section 6 says about 100 ms on the device
 const DRAW_CALLS = { soft: 4, hard: 12 };
+// v1.4: a ship whose entity carries a ship spec (astra-ship.js) is built by ship3d.js, an explorer with a body spec (astra-body.js)
+// by entity3d.js (render.js DrawnCache and createEntityPreview; inflate.js stays the fallback). Their own budgets (Q in both
+// modules: lite 2.6k, phone 4k, big 5k triangles; at most 3 draw calls) and sizes (ship3d SHIP_LENGTH 3.2 m, the longest
+// horizontal side; entity3d ENTITY_SIZES: the longest side, a person 1.8 m tall, an animal 1.3-2.3 m).
+const TRI_BUDGET_3D = { lite: 2600, phone: 4000, big: 5000 };
+const DRAW_CALLS_3D = 3;
+// A person's box includes what it wears on its head: entity3d.js puts an antenna (the scan skill) 0.5 m long on top of the
+// 1.8 m body (entity3d.js:820), so the dev kit's astronaut (every planet skill) is 2.09 m tall: the person's range is the body's
+// 1.8 m ± 10% plus up to 0.5 m of head gear.
+const EXPECTED_3D = { ship: [3.2 * 0.8, 3.2 * 1.2], person: [1.8 * 0.9, 1.8 * 1.1 + 0.5], car: [4.0 * 0.85, 4.0 * 1.15], bike: [2.0 * 0.8, 2.0 * 1.2], quadruped: [1.3 * 0.9, 2.3 * 1.1], blob: [1.4 * 0.75, 1.4 * 1.25] };
+const measured3d = (type, s) => (!s ? null : type === "person" ? s.y : type === "ship" ? Math.max(s.x, s.z) : Math.max(s.x, s.y, s.z));
+const isShipSpec = (spec) => !!spec && typeof spec === "object" && !!spec.hull;                    // = render.js entIsShipSpec
+const isBodySpec = (spec, type) => !!spec && typeof spec === "object" && !spec.hull && typeof spec.type === "string" && (!type || spec.type === type); // = entIsBodySpec
+const sameJson = (a, b) => { try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; } };
+const specLine = (spec) => (!spec ? "none" : spec.hull ? `ship spec (${spec.source || "?"}): hull ${spec.hull.shape || "?"}` : `body spec (${spec.source || "?"}): ${spec.type}`);
 // Player-facing text must never show internal names or code (PLAN.md section 0, "SUPER CLEAR").
 const INTERNAL = /\b(verbs?|entity|entities|slot|layout|devkit|undefined|null|NaN|true|false)\b|\[object|[{}<>]/i;
 const WORLD_OF_KIND = { ship: "space", explorer: "planet" };
@@ -287,7 +303,19 @@ async function checkEntity(d, rec, check, res, { before, sentAt, tv, expectTypes
   check(L("animations wired"), !!e.anims && typeof e.anims === "object" && Object.keys(e.anims).length > 0, `${Object.keys(e.anims || {}).length} slots`, "soft");
   check(L("one drawing spent"), before && j.drawingsLeft ? j.drawingsLeft[world] === before[world] - 1 : false, `${before && before[world]} → ${j.drawingsLeft && j.drawingsLeft[world]} (${world})`);
   check(L("image URL on the answer"), imageOk(e.image, P.name, d.kind), e.image);
-  rec.answers.push({ label: label || "finished", ms: res.ms, type: e.type, rig: e.rig, source: e.source, verbs: e.verbs, unlocked, parts: (e.parts || []).map((p) => p.name), card, image: e.image, fallback: !!j.fallback, looksLike: j.looksLike || null, drawingsLeft: j.drawingsLeft });
+  // v1.4: the 3D builders' input rides on the answer: a ship spec (astra-ship.js, for ship3d.js) or a body spec of the answer's
+  // type (astra-body.js, for entity3d.js). The model's (source "model") or, with no model answer (ASTRA_MOCK, a failed spec call),
+  // one made from the entity's own parts (source "entity"). The server keeps it by the drawing's hash: GET /ship-spec?v=<hash>.
+  const spec = e.spec;
+  const fam = d.kind === "ship" ? "ship" : "body";
+  check(L(`${fam} spec on the answer (v1.4: ${fam === "ship" ? "astra-ship.js → ship3d.js" : "astra-body.js → entity3d.js"})`),
+    fam === "ship" ? isShipSpec(spec) : isBodySpec(spec, e.type), spec ? `${specLine(spec)} (entity type ${e.type})` : "no entity.spec");
+  if (spec && typeof e.image === "string") {
+    const v = (/[?&]v=([0-9a-f]{6,40})/.exec(e.image) || [])[1];
+    const served = v ? await get(`/ship-spec?v=${v}`, { timeout: 5000 }) : { status: 0 };
+    check(L("spec served at /ship-spec?v=<hash>"), served.status === 200 && served.json && sameJson(served.json.spec, spec), `HTTP ${served.status} v=${v}`);
+  }
+  rec.answers.push({ label: label || "finished", ms: res.ms, type: e.type, rig: e.rig, source: e.source, verbs: e.verbs, unlocked, parts: (e.parts || []).map((p) => p.name), card, image: e.image, fallback: !!j.fallback, looksLike: j.looksLike || null, drawingsLeft: j.drawingsLeft, spec: spec ? specLine(spec) : null });
   // The drawing is served byte for byte (every screen inflates it from this URL).
   if (typeof e.image === "string") {
     const img = await get(e.image, { timeout: 5000 });
@@ -301,6 +329,7 @@ async function checkEntity(d, rec, check, res, { before, sentAt, tv, expectTypes
     const m = hit && hit.m.entity;
     check(L(`entity message on the ${where}`), !!m && m.type === e.type && m.card === card && sameSet(m.verbs, e.verbs),
       m ? `type ${m.type}, ${hit.t - sentAt} ms after the post` : `no entity message with ${e.image} within 3 s`);
+    if (spec) check(L(`entity message on the ${where} carries the spec`), !!m && sameJson(m.spec, spec), m ? specLine(m.spec) : "no entity message");
   }
   return e;
 }
@@ -346,7 +375,7 @@ async function postDrawing(d, tv) {
       check("card names every drawn skill", must.every((v) => cardText.includes(Verbs.labelOf(v).toLowerCase())), `"${e.card}"`);
       if (exp.none) check("a plain drawing unlocks nothing", MODE === "mock" ? null : verbs.length === 0, MODE === "mock" ? "n/a in --mock" : `unlocked [${verbs.join(" ")}]`, MODE === "real" ? "soft" : "hard");
       check("answered by the model, not a fallback", MODE === "mock" ? e.source === "devkit" : e.source === "model" && !j.fallback, `source ${e.source}${j.fallback ? ", fallback: true" : ""}`);
-      if (exp.ok === true) rec.built = { type: MODE === "mock" ? (exp.types || ["ship"])[0] : e.type, image: e.image, card: e.card, color: P.color };
+      if (exp.ok === true) rec.built = { type: MODE === "mock" ? (exp.types || ["ship"])[0] : e.type, image: e.image, card: e.card, color: P.color, spec: e.spec || null };
     }
     return rec;
   }
@@ -385,7 +414,7 @@ async function postDrawing(d, tv) {
 // Runs in the page. Builds the drawing the way render.js does (inflate.js on the served URL), measures it, then shows it in
 // render.js createEntityPreview (the phone's result card) on an overlay for the screenshot.
 async function pageBuild(arg) {
-  const { url, kind, color, quality, previewQuality, title, caption, settleMs } = arg;
+  const { url, kind, color, quality, previewQuality, title, caption, settleMs, spec, family } = arg;
   const K = window.__v13kit || (window.__v13kit = {});
   if (!K.ready) {
     // The game's own modules through a module script (the page's import map resolves "three" in every engine; a
@@ -398,8 +427,13 @@ async function pageBuild(arg) {
           window.addEventListener("v13mods", () => { clearTimeout(timer); resolve(); }, { once: true });
           const s = document.createElement("script");
           s.type = "module";
+          // v1.4: ship3d.js / entity3d.js by the URLs render.js imports them from ("./ship3d.js" next to /render.js): the same
+          // module instances, so the texture kit render.js applies is shared. A missing one is reported, not fatal.
           s.textContent = 'import * as R from "/render.js"; import * as inf from "/inflate.js"; import * as THREE from "three";' +
-            ' window.__v13mods = { R, inf, THREE }; window.dispatchEvent(new Event("v13mods"));';
+            ' let S3 = null, E3 = null;' +
+            ' try { S3 = await import("/ship3d.js"); } catch (e) { window.__v13s3Error = String((e && e.message) || e); }' +
+            ' try { E3 = await import("/entity3d.js"); } catch (e) { window.__v13e3Error = String((e && e.message) || e); }' +
+            ' window.__v13mods = { R, inf, THREE, S3, E3 }; window.dispatchEvent(new Event("v13mods"));';
           document.head.appendChild(s);
         });
       } catch (e) {
@@ -407,8 +441,8 @@ async function pageBuild(arg) {
         return { ok: false, error: window.__v13modsError };
       }
     }
-    const { R, inf, THREE } = window.__v13mods;
-    Object.assign(K, { R, inf, THREE });
+    const { R, inf, THREE, S3, E3 } = window.__v13mods;
+    Object.assign(K, { R, inf, THREE, S3, E3 });
     const wrap = document.createElement("div");
     wrap.id = "v13kit";
     wrap.setAttribute("style", "position:fixed;inset:0;z-index:2147483647;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;" +
@@ -472,11 +506,45 @@ async function pageBuild(arg) {
   } catch (e) {
     out.ok = false;
     out.error = `inflate failed: ${e && e.message}`;
-  } finally {
-    try { if (img && typeof img.close === "function") img.close(); } catch (e) { /* ignore */ }
   }
+  // v1.4: the server's spec built by ship3d.js (ships) / entity3d.js (explorers, the spec's own body type), as render.js does.
+  if (spec) {
+    const B = family === "ship" ? K.S3 : K.E3, who = family === "ship" ? "ship3d.js" : "entity3d.js";
+    if (!B) out.b3 = { ok: false, error: `${who} did not load: ${(family === "ship" ? window.__v13s3Error : window.__v13e3Error) || "?"}` };
+    else {
+      try {
+        if (family !== "ship" && typeof B.loadEntityClips === "function" && !K.clipsTried) {
+          K.clipsTried = true;
+          K.clips = await Promise.race([Promise.resolve(B.loadEntityClips()).catch((e) => `error: ${e && e.message}`), new Promise((r) => setTimeout(() => r("timeout"), 8000))]);
+        }
+        const t3 = performance.now();
+        const b = family === "ship" ? B.buildShip(spec, { drawingImage: img, color, quality }) : B.buildEntity(spec, { drawingImage: img, color, quality });
+        out.b3 = { ok: true, who, buildMs: performance.now() - t3, ms: b.ms, triangles: b.triangles, drawCallsReported: b.drawCalls, size: b.size || null, specType: family === "ship" ? "ship" : spec.type, clips: K.clips === undefined ? null : K.clips };
+        b.object3d.updateMatrixWorld(true);
+        const box3 = new THREE.Box3().setFromObject(b.object3d), s3 = box3.getSize(new THREE.Vector3());
+        out.b3.box = { x: s3.x, y: s3.y, z: s3.z };
+        if (K.mr) {
+          const scene = new THREE.Scene();
+          scene.add(new THREE.HemisphereLight(0xffffff, 0x404040, 1.2));
+          scene.add(b.object3d);
+          const sph = box3.getBoundingSphere(new THREE.Sphere());
+          const cam = new THREE.PerspectiveCamera(40, 1, 0.01, 1000);
+          cam.position.set(sph.center.x + sph.radius * 1.6, sph.center.y + sph.radius * 1.2, sph.center.z + sph.radius * 2.2);
+          cam.lookAt(sph.center);
+          K.mr.info.reset();
+          K.mr.render(scene, cam);
+          out.b3.drawCalls = K.mr.info.render.calls;
+          out.b3.renderedTriangles = K.mr.info.render.triangles;
+          scene.remove(b.object3d);
+        }
+        if (typeof b.dispose === "function") b.dispose();
+      } catch (e) { out.b3 = { ok: false, who, error: `${who} build failed: ${e && e.message}` }; }
+    }
+  }
+  try { if (img && typeof img.close === "function") img.close(); } catch (e) { /* ignore */ }
   K.head.textContent = title;
   K.cap.textContent = caption;
+  // The phone's result card: no spec given, so render.js finds it by the drawing's hash (entity messages, else GET /ship-spec).
   try { out.preview = await K.preview.show({ image: url, kind, color }); } catch (e) { out.preview = { ok: false, error: String(e && e.message) }; }
   await new Promise((r) => setTimeout(r, settleMs));
   return out;
@@ -535,8 +603,14 @@ async function browserPhase(built) {
       ["tv", tv, { quality: "big", previewQuality: "big" }],
       ["phone", phone, { quality: "lite", previewQuality: "phone" }],
     ];
+    const family = x.kind === "ship" ? "ship" : "body";
+    // v1.4: what the screens should build. A ship spec → ship3d.js. A body spec → entity3d.js, but only for a drawing shown as the
+    // spec's own type (render.js entIsBodySpec): in --mock every explorer answer is the dev kit's "person" (so its body spec is
+    // a person) while the browsers build the drawing as its expected type (car, bike...): those keep inflate.js (n/a here).
+    const spec3d = family === "ship" ? (isShipSpec(x.spec) ? x.spec : null) : (isBodySpec(x.spec) ? x.spec : null);
+    const previewWants3d = family === "ship" ? !!spec3d : !!spec3d && spec3d.type === x.type;
     await Promise.all(runs.map(async ([screen, page, q]) => {
-      const arg = { url: x.image, kind: x.type, color: x.color, ...q, title: x.type.toUpperCase(), caption, settleMs: 900 };
+      const arg = { url: x.image, kind: x.type, color: x.color, ...q, title: x.type.toUpperCase(), caption, settleMs: 900, spec: spec3d, family };
       let r;
       try { r = await page.evaluate(pageBuild, arg); } catch (err) { r = { ok: false, error: `evaluate failed: ${String(err.message).split("\n")[0]}` }; }
       const n = r || {};
@@ -545,6 +619,9 @@ async function browserPhase(built) {
         quality: q.quality, triangles: n.triangles ?? null, drawCalls: n.drawCalls ?? null, meshes: n.meshes ?? null, buildMs: round(n.buildMs), inflateMs: round(n.inflateMs), loadMs: round(n.loadMs),
         sizeM: n.size ? { x: round(n.size.x, 2), y: round(n.size.y, 2), z: round(n.size.z, 2) } : null, scaleM: round(m, 2), expectedM: EXPECTED_M[x.type], axis: measuredAxis(x.type),
         wheels: n.wheels ?? null, preview: n.preview || null, error: n.error || null,
+        b3: n.b3 ? { who: n.b3.who || null, ok: n.b3.ok, triangles: n.b3.triangles ?? null, drawCalls: n.b3.drawCalls ?? null, drawCallsReported: n.b3.drawCallsReported ?? null,
+          buildMs: round(n.b3.buildMs), ms: round(n.b3.ms), specType: n.b3.specType || null, sizeM: n.b3.size ? { x: round(n.b3.size.x, 2), y: round(n.b3.size.y, 2), z: round(n.b3.size.z, 2) } : null,
+          boxM: n.b3.box ? { x: round(n.b3.box.x, 2), y: round(n.b3.box.y, 2), z: round(n.b3.box.z, 2) } : null, clips: n.b3.clips ?? null, error: n.b3.error || null } : null,
       };
       check(`${screen}: built by inflate.js`, n.ok === true && Number.isFinite(n.triangles), n.error || "");
       check(`${screen}: preview card shows it as a ${x.type}`, !!n.preview && n.preview.ok === true && n.preview.kind === x.type, n.preview ? `ok ${n.preview.ok} kind ${n.preview.kind} ${n.preview.error || ""}` : "no preview");
@@ -555,12 +632,51 @@ async function browserPhase(built) {
       const tol = SIZE_TOL[x.type] || 0.25, want = EXPECTED_M[x.type];
       check(`${screen}: scale`, Number.isFinite(m) && want ? Math.abs(m - want) <= want * tol : false, `${round(m, 2)} m ${measuredAxis(x.type)} vs ${want} m ± ${Math.round(tol * 100)}%`);
       check(`${screen}: build time`, Number.isFinite(n.buildMs) ? n.buildMs <= BUILD_MS_TARGET[screen] : null, `${round(n.buildMs)} ms (target ≤ ${BUILD_MS_TARGET[screen]} ms)`, "soft");
+      // v1.4: the 3D builders. Built directly from the server's spec (numbers), and the preview card's own choice (by hash).
+      const who = family === "ship" ? "ship3d.js" : "entity3d.js";
+      if (spec3d) {
+        const b = n.b3 || {};
+        const t3 = family === "ship" ? "ship" : b.specType || spec3d.type;
+        check(`${screen}: built by ${who} from the spec (v1.4)`, b.ok === true && Number.isFinite(b.triangles), b.ok ? `${b.triangles} tris, ${round(b.ms)} ms (${t3})` : b.error || "no 3D build");
+        const budget3 = TRI_BUDGET_3D[q.quality] + TRI_SLACK;
+        check(`${screen}: ${who} triangles within the ${q.quality} budget`, Number.isFinite(b.triangles) && b.triangles <= budget3, `${b.triangles} ≤ ${budget3}`);
+        check(`${screen}: ${who} draw calls`, Number.isFinite(b.drawCalls) ? b.drawCalls <= DRAW_CALLS.hard : null, `${b.drawCalls} rendered, ${b.drawCallsReported} reported (hard ≤ ${DRAW_CALLS.hard})`);
+        check(`${screen}: ${who} draw calls (its contract ≤ ${DRAW_CALLS_3D})`, Number.isFinite(b.drawCalls) ? b.drawCalls <= DRAW_CALLS_3D : null, `${b.drawCalls} rendered, ${b.drawCallsReported} reported`, "soft");
+        const m3 = measured3d(t3, b.size || b.box), want3 = EXPECTED_3D[t3];
+        check(`${screen}: ${who} scale`, Number.isFinite(m3) && want3 ? m3 >= want3[0] && m3 <= want3[1] : false, `${round(m3, 2)} m (${t3}: ${want3 ? `${round(want3[0], 2)}..${round(want3[1], 2)}` : "?"} m; box ${JSON.stringify(b.box ? { x: round(b.box.x, 2), y: round(b.box.y, 2), z: round(b.box.z, 2) } : null)})`);
+        check(`${screen}: ${who} build time`, Number.isFinite(b.buildMs) ? b.buildMs <= BUILD_MS_TARGET[screen] : null, `${round(b.buildMs)} ms (its own ${round(b.ms)} ms; target ≤ ${BUILD_MS_TARGET[screen]} ms)`, "soft");
+      }
+      const pv = n.preview || {};
+      check(`${screen}: preview card builds it with ${who} (v1.4)`, previewWants3d ? pv.ok === true && pv[family === "ship" ? "ship3d" : "entity3d"] === true : null,
+        previewWants3d ? `ship3d ${pv.ship3d} entity3d ${pv.entity3d}, ${pv.triangles} tris, ${round(pv.ms)} ms` : `n/a: ${spec3d ? `the server's body spec is a ${spec3d.type}, the drawing is shown as a ${x.type}` : "no spec on the answer"}: inflate.js fallback (acceptable)`);
       const file = `${x.id}-${screen}.png`;
       await page.screenshot({ path: path.join(SHOTS, file), timeout: 10000, scale: "css" }).then(() => { rec.shots.push(`dev/v13-entity/shots/${file}`); b.shots.push(`dev/v13-entity/shots/${file}`); })
         .catch((e) => check(`${screen}: screenshot`, false, e.message.split("\n")[0], "soft"));
     }));
     const tvN = rec.numbers.tv || {}, phN = rec.numbers.phone || {};
     log(`  ${x.id.padEnd(22)} ${x.type.padEnd(9)} TV ${String(tvN.triangles).padStart(5)} tris ${String(tvN.drawCalls).padStart(2)} calls ${String(tvN.buildMs).padStart(6)} ms ${String(tvN.scaleM).padStart(5)} m | phone ${String(phN.triangles).padStart(5)} tris ${String(phN.drawCalls).padStart(2)} calls ${String(phN.buildMs).padStart(6)} ms ${String(phN.scaleM).padStart(5)} m`);
+    const d3 = (N) => (N.b3 ? `${N.b3.who} ${N.b3.specType} ${N.b3.triangles} tris ${N.b3.drawCalls} calls ${N.b3.buildMs} ms` : "no spec");
+    const pv = (N) => (N.preview ? (N.preview.ship3d ? "ship3d" : N.preview.entity3d ? "entity3d" : "inflate") : "-");
+    log(`  ${"".padEnd(22)} 3D: TV ${d3(tvN)} (preview ${pv(tvN)}) | phone ${d3(phN)} (preview ${pv(phN)})`);
+  }
+  // v1.4: what the TV game itself built (render.js DrawnCache, game._internals.drawn): soft, as it builds only what it shows.
+  if (hasGame) {
+    const cache = await tv.evaluate((list) => {
+      const d = window.__game && window.__game._internals && window.__game._internals.drawn;
+      if (!d || !d.map) return null;
+      const out = {};
+      for (const e of d.map.values()) for (const x of list) if (e && typeof e.url === "string" && e.url.includes(x.path)) (out[x.id] = out[x.id] || []).push({ kind: e.kind, state: e.state, ship3d: !!e.ship3d, entity3d: !!e.entity3d, spec: !!e.spec, built: !!e.result });
+      return out;
+    }, built.map((x) => ({ id: x.id, path: x.image.split("?")[0] }))).catch((e) => ({ error: String(e.message).split("\n")[0] }));
+    b.drawnCache = cache;
+    for (const x of built) {
+      const rec = report.drawings.find((r) => r.id === x.id);
+      const list = (cache && cache[x.id]) || [];
+      const done = list.filter((e) => e.built);
+      const want = x.kind === "ship" ? "ship3d" : "entity3d";
+      checker(rec.checks)(`tv game (DrawnCache) built it with ${want === "ship3d" ? "ship3d.js" : "entity3d.js"}`, !x.spec || !done.length ? null : done.some((e) => e[want]),
+        !cache ? "no game._internals.drawn" : done.length ? JSON.stringify(done) : `not built by the TV game yet (${list.length} entr${list.length === 1 ? "y" : "ies"})`, "soft");
+    }
   }
   const pageErrors = consoleErrors.filter((c) => c.kind === "pageerror");
   gcheck("no page errors (TV, phone)", pageErrors.length === 0, pageErrors.map((c) => `${c.screen}: ${c.text}`).join(" | "));
@@ -659,6 +775,10 @@ async function main() {
       await sleep(300);
       const hit = tvStream.world.find((r) => r.t >= hookAt && r.m.island && Array.isArray(r.m.island.parked) && r.m.island.parked.some((c) => c && c.player === name && c.image === url));
       check("parked ship shows its drawing (TV stream)", !!hit, hit ? `world message ${hit.t - hookAt} ms after the landing started` : `no island.parked[] entry for ${name} with ${url}`);
+      if (rec.built.spec) {
+        const car = hit && hit.m.island.parked.find((c) => c && c.player === name && c.image === url);
+        check("parked ship carries its ship spec (v1.4, island.parked[].spec)", !!car && sameJson(car.spec, rec.built.spec), car ? specLine(car.spec) : "no parked entry");
+      }
     }
     for (const d of planetSet) {
       log(`explorer ${d.id} (${d.player})`);
@@ -673,7 +793,7 @@ async function main() {
     const rec = report.drawings.find((r) => r.id === d.id);
     if (rec.built && imageOk(rec.built.image, players[d.id].name, d.kind)) {
       const serverType = rec.answers.length ? rec.answers[rec.answers.length - 1].type : rec.built.type;
-      built.push({ id: d.id, name: players[d.id].name, kind: d.kind, type: rec.built.type, serverType, image: rec.built.image, card: rec.built.card, color: rec.built.color, lands: !!d.lands });
+      built.push({ id: d.id, name: players[d.id].name, kind: d.kind, type: rec.built.type, serverType, image: rec.built.image, card: rec.built.card, color: rec.built.color, lands: !!d.lands, spec: rec.built.spec || null });
     }
   }
 
@@ -694,8 +814,9 @@ async function main() {
         continue;
       }
       const ok = !!e && e.image === x.image && e.type === x.serverType;
-      report.late.stream.push({ id: x.id, player: x.name, ok, type: e && e.type, image: e && e.image });
+      report.late.stream.push({ id: x.id, player: x.name, ok, type: e && e.type, image: e && e.image, spec: e && e.spec ? specLine(e.spec) : null });
       gcheck(`late TV stream has ${x.id}`, ok, e ? `type ${e.type}, image ${e.image}` : "not in world.entities");
+      if (x.spec) gcheck(`late TV stream has ${x.id}'s spec (v1.4)`, !!e && sameJson(e.spec, x.spec), e ? specLine(e.spec) : "not in world.entities");
     }
   } catch (err) {
     gcheck("late TV stream", false, err.message);
@@ -759,7 +880,8 @@ for (const r of report.drawings) {
   const a = r.answers[0] || {};
   const tv = (r.numbers && r.numbers.tv) || {}, ph = (r.numbers && r.numbers.phone) || {};
   const what = r.http && r.http.ok === false ? `refused: "${r.http.message}"` : `${a.type || "-"} [${(a.unlocked || []).map((u) => u.verb).join(" ")}]`;
-  console.log(`${r.pass ? "PASS" : "FAIL"} ${r.id.padEnd(26)} ${String(r.model || "").padEnd(9)} ${what}${tv.triangles ? ` · TV ${tv.triangles} tris ${tv.scaleM} m · phone ${ph.triangles} tris ${ph.buildMs} ms` : ""}`);
+  const s3 = tv.b3 || ph.b3 ? ` · 3D ${(tv.b3 || ph.b3).who} ${(tv.b3 || ph.b3).specType}: TV ${tv.b3 ? tv.b3.triangles : "-"} tris ${tv.b3 ? tv.b3.buildMs : "-"} ms · phone ${ph.b3 ? ph.b3.triangles : "-"} tris ${ph.b3 ? ph.b3.buildMs : "-"} ms` : "";
+  console.log(`${r.pass ? "PASS" : "FAIL"} ${r.id.padEnd(26)} ${String(r.model || "").padEnd(9)} ${what}${tv.triangles ? ` · TV ${tv.triangles} tris ${tv.scaleM} m · phone ${ph.triangles} tris ${ph.buildMs} ms` : ""}${s3}`);
   for (const f of r.failed) console.log(`     ✗ ${f}`);
 }
 for (const c of globalChecks.filter((c) => c.ok === false)) console.log(`${c.level === "hard" ? "FAIL" : "warn"} ${c.name}: ${c.detail}`);

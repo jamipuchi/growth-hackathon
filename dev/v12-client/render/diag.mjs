@@ -79,7 +79,7 @@ async function main() {
     log(`${name}: ` + JSON.stringify(Object.fromEntries(Object.entries(out.phases[name]).map(([k, v]) => [k, { info: v.infoCalls, scene: v.sceneCalls, over: v.passesOverhead, tris: v.infoTris }]))));
   };
   await dump("lobby");
-  await post(base, "/start"); await sleep(5000);
+  await post(base, "/start", { countdown: false }); await sleep(5000);   // v1.4: no 3-2-1
   const state = await hook.state(base), b = state.boss;
   let k = 0;
   for (const n of Object.keys(state.players)) await hook.teleport(base, { player: n, near: { x: b.x, y: b.y, z: b.z }, distance: b.radius + 45 + (k++ % 9) * 12, face: { x: b.x, y: b.y, z: b.z }, heal: true });

@@ -202,8 +202,8 @@ async function hostStart(big) {
     const btn = big.locator(sel).first();
     try { await btn.waitFor({ state: "visible", timeout: 1500 }); await btn.click({ timeout: 2000 }); log(`big screen: clicked START (${sel})`); return `click ${sel}`; } catch {}
   }
-  const r = await post("/start", {});
-  log(`no START button on the big screen: POST /start → ${r.status}`);
+  const r = await post("/start", { countdown: false });   // v1.4: the button plays the server's 3-2-1; the fallback starts at once
+  log(`no START button on the big screen: POST /start {countdown:false} → ${r.status}`);
   return `post ${r.status}`;
 }
 

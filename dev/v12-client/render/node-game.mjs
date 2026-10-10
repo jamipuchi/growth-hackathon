@@ -120,5 +120,22 @@ for (const mode of ["phone", "big"]) {
   ok(game.hud().followed && game.hud().followed.startsWith("bot"), "TV: with bots only, a bot is followed");
   game.dispose();
 }
+// v1.4: the server's 3-2-1 (phase "countdown": tick.countdown 3, 2, 1, clock = seconds left before GO), then GO, on both screens
+for (const mode of ["phone", "big"]) {
+  console.log(`countdown phase (v1.4) ${mode}`);
+  T.entReset({});
+  const game = R.startGame({ canvas, screen: mode, view: mode === "phone" ? "chase" : "spectator", player: mode === "phone" ? "me" : null });
+  const h = game._internals.handle;
+  h(worldMsg());
+  const ps = [P("me", 0, 0), P("ana", 10, 0), ...Array.from({ length: 4 }, (_, i) => P(`bot${i + 1}`, i * 6, -50, { bot: true }))];
+  const T0 = Date.now();
+  let err = null;
+  try { for (let i = 0; i < 6; i++) h(tickMsg(T0 - 600 + i * 70, ps, { phase: "countdown", countdown: 3 - Math.floor(i / 2), clock: 2.9 - i * 0.4 })); step(20); } catch (e) { err = e; }
+  ok(!err, `${mode}: 20 frames over phase countdown ticks`, err && err.stack);
+  ok(game.hud().phase === "countdown", `${mode}: hud().phase is countdown during the 3-2-1`, game.hud().phase);
+  try { for (let i = 0; i < 4; i++) h(tickMsg(T0 + 3000 + i * 70, ps, { phase: "playing", clock: 0.05 + i * 0.07, left: 240 })); step(20); } catch (e) { err = e; }
+  ok(!err && game.hud().phase === "playing", `${mode}: countdown → playing (GO): the frame loop goes on`, err ? err.stack : game.hud().phase);
+  game.dispose();
+}
 console.log(`\n${fails ? "FAIL" : "PASS"}: ${checks - fails}/${checks} checks`);
 process.exit(fails ? 1 : 0);

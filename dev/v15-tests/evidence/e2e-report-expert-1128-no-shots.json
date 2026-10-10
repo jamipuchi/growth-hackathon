@@ -1,0 +1,805 @@
+{
+  "mode": "full",
+  "route": "expert",
+  "bots": 24,
+  "port": 8490,
+  "measuredAt": "2026-10-10T09:28:08.950Z",
+  "wallSeconds": 200.4,
+  "roundSeconds": 189.8,
+  "roundClock": 185.9,
+  "winner": "e2e",
+  "result": {
+    "round": 1,
+    "reason": "chests",
+    "winner": "e2e",
+    "scores": [
+      [
+        "e2e",
+        25010
+      ],
+      [
+        "bot2",
+        80
+      ],
+      [
+        "bot15",
+        70
+      ],
+      [
+        "bot18",
+        70
+      ],
+      [
+        "bot3",
+        60
+      ],
+      [
+        "bot19",
+        60
+      ],
+      [
+        "bot1",
+        40
+      ],
+      [
+        "bot16",
+        40
+      ],
+      [
+        "bot9",
+        30
+      ],
+      [
+        "bot10",
+        30
+      ],
+      [
+        "bot13",
+        30
+      ],
+      [
+        "bot14",
+        30
+      ],
+      [
+        "bot21",
+        30
+      ],
+      [
+        "bot5",
+        20
+      ],
+      [
+        "bot8",
+        20
+      ],
+      [
+        "bot22",
+        20
+      ],
+      [
+        "bot24",
+        20
+      ],
+      [
+        "bot11",
+        10
+      ],
+      [
+        "bot20",
+        10
+      ],
+      [
+        "bot4",
+        0
+      ],
+      [
+        "bot6",
+        0
+      ],
+      [
+        "bot7",
+        0
+      ],
+      [
+        "bot12",
+        0
+      ],
+      [
+        "bot17",
+        0
+      ],
+      [
+        "bot23",
+        0
+      ]
+    ]
+  },
+  "leaderboard": [
+    {
+      "name": "e2e",
+      "stars": 1,
+      "total": 25010
+    },
+    {
+      "name": "bot2",
+      "stars": 0,
+      "total": 80
+    },
+    {
+      "name": "bot15",
+      "stars": 0,
+      "total": 70
+    },
+    {
+      "name": "bot18",
+      "stars": 0,
+      "total": 70
+    },
+    {
+      "name": "bot3",
+      "stars": 0,
+      "total": 60
+    },
+    {
+      "name": "bot19",
+      "stars": 0,
+      "total": 60
+    },
+    {
+      "name": "bot1",
+      "stars": 0,
+      "total": 40
+    },
+    {
+      "name": "bot16",
+      "stars": 0,
+      "total": 40
+    },
+    {
+      "name": "bot9",
+      "stars": 0,
+      "total": 30
+    },
+    {
+      "name": "bot10",
+      "stars": 0,
+      "total": 30
+    },
+    {
+      "name": "bot13",
+      "stars": 0,
+      "total": 30
+    },
+    {
+      "name": "bot14",
+      "stars": 0,
+      "total": 30
+    },
+    {
+      "name": "bot21",
+      "stars": 0,
+      "total": 30
+    },
+    {
+      "name": "bot5",
+      "stars": 0,
+      "total": 20
+    },
+    {
+      "name": "bot8",
+      "stars": 0,
+      "total": 20
+    },
+    {
+      "name": "bot22",
+      "stars": 0,
+      "total": 20
+    },
+    {
+      "name": "bot24",
+      "stars": 0,
+      "total": 20
+    },
+    {
+      "name": "bot11",
+      "stars": 0,
+      "total": 10
+    },
+    {
+      "name": "bot20",
+      "stars": 0,
+      "total": 10
+    },
+    {
+      "name": "bot4",
+      "stars": 0,
+      "total": 0
+    },
+    {
+      "name": "bot6",
+      "stars": 0,
+      "total": 0
+    },
+    {
+      "name": "bot7",
+      "stars": 0,
+      "total": 0
+    },
+    {
+      "name": "bot12",
+      "stars": 0,
+      "total": 0
+    },
+    {
+      "name": "bot17",
+      "stars": 0,
+      "total": 0
+    },
+    {
+      "name": "bot23",
+      "stars": 0,
+      "total": 0
+    }
+  ],
+  "chestsOpened": 16,
+  "startVia": "click #startBtn",
+  "countdown": {
+    "expected": true,
+    "phases": [
+      "lobby",
+      "countdown",
+      "playing"
+    ],
+    "values": [
+      3,
+      2,
+      1
+    ],
+    "seconds": 3.11,
+    "phone": {
+      "digits": [
+        "3",
+        "2",
+        "1",
+        "GO!"
+      ],
+      "phases": [
+        "lobby",
+        "countdown",
+        "playing"
+      ]
+    },
+    "big": {
+      "digits": [
+        "3",
+        "2",
+        "1",
+        "GO!"
+      ],
+      "phases": [
+        ""
+      ]
+    },
+    "serverOk": true,
+    "phoneOk": true,
+    "bigOk": true
+  },
+  "specs": {
+    "ship": 1,
+    "explorer": 1,
+    "entities": 3
+  },
+  "entities": [
+    {
+      "t": 0,
+      "type": "ship",
+      "verbs": [],
+      "source": "plain",
+      "assisted": []
+    },
+    {
+      "t": 0,
+      "type": "ship",
+      "verbs": [
+        "shoot",
+        "boost",
+        "shield",
+        "land",
+        "scan",
+        "flare",
+        "mine",
+        "emp"
+      ],
+      "source": "devkit",
+      "assisted": []
+    },
+    {
+      "t": 36.78,
+      "type": "person",
+      "verbs": [
+        "shoot",
+        "shield",
+        "dig",
+        "drill",
+        "jump",
+        "scan",
+        "flare",
+        "tractor",
+        "inkbomb",
+        "takeoff"
+      ],
+      "source": "devkit",
+      "assisted": []
+    }
+  ],
+  "refusedToasts": 0,
+  "gates": {
+    "ended": true,
+    "openedAChest": true,
+    "unlockedByDrawing": true,
+    "validMessages": true,
+    "won": true,
+    "bossDownEarly": true,
+    "countdown": true,
+    "phoneCountdown": true,
+    "noConsoleErrors": true,
+    "phonePerf": true
+  },
+  "pass": true,
+  "bossDownClock": 19.57,
+  "firstChestClock": 43.93,
+  "stageClocks": {
+    "playing": 0,
+    "nebula": 5.9,
+    "flare": 5.9,
+    "scan": 6.87,
+    "shooting": 7.73,
+    "boss": 11.57,
+    "bossDead": 19.57,
+    "bossDown": 19.63,
+    "button-land": 22.87,
+    "planet": 32.03,
+    "land-pressed": 32.7,
+    "landed": 35.77,
+    "explorer": 37.47,
+    "chest": 39,
+    "button-drill": 39,
+    "drilling": 39.47,
+    "chest-1": 43.93,
+    "chest-2": 50.67,
+    "button-dig": 53.97,
+    "digging": 54.17,
+    "chest-3": 58.17,
+    "chest-4": 68.27,
+    "chest-5": 76.4,
+    "chest-6": 86.93,
+    "chest-7": 93.97,
+    "chest-8": 106.4,
+    "chest-9": 116,
+    "chest-10": 122.77,
+    "chest-11": 133.3,
+    "chest-12": 141.33,
+    "chest-13": 154.23,
+    "chest-14": 164.77,
+    "chest-15": 173.17,
+    "assists": 180.07,
+    "chest-16": 185.9,
+    "ended": 185.9
+  },
+  "stages": {
+    "playing": {
+      "t": 0,
+      "clock": 0
+    },
+    "nebula": {
+      "t": 6.07,
+      "clock": 5.9
+    },
+    "flare": {
+      "t": 6.07,
+      "clock": 5.9
+    },
+    "scan": {
+      "t": 7.08,
+      "clock": 6.87
+    },
+    "shooting": {
+      "t": 7.96,
+      "clock": 7.73
+    },
+    "boss": {
+      "t": 11.94,
+      "clock": 11.57
+    },
+    "bossDead": {
+      "t": 20.17,
+      "clock": 19.57,
+      "hp": 5520
+    },
+    "bossDown": {
+      "t": 20.23,
+      "clock": 19.63
+    },
+    "button-land": {
+      "t": 23.58,
+      "clock": 22.87,
+      "ms": 306,
+      "actions": [
+        "land"
+      ]
+    },
+    "planet": {
+      "t": 33,
+      "clock": 32.03
+    },
+    "land-pressed": {
+      "t": 33.67,
+      "clock": 32.7
+    },
+    "landed": {
+      "t": 36.84,
+      "clock": 35.77
+    },
+    "explorer": {
+      "t": 38.61,
+      "clock": 37.47,
+      "choice": "default"
+    },
+    "chest": {
+      "t": 40.15,
+      "clock": 39,
+      "id": 4,
+      "kind": "rock"
+    },
+    "button-drill": {
+      "t": 40.18,
+      "clock": 39,
+      "ms": 305,
+      "actions": [
+        "drill"
+      ]
+    },
+    "drilling": {
+      "t": 40.62,
+      "clock": 39.47
+    },
+    "chest-1": {
+      "t": 45.24,
+      "clock": 43.93
+    },
+    "chest-2": {
+      "t": 52.23,
+      "clock": 50.67
+    },
+    "button-dig": {
+      "t": 55.61,
+      "clock": 53.97,
+      "ms": 305,
+      "actions": [
+        "dig"
+      ]
+    },
+    "digging": {
+      "t": 55.77,
+      "clock": 54.17
+    },
+    "chest-3": {
+      "t": 59.9,
+      "clock": 58.17
+    },
+    "chest-4": {
+      "t": 70.3,
+      "clock": 68.27
+    },
+    "chest-5": {
+      "t": 78.74,
+      "clock": 76.4
+    },
+    "chest-6": {
+      "t": 89.56,
+      "clock": 86.93
+    },
+    "chest-7": {
+      "t": 96.64,
+      "clock": 93.97
+    },
+    "chest-8": {
+      "t": 109.27,
+      "clock": 106.4
+    },
+    "chest-9": {
+      "t": 118.98,
+      "clock": 116
+    },
+    "chest-10": {
+      "t": 125.85,
+      "clock": 122.77
+    },
+    "chest-11": {
+      "t": 136.51,
+      "clock": 133.3
+    },
+    "chest-12": {
+      "t": 144.64,
+      "clock": 141.33
+    },
+    "chest-13": {
+      "t": 157.72,
+      "clock": 154.23
+    },
+    "chest-14": {
+      "t": 168.37,
+      "clock": 164.77
+    },
+    "chest-15": {
+      "t": 176.91,
+      "clock": 173.17
+    },
+    "assists": {
+      "t": 183.88,
+      "clock": 180.07
+    },
+    "chest-16": {
+      "t": 189.77,
+      "clock": 185.9
+    },
+    "ended": {
+      "t": 189.77,
+      "clock": 185.9,
+      "reason": "chests",
+      "winner": "e2e",
+      "top": [
+        [
+          "e2e",
+          25010
+        ],
+        [
+          "bot2",
+          80
+        ],
+        [
+          "bot15",
+          70
+        ]
+      ]
+    }
+  },
+  "generates": [
+    {
+      "gate": "ship",
+      "ok": true,
+      "ms": 0,
+      "status": 200,
+      "actions": [
+        "shoot",
+        "boost",
+        "shield",
+        "land",
+        "scan",
+        "flare",
+        "mine",
+        "emp"
+      ],
+      "source": "devkit"
+    },
+    {
+      "gate": "explorer",
+      "ok": true,
+      "ms": 0,
+      "status": 200,
+      "actions": [
+        "shoot",
+        "shield",
+        "dig",
+        "drill",
+        "jump",
+        "scan",
+        "flare",
+        "tractor",
+        "inkbomb",
+        "takeoff"
+      ],
+      "source": "devkit"
+    },
+    {
+      "gate": "land",
+      "ok": true,
+      "ms": 306,
+      "status": 200,
+      "actions": [
+        "land"
+      ],
+      "drawingsLeft": {
+        "space": 2,
+        "planet": 5
+      }
+    },
+    {
+      "gate": "drill",
+      "ok": true,
+      "ms": 305,
+      "status": 200,
+      "actions": [
+        "drill"
+      ],
+      "drawingsLeft": {
+        "space": 2,
+        "planet": 4
+      }
+    },
+    {
+      "gate": "dig",
+      "ok": true,
+      "ms": 305,
+      "status": 200,
+      "actions": [
+        "dig"
+      ],
+      "drawingsLeft": {
+        "space": 2,
+        "planet": 3
+      }
+    }
+  ],
+  "deaths": 0,
+  "ticks": 2951,
+  "invalidMessages": {
+    "world": 0,
+    "tick": 0
+  },
+  "announces": [
+    {
+      "t": 0,
+      "text": "Round 1 starts in 3…",
+      "big": false
+    },
+    {
+      "t": 0,
+      "text": "Round 1: REACH THE BOSS",
+      "big": true
+    },
+    {
+      "t": 20.17,
+      "text": "💥 e2e destroyed the boss! +1000. LAND ON THE PLANET",
+      "big": true
+    },
+    {
+      "t": 36.78,
+      "text": "e2e landed on the planet. OPEN THE CHESTS",
+      "big": false
+    },
+    {
+      "t": 45.24,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 52.23,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 59.9,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 70.3,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 78.74,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 89.56,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 96.64,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 109.27,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 118.98,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 125.85,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 136.51,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 144.64,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 157.72,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 168.37,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 176.91,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 183.81,
+      "text": "3:00! The chests glow. Missing a skill? Draw it now!",
+      "big": true
+    },
+    {
+      "t": 189.77,
+      "text": "💎 e2e opened a chest (+1500)",
+      "big": false
+    },
+    {
+      "t": 189.77,
+      "text": "🏆 Every chest is open! e2e wins round 1 with 25010 points",
+      "big": true
+    }
+  ],
+  "issues": [],
+  "readyVia": "tap",
+  "toasts": [],
+  "perf": {
+    "source": "perf.log",
+    "phone": {
+      "samples": 39,
+      "fps": 60,
+      "fpsMin": 59.4,
+      "low1": 52.5,
+      "low1Min": 25.6,
+      "p90ms": 17.9,
+      "calls": 37.1,
+      "callsMax": 43,
+      "tris": 62142,
+      "trisMax": 67095,
+      "tier": 0,
+      "size": "844x390@2",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Apple",
+      "contractErrors": []
+    },
+    "big": {
+      "samples": 39,
+      "fps": 120,
+      "fpsMin": 118.8,
+      "low1": 101.3,
+      "low1Min": 57.7,
+      "p90ms": 9.1,
+      "calls": 38.3,
+      "callsMax": 44,
+      "tris": 158174,
+      "trisMax": 183040,
+      "tier": 0,
+      "size": "1440x900@1",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/",
+      "contractErrors": []
+    },
+    "note": "Phone numbers come from WebKit on a desktop Mac emulating an iPhone 13 (844x390 @3x): a proxy only, confirm on a real iPhone."
+  },
+  "consoleErrors": [],
+  "shots": [],
+  "video": null
+}

@@ -25,7 +25,7 @@ import path from "path";
 import {
   args, makeLogger, installSignalHandlers, runCleanups, waitForCalm, vitals, startServer, seedPlayers, keepAlive, launchBig, launchPhoneBrowser, watchPage,
   shootPage, readGamePerf, summarisePerf, sp, drawSample, hook, input, axis, post, killBoss, pressLand, waitForMode, landParty, standByRockChest,
-  waitFor, sleep, withTimeout, summariseConsole, browserPaths, HERE, ROOT,
+  waitFor, sleep, withTimeout, summariseConsole, browserPaths, HERE, ROOT, waitForPlay,
 } from "./lib.mjs";
 import { makeSheets } from "./sheet.mjs";
 
@@ -292,13 +292,14 @@ step("big-lobby-25", { uses: ["big"], files: ["big-lobby-25"] }, async () => {
 step("big-start-click", { uses: ["big"], deps: [], files: ["big-start-click"] }, async () => {
   let how = "click #startBtn";
   if (await sp.visible(T.big, "startBtn") || (await waitFor(() => sp.visible(T.big, "startBtn"), { timeout: 8000 }))) {
-    try { await T.big.locator("#startBtn").click({ timeout: 4000 }); } catch (e) { how = `click failed (${e.message.split("\n")[0]}): POST /start`; await post(T.server.base, "/start"); }
-  } else { miss("#startBtn"); how = "POST /start (no #startBtn)"; await post(T.server.base, "/start"); }
+    try { await T.big.locator("#startBtn").click({ timeout: 4000 }); } catch (e) { how = `click failed (${e.message.split("\n")[0]}): POST /start {countdown:false}`; await post(T.server.base, "/start", { countdown: false }); }
+  } else { miss("#startBtn"); how = "POST /start {countdown:false} (no #startBtn)"; await post(T.server.base, "/start", { countdown: false }); }
   note(how);
   await sleep(700);
-  await shoot("big-start-click", "big");
-  const st = await waitFor(async () => { const s = await hook.state(T.server.base); return s && s.phase === "playing" ? s : null; }, { timeout: 5000 });
-  note(`phase after START: ${st ? st.phase : "not playing"}`);
+  await shoot("big-start-click", "big");   // v1.4: the button's START shows the server's 3-2-1 here (phase countdown)
+  const during = await hook.state(T.server.base);
+  const st = await waitForPlay(T.server.base, 9000);
+  note(`phase 0.7 s after START: ${during ? during.phase : "?"}; then: ${st ? st.phase : "not playing"}`);
   if (!st) throw new Error("the round did not start");
 });
 

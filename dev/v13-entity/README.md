@@ -2,11 +2,41 @@
 
 Owner, 10 Oct 08:55: "make sure the character / entity creation works asap". This kit proves it end to end, for every
 entity type, the way a phone does it, against the real server, then builds every drawn entity on the TV and the phone.
-Built in the implement-only round: **not run yet**. The test round runs it as soon as v1.3 lands.
+Built in the implement-only round; brought up to v1.4 (ship3d.js / entity3d.js) and run in the v15 test round
+(`--mock`, 10 Oct 11:01: 681/699 checks, 1 hard failure = a real ship3d.js lite budget overshoot, 23 s; see
+dev/v15-tests/notes-tours.md).
+
+## v1.4: drawn ships and explorers become 3D models built from their parts
+
+Since v1.4 a ship entity carries `entity.spec` (astra-ship.js: hull, wings, engines...) and an explorer entity a body spec
+(astra-body.js: type, head, limbs, items...). render.js builds a ship with a spec with ship3d.js and an explorer whose body
+spec has its type with entity3d.js (DrawnCache and `createEntityPreview(...).show()` → `{ ok, triangles, ms, ship3d, entity3d }`);
+inflate.js stays the fallback. Under `ASTRA_MOCK=1` there is no model spec, so astra.js makes one from the entity's own parts
+(`fromEntity`, `source: "entity"`). The kit now checks, per drawing:
+- HTTP: **ship / body spec on the answer** (a body spec of the answer's type), **spec served at /ship-spec?v=<hash>**,
+  **entity message on the phone / TV stream carries the spec**, the lander's **parked ship carries its ship spec**
+  (`island.parked[].spec`), **late TV stream has <id>'s spec** (`world.entities[].spec`).
+- Browsers (TV quality big, phone lite): the spec **built by ship3d.js / entity3d.js** directly (the same module instances as
+  render.js), its **triangles within the budget** (their own Q: lite 2.6k, phone 4k, big 5k, + 400 slack), **draw calls**
+  (hard ≤ 12, soft ≤ 3 = their contract), **scale** (ship 3.2 m ± 20% longest horizontal side; person 1.8 m ± 10% tall plus up to
+  0.5 m of head gear: entity3d.js puts the scan antenna on the head; car 4.0 ± 15%; bike 2.0 ± 20%; animal 1.3-2.3 m ± 10%;
+  blob 1.4 ± 25%), soft **build time**; and **preview card builds it with ship3d.js / entity3d.js** (the phone's result card:
+  `show({ image, kind, color })` with no spec, so render.js finds it by the drawing's hash: entity messages, else GET
+  /ship-spec). For an explorer shown as another type than its body spec (in `--mock` every explorer is the dev kit's person,
+  but the browsers build each drawing as its expected car / bike / animal / blob) that check is n/a: inflate.js is the
+  acceptable fallback there. Soft: **tv game (DrawnCache) built it with ship3d.js / entity3d.js** (`game._internals.drawn`;
+  n/a when the TV game has not built that model).
+- The inflate.js checks are unchanged (it is still the fallback and what shows while a spec loads).
+- Replay mode caveat: server.cjs answers OpenAI by image only, so the v1.4 spec calls (`text.format.name` ship_spec /
+  body_spec) get the recorded ENTITY answer of that image, normalised into a spec labelled `source: "model"`. Use `--mock` for
+  the v1.4 spec path until server.cjs answers spec requests on their own (e.g. 599, which makes astra.js fall back to
+  `fromEntity`).
+- WebKit is pinned to webkit-2311 when it exists (as dev/v11-client/lib.mjs: webkit-2368 hangs playwright-core 1.58.2).
 
 ## Run
 
 ```
+node dev/v13-entity/run.mjs --mock --port 8497   # the v15 test round's run: ASTRA_MOCK=1, about 25 s
 node dev/v13-entity/run.mjs                      # replay (default): no network, no key, about 1 min
 node dev/v13-entity/run.mjs --mock               # ASTRA_MOCK=1: Astra's offline dev kit for every drawing
 node dev/v13-entity/run.mjs --real 20            # the real gpt-6.1-sol for at most 20 HTTP requests, the rest replayed

@@ -1,4 +1,4 @@
-// Node-only check of the v1.3 kill-feed parser (bigscreen-extras.js parseFeedLine → .fun segments). For the testing round:
+// Node-only check of the v1.3 kill-feed parser (+ the v1.4 world.js wordings) (bigscreen-extras.js parseFeedLine → .fun segments). For the testing round:
 //   node dev/v13-tv/unit-feed.mjs        (exit 1 on a failed case)
 import { parseFeedLine, DEFAULT_LINES } from "../../bigscreen-extras.js";
 const S = (segs) => (segs || []).map((s) => (s.c ? `[${s.c}]` : s.n != null ? `<${s.n}>` : s.p != null ? `!${s.p}!` : s.t)).join(" ");
@@ -16,6 +16,10 @@ const cases = [
   ["\u{1F527} ana's ship was wrecked", "[wreck] <ana> !SHIP WRECKED!!"],
   ["\u{1F48E} bob opened a chest (+1500)", "[chest] <bob> !OPENED A CHEST! +1500!"],
   ["ana landed on the planet. DIG UP A CHEST", "[planet] <ana> LANDED ON THE PLANET"],
+  // v1.4 world.js wording (v14-fix-server): the boss lines and the landing line the TV now receives
+  ["\u{1F4A5} bob destroyed the boss! +1000. LAND ON THE PLANET", "<bob> [boss] !LAST HIT! BOSS DOWN!!"],
+  ["\u{1F4A5} bob stole the boss from ana! +1000. LAND ON THE PLANET", "<bob> [boss] !STOLE THE LAST HIT FROM! <ana>"],
+  ["ana landed on the planet. OPEN THE CHESTS", "[planet] <ana> LANDED ON THE PLANET"],
   ["\u{1F3C6} Time's up! bob wins round 3 with 4800 points", "[win] <bob> !WINS THE ROUND!!"],
 ];
 let bad = 0;

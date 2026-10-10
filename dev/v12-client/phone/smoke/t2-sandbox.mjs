@@ -71,10 +71,17 @@ if (run("main")) {
   await sleep(1600);
   ok("cooldown over: emp usable again, chip gone", last() === "heal" && !$("cd").querySelector(".cdchip") && !S.cool.emp, [last(), $("cd").children.length]);
 
-  // hold tip (first 3 holds)
+  // hold tip (first 3 holds). v1.3: the very first touch of a control shows its name and what it does at once, for 2.2 s, and
+  // a release does not hide it (controller.html tipOnPress / tipAt sticky); later holds show it after 450 ms, gone on release.
   SB.last.press("shoot");
   await sleep(520);
   ok("hold >= 450 ms: what it does", $("tip").classList.contains("on") && $("tipTitle").textContent === "SHOOT" && $("tipText").textContent === "Hold to fire your gun", [$("tipTitle").textContent, $("tipText").textContent]);
+  SB.last.release("shoot");
+  ok("v1.3 first touch: the tip stays its 2.2 s after a quick release", $("tip").classList.contains("on"));
+  await sleep(1800);
+  ok("v1.3 first touch: then it goes by itself", !$("tip").classList.contains("on"));
+  SB.last.press("shoot"); await sleep(520);
+  ok("second hold >= 450 ms: the tip again", $("tip").classList.contains("on") && $("tipTitle").textContent === "SHOOT");
   SB.last.release("shoot");
   ok("released: the hold tip goes", !$("tip").classList.contains("on"));
   SB.last.press("emp"); await sleep(520);

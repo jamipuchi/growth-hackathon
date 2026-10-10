@@ -420,18 +420,38 @@ export async function waitFor(fn, { timeout = 10000, every = 250 } = {}) {
   }
 }
 const hasVerbs = (st, player, verbs) => { const p = st && st.players[player]; return !!p && verbs.every((v) => (p.verbs || []).includes(v)); };
+const inPlay = (st) => !!st && (st.phase === "playing" || st.phase === "assists");
 
-// Makes sure the player's ship can shoot and land: a plain ship gets them from the assists (hook: assistsAt 0).
+// v1.4: POST /start plays the server's 3-2-1 first (phase "countdown", Contract.ROUND.countdownSeconds: nothing moves or fires,
+// bots included) unless { countdown: false }. Starts the round (no countdown by default: tools keep their timing) and waits
+// until it plays. Returns { status, json, phase, ms }: phase "playing" (or "assists"), null when it never got there.
+export async function startRound(base, { countdown = false, timeout = 10000 } = {}) {
+  const t0 = Date.now();
+  const r = await post(base, "/start", { countdown });
+  const st = r.status === 200 ? await waitForPlay(base, timeout) : null;
+  return { status: r.status, json: r.json, phase: st ? st.phase : null, ms: Date.now() - t0 };
+}
+// Waits (state hook) until the round plays: a 3-2-1 still running is waited out. Returns the state or null.
+export async function waitForPlay(base, timeout = 10000) {
+  return waitFor(async () => { const s = await hook.state(base); return inPlay(s) ? s : null; }, { timeout, every: 100 });
+}
+
+// Makes sure the player's ship can shoot and land. v1.4 (owner, 10 Oct 09:05) never grants a skill, not even at 3:00, so a ship
+// without them is redrawn: a dev-kit ship (ASTRA_MOCK answers every gate skill; one of the player's 5 space drawings). A
+// "plain…" player stays plain (server.cjs forces it): null.
 async function ensureShipSkills(base, player, log) {
   let st = await hook.state(base);
   if (hasVerbs(st, player, ["shoot", "land"])) return st;
-  log(`${player} has no weapon / landing legs: switching the assists on`);
-  await hook.round(base, { assistsAt: 0 });
+  log(`${player} has no weapon / landing legs: drawing a dev-kit ship`);
+  const g = await post(base, "/generate", { player, kind: "ship", image: Samples.dataUrl("ship", 9), source: "draw", speculative: false, requestId: `lib-ship-${player}-${Date.now()}` });
+  if (!g.json || !g.json.ok) { log(`${player}: the ship drawing was refused: ${(g.json && g.json.error) || g.status}`); return null; }
   return waitFor(async () => { const s = await hook.state(base); return hasVerbs(s, player, ["shoot", "land"]) ? s : null; }, { timeout: 4000 });
 }
 
 // The player's ship kills the boss: boss HP down to a couple of hits, ship put 25 m off its surface facing it, SHOOT held.
+// Needs a started round: a 3-2-1 still running is waited out first (the countdown pins every ship to its spawn slot).
 export async function killBoss(base, player, { log = () => {} } = {}) {
+  if (!(await waitForPlay(base, 8000))) throw new Error("the round is not playing (POST /start first)");
   let st = await ensureShipSkills(base, player, log);
   if (!st) throw new Error("hooks unavailable or the ship cannot shoot");
   if (st.boss && st.boss.dead) return st;
@@ -448,7 +468,7 @@ export async function killBoss(base, player, { log = () => {} } = {}) {
 
 // Puts the ship 22 m inside the landing range of the planet, facing it, and presses LAND (the landing shot plays 3 s).
 export async function pressLand(base, player, { log = () => {} } = {}) {
-  const st = await hook.state(base);
+  const st = await waitForPlay(base, 8000);
   if (!st || !st.planet) throw new Error("no planet yet (the boss is alive)");
   const p = st.planet;
   await hook.teleport(base, { player, near: { x: p.x, y: p.y, z: p.z }, distance: p.radius + 22, face: { x: p.x, y: p.y, z: p.z }, heal: true });

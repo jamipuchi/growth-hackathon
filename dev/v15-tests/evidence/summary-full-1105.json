@@ -1,0 +1,215 @@
+{
+  "root": "/private/tmp/claude-501/v15-tests",
+  "commit": "a1bf429 v1.4 entity3d: drawn astronauts, animals, cars, bike",
+  "at": "2026-10-10T09:16:45.752Z",
+  "seconds": 690,
+  "pass": false,
+  "counts": {
+    "pass": 18,
+    "fail": 7,
+    "timeout": 0,
+    "skip": 0
+  },
+  "suites": [
+    {
+      "group": "unit",
+      "name": "astra-test",
+      "result": "FAIL",
+      "seconds": 11,
+      "code": "1",
+      "detail": "  astra controller ana miss model=6ms error: bad model output: not JSON"
+    },
+    {
+      "group": "unit",
+      "name": "gen-regression",
+      "result": "FAIL",
+      "seconds": 11,
+      "code": "1",
+      "detail": "note: 103 fixture(s) were recorded with a different prompt than astra.js sends today (older wording, or no pad); the replay checks the code "
+    },
+    {
+      "group": "unit",
+      "name": "vocab",
+      "result": "PASS",
+      "seconds": 0,
+      "code": "0",
+      "detail": "vocab: 415 checks passed"
+    },
+    {
+      "group": "unit",
+      "name": "anim-wire",
+      "result": "PASS",
+      "seconds": 0,
+      "code": "0",
+      "detail": "9 passed"
+    },
+    {
+      "group": "unit",
+      "name": "sim",
+      "result": "FAIL",
+      "seconds": 6,
+      "code": "1",
+      "detail": "31/32 passed at 2026-10-10T09:05:44.436Z"
+    },
+    {
+      "group": "unit",
+      "name": "live",
+      "result": "PASS",
+      "seconds": 17,
+      "code": "0",
+      "detail": "  generate (mock): ok, broadcast, 2 MB limit → 413"
+    },
+    {
+      "group": "unit",
+      "name": "rules",
+      "result": "PASS",
+      "seconds": 0,
+      "code": "0",
+      "detail": "17 tests passed"
+    },
+    {
+      "group": "unit",
+      "name": "astra-entity",
+      "result": "PASS",
+      "seconds": 0,
+      "code": "0",
+      "detail": "4/4 passed"
+    },
+    {
+      "group": "unit",
+      "name": "https",
+      "result": "PASS",
+      "seconds": 0,
+      "code": "0",
+      "detail": "ALL PASS in 160 ms"
+    },
+    {
+      "group": "client",
+      "name": "render-unit",
+      "result": "FAIL",
+      "seconds": 9,
+      "code": "1",
+      "detail": "FAIL: 86/87 checks"
+    },
+    {
+      "group": "client",
+      "name": "render-smoke",
+      "result": "PASS",
+      "seconds": 0,
+      "code": "0",
+      "detail": "PASS: 65/65 checks"
+    },
+    {
+      "group": "client",
+      "name": "render-game",
+      "result": "PASS",
+      "seconds": 0,
+      "code": "0",
+      "detail": "PASS: 72/72 checks"
+    },
+    {
+      "group": "client",
+      "name": "tv-feed",
+      "result": "PASS",
+      "seconds": 0,
+      "code": "0",
+      "detail": "all OK"
+    },
+    {
+      "group": "client",
+      "name": "tv-parse",
+      "result": "PASS",
+      "seconds": 0,
+      "code": "0",
+      "detail": ""
+    },
+    {
+      "group": "client",
+      "name": "tv-extras",
+      "result": "PASS",
+      "seconds": 0,
+      "code": "0",
+      "detail": "ALL OK"
+    },
+    {
+      "group": "client",
+      "name": "tv-page",
+      "result": "PASS",
+      "seconds": 3,
+      "code": "0",
+      "detail": "ALL OK"
+    },
+    {
+      "group": "client",
+      "name": "ship-spec",
+      "result": "PASS",
+      "seconds": 0,
+      "code": "0",
+      "detail": "all 7 passed"
+    },
+    {
+      "group": "client",
+      "name": "phone-join",
+      "result": "PASS",
+      "seconds": 2,
+      "code": "0",
+      "detail": "13 checks, 0 failed"
+    },
+    {
+      "group": "client",
+      "name": "phone-sandbox",
+      "result": "PASS",
+      "seconds": 12,
+      "code": "0",
+      "detail": "53 checks, 0 failed"
+    },
+    {
+      "group": "client",
+      "name": "phone-mischief",
+      "result": "PASS",
+      "seconds": 35,
+      "code": "0",
+      "detail": "78 checks, 0 failed"
+    },
+    {
+      "group": "client",
+      "name": "harness-self",
+      "result": "FAIL",
+      "seconds": 23,
+      "code": "1",
+      "detail": "1 of 40 checks FAILED"
+    },
+    {
+      "group": "e2e",
+      "name": "e2e-expert",
+      "result": "FAIL",
+      "seconds": 195,
+      "code": "1",
+      "detail": "round 183.9 s (chests), winner e2e, chests 16, boss 19.77 s, 3-2-1 321, phone 58.7/29.4 fps; FAILED phonePerf"
+    },
+    {
+      "group": "e2e",
+      "name": "e2e-regular",
+      "result": "PASS",
+      "seconds": 253,
+      "code": "0",
+      "detail": "round 242.8 s (time), winner e2e, chests 12, boss 28.27 s, 3-2-1 321, phone 58.8/31.4 fps; all 8 gates"
+    },
+    {
+      "group": "kit",
+      "name": "entity-kit",
+      "result": "FAIL",
+      "seconds": 23,
+      "code": "1",
+      "detail": "FAIL: 681/699 checks passed, 1 hard failed, 0 soft, 17 n/a · 13/14 drawings · mock · 22.4 s"
+    },
+    {
+      "group": "tour",
+      "name": "phone-tour",
+      "result": "PASS",
+      "seconds": 89,
+      "code": "0",
+      "detail": "[v13-phone   89.4s] 80/80 checks passed, 0 step(s) failed, 89 s; report: dev/v13-phone/tour-report.json"
+    }
+  ]
+}

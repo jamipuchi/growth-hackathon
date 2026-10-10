@@ -1,0 +1,21 @@
+{
+  "measuredAt": null,
+  "summary": {
+    "pass": false,
+    "checks": 699,
+    "passed": 681,
+    "hardFailed": 1,
+    "softFailed": 0,
+    "notApplicable": 17,
+    "seconds": 22.4,
+    "drawings": 14,
+    "drawingsPassed": 13
+  },
+  "counts": null,
+  "kit": "v13-entity",
+  "startedAt": "2026-10-10T09:14:53.778Z",
+  "mode": "mock",
+  "realCap": 0,
+  "port": 8496,
+  "finishedAt": "2026-10-10T09:15:16.128Z"
+}

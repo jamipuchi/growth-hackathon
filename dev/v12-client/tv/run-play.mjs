@@ -42,7 +42,7 @@ try {
   await input(BASE, "ana", "ready", true);
   await sleep(2500);
   await step("lobby-shot", () => shootPage(page, path.join(OUT, "lobby-2humans-1440x900.png")));
-  const st = await post(BASE, "/start", {});
+  const st = await post(BASE, "/start", { countdown: false });   // v1.4: no 3-2-1, play starts at once
   log("start:", st.status);
   await page.waitForSelector("#hud[data-view=play]", { timeout: 15000 });
   await sleep(4500);

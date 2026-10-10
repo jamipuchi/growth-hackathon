@@ -7,8 +7,10 @@
 // Timeline (seconds of play after START; the big screen is not opened, so only the phone loads the laptop):
 //   0-4 warm-up (page settles) · 4-34 window A: cruising in space with everyone nearby · 36 burst: the same drawings are
 //   posted again for every seeded player (the same image URL: a page must NOT rebuild those meshes), then new drawings for
-//   a few (new image URLs: rebuilds) · 44 assists: every plain ship gets shoot + land (entity re-sent for each) ·
-//   36-62 window C: burst + assists + the arrival at the boss.
+//   a few (new image URLs: rebuilds) · 44 assists (v1.4: no skill is ever granted, the chests glow and late "DRAW X" hints go
+//   out; v1.1-v1.2 re-sent every plain ship's entity here) · 36-62 window C: burst + assists + the arrival at the boss.
+// v1.4: the round starts with POST /start { countdown: false } (no 3-2-1: the timeline starts at GO), and the world holds at
+// most 25 players, humans and bots together (a joining human takes the newest bot's seat): config.shipsInWorld is the count.
 // Per window: frames, fps, 1% low, p90 and worst frame (from a requestAnimationFrame sampler inside the page) and the page's
 // own POST /perf numbers (calls, tris, tier, dpr). Also entity messages seen on /events per window, console errors, page crash.
 // Writes dev/v11-client/perf25.json. Exit 0 = the page survived (no crash, still answering) and the budgets hold
@@ -19,7 +21,7 @@ import fs from "fs";
 import path from "path";
 import {
   args, makeLogger, installSignalHandlers, runCleanups, waitForCalm, vitals, startServer, seedPlayers, keepAlive, launchPhoneBrowser, watchPage, sp,
-  openEvents, post, summarisePerf, browserPaths, summariseConsole, sleep, withTimeout, Samples, HERE, ROOT,
+  openEvents, post, summarisePerf, browserPaths, summariseConsole, sleep, withTimeout, Samples, HERE, ROOT, startRound, hook,
 } from "./lib.mjs";
 
 const A = args();
@@ -95,9 +97,11 @@ async function main() {
   await page.waitForFunction(() => window.__sp.screen === "play", null, { timeout: 10000 });
   log("phone joined and is in play (plain ship, default controller); starting the round");
   await sleep(2000);
-  const started = await post(base, "/start");
-  if (started.status !== 200) throw new Error(`POST /start answered ${started.status}`);
+  const started = await startRound(base);   // { countdown: false }: play starts at once
+  if (started.status !== 200 || !started.phase) throw new Error(`POST /start {countdown:false} answered ${started.status}, phase ${started.phase}`);
   const tStart = Date.now();
+  const inWorld = await hook.state(base);
+  result.config.shipsInWorld = inWorld ? Object.keys(inWorld.players).length : null;   // v1.4: at most 25 (bots give way)
   const at = (s) => tStart + s * 1000;
   const waitUntilPlay = async (s) => { const ms = at(s) - Date.now(); if (ms > 0) await sleep(ms); };
   // Laptop safety: stop (partial report) when the watchdog raises memory pressure + HOLD during the run.
@@ -174,7 +178,7 @@ async function main() {
   await runCleanups();
 
   const g = result.gates;
-  console.log(`\n==== perf25 ${result.pass ? "PASS" : "FAIL"} (${result.config.ships} ships: ${BOTS} bots + ${SEED + PLAIN} seeded + the phone) ====`);
+  console.log(`\n==== perf25 ${result.pass ? "PASS" : "FAIL"} (${result.config.shipsInWorld ?? "?"} ships in the world; asked ${BOTS} bots + ${SEED + PLAIN} seeded + the phone, 25 at most) ====`);
   console.log(`window A  ${result.windowA.fps} fps, 1% low ${result.windowA.low1}, p90 ${result.windowA.p90ms} ms, worst ${result.windowA.worstMs} ms, ${result.windowA.framesOver50ms} frames > 50 ms; calls ${result.windowA.posted && result.windowA.posted.calls} (max ${result.windowA.posted && result.windowA.posted.callsMax}), tris ${result.windowA.posted && Math.round(result.windowA.posted.tris / 1000)}k, tier ${result.windowA.posted && result.windowA.posted.tier}`);
   console.log(`window C  ${result.windowC.fps} fps, 1% low ${result.windowC.low1}, p90 ${result.windowC.p90ms} ms, worst ${result.windowC.worstMs} ms, ${result.windowC.framesOver50ms} frames > 50 ms; calls ${result.windowC.posted && result.windowC.posted.calls} (max ${result.windowC.posted && result.windowC.posted.callsMax}), tris ${result.windowC.posted && Math.round(result.windowC.posted.tris / 1000)}k; ${result.windowC.entityMessagesOnEvents} entity messages, assists ${result.assists.seenOnEvents ? `at ${result.assists.atSecondsOfPlay} s` : "not seen"}`);
   console.log(`survived: ${g.survivedWithoutCrash} (crashed ${result.crashed}); gates ${Object.entries(g).map(([k, v]) => `${k}=${v}`).join(" ")}`);

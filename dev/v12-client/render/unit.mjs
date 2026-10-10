@@ -150,6 +150,10 @@ await event("lobby → playing: one start", () => { worldSound.phase = "lobby"; 
 await event("playing → playing: nothing", () => tickWith({ phase: "playing" }), [], 0);
 await event("playing → scoreboard: one win", () => tickWith({ phase: "scoreboard" }), ["win"]);
 await event("scoreboard → scoreboard: nothing", () => tickWith({ phase: "scoreboard" }), [], 0);
+// v1.4: START plays the server's 3-2-1 first (phase "countdown", contract.js ROUND.countdownSeconds): lobby → countdown → playing.
+// The pages beep each number; the start fanfare is render.js's, once, at GO (space.html and controller.html never play it).
+await event("v1.4 lobby → countdown: nothing yet (the pages beep the 3-2-1)", () => { worldSound.phase = "lobby"; tickWith({ phase: "countdown" }); }, [], 0);
+await event("v1.4 countdown → playing (GO!): one start", () => tickWith({ phase: "playing" }), ["start"]);
 tickWith({ phase: "playing" });
 await sleep(40);
 await event("boost on: one boost", () => tickWith({}, { boost: true }), ["boost"]);

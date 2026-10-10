@@ -10,7 +10,13 @@
 //   regular: draws nothing up front; waits at each gate for the hint (part first, then button), then DRAW_S drawing.
 //           Passes when the round ends with a chest opened before the 4:00 cap.
 //   Both: valid messages, a skill unlocked by drawing, no console errors, the phone perf gate.
-//   node dev/e2e/run.mjs [--port 8162] [--bots 24] [--route expert|regular] [--video] [--mock] [--headed] [--no-shots]
+//   v1.4: the big screen's START plays the server's 3-2-1 (phase "countdown", tick.countdown 3, 2, 1) before "playing": the run
+//   waits for GO, and gates "countdown" (the server counted 3, 2, 1 and went to playing ~3 s later) and "phoneCountdown" (the
+//   phone showed the digits). Without a START button the fallback POSTs /start { countdown: false } (play starts at once).
+//   Phone screenshots stall WebKit for a frame or two, so the phone is shot at the key stages only (--all-phone-shots: every
+//   stage, as before v1.4) and the phonePerf gate reads the perf windows that overlap no phone screenshot (when at least 5
+//   do; else every window). --no-shots takes none at all.
+//   node dev/e2e/run.mjs [--port 8162] [--bots 24] [--route expert|regular] [--video] [--mock] [--headed] [--no-shots] [--all-phone-shots]
 //   --mock   run dev/render/mock-server.js instead of server.js: only checks that both pages load, render and post perf
 // Writes dev/e2e/report.json (and report-<route>.json), dev/e2e/shots/<route>/<stage>-{big,phone}.png,
 // dev/e2e/perf.log, dev/e2e/server.log and with --video dev/e2e/video/*.webm. Exit code 0 only when the report passes.
@@ -43,6 +49,7 @@ const MOCK = flag("mock");
 const VIDEO = flag("video");
 const HEADED = flag("headed");
 const NO_SHOTS = flag("no-shots");   // WebKit screenshots stall the phone for a frame or two: use for a clean 1% low
+const ALL_PHONE_SHOTS = flag("all-phone-shots");
 const ME = "e2e";
 const BASE = `http://127.0.0.1:${PORT}`;
 const ROUND_LIMIT_S = Number(opt("limit", 270));                    // the round ends by 4:00; fail after 4:30 of play
@@ -161,15 +168,23 @@ async function openPages() {
   return { big, phone };
 }
 
-// Screenshots are queued per page so the driver never waits for them.
+// Screenshots are queued per page so the driver never waits for them. The phone is shot at the key stages only (each WebKit
+// screenshot stalls it, which the phone perf windows would count); shotSpans keeps when each phone screenshot ran.
 const shotQueue = { big: Promise.resolve(), phone: Promise.resolve() };
 const shots = [];
+const shotSpans = [];
+const PHONE_STAGES = new Set(["lobby", "countdown", "playing", "boss", "shooting", "bossDead", "planet", "land-pressed", "landed", "digging", "drilling", "chest-1", "assists", "ended", "scoreboard"]);
 function shoot(pages, stage) {
   if (NO_SHOTS) return;
   fs.mkdirSync(SHOTS, { recursive: true });
   for (const screen of ["big", "phone"]) {
+    if (screen === "phone" && !ALL_PHONE_SHOTS && !PHONE_STAGES.has(stage) && !/^(hint|drew|button)-/.test(stage)) continue;
     const file = path.join(SHOTS, `${stage}-${screen}.png`);
-    shotQueue[screen] = shotQueue[screen].then(() => pages[screen].screenshot({ path: file, timeout: 8000 }).then(() => shots.push(path.relative(ROOT, file))).catch((e) => log(`screenshot ${stage}-${screen} failed: ${e.message.split("\n")[0]}`)));
+    shotQueue[screen] = shotQueue[screen].then(() => {
+      const t0 = Date.now();
+      return pages[screen].screenshot({ path: file, timeout: 8000 }).then(() => shots.push(path.relative(ROOT, file))).catch((e) => log(`screenshot ${stage}-${screen} failed: ${e.message.split("\n")[0]}`))
+        .finally(() => { if (screen === "phone") shotSpans.push([t0, Date.now()]); });
+    });
   }
 }
 
@@ -185,16 +200,53 @@ async function phoneJoin(phone) {
   return player;
 }
 
-// The host's START: the big screen's button when the client track has one, else POST /start.
+// The host's START: the big screen's button when the client track has one (v1.4: it plays the server's 3-2-1 first), else
+// POST /start { countdown: false } (no button: play starts at once, as the old POST did).
 async function hostStart(big) {
   for (const sel of ["#startBtn", "#start", "button:has-text('START')"]) {
     const btn = big.locator(sel).first();
     try { await btn.waitFor({ state: "visible", timeout: 1500 }); await btn.click({ timeout: 2000 }); log(`big screen: clicked START (${sel})`); return `click ${sel}`; } catch {}
   }
-  const r = await post("/start", {});
-  log(`no START button on the big screen: POST /start → ${r.status}`);
+  const r = await post("/start", { countdown: false });
+  log(`no START button on the big screen: POST /start {countdown:false} → ${r.status}`);
   return `post ${r.status}`;
 }
+
+// v1.4 countdown: what the server sent between START and GO (ticks of phase "countdown" carry tick.countdown 3, 2, 1).
+function countdownWatch(onFirst) {
+  const C = { phases: [], values: [], firstAt: null, goAt: null, last: null };
+  C.onMessage = (m) => {
+    if (m.type !== "tick") return;
+    if (m.phase !== C.last) { C.last = m.phase; if (C.goAt == null) C.phases.push(m.phase); }
+    if (m.phase === "countdown") {
+      if (C.firstAt == null) { C.firstAt = Date.now(); onFirst(); }
+      if (Number.isInteger(m.countdown) && C.values[C.values.length - 1] !== m.countdown) C.values.push(m.countdown);
+    } else if ((m.phase === "playing" || m.phase === "assists") && C.goAt == null) C.goAt = Date.now();
+  };
+  return C;
+}
+// What each page showed meanwhile: the digits on screen (the phone's phone-extras.js overlay .pe-cd, the TV's #sting, or any
+// element named countdown) and the phone's body[data-phase]; a light 10 Hz poller that stops by itself after 15 s.
+const CD_SELECTORS = { phone: ".pe-cd.pe-on .pe-cd-n, [id*='countdown' i], [class*='countdown' i]", big: "#sting.on #stingBig, [id*='countdown' i], [class*='countdown' i]" };
+async function watchDigits(page, screen) {
+  await page.evaluate((sel) => {
+    const S = (window.__e2eCd = { digits: [], phases: [] });
+    const timer = setInterval(() => {
+      const ph = (document.body && document.body.dataset.phase) || "";
+      if (S.phases[S.phases.length - 1] !== ph) S.phases.push(ph);
+      for (const el of document.querySelectorAll(sel)) {
+        const t = (el.textContent || "").trim();
+        // on screen: laid out, and (where the browser can tell) not hidden by visibility or opacity on it or an ancestor
+        const shown = el.getClientRects().length && (typeof el.checkVisibility !== "function" || el.checkVisibility({ opacityProperty: true, visibilityProperty: true }));
+        if (t && t.length <= 4 && shown && S.digits[S.digits.length - 1] !== t) S.digits.push(t);
+      }
+    }, 100);
+    setTimeout(() => clearInterval(timer), 15000);
+  }, CD_SELECTORS[screen]).catch((e) => log(`${screen}: countdown watcher not installed: ${e.message.split("\n")[0]}`));
+}
+const readDigits = (page) => page.evaluate(() => window.__e2eCd || null).catch(() => null);
+// "3", "2", "1" in that order (at least two of them): the screen counted down.
+const countedDown = (digits) => { const d = (digits || []).filter((x) => /^[123]$/.test(x)).map(Number); return d.length >= 2 && d.every((x, i) => !i || x < d[i - 1]); };
 
 async function phoneReady(phone) {
   const btn = phone.locator("#readyBtn");
@@ -312,7 +364,14 @@ async function runMock(pages) {
 
 async function runRound(pages) {
   const { D, onMessage, lobbyDraws } = createDriver({ route: ROUTE, me: ME, drawSeconds: DRAW_S, now: Date.now, post, onStage: (name) => shoot(pages, name), log, Contract });
-  const stream = events(onMessage);
+  // the screenshot 1.2 s into the count (a "2"): at the first tick the pages may not have drawn it yet
+  const CD = countdownWatch(() => { log("phase countdown: the 3-2-1"); setTimeout(() => shoot(pages, "countdown"), 1200); });
+  const specs = { ship: 0, explorer: 0, entities: 0 };   // v1.4: drawn ships (ship3d.js) and explorers (entity3d.js) carry a spec
+  const stream = events((m) => {
+    CD.onMessage(m);
+    if (m.type === "entity" && Contract.cleanName(m.player) === ME && m.entity) { specs.entities++; if (m.entity.spec && typeof m.entity.spec === "object") specs[m.entity.type === "ship" ? "ship" : "explorer"]++; }
+    onMessage(m);
+  });
   const joined = await phoneJoin(pages.phone);
   if (joined !== ME) D.issues.push(`phone joined as ${joined}, expected ${ME}`);
   await sleep(500);
@@ -321,7 +380,26 @@ async function runRound(pages) {
   // expert: draws the ship and the explorer in the lobby (two of the space five), then the host presses START.
   await lobbyDraws();
   await sleep(1500);
+  await Promise.all([watchDigits(pages.phone, "phone"), watchDigits(pages.big, "big")]);
   D.startVia = await hostStart(pages.big);
+  // v1.4: START plays the server's 3-2-1 (phase "countdown", ROUND.countdownSeconds) before "playing": wait for GO.
+  const goWithin = (ROUND.countdownSeconds || 0) + 8;
+  for (const until = Date.now() + goWithin * 1000; !D.playingAt && Date.now() < until;) await sleep(100);
+  if (!D.playingAt) D.issues.push(`START did not reach phase playing within ${goWithin} s (phases ${CD.phases.join(" → ")})`);
+  await sleep(1500); // GO! on both screens
+  const [phoneCd, bigCd] = await Promise.all([readDigits(pages.phone), readDigits(pages.big)]);
+  const clicked = String(D.startVia).startsWith("click");
+  const secs = CD.firstAt && CD.goAt ? +((CD.goAt - CD.firstAt) / 1000).toFixed(2) : null;
+  D.countdown = {
+    expected: clicked, phases: CD.phases, values: CD.values, seconds: secs,
+    phone: phoneCd, big: bigCd,
+    // the server counted 3, 2, 1 and went to playing ~ROUND.countdownSeconds later (the POST fallback: no countdown phase at all)
+    serverOk: clicked ? CD.values.join(",") === "3,2,1" && secs != null && secs >= 2 && secs <= 4.5 : !CD.phases.includes("countdown") && !!D.playingAt,
+    phoneOk: clicked ? countedDown(phoneCd && phoneCd.digits) : true,
+    bigOk: clicked ? countedDown(bigCd && bigCd.digits) : true,
+  };
+  log(`countdown: server ${CD.values.join(",") || "-"} in ${secs ?? "-"} s (${CD.phases.join(" → ")}); phone showed ${JSON.stringify(phoneCd && phoneCd.digits)}, TV ${JSON.stringify(bigCd && bigCd.digits)}`);
+  D.specs = specs;
   // The explorer prompt after touchdown: v1 uses the default explorer.
   const explorerWatch = setInterval(async () => {
     const vis = await pages.phone.evaluate(() => { const e = document.getElementById("explorer"); return !!e && !e.classList.contains("hidden"); }).catch(() => false);
@@ -356,9 +434,16 @@ async function main() {
   const logged = MOCK ? [] : perfFromLog();
   const source = logged.length ? "perf.log" : "browser POST /perf";
   const samples = logged.length ? logged : perfSamples;
+  // A perf sample covers the PERF_POST_SECONDS before it was posted (perf.log: t; seen by the page: seen): the gate leaves out
+  // the windows a phone screenshot ran in (the harness's own stall), when at least 5 windows are clean.
+  const postMs = (Contract.PERF_POST_SECONDS || 5) * 1000;
+  const shotIn = (x) => { const t = Number(x.t || x.seen); return Number.isFinite(t) && shotSpans.some(([a, b]) => a < t + 300 && b > t - postMs - 300); };
   const perf = { source, phone: summarisePerf(samples, "phone"), big: summarisePerf(samples, "big"),
+    phoneWithoutShots: summarisePerf(samples.filter((x) => x.screen === "phone" && !shotIn(x)), "phone"), phoneShots: shotSpans.length,
     note: "Phone numbers come from WebKit on a desktop Mac emulating an iPhone 13 (844x390 @3x): a proxy only, confirm on a real iPhone." };
-  const phonePerfOk = !!perf.phone && perf.phone.fps >= 55 && perf.phone.low1 >= 30;
+  const gatePhone = perf.phoneWithoutShots && perf.phoneWithoutShots.samples >= 5 ? perf.phoneWithoutShots : perf.phone;
+  perf.gateOn = gatePhone === perf.phone ? "every window" : "the windows without a phone screenshot";
+  const phonePerfOk = !!gatePhone && gatePhone.fps >= 55 && gatePhone.low1 >= 30;
   const report = { mode: MOCK ? "mock" : "full", route: ROUTE, bots: BOTS, port: PORT, measuredAt: new Date().toISOString(), wallSeconds: +since() };
 
   if (MOCK) {
@@ -375,9 +460,11 @@ async function main() {
     report.leaderboard = D.leaderboard;
     report.chestsOpened = D.chestsOpened;
     report.startVia = D.startVia;
+    report.countdown = D.countdown || null;   // v1.4; big (the TV's digits) is informational: bigOk is not a gate
+    report.specs = D.specs || null;           // v1.4: my entity messages that carried a ship / body spec
     report.entities = D.entities;
     report.refusedToasts = D.refused;
-    report.gates = { ...verdict.gates, noConsoleErrors: consoleErrors.length === 0, phonePerf: phonePerfOk };
+    report.gates = { ...verdict.gates, countdown: !!(D.countdown && D.countdown.serverOk), phoneCountdown: !!(D.countdown && D.countdown.phoneOk), noConsoleErrors: consoleErrors.length === 0, phonePerf: phonePerfOk };
     report.pass = Object.values(report.gates).every(Boolean);
     report.bossDownClock = verdict.bossDown;
     report.firstChestClock = verdict.firstChest;
@@ -410,6 +497,7 @@ function printReport(r) {
   if (r.mode === "full") {
     line(`round: ${r.roundSeconds == null ? "did not end" : `ended after ${r.roundSeconds} s (clock ${r.roundClock}, ${r.result && r.result.reason})`}, winner ${r.winner || "-"}, my chests ${r.chestsOpened}, deaths ${r.deaths}, start via ${r.startVia}`);
     line(`boss down at clock ${r.bossDownClock ?? "-"} (maxHp ${r.stages.bossDead ? r.stages.bossDead.hp : "?"}), first chest at clock ${r.firstChestClock ?? "-"}`);
+    if (r.countdown) line(`countdown: server ${r.countdown.values.join(",") || "-"} in ${r.countdown.seconds ?? "-"} s, phone ${JSON.stringify(r.countdown.phone && r.countdown.phone.digits)}, TV ${JSON.stringify(r.countdown.big && r.countdown.big.digits)}${r.countdown.expected ? "" : " (POST fallback: no countdown expected)"}; specs ${JSON.stringify(r.specs)}`);
     line(`scores: ${r.result ? r.result.scores.slice(0, 5).map(([n, s]) => `${n} ${s}`).join(", ") : "-"}; gates ${JSON.stringify(r.gates)}`);
     line(`entities: ${r.entities.map((e) => `${e.t}s ${e.type} [${e.verbs.join(" ")}] ${e.source}`).join(" | ")}`);
     line(`stages: ${Object.entries(r.stages).map(([k, v]) => `${k} ${v.t}`).join(" · ")}`);
@@ -420,6 +508,7 @@ function printReport(r) {
     for (const c of r.checks) line(`${c.pass ? "PASS" : "FAIL"} ${c.name}${c.detail ? `  (${c.detail})` : ""}`);
   }
   line(`perf (${r.perf.source}) phone: ${pf(r.perf.phone)}`);
+  line(`perf (${r.perf.source}) phone, windows without a phone screenshot (${r.perf.phoneShots} shots; the gate reads ${r.perf.gateOn || "every window"}): ${pf(r.perf.phoneWithoutShots)}`);
   line(`perf (${r.perf.source}) big:   ${pf(r.perf.big)}`);
   line(`  ${r.perf.note}`);
   line(`console errors: ${r.consoleErrors.length}${r.consoleErrors.slice(0, 5).map((e) => `\n  [${e.screen} ${e.t}s] ${e.text}`).join("")}`);

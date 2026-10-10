@@ -43,7 +43,7 @@ async function main() {
   };
   await sleep(2500); // shaders, first inflates
   await window_("lobby", 8);
-  const st = await post(base, "/start"); log(`start: ${st.status}`);
+  const st = await post(base, "/start", { countdown: false }); log(`start: ${st.status}`);   // v1.4: no 3-2-1 (timed windows)
   await sleep(5000);
   await window_("cruise", 12);
   // everyone to the boss: bots included (the hook teleports any player by name)

@@ -31,9 +31,9 @@ feed.push("🧲 bob pulled ana in", "#0f0", names); // 6th line: the oldest QUIE
 items = [...feed.el.children];
 ok(items.length === 5, "still five after a sixth");
 ok(!items.some((i) => /BOT1 ✕|bot1.*bot2/i.test(i.textContent) && i.classList.contains("quiet")), "the quiet bot kill was dropped first");
-ok(items.some((i) => /scrambled/.test(i.textContent)), "the first human line is still there");
+ok(items.some((i) => /scrambled/i.test(i.textContent)), "the first human line is still there");   // v1.3 fun line: "ana [EMP] BUTTONS SCRAMBLED! bob"
 feed.push("🧲 bob pulled ana in", "#0f0", names); // dedupe
-ok(feed.el.children.length === 5 && [...feed.el.children].filter((i) => /pulled/.test(i.textContent)).length === 1, "the same line twice in a row is one line");
+ok(feed.el.children.length === 5 && [...feed.el.children].filter((i) => /pulled|yoink/i.test(i.textContent)).length === 1, "the same line twice in a row is one line");   // v1.3 fun line: "bob [PULL] YOINK! ana"
 feed.push("🏆 Time's up! ana wins round 3 with 4800 points", "#f00", names);
 ok(![...feed.el.children].some((i) => /🏆/.test(i.textContent)), "other emoji are dropped");
 feed.destroy();

@@ -1,0 +1,30 @@
+Space Party tests · a1bf429 v1.4 entity3d: drawn astronauts, animals, cars, bike · 2026-10-10T09:16:45.751Z · 690 s
+group   suite           result  time   numbers
+------------------------------------------------------------------------------------------------------------------------
+unit    astra-test      FAIL    11s      astra controller ana miss model=6ms error: bad model output: not JSON
+unit    gen-regression  FAIL    11s    note: 103 fixture(s) were recorded with a different prompt than astra.js sends today (older wording, or no pad); the replay checks the code 
+unit    vocab           PASS    0s     vocab: 415 checks passed
+unit    anim-wire       PASS    0s     9 passed
+unit    sim             FAIL    6s     31/32 passed at 2026-10-10T09:05:44.436Z
+unit    live            PASS    17s      generate (mock): ok, broadcast, 2 MB limit → 413
+unit    rules           PASS    0s     17 tests passed
+unit    astra-entity    PASS    0s     4/4 passed
+unit    https           PASS    0s     ALL PASS in 160 ms
+client  render-unit     FAIL    9s     FAIL: 86/87 checks
+client  render-smoke    PASS    0s     PASS: 65/65 checks
+client  render-game     PASS    0s     PASS: 72/72 checks
+client  tv-feed         PASS    0s     all OK
+client  tv-parse        PASS    0s     
+client  tv-extras       PASS    0s     ALL OK
+client  tv-page         PASS    3s     ALL OK
+client  ship-spec       PASS    0s     all 7 passed
+client  phone-join      PASS    2s     13 checks, 0 failed
+client  phone-sandbox   PASS    12s    53 checks, 0 failed
+client  phone-mischief  PASS    35s    78 checks, 0 failed
+client  harness-self    FAIL    23s    1 of 40 checks FAILED
+e2e     e2e-expert      FAIL    195s   round 183.9 s (chests), winner e2e, chests 16, boss 19.77 s, 3-2-1 321, phone 58.7/29.4 fps; FAILED phonePerf
+e2e     e2e-regular     PASS    253s   round 242.8 s (time), winner e2e, chests 12, boss 28.27 s, 3-2-1 321, phone 58.8/31.4 fps; all 8 gates
+kit     entity-kit      FAIL    23s    FAIL: 681/699 checks passed, 1 hard failed, 0 soft, 17 n/a · 13/14 drawings · mock · 22.4 s
+tour    phone-tour      PASS    89s    [v13-phone   89.4s] 80/80 checks passed, 0 step(s) failed, 89 s; report: dev/v13-phone/tour-report.json
+------------------------------------------------------------------------------------------------------------------------
+18 pass, 7 fail, 0 timeout, 0 skipped · logs /private/tmp/claude-501/v15t-scratch/full1

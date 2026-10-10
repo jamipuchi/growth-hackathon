@@ -68,6 +68,10 @@ export class Element {
   }
   prepend(...nodes) { for (const n of nodes.reverse()) { const node = typeof n === "string" ? new TextNode(n) : n; node.parentNode = this; this.childNodes.unshift(node); } }
   replaceChildren(...nodes) { this.childNodes.forEach((n) => (n.parentNode = null)); this.childNodes = []; this._inner = ""; this.append(...nodes); }
+  // v1.4 (phone-extras.js createCountdown swaps its number node): replaceChild / insertBefore / removeChild as in the DOM
+  replaceChild(n, old) { const i = this.childNodes.indexOf(old); if (i < 0) throw new Error("replaceChild: not a child"); if (n.parentNode) n.parentNode.childNodes.splice(n.parentNode.childNodes.indexOf(n), 1); const j = this.childNodes.indexOf(old); old.parentNode = null; n.parentNode = this; this.childNodes.splice(j, 1, n); this._inner = ""; return old; }
+  insertBefore(n, ref) { if (!ref) return this.appendChild(n); if (n.parentNode) n.parentNode.childNodes.splice(n.parentNode.childNodes.indexOf(n), 1); const i = this.childNodes.indexOf(ref); n.parentNode = this; this.childNodes.splice(i < 0 ? this.childNodes.length : i, 0, n); this._inner = ""; return n; }
+  removeChild(n) { const i = this.childNodes.indexOf(n); if (i >= 0) { this.childNodes.splice(i, 1); n.parentNode = null; } return n; }
   remove() { if (this.parentNode) { this.parentNode.childNodes.splice(this.parentNode.childNodes.indexOf(this), 1); this.parentNode = null; } }
   after(n) { if (this.parentNode) { const i = this.parentNode.childNodes.indexOf(this); n.parentNode = this.parentNode; this.parentNode.childNodes.splice(i + 1, 0, n); } }
   setAttribute(k, v) { this.attrs.set(k, String(v)); if (k === "class") this.className = v; }

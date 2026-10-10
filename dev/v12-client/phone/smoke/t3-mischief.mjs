@@ -148,7 +148,8 @@ if (run("moments")) {
   say("tester ✕ bot3"); ok("my kill of a bot: no points line", chip()[0] === "YOU GOT BOT3!" && chip()[1] === "", chip());
   await sleep(2600);
   say("bob ✕ ana"); ok("someone else's kill: nothing", chip()[3] === true);
-  say("Assists on: every gate skill is unlocked and the chests glow!"); ok("all powers on", chip()[0] === "ALL POWERS ON!" && chip()[2] === "violet", chip());
+  // v1.4+ (owner, 10 Oct 09:05): 3:00 gives no skill; world.js says "3:00! The chests glow. Missing a skill? Draw it now!"
+  say("3:00! The chests glow. Missing a skill? Draw it now!"); ok("3:00: the chests glow, draw what is missing (no ALL POWERS ON)", chip()[0] === "THE CHESTS GLOW!" && chip()[1] === "MISSING A SKILL? DRAW IT NOW" && chip()[2] === "violet", chip());
   await sleep(2600);
   say("🏆 TIME'S UP! bob wins round 1 with 4500 points"); ok("round winner: no chip (the results sheet says it)", chip()[3] === true);
 }

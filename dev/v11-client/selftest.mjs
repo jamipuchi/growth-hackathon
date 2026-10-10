@@ -6,10 +6,12 @@
 // files stay private; the generate overrides by player name (car, bike, dog, blob, plain, wrong, wrongsoft, slow, fail); Astra's
 // drawing copies stay out of the repo's controllers/ folder; seeding; the hooks: kill the boss, land, a landing party of
 // explorers (car, bike, quadruped), drill a rock chest open, the round hook (assists now, end now, scoreboard time).
+// v1.4: POST /start { countdown: false } starts at once (startRound); POST /start {} plays the server's 3-2-1 (phase countdown,
+// tick.countdown 3, 2, 1) and then plays; killBoss draws a dev-kit ship when the ship has no weapon (no free skills any more).
 // Exit code 0 when everything passes.
 import fs from "fs";
 import path from "path";
-import { args, makeLogger, installSignalHandlers, runCleanups, startServer, seedPlayers, request, get, post, hook, input, killBoss, pressLand, waitForMode, landParty, standByRockChest, waitFor, sleep, Samples, ROOT, HERE } from "./lib.mjs";
+import { args, makeLogger, installSignalHandlers, runCleanups, startServer, seedPlayers, request, get, post, hook, input, killBoss, pressLand, waitForMode, landParty, standByRockChest, waitFor, sleep, Samples, ROOT, HERE, startRound, waitForPlay, openEvents } from "./lib.mjs";
 
 const A = args();
 const log = makeLogger("selftest");
@@ -65,8 +67,14 @@ async function main() {
     check("wrong... controller is refused with looksLike entity", wrongC.ok === false && wrongC.looksLike === "entity" && wrongC.thing === "ship", JSON.stringify(wrongC));
     const soft = await gen("wrongsoftie", "ship");
     check("wrongsoft... is never refused, the ok answer carries looksLike", soft.ok === true && soft.looksLike === "controller");
-    const fail = await gen("failer", "ship");
-    check("fail... answers generation unavailable", fail.ok === false && /unavailable/.test(fail.error));
+    // A FINISHED ship / explorer never fails (v1.3, owner: "make sure the entity creation works"): server.js answers its
+    // fallback (fallback: true): v1.3-v1.4 the dev kit (source "devkit"); v1.5 (Codex QA M1) the plain entity, free (source
+    // "fallback", nothing unlocked, free: true, failed: "error"). A speculative read still gets Astra's error.
+    const fail = await gen("failer", "ship", { speculative: true });
+    check("fail... answers generation unavailable (a speculative read)", fail.ok === false && /unavailable/.test(fail.error), JSON.stringify(fail));
+    const failDone = await gen("failer", "ship");
+    const plainFallback = failDone.entity && failDone.entity.source === "fallback" && failDone.entity.unlocked.length === 0 && failDone.free === true;
+    check("fail... finished ship: server.js's fallback (v1.5 plain + free, or v1.4 dev kit)", failDone.ok === true && failDone.fallback === true && (plainFallback || failDone.entity.source === "devkit"), JSON.stringify(failDone && { ok: failDone.ok, fallback: failDone.fallback, free: failDone.free, failed: failDone.failed, error: failDone.error, source: failDone.entity && failDone.entity.source }));
     const t0 = Date.now();
     await gen("slowpoke", "ship", { speculative: true });
     check("slow... answers 2.5 s late", Date.now() - t0 >= 2400, `${Date.now() - t0} ms`);
@@ -87,7 +95,8 @@ async function main() {
 
     const lobby = await hook.state(base);
     check("state hook answers in the lobby", lobby && lobby.phase === "lobby" && lobby.boss && !lobby.boss.dead && lobby.chests.length >= 3, lobby && `${lobby.phase}, ${lobby.chests.length} chests`);
-    check("POST /start starts the round", (await post(base, "/start")).status === 200);
+    const started = await startRound(base);   // { countdown: false }
+    check("POST /start {countdown:false} starts the round at once", started.status === 200 && started.phase === "playing" && started.ms < 2000, `${started.status} ${started.phase} after ${started.ms} ms, answer ${JSON.stringify(started.json)}`);
     await sleep(800);
     const boss = await killBoss(base, "carol", { log });
     check("killBoss: the boss dies and the planet appears", boss && boss.boss.dead && boss.planet && boss.players.carol.score >= 1000, boss && `play clock ${boss.playT} s`);
@@ -115,6 +124,21 @@ async function main() {
     check("scoreboardSeconds 3 is read at run time: back in the lobby after ~3 s", !!back);
     const reset = await hook.round(base, { reset: true });
     check("round hook: reset restores the defaults", reset.round.assistsAt === 180 && reset.round.maxSeconds === 240 && reset.round.scoreboardSeconds === 10, JSON.stringify(reset.round));
+
+    // ---- v1.4: the big screen's START plays the server's 3-2-1 (phase "countdown") before "playing"
+    const ticks = [];
+    const ev = openEvents(base, (m) => { if (m.type === "tick") ticks.push({ at: Date.now(), phase: m.phase, countdown: m.countdown }); });
+    await sleep(400);
+    const cd = await post(base, "/start", {});
+    const go = await waitForPlay(base, 8000);
+    await sleep(200);
+    ev.close();
+    const during = ticks.filter((t) => t.phase === "countdown");
+    const values = [...new Set(during.map((t) => t.countdown))];
+    const firstPlay = ticks.find((t) => t.phase === "playing" && during.length && t.at > during[0].at);
+    const secs = during.length && firstPlay ? +((firstPlay.at - during[0].at) / 1000).toFixed(2) : null;
+    check("POST /start {} answers phase countdown (countdown 3)", cd.status === 200 && cd.json && cd.json.phase === "countdown" && cd.json.countdown === 3, `${cd.status} ${JSON.stringify(cd.json)}`);
+    check("the countdown ticks count 3, 2, 1, then phase playing about 3 s later", values.join(",") === "3,2,1" && !!go && secs >= 2.5 && secs <= 4, `${values.join(",")} then playing after ${secs} s`);
   } finally {
     await server.stop();
   }
@@ -123,7 +147,7 @@ async function main() {
     log("timing: a real --fast round (about 75 s)");
     const fast = await startServer({ port: PORT, bots: 2, serverArgs: ["--fast"], log });
     try {
-      await post(fast.base, "/start");
+      await startRound(fast.base);   // { countdown: false }: the play clock starts now
       const t = Date.now();
       const at = {};
       while (Date.now() - t < 70000 && !at.scoreboard) {

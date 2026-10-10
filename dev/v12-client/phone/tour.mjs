@@ -136,7 +136,7 @@ async function partA() {
   });
 
   await step("start-and-play", async () => {
-    const s = await post(base, "/start", {});
+    const s = await post(base, "/start", { countdown: false });   // v1.4: no 3-2-1 (dev/v13-phone/tour.mjs covers the countdown)
     check("round started", s.status === 200, s.json);
     await sp.waitStep(page, ["play"], 10000);
     await sleep(700);
@@ -369,7 +369,7 @@ async function partB() {
     await sp.waitStep(page, ["ship"], 12000);
     await ev(page, () => window.__spTest.go("play"));
     await sp.waitStep(page, ["wait", "play"], 8000);
-    await post(base, "/start", {});
+    await post(base, "/start", { countdown: false });
     await sp.waitStep(page, ["play"], 10000);
     await sleep(2500);
     const c = await ctlInfo(page);

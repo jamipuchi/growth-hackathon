@@ -1,0 +1,26 @@
+Space Party tests · a1bf429 v1.4 entity3d: drawn astronauts, animals, cars, bike · 2026-10-10T09:19:45.745Z · 130 s
+group   suite           result  time   numbers
+------------------------------------------------------------------------------------------------------------------------
+unit    astra-test      FAIL    12s    27/29 passed. cache hit 0.07 ms, mock 302 ms, timeout 4001 ms
+unit    gen-regression  FAIL    10s    103 cases replayed from 3 run(s), 103 recorded calls, 85 failure(s), 10253 ms
+unit    vocab           PASS    0s     vocab: 415 checks passed
+unit    anim-wire       PASS    0s     9 passed
+unit    sim             FAIL    6s     31/32 passed at 2026-10-10T09:18:03.883Z
+unit    live            PASS    17s    PASS live test (16704 ms) at 2026-10-10T09:18:20.647Z
+unit    rules           PASS    0s     17 tests passed
+unit    astra-entity    PASS    0s     4/4 passed
+unit    https           PASS    0s     ALL PASS in 100 ms
+client  render-unit     FAIL    8s     FAIL: 86/87 checks
+client  render-smoke    PASS    0s     PASS: 65/65 checks
+client  render-game     PASS    1s     PASS: 72/72 checks
+client  tv-feed         PASS    0s     all OK
+client  tv-parse        PASS    0s     
+client  tv-extras       PASS    0s     ALL OK
+client  tv-page         PASS    3s     ALL OK
+client  ship-spec       PASS    0s     all 7 passed
+client  phone-join      PASS    2s     13 checks, 0 failed
+client  phone-sandbox   PASS    12s    53 checks, 0 failed
+client  phone-mischief  PASS    35s    78 checks, 0 failed
+client  harness-self    PASS    23s    all 41 checks passed
+------------------------------------------------------------------------------------------------------------------------
+17 pass, 4 fail, 0 timeout, 0 skipped · logs /private/tmp/claude-501/v15t-scratch/run2

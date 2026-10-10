@@ -105,8 +105,8 @@ async function main() {
   // ---- START from the TV ----
   await step("start", async (note) => {
     const clicked = await T.big.page.click("#startBtn", { timeout: 3000 }).then(() => true).catch(() => false);
-    if (!clicked) await post(T.base, "/start", {});
-    const st = await waitFor(async () => { const s = await state(); return s && (s.phase === "playing" || s.phase === "assists") ? s : null; }, { timeout: 8000 });
+    if (!clicked) await post(T.base, "/start", { countdown: false });   // v1.4: the button plays the server's 3-2-1 first
+    const st = await waitFor(async () => { const s = await state(); return s && (s.phase === "playing" || s.phase === "assists") ? s : null; }, { timeout: 11000 });
     note(`phase ${st && st.phase}, via ${clicked ? "the START button" : "POST /start"}`);
     await sp.waitStep(page, ["play"], 8000);
   });

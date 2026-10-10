@@ -128,9 +128,10 @@ function force(body, answer) {
   return out;
 }
 
-astra.generate = async function generate(body) {
+// v1.4: server.js calls generate(body, { signal }) (an aborted /generate drops the model call): the options pass through.
+astra.generate = async function generate(body, ...rest) {
   const player = Contract.cleanName(body && body.player);
-  const answer = await realGenerate.call(this, body);
+  const answer = await realGenerate.call(this, body, ...rest);
   try {
     if (player.includes("slow")) await sleep(2500);
     return force(body, answer);
