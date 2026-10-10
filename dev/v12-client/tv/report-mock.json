@@ -1,0 +1,95 @@
+{
+ "when": "2026-10-10T00:11:56.623Z",
+ "results": {},
+ "lobby": {
+  "1440x900": {
+   "info": {
+    "lanUrl": "http://10.38.40.24:8266",
+    "httpsUrl": null,
+    "controllerUrl": "http://10.38.40.24:8266/controller.html",
+    "bigScreenUrl": "http://10.38.40.24:8266/space.html"
+   },
+   "url": "http://10.38.40.24:8266/controller.html",
+   "qrMismatches": 0,
+   "qrCssPx": 280,
+   "text": "10.38.40.24:8266\n/controller.html",
+   "jhFontPx": 31.2,
+   "urlRect": [
+    90,
+    511,
+    315,
+    582
+   ],
+   "cardRect": [
+    28,
+    156,
+    377,
+    796
+   ],
+   "hint": false
+  },
+  "1920x1080": {
+   "info": {
+    "lanUrl": "http://10.38.40.24:8266",
+    "httpsUrl": null,
+    "controllerUrl": "http://10.38.40.24:8266/controller.html",
+    "bigScreenUrl": "http://10.38.40.24:8266/space.html"
+   },
+   "url": "http://10.38.40.24:8266/controller.html",
+   "qrMismatches": 0,
+   "qrCssPx": 336,
+   "text": "10.38.40.24:8266\n/controller.html",
+   "jhFontPx": 37.44,
+   "urlRect": [
+    109,
+    614,
+    378,
+    699
+   ],
+   "cardRect": [
+    34,
+    188,
+    453,
+    956
+   ],
+   "hint": false
+  },
+  "override": {
+   "url": "https://192.168.1.77:8443/controller.html",
+   "text": "https://192.168.1.77:8443\n/controller.html"
+  }
+ },
+ "play": {
+  "tags": {
+   "shown": 25,
+   "m0": 24,
+   "m1": 0,
+   "m2": 1,
+   "chips": 8
+  },
+  "feed": {
+   "lines": 5,
+   "fontPx": 25.6,
+   "chips": 6,
+   "kos": 2,
+   "quiet": 0
+  },
+  "dead": {
+   "title": "DESTROYED",
+   "sub": "BACK IN 3",
+   "whoName": "ben",
+   "classes": "play sk dead"
+  },
+  "crowd": {
+   "shown": 25,
+   "m0": 9,
+   "m1": 9,
+   "m2": 7
+  }
+ },
+ "console": {
+  "errors": [],
+  "http": [],
+  "warnings": 60
+ }
+}

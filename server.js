@@ -36,6 +36,7 @@ const SPECULATIVE_WINDOW_MS = 10000, SPECULATIVE_MAX = 8; // speculative /genera
 const PUBLIC_FILES = new Set([
   "space.html", "controller.html", "render.js", "contract.js", "verbs.js", "terrain.js", "rigs.js",
   "transition.js", "anim.js", "anims.js", "phone-extras.js", "bigscreen-extras.js", "inflate.js",
+  "ctrl-sandbox.js", "mischief-fx.js", "sfx.js",
 ]);
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".json": "application/json",

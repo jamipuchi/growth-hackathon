@@ -1,0 +1,397 @@
+{
+  "label": "before",
+  "tier": null,
+  "phases": {
+    "lobby": {
+      "tv": {
+        "scene": "space",
+        "infoCalls": 101,
+        "infoTris": 182476,
+        "sceneCalls": 87,
+        "sceneTris": 184842,
+        "passesOverhead": 14,
+        "rows": {
+          "Group:?": {
+            "calls": 2,
+            "tris": 2380,
+            "objects": 2
+          },
+          "nebula": {
+            "calls": 1,
+            "tris": 140,
+            "objects": 1
+          },
+          "glow": {
+            "calls": 1,
+            "tris": 280,
+            "objects": 1
+          },
+          "deco": {
+            "calls": 5,
+            "tris": 52480,
+            "objects": 5
+          },
+          "Mesh:?": {
+            "calls": 1,
+            "tris": 2,
+            "objects": 1
+          },
+          "ship:default": {
+            "calls": 72,
+            "tris": 31872,
+            "objects": 72
+          },
+          "ship:drawn": {
+            "calls": 2,
+            "tris": 21908,
+            "objects": 2
+          },
+          "spaceEnv": {
+            "calls": 1,
+            "tris": 12,
+            "objects": 1
+          },
+          "rockField": {
+            "calls": 2,
+            "tris": 75768,
+            "objects": 2
+          }
+        }
+      },
+      "phone": {
+        "scene": "space",
+        "infoCalls": 54,
+        "infoTris": 63472,
+        "sceneCalls": 40,
+        "sceneTris": 64648,
+        "passesOverhead": 14,
+        "rows": {
+          "Group:?": {
+            "calls": 2,
+            "tris": 1190,
+            "objects": 2
+          },
+          "nebula": {
+            "calls": 1,
+            "tris": 80,
+            "objects": 1
+          },
+          "glow": {
+            "calls": 1,
+            "tris": 352,
+            "objects": 1
+          },
+          "planetLook": {
+            "calls": 2,
+            "tris": 12992,
+            "objects": 2
+          },
+          "deco": {
+            "calls": 5,
+            "tris": 7560,
+            "objects": 5
+          },
+          "boss": {
+            "calls": 4,
+            "tris": 5742,
+            "objects": 4
+          },
+          "ship:default": {
+            "calls": 17,
+            "tris": 7728,
+            "objects": 17
+          },
+          "ship:drawn": {
+            "calls": 1,
+            "tris": 3736,
+            "objects": 1
+          },
+          "spaceEnv": {
+            "calls": 1,
+            "tris": 12,
+            "objects": 1
+          },
+          "rockField": {
+            "calls": 6,
+            "tris": 25256,
+            "objects": 6
+          }
+        }
+      }
+    },
+    "boss": {
+      "tv": {
+        "scene": "space",
+        "infoCalls": 47,
+        "infoTris": 163176,
+        "sceneCalls": 31,
+        "sceneTris": 89774,
+        "passesOverhead": 16,
+        "rows": {
+          "Group:?": {
+            "calls": 2,
+            "tris": 2380,
+            "objects": 2
+          },
+          "nebula": {
+            "calls": 1,
+            "tris": 140,
+            "objects": 1
+          },
+          "glow": {
+            "calls": 1,
+            "tris": 298,
+            "objects": 1
+          },
+          "particles": {
+            "calls": 1,
+            "tris": 800,
+            "objects": 1
+          },
+          "streaks": {
+            "calls": 1,
+            "tris": 126,
+            "objects": 1
+          },
+          "planetLook": {
+            "calls": 2,
+            "tris": 12992,
+            "objects": 2
+          },
+          "deco": {
+            "calls": 5,
+            "tris": 52480,
+            "objects": 5
+          },
+          "boss": {
+            "calls": 6,
+            "tris": 5664,
+            "objects": 6
+          },
+          "Mesh:?": {
+            "calls": 1,
+            "tris": 2,
+            "objects": 1
+          },
+          "ship:default": {
+            "calls": 9,
+            "tris": 3984,
+            "objects": 9
+          },
+          "ship:drawn": {
+            "calls": 1,
+            "tris": 10896,
+            "objects": 1
+          },
+          "spaceEnv": {
+            "calls": 1,
+            "tris": 12,
+            "objects": 1
+          }
+        }
+      },
+      "phone": {
+        "scene": "space",
+        "infoCalls": 41,
+        "infoTris": 55942,
+        "sceneCalls": 21,
+        "sceneTris": 31862,
+        "passesOverhead": 20,
+        "rows": {
+          "Group:?": {
+            "calls": 2,
+            "tris": 1190,
+            "objects": 2
+          },
+          "nebula": {
+            "calls": 1,
+            "tris": 80,
+            "objects": 1
+          },
+          "glow": {
+            "calls": 1,
+            "tris": 368,
+            "objects": 1
+          },
+          "particles": {
+            "calls": 1,
+            "tris": 740,
+            "objects": 1
+          },
+          "streaks": {
+            "calls": 1,
+            "tris": 128,
+            "objects": 1
+          },
+          "planetLook": {
+            "calls": 2,
+            "tris": 12992,
+            "objects": 2
+          },
+          "deco": {
+            "calls": 5,
+            "tris": 7560,
+            "objects": 5
+          },
+          "boss": {
+            "calls": 6,
+            "tris": 5120,
+            "objects": 6
+          },
+          "ship:drawn": {
+            "calls": 1,
+            "tris": 3672,
+            "objects": 1
+          },
+          "spaceEnv": {
+            "calls": 1,
+            "tris": 12,
+            "objects": 1
+          }
+        }
+      }
+    },
+    "boss2": {
+      "tv": {
+        "scene": "space",
+        "infoCalls": 65,
+        "infoTris": 171300,
+        "sceneCalls": 49,
+        "sceneTris": 97946,
+        "passesOverhead": 16,
+        "rows": {
+          "Group:?": {
+            "calls": 2,
+            "tris": 2380,
+            "objects": 2
+          },
+          "nebula": {
+            "calls": 1,
+            "tris": 140,
+            "objects": 1
+          },
+          "glow": {
+            "calls": 1,
+            "tris": 350,
+            "objects": 1
+          },
+          "particles": {
+            "calls": 1,
+            "tris": 904,
+            "objects": 1
+          },
+          "streaks": {
+            "calls": 1,
+            "tris": 174,
+            "objects": 1
+          },
+          "planetLook": {
+            "calls": 2,
+            "tris": 12992,
+            "objects": 2
+          },
+          "deco": {
+            "calls": 5,
+            "tris": 52480,
+            "objects": 5
+          },
+          "boss": {
+            "calls": 6,
+            "tris": 5664,
+            "objects": 6
+          },
+          "Mesh:?": {
+            "calls": 1,
+            "tris": 2,
+            "objects": 1
+          },
+          "ship:default": {
+            "calls": 27,
+            "tris": 11952,
+            "objects": 27
+          },
+          "ship:drawn": {
+            "calls": 1,
+            "tris": 10896,
+            "objects": 1
+          },
+          "spaceEnv": {
+            "calls": 1,
+            "tris": 12,
+            "objects": 1
+          }
+        }
+      },
+      "phone": {
+        "scene": "space",
+        "infoCalls": 65,
+        "infoTris": 69486,
+        "sceneCalls": 43,
+        "sceneTris": 45038,
+        "passesOverhead": 22,
+        "rows": {
+          "Group:?": {
+            "calls": 2,
+            "tris": 1190,
+            "objects": 2
+          },
+          "nebula": {
+            "calls": 1,
+            "tris": 80,
+            "objects": 1
+          },
+          "glow": {
+            "calls": 1,
+            "tris": 432,
+            "objects": 1
+          },
+          "particles": {
+            "calls": 1,
+            "tris": 756,
+            "objects": 1
+          },
+          "rings": {
+            "calls": 2,
+            "tris": 384,
+            "objects": 2
+          },
+          "streaks": {
+            "calls": 1,
+            "tris": 184,
+            "objects": 1
+          },
+          "planetLook": {
+            "calls": 2,
+            "tris": 12992,
+            "objects": 2
+          },
+          "deco": {
+            "calls": 5,
+            "tris": 7560,
+            "objects": 5
+          },
+          "boss": {
+            "calls": 6,
+            "tris": 5120,
+            "objects": 6
+          },
+          "ship:default": {
+            "calls": 18,
+            "tris": 7968,
+            "objects": 18
+          },
+          "ship:drawn": {
+            "calls": 3,
+            "tris": 8360,
+            "objects": 3
+          },
+          "spaceEnv": {
+            "calls": 1,
+            "tris": 12,
+            "objects": 1
+          }
+        }
+      }
+    }
+  }
+}

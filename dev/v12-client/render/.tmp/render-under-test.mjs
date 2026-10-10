@@ -1,3 +1,5 @@
+const __deep = (o) => new Proxy(function () {}, { get: (t, k) => (k in o ? o[k] : k === Symbol.toPrimitive ? () => 0 : __deep({})), apply: () => __deep({}), construct: () => __deep({}), set: (t, k, v) => ((o[k] = v), true) });
+class __FakeRenderer { constructor(o) { const info = { autoReset: false, reset() {}, render: { calls: 0, triangles: 0 }, memory: { textures: 0 } }; const self = { info, shadowMap: {}, domElement: o && o.canvas, capabilities: { isWebGL2: true, maxTextureSize: 4096 }, extensions: { has: () => true, get: () => null }, getPixelRatio: () => 1, getSize: (v) => v.set(800, 450), getDrawingBufferSize: (v) => v.set(800, 450), getRenderTarget: () => null, getClearColor: (c) => c, getClearAlpha: () => 0, setRenderTarget() {}, setPixelRatio() {}, setSize() {}, render() { globalThis.__renders = (globalThis.__renders || 0) + 1; }, compile() {}, dispose() {}, clear() {}, setClearColor() {}, copyFramebufferToTexture() {}, getContext: () => __deep({}), autoClear: true, toneMapping: 0, outputColorSpace: 'srgb', xr: { enabled: false }, state: __deep({}), properties: __deep({}), };  return self; } }
 // Shared three.js renderer for the big screen (space.html) and the phones (controller.html).
 // API (contract.js): startGame({ canvas, screen: "big"|"phone", view: "spectator"|"chase"|"cockpit", player }) → game
 //   game.setView(view)  game.setPlayer(name)  game.dispose()  game.on(event, cb) → off()  game.hud()
@@ -54,7 +56,7 @@ const HUD_COPY = {
 // Asset loader: every delivery from assets/ goes through this table. Swapping a placeholder for a delivery is one
 // line here; each entry resolves to null when the asset is missing or fails, and the caller falls back to a
 // procedural placeholder that follows the art direction.
-const assetUrl = (p) => new URL(`./assets/${p}`, import.meta.url).href;
+const assetUrl = (p) => new URL(`./assets/${p}`, "file:///Users/jaumepuig/Documents/growth-hackathon/render.js").href;
 const ASSETS = {
   boss: async () => {
     const m = await import(assetUrl("A-001-boss-rock/boss.js"));
@@ -128,8 +130,8 @@ function loadAsset(name, ...args) {
 // Optional modules, loaded lazily so the game still runs without them: anim.js (procedural animation per entity)
 // and transition.js (the landing / take-off shot).
 let Anim = null, Transition = null;
-import("./anim.js").then((m) => (Anim = m)).catch((e) => console.warn("[render] anim.js unavailable:", e?.message || e));
-import("./transition.js").then((m) => (Transition = m)).catch((e) => console.warn("[render] transition.js unavailable:", e?.message || e));
+import("file:///Users/jaumepuig/Documents/growth-hackathon/anim.js").then((m) => (Anim = m)).catch((e) => console.warn("[render] anim.js unavailable:", e?.message || e));
+import("file:///Users/jaumepuig/Documents/growth-hackathon/transition.js").then((m) => (Transition = m)).catch((e) => console.warn("[render] transition.js unavailable:", e?.message || e));
 // Player entities from the `entity` messages ({ [player]: { type, verbs, anims } }), for the animators.
 const entities = new Map();
 const animsFor = (player, type) => {
@@ -368,7 +370,7 @@ let entInflate = null, entInflateState = 0, entInflatePromise = null; // state: 
 function entLoadInflate() {
   if (entInflateState === 0) {
     entInflateState = 1;
-    entInflatePromise = import("./inflate.js").then((m) => { entInflate = m; entInflateState = 2; return m; }).catch(() => { entInflateState = -1; return null; });
+    entInflatePromise = import("file:///Users/jaumepuig/Documents/growth-hackathon/inflate.js").then((m) => { entInflate = m; entInflateState = 2; return m; }).catch(() => { entInflateState = -1; return null; });
   }
   return entInflateState;
 }
@@ -1121,7 +1123,7 @@ export function createEntityPreview({ canvas, quality = "phone" } = {}) {
     if (renderer) return true;
     if (disposed) return false;
     try {
-      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "low-power" });
+      renderer = new __FakeRenderer({ canvas, antialias: true, alpha: true, powerPreference: "low-power" });
     } catch (e) { renderer = null; return false; }
     renderer.setClearColor(0x000000, 0);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -2823,7 +2825,7 @@ const SYNTH_MAP = {
   respawn: ["pop", 1.3], crack: ["explosion", 0.75], shield: ["boost", 0.8], "ui-tap": ["click", 1], "countdown-go": ["start", 1],
   "explosion-large": ["explosionBig", 1], "explosion-small": ["explosion", 1.2], "explosion-medium": ["explosion", 1],
 };
-const sfxLoader = () => import("./sfx.js");
+const sfxLoader = () => import("file:///Users/jaumepuig/Documents/growth-hackathon/sfx.js");
 const inertLoop = Object.freeze({ stop() {}, setPan() {}, setVolume() {} });
 
 // The fallback synth: only when sfx.js did not load. A small WebAudio synth, no files: every sound is built from oscillators and
@@ -5106,7 +5108,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
   const listeners = {};
   const emit = (ev, data) => (listeners[ev] || []).forEach((cb) => { try { cb(data); } catch (e) { console.error(e); } });
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !phone, powerPreference: "high-performance", stencil: false });
+  const renderer = new __FakeRenderer({ canvas, antialias: !phone, powerPreference: "high-performance", stencil: false });
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = false;
@@ -5546,3 +5548,5 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     },
   };
 }
+
+export const __t = { MischiefLayer, DecoyView, Particles, RingPool, BillboardBatch, StreakBatch, CameraRig, Snapshots, Perf, computeHud, entPlanLod, entNote, entReset, entShips, entPlanet, entities, DRAWN, worldSound, SpaceWorld, IslandWorld, ShipModel, ShipView, mineGeometry, HUD_COPY };

@@ -34,7 +34,8 @@
   #hud:not([data-view=play]) .bse-feed,
   #hud:not([data-view=play]) #alarm,
   #hud:not([data-view=lobby]) #lobby,
-  #hud:not([data-view=results]) #results { display: none; }
+  #hud:not([data-view=results]) #results,
+  #hud:not([data-view=play]) #banner { display: none; }
   .off { display: none !important; }
 
   /* ---- type ---- */
@@ -139,7 +140,7 @@
   .pip.on { background: linear-gradient(180deg, #ffe27a, #ffb000); border-color: #fff; }
 
   /* kill feed (bigscreen-extras) sits under the chest counter */
-  #hud .bse-feed { top: 9.8rem; right: 1.6rem; max-width: 46vw; }
+  #hud .bse-feed { top: 10.4rem; right: 1.6rem; max-width: 46vw; }
 
   /* radar, bottom left */
   #radarWrap { position: absolute; left: 1.6rem; bottom: 1.6rem; width: 15.6rem; height: 15.6rem; isolation: isolate; z-index: 20; animation: popIn .5s var(--pop) .15s both; }
@@ -149,11 +150,20 @@
 
   /* followed player's meters, bottom right */
   #meters { position: absolute; right: 1.6rem; bottom: 1.6rem; width: 21.6rem; padding: 1rem 1.5rem 1.35rem 1.4rem; z-index: 20; animation: inRight .55s var(--pop) .15s both; --bg: linear-gradient(180deg, rgb(58 38 160 / .96), rgb(30 19 96 / .96)); }
-  #who { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: .7rem; row-gap: .1rem; }
-  #who .lbl { font-size: 1.05rem; color: #cbc4ff; letter-spacing: .08em; }
-  #whoName { font-size: 2.1rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-bottom: .15rem; }
-  #whoSub { font-size: 1.1rem; color: var(--gold); }
-  #whoSub:empty { display: none; }
+  #who { display: flex; flex-direction: column; align-items: flex-start; gap: .1rem; }
+  #who .lbl { font-size: 1.3rem; color: #d8d2ff; letter-spacing: .1em; }
+  #whoName { font-size: 2.6rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 .3rem .15rem 0; }
+  #dead { display: none; text-align: center; margin-top: .5rem; }
+  #meters.dead #dead, #meters.back #dead { display: block; }
+  #meters.dead .meter, #meters.back .meter { display: none; }
+  #meters.dead { --bg: linear-gradient(180deg, #ff6f8b, #d0123a); }
+  #meters.dead #who .lbl, #meters.back #who .lbl { color: #fff; }
+  #meters.back { --bg: linear-gradient(180deg, #7df08a, #27b840); }
+  #deadTitle { font-size: 3.5rem; line-height: .95; }
+  #deadSub { margin-top: .35rem; font-size: 3.2rem; line-height: 1; }
+  #meters.dead #deadSub { animation: throb .9s ease-in-out infinite; }
+  #meters.back #deadSub { display: none; }
+  #meters.back #deadTitle { font-size: 2.7rem; }
   .meter { display: flex; align-items: center; gap: .6rem; height: 1.9rem; margin-top: .6rem; }
   .meter svg { flex: none; width: 1.75rem; height: 1.75rem; display: block; }
   .meter .lbl { width: 4.5rem; flex: none; font-size: 1.1rem; letter-spacing: .05em; }
@@ -169,7 +179,7 @@
 
   /* announcement banner */
   #banner { position: absolute; left: 0; right: 0; top: 27%; display: flex; justify-content: center; pointer-events: none; z-index: 30; }
-  #bannerBox { padding: 1rem 3.4rem 1.2rem; max-width: min(60rem, 80vw); opacity: 0; transform: scale(.6); }
+  #bannerBox { padding: 1rem 3.4rem 1.2rem; max-width: min(48rem, 56vw); opacity: 0; transform: scale(.6); }
   #bannerBox.big { padding: 1.2rem 4.4rem 1.5rem; }
   #bannerBox.gold { --bg: linear-gradient(180deg, #ffe27a, #ffb000); }
   #bannerBox.gold .h { color: #241400; -webkit-text-stroke: 0; text-shadow: 0 .2rem 0 rgb(255 255 255 / .5); }
@@ -202,7 +212,12 @@
   #qr { width: min(100%, max(280px, 18rem)); margin: 0 auto; font-size: 1rem; }
   .qr-empty { aspect-ratio: 1; display: grid; place-items: center; padding: 1.4rem; text-align: center; border-radius: .9rem; border: .25rem dashed rgb(255 255 255 / .6);
               background: rgb(10 6 30 / .45); font-size: 1.4rem; line-height: 1.15; text-transform: none; letter-spacing: 0; }
-  #joinUrl { margin: 1rem auto 0; width: max-content; max-width: 100%; text-align: center; font-size: 1.15rem; line-height: 1.2; text-transform: none; letter-spacing: .02em; color: #ffe9a3; background: rgb(10 6 30 / .55); padding: .4rem .9rem; border-radius: .6rem; overflow-wrap: break-word; }
+  #joinUrl { position: relative; left: 50%; transform: translateX(-50%); margin: 1.1rem 0 0; width: max-content; max-width: calc(100% + 1.4rem); text-align: center; text-transform: none; letter-spacing: 0; font-family: var(--fh); font-weight: 700;
+             -webkit-text-stroke: 0; text-shadow: none; color: #ffe9a3; background: rgb(10 6 30 / .66); padding: .3rem 1rem .4rem; border-radius: .6rem; overflow-wrap: anywhere; }
+  #joinUrl .js { display: block; font-size: 1.35rem; line-height: 1.05; }
+  #joinUrl .jh { display: block; width: max-content; margin: 0 auto; white-space: nowrap; font-size: 1.95rem; line-height: 1.08; color: #fff; } /* fitJoin() shrinks it when the address is long */
+  #joinUrl .jp { display: block; font-size: 1.4rem; line-height: 1.15; }
+  #joinUrl .jp:empty { display: none; }
   #steps { list-style: none; padding: 0; margin: 1.1rem 0 0; display: grid; gap: .7rem; }
   .step { display: flex; align-items: center; gap: .7rem; min-height: 3.1rem; padding: .35rem .7rem .45rem .5rem; }
   .step .n { flex: none; width: 2.1rem; height: 2.1rem; display: grid; place-items: center; font-size: 1.5rem; }
@@ -247,8 +262,11 @@
   #confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
   .cf { position: absolute; top: 0; left: var(--x); width: .9rem; height: 1.5rem; background: var(--c); border-radius: .15rem; animation: cf var(--t) linear var(--d) both; }
   @keyframes cf { 0% { transform: translate3d(0, -12vh, 0) rotate(0); } 100% { transform: translate3d(var(--sw), 118vh, 0) rotate(var(--r)); } }
-  #resTitleWrap { position: absolute; top: 1.2rem; left: 0; right: 0; display: flex; justify-content: center; animation: riseIn .6s var(--pop) both; }
-  #resTitle { font-family: var(--fh); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 6.2rem; line-height: .95; --g1: #fff6b0; --g2: #ffa800; }
+  #resTitleWrap { position: absolute; top: 1rem; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: .35rem; animation: riseIn .6s var(--pop) both; }
+  #resTitle { font-family: var(--fh); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 5.4rem; line-height: .95; --g1: #fff6b0; --g2: #ffa800; }
+  #resTitle.long { font-size: 4.4rem; }
+  #resSub { padding: .1rem 1.8rem .22rem; font-size: 1.8rem; }
+  #resSub:empty, #resSub.off { display: none; }
   #resBody { position: absolute; left: 4rem; right: 4rem; top: 9.6rem; bottom: 7.2rem; display: grid; grid-template-columns: minmax(0, 1fr) 23.4rem; gap: 2.6rem; }
   #resLeft { display: flex; flex-direction: column; min-height: 0; }
   #podium { height: 18.2rem; flex: none; display: flex; align-items: flex-end; justify-content: center; gap: 1.5rem; margin-bottom: 1.4rem; }
@@ -326,7 +344,8 @@
   <div id="radarWrap" class="play"><canvas id="radar" width="480" height="480"></canvas></div>
 
   <section id="meters" class="play sk off">
-    <div id="who"><span class="lbl h" data-copy="play.following"></span><span id="whoName" class="h hh"></span><span id="whoSub" class="h"></span></div>
+    <div id="who"><span class="lbl h" data-copy="play.following"></span><span id="whoName" class="h hh"></span></div>
+    <div id="dead"><div id="deadTitle" class="h hh"></div><div id="deadSub" class="h hh"></div></div>
     <div class="meter" id="mHp">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-8-5.3-8-11a4.6 4.6 0 0 1 8-3 4.6 4.6 0 0 1 8 3c0 5.7-8 11-8 11z" fill="#4ade5a" stroke="#120a2e" stroke-width="2" stroke-linejoin="round"/></svg>
       <span class="lbl h" data-copy="play.hp"></span><div class="track"><div class="fill"></div></div></div>
@@ -367,7 +386,7 @@
   <section id="results">
     <div id="rays"></div>
     <div id="confetti"></div>
-    <div id="resTitleWrap"><div id="resTitle" class="gt"></div></div>
+    <div id="resTitleWrap"><div id="resTitle" class="gt"></div><div id="resSub" class="sk purple"><span class="h"></span></div></div>
     <div id="resBody">
       <div id="resLeft"><div id="podium"></div><div id="resRest"></div></div>
       <aside id="resBoard" class="card">
@@ -393,7 +412,7 @@ const COPY = {
     joinTitle: "SCAN TO JOIN",
     steps: ["SCAN THE CODE", "DRAW YOUR SPACESHIP", "DRAW YOUR CONTROLLER"],
     localUrl: "http://<laptop-ip>:{port}/controller.html",
-    localHint: "Open this page at your laptop's network address (not localhost) to show the join code",
+    localHint: "To show the join code, open this page at your laptop's network address, not localhost",
     noQr: "Type this address in your phone's browser",
     boardTitle: "SESSION LEADERBOARD",
     boardEmpty: "No rounds yet · win one to earn a ★",
@@ -424,23 +443,29 @@ const COPY = {
     hp: "HP",
     shield: "SHIELD",
     boost: "BOOST",
+    destroyed: "DESTROYED",
     respawn: "BACK IN {n}",
+    back: "BACK IN THE FIGHT!",
   },
   results: {
     timesUp: "TIME'S UP!",
     allChests: "EVERY CHEST IS OPEN!",
     roundOver: "ROUND OVER",
+    wins: "{name} WINS!",
     winner: "WINNER",
     star: "★ +1 STAR",
-    nobody: "NOBODY SCORED THIS ROUND",
+    nobody: "NOBODY SCORED",
+    noStar: "NO WINNER · NO STAR THIS ROUND",
     points: "{n} PTS",
     next: "NEXT ROUND IN {n}",
     boardTitle: "SESSION LEADERBOARD",
   },
+  // Words on the icon chips in the kill feed and over the ships (the icons themselves live in bigscreen-extras.js).
+  feed: { emp: "EMP", ink: "INK", pull: "PULL", mine: "MINE", decoy: "DECOY", steal: "STEAL", stun: "STUN", ko: "KO" },
   sound: { on: "SOUND ON", off: "SOUND OFF" },
   // Server lines that use game words: shown with these plain words instead (banner and kill feed).
   rewrite: [[/^assists on\b/i, "BONUS TIME! ALL POWERS UNLOCKED · THE CHESTS GLOW"]],
-  help: "KEYBOARD PLAYER · arrows steer · W/S thrust · A/D strafe · Q/E rise / sink · SPACE shoot · SHIFT shield · B boost · F flare · C scan · R drill · L land · T take off · G dig · J jump · V view · M sound · H hide this",
+  help: "HOST KEYS · ENTER start · M sound · H hide this · TEST PLAYER: arrows steer · W/S thrust · A/D strafe · Q/E rise / sink · SPACE shoot · SHIFT shield · B boost · F flare · C scan · R drill · L land · T take off · G dig · J jump · V view",
 };
 
 import * as R from "./render.js";
@@ -507,22 +532,71 @@ addEventListener("pointerdown", unlockOnce, true);
 addEventListener("keydown", unlockOnce, true);
 let muted = false;
 
-// ---- join code: this page's own host (open the big screen at http://<LAN-IP>:<port>/space.html; server.js prints it).
-// ?join=<url> overrides it, e.g. the HTTPS one (https://<LAN-IP>:8443/controller.html) for tilt and the camera.
+// ---- join code. The server knows where phones can reach it (GET /info: controllerUrl, the HTTPS one when that is up), so the code
+// is right even when this page is open on localhost. ?join=<url> overrides it. No /info (an old server): this page's own host,
+// and on localhost a hint instead of a code. The address under the code is big enough to type. ----
 const params = new URLSearchParams(location.search);
-const local = /^(localhost|127\.|\[?::1)/.test(location.hostname);
+const LOCAL_HOST = /^(localhost|127\.|\[?::1)/;
+const local = LOCAL_HOST.test(location.hostname);
 const override = params.get("join");
-const joinUrl = override || `${location.protocol}//${location.host}/controller.html`;
-const lanKnown = !local || !!override;
-// A zero-width space before each "/" lets a long address wrap at the slash ("192.168.1.20:8000 / controller.html").
-$("joinUrl").textContent = (lanKnown ? joinUrl.replace(/^https?:\/\//, "") : fmt(COPY.lobby.localUrl, { port: location.port || 8000 })).replace(/\//g, "\u200b/");
-if (BX && lanKnown) BX.createJoinQR($("qr"), joinUrl, { size: "fit", title: false, showUrl: false });
-else {
+let qr = null, joinShown = "", infoAt = -1e9;
+function joinHtml(url) {
+  const m = /^(https?:\/\/)?([^/]+)(\/.*)?$/.exec(url);
+  const scheme = m && m[1] === "https://" ? m[1] : ""; // https: say so (a phone types http by default)
+  return (scheme ? `<span class="js">${esc(scheme)}</span>` : "") + `<span class="jh">${esc(m ? m[2] : url)}</span><span class="jp">${esc(m && m[3] ? m[3] : "")}</span>`;
+}
+// The host:port line is as big as fits the card (1.95 rem at most): a long address shrinks instead of breaking in the middle of a number.
+// Needs the lobby on screen (measures); runs when the address changes, when the lobby opens and when the web font arrives.
+function fitJoin() {
+  const h = $("joinUrl").querySelector(".jh");
+  if (!h || !h.getClientRects().length) return;
+  h.style.fontSize = "";
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  const avail = $("join").clientWidth - 2 * 1.7 * rem + 1.4 * rem - 2 * rem; // card width - its padding + the overflow #joinUrl may use - its own padding
+  const w = h.getBoundingClientRect().width;
+  if (w > avail) h.style.fontSize = Math.max(1.1, (1.95 * avail) / w).toFixed(2) + "rem";
+}
+if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", fitJoin);
+function showJoin(url) {
+  if (!url || url === joinShown) return;
+  joinShown = url;
+  setHtml($("joinUrl"), joinHtml(url));
+  fitJoin();
+  if (qr) { qr.setUrl(url); return; }
+  const box = $("qr");
+  box.textContent = "";
+  if (BX) qr = BX.createJoinQR(box, url, { size: "fit", title: false, showUrl: false });
+  else {
+    const e = document.createElement("div");
+    e.className = "qr-empty h";
+    e.textContent = COPY.lobby.noQr;
+    box.appendChild(e);
+  }
+}
+function showJoinHint() {
   const e = document.createElement("div");
   e.className = "qr-empty h";
-  e.textContent = lanKnown ? COPY.lobby.noQr : COPY.lobby.localHint;
+  e.textContent = COPY.lobby.localHint;
   $("qr").appendChild(e);
+  setHtml($("joinUrl"), joinHtml(fmt(COPY.lobby.localUrl, { port: location.port || 8000 })));
 }
+async function refreshInfo() {
+  if (override || performance.now() - infoAt < 4000) return;
+  infoAt = performance.now();
+  try {
+    const r = await fetch("/info", { cache: "no-store" });
+    if (!r.ok) return;
+    const info = await r.json();
+    const url = info && typeof info.controllerUrl === "string" ? info.controllerUrl : "";
+    let host = "";
+    try { host = new URL(url).hostname; } catch (e) { return; }
+    if (!LOCAL_HOST.test(host) || !local) showJoin(url); // a code that points at localhost is useless to a phone
+  } catch (e) { /* an old server: keep what is there */ }
+}
+if (override) showJoin(override);
+else if (!local) showJoin(`${location.protocol}//${location.host}/controller.html`);
+else showJoinHint();
+refreshInfo();
 
 // ---- state ----
 const hudEl = $("hud");
@@ -531,12 +605,14 @@ const colours = new Map(); // player name -> "#rrggbb"
 const colourOf = (name) => colours.get(name) || "#ffffff";
 let mocked = null;
 
-const killFeed = BX ? BX.createKillFeed(hudEl, { max: 5, life: 6500 }) : null;
-const nameTags = BX ? BX.createNameTags(hudEl, { max: 25, offset: 6 }) : null;
-const tagOpts = { limit: 0 };
+const killFeed = BX ? BX.createKillFeed(hudEl, { max: 5, life: 6500, labels: COPY.feed }) : null;
+const nameTags = BX ? BX.createNameTags(hudEl, { max: 25, offset: 6, labels: COPY.feed }) : null;
+const tagOpts = { limit: 0, focus: null };
+const bots = new Set(); // names of the filler players (tick flags.bot): their kills are dim in the feed, their tags come last
 game.on("frame", () => {
   if (!nameTags) return;
-  tagOpts.limit = view === "lobby" ? 25 : view === "play" ? 12 : 0; // lobby: every ship; play: the 12 nearest
+  tagOpts.limit = view === "lobby" || view === "play" ? 25 : 0; // every ship in view; the tags declutter themselves (bigscreen-extras)
+  tagOpts.focus = view === "play" ? (mocked ? mocked.hud.followed : game.followed) || null : null; // the followed player's tag is always the full one
   nameTags.update(mocked ? mocked.tags : game.projectPlayers ? game.projectPlayers() : [], tagOpts);
 });
 game.on("world", (m) => {
@@ -546,7 +622,10 @@ game.on("world", (m) => {
 });
 game.on("tick", (m) => {
   tick = m; tickAt = performance.now(); haveTick = true;
-  for (const p of m.players) colours.set(p.name, hex(p.color));
+  for (const p of m.players) {
+    colours.set(p.name, hex(p.color));
+    if (p.flags && p.flags.bot) bots.add(p.name); else bots.delete(p.name);
+  }
 });
 
 // ================= LOBBY =================
@@ -696,7 +775,7 @@ function chestsOf(h) {
   for (const x of cs) { if (x.open) c.open++; if (x.kind === "rock") c.rock++; else c.buried++; }
   return c;
 }
-let pipTotal = -1, pipOpen = -1, meGoneAt = 0;
+let pipTotal = -1, pipOpen = -1, meGoneAt = 0, deadName = "", wasDead = false, backUntil = 0;
 function renderPlay(h) {
   // time left (hud.leftText), gold; under 0:30 red and pulsing; the last seconds tick
   const left = secondsLeft(h);
@@ -734,8 +813,19 @@ function renderPlay(h) {
   if (me) {
     setText($("whoName"), me.name);
     setColor($("whoName"), hex(me.color || 0x94a3b8));
-    setText($("whoSub"), me.flags && me.flags.dead && me.respawnIn != null ? fmt(COPY.play.respawn, { n: Math.ceil(me.respawnIn) }) : "");
     const f = me.flags || {};
+    // Dead: the whole panel turns red with "DESTROYED" and the seconds to respawn; back: a green "BACK IN THE FIGHT!" for a moment.
+    const dead = !!f.dead, now = performance.now();
+    if (me.name !== deadName) { deadName = me.name; wasDead = dead; backUntil = 0; }
+    if (wasDead && !dead) backUntil = now + 1600;
+    wasDead = dead;
+    const back = !dead && now < backUntil;
+    flag($("meters"), "dead", dead);
+    flag($("meters"), "back", back);
+    if (dead) {
+      setText($("deadTitle"), COPY.play.destroyed);
+      setText($("deadSub"), fmt(COPY.play.respawn, { n: Math.max(1, Math.ceil(me.respawnIn == null ? 3 : me.respawnIn)) }));
+    } else if (back) setText($("deadTitle"), COPY.play.back);
     meter($("mHp"), (me.hp || 0) / (me.maxHp || 100), false);
     meter($("mShield"), me.shieldEnergy, f.shield);
     meter($("mBoost"), me.boostEnergy, f.boost);
@@ -799,13 +889,25 @@ function drawRadar(h) {
 let resSig = "";
 function rankClass(i) { return i < 3 ? ` r${i + 1}` : ""; }
 function buildResults(r, h) {
-  setGT($("resTitle"), r ? (r.reason === "chests" ? COPY.results.allChests : COPY.results.timesUp) : COPY.results.roundOver);
-  const scores = r && Array.isArray(r.scores) ? r.scores : h.scores.map((s) => [s.name, s.score]);
-  const winner = r && r.winner;
+  const have = !!r;
+  // ONE winner: the server's world.result.winner (most points). The list is put in line with it (the winner first, the others
+  // by points), so the title, the podium and the first row can never name different players.
+  const scores = have && Array.isArray(r.scores) ? r.scores.map((x) => [x[0], x[1]]) : h.scores.map((x) => [x.name, x.score]);
+  const winner = have ? r.winner || null : null;
+  if (winner) {
+    const i = scores.findIndex((x) => x[0] === winner);
+    if (i < 0) scores.unshift([winner, 0]); else if (i > 0) scores.unshift(scores.splice(i, 1)[0]);
+  }
+  const title = winner ? fmt(COPY.results.wins, { name: winner }) : have ? COPY.results.nobody : COPY.results.roundOver;
+  setGT($("resTitle"), title);
+  flag($("resTitle"), "long", title.length > 16);
+  const reason = have ? (r.reason === "chests" ? COPY.results.allChests : COPY.results.timesUp) : "";
+  setText($("resSub").firstChild, reason);
+  flag($("resSub"), "off", !reason);
   const pod = $("podium");
-  flag(pod, "compact", !winner || !scores.length);
-  if (!winner || !scores.length) {
-    pod.innerHTML = `<div class="nobody sk navy h hh">${esc(COPY.results.nobody)}</div>`;
+  flag(pod, "compact", !winner);
+  if (!winner) {
+    pod.innerHTML = have ? `<div class="nobody sk navy h hh">${esc(COPY.results.noStar)}</div>` : "";
   } else {
     pod.innerHTML = [1, 0, 2].filter((i) => scores[i]).map((i) => {
       const [name, score] = scores[i], col = colourOf(name), rank = i + 1;
@@ -817,14 +919,14 @@ function buildResults(r, h) {
     }).join("");
   }
   // everyone else, by points, in 1 to 3 columns so 25 players still fit
-  const rest = scores.slice(winner ? 3 : 0);
+  const base = winner ? Math.min(3, scores.length) : 0;
+  const rest = scores.slice(base);
   const cols = rest.length <= 6 ? 1 : rest.length <= 14 ? 2 : 3;
   const rn = Math.max(1, Math.ceil(rest.length / cols));
   const el = $("resRest");
   el.style.setProperty("--cols", cols);
   el.style.setProperty("--rn", rn);
   el.style.setProperty("--rh", cols === 1 ? "2.7rem" : cols === 2 ? "2.4rem" : "2.1rem");
-  const base = winner ? 3 : 0;
   el.innerHTML = rest.map(([name, score], i) => {
     const idx = base + i;
     return `<div class="rr" style="--d:${(0.5 + i * 0.03).toFixed(2)}s"><span class="rk h${rankClass(idx)}">${idx + 1}</span><span class="nm h" style="color:${colourOf(name)}">${esc(name)}</span><span class="pt h">${fmtNum(score)}</span></div>`;
@@ -862,14 +964,17 @@ function enterPhase(h) {
   view = next;
   hudEl.dataset.view = next;
   if (nameTags) nameTags.setMode(next === "lobby" ? "lobby" : "play");
-  if (next === "lobby") { known = null; infoSig = ""; starting = false; setStartState("idle"); }
+  if (next === "lobby") { known = null; infoSig = ""; starting = false; setStartState("idle"); fitJoin(); refreshInfo(); }
   if (next === "play") { pipTotal = pipOpen = -1; }
   if (next === "results") { resSig = ""; hideBanner(); confetti(); }
   if (before === "results") $("confetti").textContent = "";
 }
 function onHud(h) {
   if (!haveTick || !h) return;
-  for (const s of h.scores) colours.set(s.name, hex(s.color));
+  for (const s of h.scores) {
+    colours.set(s.name, hex(s.color));
+    if (s.bot) bots.add(s.name); else bots.delete(s.name);
+  }
   if (h.phase !== phase) enterPhase(h);
   if (view === "lobby") renderLobby(h);
   else if (view === "play") renderPlay(h);
@@ -907,18 +1012,38 @@ function leadColour(text) {
   }
   return best ? colours.get(best) : "#9fd8ff";
 }
-game.on("announce", (m) => {
+// One announce line (kills, mischief, chests, landings, the round end…) goes to the kill feed, and the big moments to the banner.
+// The feed gets the server's raw text (its emoji become icon chips there); the banner and the colour lookup get it without emoji.
+const isWordCh = (ch) => !!ch && /[a-z0-9]/i.test(ch);
+function namesIn(text) { // the known players named in the text (whole words)
+  const low = text.toLowerCase(), out = [];
+  for (const name of colours.keys()) {
+    const i = low.indexOf(name.toLowerCase());
+    if (i >= 0 && !isWordCh(low[i - 1]) && !isWordCh(low[i + name.length])) out.push(name);
+  }
+  return out;
+}
+function onAnnounce(m) {
   if (!m || !m.text) return;
-  let text = cleanText(m.text);
-  for (const [re, plain] of COPY.rewrite) if (re.test(text)) text = plain;
-  if (killFeed) killFeed.push(text, leadColour(text), colours);
-  // The results screen says it better: skip the banner for the round-end announcement (its world message follows at once).
+  const raw = String(m.text);
+  let text = cleanText(raw);
+  let plain = false;
+  for (const [re, nice] of COPY.rewrite) if (re.test(text)) { text = nice; plain = true; }
+  if (killFeed) {
+    // a kill between two filler players is a small dim line that the feed drops first
+    const names = namesIn(text);
+    const botKill = names.length > 0 && names.every((n) => bots.has(n)) && /\u2715|\u2694|was destroyed/.test(raw);
+    killFeed.push(plain ? text : raw, leadColour(text), colours, botKill ? "quiet" : undefined);
+  }
+  // The results screen names the winner better: no banner for the round-end line.
+  if (m.big && /wins round|nobody scored/i.test(text)) return;
   if (!m.big && !LOUD_EVENT.test(text)) return;
   const seq = ++bannerSeq;
-  setTimeout(() => { if (seq === bannerSeq && view !== "results" && performance.now() > suppressBannerUntil) showBanner(text, !!m.big); }, 150);
-});
-// Hints are for one phone; the TV only shows the riddles (hint steps that have words), as a small purple line.
-game.on("toast", (m) => { if (killFeed && m && m.text && m.kind === "hint") killFeed.push(`${m.player}: ${m.text}`, "#b45cff", colours, "hint"); });
+  setTimeout(() => { if (seq === bannerSeq && view === "play" && performance.now() > suppressBannerUntil) showBanner(text, !!m.big); }, 150);
+}
+game.on("announce", onAnnounce);
+// Hints are private to one phone: the TV never shows them. (The v1.2 server sends none to this screen; an older one sends every
+// toast to every screen, so this page simply does not listen to "toast".)
 
 // ================= keyboard =================
 // START: Enter or S in the lobby. The rest is the debug keyboard player (it joins the game as "keyboard" on its first key).
@@ -959,8 +1084,9 @@ addEventListener("blur", () => Object.values(KEYMAP).forEach((a) => joined && po
 
 // ================= preview without a round (for screenshots and tests) =================
 // window.__bigscreen.mock("lobby" | "play" | "results", { players: 8, bots: 0, left: 187, assists: false, reason: "time" | "chests",
-// noRounds: true, nobody: true, me: 1 }) shows that screen with made-up players; mock(null) (or unmock()) goes back to the live game.
-// URL shortcut: space.html?mock=results&players=25
+// noRounds: true, nobody: true, me: 1, dead: true, crowd: true (every ship in a small cluster) }) shows that screen with made-up players; mock(null) (or unmock()) goes back to
+// the live game. __bigscreen.feed(text) pushes an announce line (kill feed + banner) as if the server had sent it.
+// URL shortcut: space.html?mock=results&players=25 (also &bots=N &dead &crowd &nobody &reason=chests &me=i &left=s)
 const MOCK_NAMES = ["ana", "ben", "carla", "dani", "eli", "fran", "gina", "hugo", "ivan", "julia", "kai", "lara", "marc", "nora", "omar", "pau", "quim", "rita", "sam", "tina", "uri", "vera", "wes", "xavi", "yara"];
 function buildMock(kind, o) {
   const n = Math.max(0, Math.min(25, o.players == null ? 8 : o.players));
@@ -981,11 +1107,18 @@ function buildMock(kind, o) {
     clock: kind === "results" ? 7.4 : 0, left: kind === "play" ? left : 0, leftText: clockText(Math.ceil(left)), round: 3,
     objective: "destroyBoss", objectiveText: "DESTROY THE BOSS", bar: 0.62, status: "BOSS 62% LEFT", assists: !!o.assists,
     chests: { total: o.chests == null ? 7 : o.chests, open: 2, buried: 4, rock: 3 }, leaderboard, result, playerCount: n,
-    me: mp ? { name: mp.name, color: mp.color, mode: "space", hp: 72, maxHp: 100, score: mp.score, shieldEnergy: 0.6, boostEnergy: 0.35, flags: { boost: true }, respawnIn: null } : null,
+    me: mp ? { name: mp.name, color: mp.color, mode: "space", hp: o.dead ? 0 : 72, maxHp: 100, score: mp.score, shieldEnergy: 0.6, boostEnergy: 0.35, flags: o.dead ? { dead: true } : { boost: true }, respawnIn: o.dead ? 2.4 : null } : null,
     followed: mp ? mp.name : null, radar: radarList, scores, tier: 0,
   };
   const W = innerWidth, H = innerHeight;
-  const tags = scores.map((s, i) => ({ name: s.name, color: hex(s.color), hp: 100 - ((i * 13) % 80), maxHp: 100, visible: true, dist: i, x: W * (0.36 + 0.07 * (i % 5)), y: H * (0.3 + 0.075 * Math.floor(i / 5)) }));
+  // lobby: a grid of ships; play: a crowd around the middle (the golden angle), some with status flags, to test the declutter
+  const tags = scores.map((s, i) => {
+    const t = (i + 1) / Math.max(1, n), a = i * 2.39996, r = Math.sqrt(t);
+    const lobby = kind === "lobby";
+    const flags = i === 2 ? { emp: true } : i === 5 ? { inked: true, tractored: true } : i === 7 ? { stun: true } : i === 9 ? { emp: true, inked: true, tractored: true, stun: true } : null;
+    return { name: s.name, color: hex(s.color), hp: 100 - ((i * 13) % 80), maxHp: 100, visible: true, dist: 20 + i * 9, bot: s.bot, flags,
+      x: lobby ? W * (0.36 + 0.07 * (i % 5)) : W * (0.5 + (o.crowd ? 0.13 : 0.3) * r * Math.cos(a)), y: lobby ? H * (0.3 + 0.075 * Math.floor(i / 5)) : H * (0.5 + (o.crowd ? 0.1 : 0.22) * r * Math.sin(a)) };
+  });
   return { hud, tags };
 }
 window.__bigscreen = {
@@ -1000,10 +1133,14 @@ window.__bigscreen = {
     return mocked.hud;
   },
   unmock() { mocked = null; },
+  // Test hook: pushes one announce line through the same path as a server announcement (kill feed + banner), e.g.
+  // __bigscreen.feed("⚡ ana scrambled bob's buttons"), feed("ana ✕ bob 💣"), feed("💰 ana stole 750 points from bob!").
+  feed(text, big = false) { onAnnounce({ type: "announce", text: String(text), big: !!big }); },
+  joinUrl: () => joinShown, // the address the join code shows
 };
 if (params.get("mock")) {
   const num = (k) => (params.get(k) == null ? undefined : +params.get(k));
-  window.__bigscreen.mock(params.get("mock"), { players: num("players"), bots: num("bots"), left: num("left"), me: num("me"), assists: params.has("assists"), noRounds: params.has("norounds"), nobody: params.has("nobody"), reason: params.get("reason") || undefined });
+  window.__bigscreen.mock(params.get("mock"), { players: num("players"), bots: num("bots"), left: num("left"), me: num("me"), assists: params.has("assists"), noRounds: params.has("norounds"), nobody: params.has("nobody"), dead: params.has("dead"), crowd: params.has("crowd"), reason: params.get("reason") || undefined });
 }
 </script>
 </body>

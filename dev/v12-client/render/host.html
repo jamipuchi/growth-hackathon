@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}</style>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+<script src="/contract.js"></script><script src="/verbs.js"></script><script src="/terrain.js"></script>
+</head><body><canvas id="c"></canvas>
+<script type="module">
+// Render-agent test host (dev/v12-client/render): a bare page around render.js, served by the harness through a route
+// interception (never by the game server). ?screen=big|phone &player=<name> &view=spectator|chase|cockpit
+const q = new URLSearchParams(location.search);
+const R = await import("/render.js");
+const screen = q.get("screen") === "phone" ? "phone" : "big";
+const game = R.startGame({ canvas: document.getElementById("c"), screen, view: q.get("view") || (screen === "phone" ? "chase" : "spectator"), player: q.get("player") || null });
+window.__game = game; window.__R = R;
+window.__hostReady = true;
+</script></body></html>

@@ -1,0 +1,228 @@
+{
+  "label": "before",
+  "at": "2026-10-10T00:01:01.348Z",
+  "bots": 24,
+  "tier": null,
+  "windows": {
+    "lobby": {
+      "tv": {
+        "frames": 959,
+        "fps": 120,
+        "low1": 97.1,
+        "p90ms": 9.3,
+        "worstMs": 10.6,
+        "calls": {
+          "avg": 101,
+          "p95": 101,
+          "max": 101
+        },
+        "tris": {
+          "avg": 182476,
+          "p95": 182476,
+          "max": 182476
+        },
+        "tier": {
+          "min": 1,
+          "max": 1
+        },
+        "scenes": [
+          "space"
+        ]
+      },
+      "phone": {
+        "frames": 480,
+        "fps": 60,
+        "low1": 52.6,
+        "p90ms": 18,
+        "worstMs": 21,
+        "calls": {
+          "avg": 52.3,
+          "p95": 53,
+          "max": 53
+        },
+        "tris": {
+          "avg": 62713,
+          "p95": 63008,
+          "max": 63008
+        },
+        "tier": {
+          "min": 1,
+          "max": 1
+        },
+        "scenes": [
+          "space"
+        ]
+      }
+    },
+    "cruise": {
+      "tv": {
+        "frames": 1439,
+        "fps": 120,
+        "low1": 96.2,
+        "p90ms": 9.2,
+        "worstMs": 10.8,
+        "calls": {
+          "avg": 66,
+          "p95": 79,
+          "max": 82
+        },
+        "tris": {
+          "avg": 163866,
+          "p95": 171318,
+          "max": 172516
+        },
+        "tier": {
+          "min": 0,
+          "max": 1
+        },
+        "scenes": [
+          "space"
+        ]
+      },
+      "phone": {
+        "frames": 720,
+        "fps": 60,
+        "low1": 52.6,
+        "p90ms": 18,
+        "worstMs": 25,
+        "calls": {
+          "avg": 58.2,
+          "p95": 60,
+          "max": 60
+        },
+        "tris": {
+          "avg": 65503,
+          "p95": 66858,
+          "max": 67774
+        },
+        "tier": {
+          "min": 1,
+          "max": 1
+        },
+        "scenes": [
+          "space"
+        ]
+      }
+    },
+    "boss": {
+      "tv": {
+        "frames": 2398,
+        "fps": 120,
+        "low1": 90.9,
+        "p90ms": 9.5,
+        "worstMs": 25,
+        "calls": {
+          "avg": 62.9,
+          "p95": 109,
+          "max": 115
+        },
+        "tris": {
+          "avg": 170051,
+          "p95": 204006,
+          "max": 205764
+        },
+        "tier": {
+          "min": 0,
+          "max": 0
+        },
+        "scenes": [
+          "space"
+        ]
+      },
+      "phone": {
+        "frames": 1201,
+        "fps": 60,
+        "low1": 40,
+        "p90ms": 18,
+        "worstMs": 31,
+        "calls": {
+          "avg": 47.9,
+          "p95": 56,
+          "max": 58
+        },
+        "tris": {
+          "avg": 60087,
+          "p95": 64814,
+          "max": 69718
+        },
+        "tier": {
+          "min": 1,
+          "max": 1
+        },
+        "scenes": [
+          "space"
+        ]
+      }
+    },
+    "mischief": {
+      "tv": {
+        "frames": 1995,
+        "fps": 120,
+        "low1": 97.1,
+        "p90ms": 9.7,
+        "worstMs": 18.6,
+        "calls": {
+          "avg": 35.1,
+          "p95": 35,
+          "max": 37
+        },
+        "tris": {
+          "avg": 145141,
+          "p95": 145882,
+          "max": 145942
+        },
+        "tier": {
+          "min": 0,
+          "max": 0
+        },
+        "scenes": [
+          "space"
+        ]
+      },
+      "phone": {
+        "frames": 998,
+        "fps": 60,
+        "low1": 52.6,
+        "p90ms": 18,
+        "worstMs": 26,
+        "calls": {
+          "avg": 34.6,
+          "p95": 36,
+          "max": 58
+        },
+        "tris": {
+          "avg": 38964,
+          "p95": 42380,
+          "max": 63888
+        },
+        "tier": {
+          "min": 1,
+          "max": 1
+        },
+        "scenes": [
+          "space"
+        ]
+      }
+    }
+  },
+  "console": {
+    "tv": {
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "abortedRequests": {
+        "/perf": 13
+      },
+      "warnings": 24,
+      "crashed": false
+    },
+    "phone": {
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "abortedRequests": {},
+      "warnings": 0,
+      "crashed": false
+    }
+  }
+}

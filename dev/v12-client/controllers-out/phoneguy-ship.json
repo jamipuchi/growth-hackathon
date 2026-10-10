@@ -1,0 +1,91 @@
+{
+  "type": "ship",
+  "rig": "ship",
+  "verbs": [
+    "shoot",
+    "boost",
+    "shield",
+    "land",
+    "scan",
+    "flare",
+    "mine",
+    "emp"
+  ],
+  "unlocked": [
+    {
+      "verb": "shoot",
+      "part": "cannon"
+    },
+    {
+      "verb": "boost",
+      "part": "exhaust flames"
+    },
+    {
+      "verb": "shield",
+      "part": "bubble"
+    },
+    {
+      "verb": "land",
+      "part": "landing legs"
+    },
+    {
+      "verb": "scan",
+      "part": "antenna"
+    },
+    {
+      "verb": "flare",
+      "part": "lamp"
+    },
+    {
+      "verb": "emp",
+      "part": "lightning bolt"
+    },
+    {
+      "verb": "mine",
+      "part": "spikes"
+    }
+  ],
+  "parts": [
+    {
+      "name": "cannon",
+      "x": 0.2,
+      "y": 0.5
+    },
+    {
+      "name": "exhaust flames",
+      "x": 0.3,
+      "y": 0.5
+    },
+    {
+      "name": "bubble",
+      "x": 0.4,
+      "y": 0.5
+    },
+    {
+      "name": "landing legs",
+      "x": 0.5,
+      "y": 0.5
+    },
+    {
+      "name": "antenna",
+      "x": 0.6,
+      "y": 0.5
+    },
+    {
+      "name": "lamp",
+      "x": 0.7,
+      "y": 0.5
+    },
+    {
+      "name": "lightning bolt",
+      "x": 0.8,
+      "y": 0.5
+    },
+    {
+      "name": "spikes",
+      "x": 0.9,
+      "y": 0.5
+    }
+  ],
+  "source": "devkit"
+}

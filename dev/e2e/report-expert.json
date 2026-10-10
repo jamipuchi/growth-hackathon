@@ -2,11 +2,11 @@
   "mode": "full",
   "route": "expert",
   "bots": 24,
-  "port": 8172,
-  "measuredAt": "2026-10-09T23:45:02.958Z",
-  "wallSeconds": 148.2,
-  "roundSeconds": 140.9,
-  "roundClock": 136.9,
+  "port": 8261,
+  "measuredAt": "2026-10-10T06:32:07.142Z",
+  "wallSeconds": 151.7,
+  "roundSeconds": 141,
+  "roundClock": 139.3,
   "winner": "e2e",
   "result": {
     "round": 1,
@@ -18,11 +18,11 @@
         11450
       ],
       [
-        "bot1",
+        "bot13",
         70
       ],
       [
-        "bot21",
+        "bot23",
         70
       ],
       [
@@ -30,51 +30,47 @@
         60
       ],
       [
-        "bot5",
+        "bot2",
         50
       ],
       [
-        "bot8",
-        40
+        "bot14",
+        50
       ],
       [
-        "bot2",
+        "bot5",
         30
       ],
       [
-        "bot9",
+        "bot11",
         30
       ],
       [
-        "bot10",
-        30
+        "bot4",
+        20
       ],
       [
-        "bot17",
-        30
+        "bot6",
+        20
+      ],
+      [
+        "bot7",
+        20
+      ],
+      [
+        "bot16",
+        20
       ],
       [
         "bot18",
-        30
+        20
       ],
       [
         "bot19",
-        30
-      ],
-      [
-        "bot13",
         20
       ],
       [
-        "bot14",
-        20
-      ],
-      [
-        "bot20",
-        20
-      ],
-      [
-        "bot24",
+        "bot22",
         20
       ],
       [
@@ -82,11 +78,11 @@
         10
       ],
       [
-        "bot7",
+        "bot8",
         10
       ],
       [
-        "bot11",
+        "bot9",
         10
       ],
       [
@@ -94,23 +90,27 @@
         10
       ],
       [
-        "bot16",
+        "bot17",
         10
       ],
       [
-        "bot22",
-        10
-      ],
-      [
-        "bot23",
-        10
-      ],
-      [
-        "bot4",
+        "bot10",
         0
       ],
       [
-        "bot6",
+        "bot24",
+        0
+      ],
+      [
+        "bot20",
+        -10
+      ],
+      [
+        "bot1",
+        -30
+      ],
+      [
+        "bot21",
         -30
       ]
     ]
@@ -122,12 +122,12 @@
       "total": 11450
     },
     {
-      "name": "bot1",
+      "name": "bot13",
       "stars": 0,
       "total": 70
     },
     {
-      "name": "bot21",
+      "name": "bot23",
       "stars": 0,
       "total": 70
     },
@@ -137,62 +137,57 @@
       "total": 60
     },
     {
-      "name": "bot5",
+      "name": "bot2",
       "stars": 0,
       "total": 50
     },
     {
-      "name": "bot8",
+      "name": "bot14",
       "stars": 0,
-      "total": 40
+      "total": 50
     },
     {
-      "name": "bot2",
+      "name": "bot5",
       "stars": 0,
       "total": 30
     },
     {
-      "name": "bot9",
+      "name": "bot11",
       "stars": 0,
       "total": 30
     },
     {
-      "name": "bot10",
+      "name": "bot4",
       "stars": 0,
-      "total": 30
+      "total": 20
     },
     {
-      "name": "bot17",
+      "name": "bot6",
       "stars": 0,
-      "total": 30
+      "total": 20
+    },
+    {
+      "name": "bot7",
+      "stars": 0,
+      "total": 20
+    },
+    {
+      "name": "bot16",
+      "stars": 0,
+      "total": 20
     },
     {
       "name": "bot18",
       "stars": 0,
-      "total": 30
+      "total": 20
     },
     {
       "name": "bot19",
       "stars": 0,
-      "total": 30
-    },
-    {
-      "name": "bot13",
-      "stars": 0,
       "total": 20
     },
     {
-      "name": "bot14",
-      "stars": 0,
-      "total": 20
-    },
-    {
-      "name": "bot20",
-      "stars": 0,
-      "total": 20
-    },
-    {
-      "name": "bot24",
+      "name": "bot22",
       "stars": 0,
       "total": 20
     },
@@ -202,12 +197,12 @@
       "total": 10
     },
     {
-      "name": "bot7",
+      "name": "bot8",
       "stars": 0,
       "total": 10
     },
     {
-      "name": "bot11",
+      "name": "bot9",
       "stars": 0,
       "total": 10
     },
@@ -217,27 +212,32 @@
       "total": 10
     },
     {
-      "name": "bot16",
+      "name": "bot17",
       "stars": 0,
       "total": 10
     },
     {
-      "name": "bot22",
-      "stars": 0,
-      "total": 10
-    },
-    {
-      "name": "bot23",
-      "stars": 0,
-      "total": 10
-    },
-    {
-      "name": "bot4",
+      "name": "bot10",
       "stars": 0,
       "total": 0
     },
     {
-      "name": "bot6",
+      "name": "bot24",
+      "stars": 0,
+      "total": 0
+    },
+    {
+      "name": "bot20",
+      "stars": 0,
+      "total": -10
+    },
+    {
+      "name": "bot1",
+      "stars": 0,
+      "total": -30
+    },
+    {
+      "name": "bot21",
       "stars": 0,
       "total": -30
     }
@@ -259,16 +259,17 @@
         "shoot",
         "boost",
         "shield",
-        "drill",
         "land",
         "scan",
-        "flare"
+        "flare",
+        "mine",
+        "emp"
       ],
       "source": "devkit",
       "assisted": []
     },
     {
-      "t": 95.66,
+      "t": 94.26,
       "type": "person",
       "verbs": [
         "shoot",
@@ -278,6 +279,8 @@
         "jump",
         "scan",
         "flare",
+        "tractor",
+        "inkbomb",
         "takeoff"
       ],
       "source": "devkit",
@@ -293,38 +296,38 @@
     "won": true,
     "bossDownEarly": true,
     "noConsoleErrors": true,
-    "phonePerf": true
+    "phonePerf": false
   },
-  "pass": true,
-  "bossDownClock": 68.57,
-  "firstChestClock": 98.57,
+  "pass": false,
+  "bossDownClock": 68.73,
+  "firstChestClock": 98.4,
   "stageClocks": {
     "playing": 0.03,
-    "nebula": 32.2,
-    "flare": 32.2,
-    "scan": 33.17,
-    "shooting": 34.03,
-    "boss": 37.93,
-    "bossDead": 68.57,
-    "bossDown": 68.63,
-    "button-land": 71.87,
-    "planet": 89.33,
-    "land-pressed": 89.97,
-    "landed": 93.07,
-    "explorer": 94.43,
-    "chest": 96.17,
-    "button-dig": 96.27,
-    "digging": 96.6,
-    "chest-1": 98.57,
-    "button-drill": 101.83,
-    "drilling": 101.9,
-    "chest-2": 104.4,
-    "chest-3": 108.4,
-    "chest-4": 115.2,
-    "chest-5": 122.67,
-    "chest-6": 129.67,
-    "chest-7": 136.9,
-    "ended": 136.9
+    "nebula": 32.3,
+    "flare": 32.3,
+    "scan": 33.33,
+    "shooting": 34.13,
+    "boss": 38.1,
+    "bossDead": 68.73,
+    "bossDown": 68.8,
+    "button-land": 72.03,
+    "planet": 89.47,
+    "land-pressed": 90.13,
+    "landed": 93.17,
+    "explorer": 94.97,
+    "chest": 95.9,
+    "button-dig": 96.4,
+    "digging": 96.47,
+    "chest-1": 98.4,
+    "button-drill": 101.7,
+    "drilling": 101.77,
+    "chest-2": 104.27,
+    "chest-3": 110.03,
+    "chest-4": 117.1,
+    "chest-5": 126.03,
+    "chest-6": 135.4,
+    "chest-7": 139.3,
+    "ended": 139.3
   },
   "stages": {
     "playing": {
@@ -332,120 +335,120 @@
       "clock": 0.03
     },
     "nebula": {
-      "t": 33.06,
-      "clock": 32.2
+      "t": 32.67,
+      "clock": 32.3
     },
     "flare": {
-      "t": 33.06,
-      "clock": 32.2
+      "t": 32.68,
+      "clock": 32.3
     },
     "scan": {
-      "t": 34.07,
-      "clock": 33.17
+      "t": 33.74,
+      "clock": 33.33
     },
     "shooting": {
-      "t": 34.95,
-      "clock": 34.03
+      "t": 34.55,
+      "clock": 34.13
     },
     "boss": {
-      "t": 38.99,
-      "clock": 37.93
+      "t": 38.55,
+      "clock": 38.1
     },
     "bossDead": {
-      "t": 70.53,
-      "clock": 68.57,
+      "t": 69.56,
+      "clock": 68.73,
       "hp": 9600
     },
     "bossDown": {
-      "t": 70.53,
-      "clock": 68.63
+      "t": 69.63,
+      "clock": 68.8
     },
     "button-land": {
-      "t": 73.87,
-      "clock": 71.87,
-      "ms": 303,
+      "t": 72.94,
+      "clock": 72.03,
+      "ms": 305,
       "actions": [
         "land"
       ]
     },
     "planet": {
-      "t": 91.86,
-      "clock": 89.33
+      "t": 90.55,
+      "clock": 89.47
     },
     "land-pressed": {
-      "t": 92.53,
-      "clock": 89.97
+      "t": 91.22,
+      "clock": 90.13
     },
     "landed": {
-      "t": 95.7,
-      "clock": 93.07
+      "t": 94.3,
+      "clock": 93.17
     },
     "explorer": {
-      "t": 97.17,
-      "clock": 94.43,
+      "t": 96.12,
+      "clock": 94.97,
       "choice": "default"
     },
     "chest": {
-      "t": 98.88,
-      "clock": 96.17,
-      "id": 3,
+      "t": 97.03,
+      "clock": 95.9,
+      "id": 7,
       "kind": "buried"
     },
     "button-dig": {
-      "t": 99.05,
-      "clock": 96.27,
+      "t": 97.6,
+      "clock": 96.4,
       "ms": 303,
       "actions": [
         "land"
       ]
     },
     "digging": {
-      "t": 99.35,
-      "clock": 96.6
+      "t": 97.63,
+      "clock": 96.47
     },
     "chest-1": {
-      "t": 101.39,
-      "clock": 98.57
+      "t": 99.63,
+      "clock": 98.4
     },
     "button-drill": {
-      "t": 104.78,
-      "clock": 101.83,
+      "t": 102.95,
+      "clock": 101.7,
       "ms": 302,
       "actions": [
         "land"
       ]
     },
     "drilling": {
-      "t": 104.82,
-      "clock": 101.9
+      "t": 102.98,
+      "clock": 101.77
     },
     "chest-2": {
-      "t": 107.39,
-      "clock": 104.4
+      "t": 105.52,
+      "clock": 104.27
     },
     "chest-3": {
-      "t": 111.51,
-      "clock": 108.4
+      "t": 111.4,
+      "clock": 110.03
     },
     "chest-4": {
-      "t": 118.52,
-      "clock": 115.2
+      "t": 118.55,
+      "clock": 117.1
     },
     "chest-5": {
-      "t": 126.23,
-      "clock": 122.67
+      "t": 127.58,
+      "clock": 126.03
     },
     "chest-6": {
-      "t": 133.44,
-      "clock": 129.67
+      "t": 137.03,
+      "clock": 135.4
     },
     "chest-7": {
-      "t": 140.94,
-      "clock": 136.9
+      "t": 140.98,
+      "clock": 139.3
     },
     "ended": {
-      "t": 140.94,
-      "clock": 136.9,
+      "t": 140.98,
+      "clock": 139.3,
       "reason": "chests",
       "winner": "e2e",
       "top": [
@@ -454,11 +457,11 @@
           11450
         ],
         [
-          "bot1",
+          "bot13",
           70
         ],
         [
-          "bot21",
+          "bot23",
           70
         ]
       ]
@@ -474,10 +477,11 @@
         "shoot",
         "boost",
         "shield",
-        "drill",
         "land",
         "scan",
-        "flare"
+        "flare",
+        "mine",
+        "emp"
       ],
       "source": "devkit"
     },
@@ -494,6 +498,8 @@
         "jump",
         "scan",
         "flare",
+        "tractor",
+        "inkbomb",
         "takeoff"
       ],
       "source": "devkit"
@@ -501,7 +507,7 @@
     {
       "gate": "land",
       "ok": true,
-      "ms": 303,
+      "ms": 305,
       "status": 200,
       "actions": [
         "land"
@@ -539,7 +545,7 @@
     }
   ],
   "deaths": 1,
-  "ticks": 2169,
+  "ticks": 2191,
   "invalidMessages": {
     "world": 0,
     "tick": 0
@@ -551,62 +557,62 @@
       "big": true
     },
     {
-      "t": 42.08,
+      "t": 42.2,
       "text": "e2e was destroyed",
       "big": false
     },
     {
-      "t": 70.07,
-      "text": "bot6 was destroyed",
+      "t": 62.21,
+      "text": "bot21 was destroyed",
       "big": false
     },
     {
-      "t": 70.53,
-      "text": "💥 e2e landed the last hit on the boss! LAND ON THE PLANET",
+      "t": 69.56,
+      "text": "💥 The swarm brought the boss down! e2e did the most damage: +1000. LAND ON THE PLANET",
       "big": true
     },
     {
-      "t": 95.66,
+      "t": 94.26,
       "text": "e2e landed on the planet. DIG UP A CHEST",
       "big": false
     },
     {
-      "t": 101.39,
+      "t": 99.63,
       "text": "💎 e2e opened a chest (+1500)",
       "big": false
     },
     {
-      "t": 107.39,
+      "t": 105.52,
       "text": "💎 e2e opened a chest (+1500)",
       "big": false
     },
     {
-      "t": 111.51,
+      "t": 111.4,
       "text": "💎 e2e opened a chest (+1500)",
       "big": false
     },
     {
-      "t": 118.52,
+      "t": 118.55,
       "text": "💎 e2e opened a chest (+1500)",
       "big": false
     },
     {
-      "t": 126.23,
+      "t": 127.58,
       "text": "💎 e2e opened a chest (+1500)",
       "big": false
     },
     {
-      "t": 133.44,
+      "t": 137.03,
       "text": "💎 e2e opened a chest (+1500)",
       "big": false
     },
     {
-      "t": 140.94,
+      "t": 140.98,
       "text": "💎 e2e opened a chest (+1500)",
       "big": false
     },
     {
-      "t": 140.94,
+      "t": 140.98,
       "text": "🏆 Every chest is open! e2e wins round 1 with 11450 points",
       "big": true
     }
@@ -618,7 +624,16 @@
   "readyVia": "tap",
   "toasts": [
     {
-      "t": 105.03,
+      "t": 42.2,
+      "text": "Destroyed · back in 3 s",
+      "sketch": null,
+      "ghost": null,
+      "kind": "info",
+      "need": null,
+      "gate": null
+    },
+    {
+      "t": 103.09,
       "text": "X marks the spot. The treasure isn't on top.",
       "sketch": null,
       "ghost": null,
@@ -627,7 +642,7 @@
       "gate": "dig"
     },
     {
-      "t": 109.28,
+      "t": 108.46,
       "text": "Your drill is ready. What starts it?",
       "sketch": null,
       "ghost": null,
@@ -636,7 +651,7 @@
       "gate": "drill"
     },
     {
-      "t": 115.33,
+      "t": 113.22,
       "text": "",
       "sketch": "shovel",
       "ghost": null,
@@ -645,7 +660,7 @@
       "gate": "dig"
     },
     {
-      "t": 119.59,
+      "t": 118.58,
       "text": "",
       "sketch": "drill",
       "ghost": null,
@@ -654,7 +669,7 @@
       "gate": "drill"
     },
     {
-      "t": 130.79,
+      "t": 128.39,
       "text": "Draw DIG",
       "sketch": null,
       "ghost": {
@@ -669,7 +684,7 @@
       "gate": "dig"
     },
     {
-      "t": 135.06,
+      "t": 133.75,
       "text": "Draw DRILL",
       "sketch": null,
       "ghost": {
@@ -688,15 +703,15 @@
     "source": "perf.log",
     "phone": {
       "samples": 29,
-      "fps": 59.3,
-      "fpsMin": 56.6,
-      "low1": 34.5,
-      "low1Min": 9.2,
-      "p90ms": 18,
-      "calls": 31.8,
-      "callsMax": 64,
-      "tris": 56469,
-      "trisMax": 66442,
+      "fps": 43.2,
+      "fpsMin": 28.5,
+      "low1": 21.3,
+      "low1Min": 6.9,
+      "p90ms": 29.9,
+      "calls": 27.9,
+      "callsMax": 40,
+      "tris": 55154,
+      "trisMax": 63121,
       "tier": 5,
       "size": "844x390@1",
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Apple",
@@ -705,14 +720,14 @@
     "big": {
       "samples": 29,
       "fps": 120,
-      "fpsMin": 119.6,
-      "low1": 96.3,
-      "low1Min": 77.7,
-      "p90ms": 9.6,
-      "calls": 41.9,
-      "callsMax": 107,
-      "tris": 161162,
-      "trisMax": 181034,
+      "fpsMin": 120,
+      "low1": 107,
+      "low1Min": 102.7,
+      "p90ms": 8.8,
+      "calls": 37.5,
+      "callsMax": 52,
+      "tris": 159040,
+      "trisMax": 169764,
       "tier": 0,
       "size": "1440x900@1",
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/",
@@ -777,5 +792,5 @@
     "dev/e2e/shots/expert/shooting-big.png",
     "dev/e2e/shots/expert/shooting-phone.png"
   ],
-  "video": null
+  "video": "dev/e2e/video/phone.webm"
 }
