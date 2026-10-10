@@ -94,6 +94,7 @@ class Buf {
 
 // A surface of rings around an axis (ship3d.js): rows [{ t, a, b, n, x, y, v, c }].
 function rings(B, rows, seg, fr, reg, col, opt = {}) {
+  if (!opt.exact) seg = fs(seg); // v1.8: the detail floor (FL); opt.exact keeps the count (tyres)
   const { o, f, u } = fr, r = cross(u, f);
   const closed = opt.th1 == null, th0 = opt.th0 || 0, th1 = closed ? Math.PI * 2 : opt.th1;
   const nr = rows.length, nc = seg + 1, P = new Float64Array(nr * nc * 3);
@@ -136,15 +137,22 @@ function rings(B, rows, seg, fr, reg, col, opt = {}) {
 // Primitives. seg = segments around; every size in metres in the root's rest frame.
 let D = 1; // the quality factor of the current build (segments scale with it)
 const sg = (n) => Math.max(5, Math.round(n * D));
+// v1.8 (every vehicle inside its budget, ship3d's detail floor): FL (0.5..1) lets the minimum segment counts give way too. sg's
+// floor of 5 and the fixed counts (lights, arches, hub caps, tools) keep D from bringing a busy build under its budget (a lite
+// tank stayed at 2718 > 2600 after six passes, an 8-wheel car with six items at 4300): buildEntity lowers FL only once D has
+// stopped helping, and the primitives (rings, ell, capsule, tube) apply it to every count they get (down to 3 sides). FL = 1
+// changes nothing. Tyres keep their count (rings opt.exact: round wheels whose lowest vertex stays exactly r below the hub).
+let FL = 1;
+const fs = (n) => (FL >= 1 ? n : Math.max(3, Math.round(n * FL)));
 // An ellipsoid with half axes rx (x), ry (along dir, default up), rz; n > 2 makes it boxier.
 function ell(B, c, rx, ry, rz, seg, reg, col, { dir = [0, 1, 0], hint = [0, 0, -1], n = 2, rows: k0 } = {}) {
-  const k = k0 || Math.max(4, Math.round(seg / 2)), rows = [];
+  const k = k0 || Math.max(3, Math.ceil(4 * FL - 1e-6), Math.round(fs(seg) / 2)), rows = [];
   for (let i = 0; i <= k; i++) { const a = -Math.PI / 2 + Math.PI * i / k, cs = Math.cos(a); rows.push({ t: Math.sin(a) * ry, a: Math.abs(cs) < 1e-6 ? 0 : spow(cs, n === 2 ? 1 : 0.7) * rx, b: Math.abs(cs) < 1e-6 ? 0 : spow(cs, n === 2 ? 1 : 0.7) * rz, n, v: i / k }); }
   rings(B, rows, seg, frame(c, dir, hint), reg, col);
 }
 // A capsule from p0 (radius r0) to p1 (r1) with round ends.
 function capsule(B, p0, p1, r0, r1, seg, reg, col, n = 2) {
-  const L = len(sub(p1, p0)), k = Math.max(2, Math.round(seg / 4)), rows = [];
+  const L = len(sub(p1, p0)), k = Math.max(2, Math.round(fs(seg) / 4)), rows = [];
   for (let i = 0; i <= k; i++) { const a = -Math.PI / 2 + Math.PI / 2 * i / k; rows.push({ t: r0 * Math.sin(a), a: r0 * Math.cos(a), b: r0 * Math.cos(a), n }); }
   for (let i = 0; i <= k; i++) { const a = Math.PI / 2 * i / k; rows.push({ t: L + r1 * Math.sin(a), a: r1 * Math.cos(a), b: r1 * Math.cos(a), n }); }
   rows[0].a = rows[0].b = 0; rows[rows.length - 1].a = rows[rows.length - 1].b = 0;
@@ -165,6 +173,7 @@ function box(B, c, hx, hy, hz, reg, col, { n = 4, seg = 12, dir = [0, 1, 0], hin
 }
 // A tube along a polyline (radius per point), rounded caps.
 function tube(B, pts, rad, seg, reg, col) {
+  seg = fs(seg); // v1.8: the detail floor (FL)
   const n = pts.length;
   const T = pts.map((p, i) => nrm(sub(pts[Math.min(n - 1, i + 1)], pts[Math.max(0, i - 1)])));
   let N0 = Math.abs(T[0][1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
@@ -1100,7 +1109,7 @@ function wheel(B, rig, name, c, r, w, P, opt = {}) {
   half.push({ t: w / 2 - sh, a: top });
   const prof = [...half.map((q) => ({ t: -q.t, a: q.a })), ...half.slice().reverse(), { t: -w * 0.42, a: rIn }];
   const tyre = prof.map((q, i) => ({ t: q.t, a: q.a, b: q.a, v: i / (prof.length - 1) }));
-  rings(B, tyre, seg, frame(c, ax, [0, 1, 0]), R("trim"), P.dark);
+  rings(B, tyre, seg, frame(c, ax, [0, 1, 0]), R("trim"), P.dark, { exact: true }); // v1.8: never under the floor (round, lowest vertex r)
   // hub
   const hubC = opt.hubColor || P.metal;
   if (!opt.thin) cyl(B, madd(c, ax, -w * 0.42), madd(c, ax, w * 0.42), ri * 0.98, ri * 0.98, sg(14), R("metal"), shade(hubC, 0.8), 0.15);
@@ -1475,8 +1484,9 @@ function toGeometry(Bf, fx = false) {
 
 // ---- Build ---------------------------------------------------------------------------------------------------------
 
-function assemble(spec, color, d) {
+function assemble(spec, color, d, fl = 1) {
   D = d;
+  FL = fl;
   const P = palette(spec, color);
   const B = new Buf(), F = new Buf(), rig = new Rig(RIG_OF[spec.type]);
   const rnd = rng(spec.seed || 1);
@@ -1488,8 +1498,20 @@ export function buildEntity(specIn, { drawingImage = null, color = 0x22d3ee, qua
   const t0 = performance.now();
   const q = Q[quality] ? quality : "phone";
   const spec = sane(specIn);
-  let d = Q[q].d, A0 = null;
-  for (let k = 0; k < 6; k++) { A0 = assemble(spec, color, d); if (A0.tris <= Q[q].tris) break; d *= 0.82; }
+  let d = Q[q].d, fl = 1, A0 = null, prev = Infinity, used = d, usedFl = 1;
+  for (let k = 0; k < 8; k++) {
+    A0 = assemble(spec, color, d, fl);
+    used = d; usedFl = fl;
+    if (A0.tris <= Q[q].tris) break;
+    // v1.8: D steps (x 0.82) as before while each still cuts 3 % or more; once one does not (the parts sit at their minimum
+    // counts), the minimums give way instead (FL, ship3d's detail floor), sized from how far over the build is: two or three
+    // more passes, not a pile of useless D steps. Builds that fit on D alone keep FL = 1 (dev/v18-render/entity-budget.mjs: the
+    // 311 of 411 builds that fitted before v1.8 come out identical; the 100 that did not now fit).
+    if (fl < 1 || A0.tris > prev * 0.97) fl = Math.max(0.5, fl * clamp((Q[q].tris / A0.tris) * 0.92, 0.55, 0.85));
+    else d *= 0.82;
+    prev = A0.tris;
+  }
+  FL = 1;
   const { B, F, rig, P } = A0;
   rig.realize();
   // The drawing as a small patch where it reads: a person's chest (left side), a car's doors, an animal's flank, the blob's back.
@@ -1603,7 +1625,7 @@ export function buildEntity(specIn, { drawingImage = null, color = 0x22d3ee, qua
   };
   const first = instance();
   return {
-    ...first, spec, triangles, drawCalls, size, radius, ms: +(performance.now() - t0).toFixed(1), quality: q, detail: +d.toFixed(3),
+    ...first, spec, triangles, drawCalls, size, radius, ms: +(performance.now() - t0).toFixed(1), quality: q, detail: +used.toFixed(3), floor: +usedFl.toFixed(3),
     instance,
     dispose() { first.dispose(); gBody.dispose(); if (gFx) gFx.dispose(); if (gDecal) gDecal.dispose(); if (patchTex) patchTex.dispose(); },
   };

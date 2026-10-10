@@ -5097,6 +5097,28 @@ function islandKitLook(kit) {
   if (shade && shade.material) { shade.material.color.set(0x0c2414); shade.material.opacity = 0.4; }
 }
 
+// v1.8 sharper shoreline: the height map the water reads (shallows, foam line, ripples), N x N RGBA over `size` metres. 256 on
+// the 1134 m water square is 4.4 m a texel (128 was 8.9 m: a blocky, wobbling foam line on the 840 m island). R = coarse height
+// (-8..40 m, 19 cm steps: depth colours), G = fine height (-4..4 m, 3 cm steps: the shader draws the foam edge and the ripples
+// from it). Sampled at the texel centres the GPU uses ((i + 0.5) / N; the old i / (N - 1) put the map up to half a texel off).
+// Outside the island's disc terrain.js is flat sea (falloff 0): those texels (57 %) take that height without calling H, after
+// a check that a ring of real samples there agrees (else every texel is sampled). dev/v18-render/shore-probe.mjs measures it.
+function waterHeightData(H, size, N) {
+  const data = new Uint8Array(N * N * 4), half = Terrain.ISLAND_SIZE / 2, sea = H(size, size);
+  let flat = true;
+  for (let k = 0; k < 24 && flat; k++) { const a = k * 2.4, r = half * (1.001 + (k % 6) * 0.06); flat = H(Math.cos(a) * r, Math.sin(a) * r) === sea; }
+  for (let j = 0; j < N; j++) {
+    const z = ((j + 0.5) / N - 0.5) * size;
+    for (let i = 0; i < N; i++) {
+      const x = ((i + 0.5) / N - 0.5) * size, h = flat && x * x + z * z > half * half ? sea : H(x, z), o = (j * N + i) * 4;
+      data[o] = clamp((h + 8) / 48, 0, 1) * 255 + 0.5; // rounded (a Uint8Array truncates)
+      data[o + 1] = clamp((h + 4) / 8, 0, 1) * 255 + 0.5;
+      data[o + 3] = 255;
+    }
+  }
+  return data;
+}
+
 function palmGeometry() {
   const trunk = new THREE.CylinderGeometry(0.17, 0.32, 6.5, 5, 5, true).toNonIndexed();
   trunk.translate(0, 3.25, 0);
@@ -5258,13 +5280,8 @@ class IslandWorld {
     geo.computeVertexNormals();
     this.terrain = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true }));
     this.scene.add(this.terrain);
-    // Height texture for shallow water and shore foam.
-    const N = 128, data = new Uint8Array(N * N * 4);
-    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
-      const x = (i / (N - 1) - 0.5) * size, z = (j / (N - 1) - 0.5) * size;
-      const v = clamp((H(x, z) + 8) / 48, 0, 1) * 255;
-      data.set([v, v, v, 255], (j * N + i) * 4);
-    }
+    // Height texture for shallow water and shore foam (v1.8: 256 x 256, coarse + fine heights: waterHeightData).
+    const N = 256, data = waterHeightData(H, size, N);
     const htex = new THREE.DataTexture(data, N, N);
     htex.magFilter = htex.minFilter = THREE.LinearFilter;
     htex.needsUpdate = true;
@@ -5276,7 +5293,9 @@ class IslandWorld {
         void main(){
           vec2 uv = vW.xz / uSize + 0.5;
           float inside = smoothstep(0.0, 0.08, min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y))); // v1.7: soft, no line where the map ends
-          float h = mix(-8.0, texture2D(uH, uv).r * 48.0 - 8.0, inside);
+          vec2 hs = texture2D(uH, uv).rg; // v1.8: r coarse (-8..40 m), g fine (-4..4 m, 3 cm steps) near sea level
+          float hf = hs.g * 8.0 - 4.0;
+          float h = mix(-8.0, mix(hs.r * 48.0 - 8.0, hf, 1.0 - smoothstep(3.0, 3.8, abs(hf))), inside);
           float depth = clamp(-h / 7.0, 0.0, 1.0);
           vec2 p = vW.xz; float t = uTime;
           vec3 n = normalize(vec3(0.10*cos(p.x*0.21+t*1.1)+0.07*cos(p.y*0.33+t*1.4)+0.04*cos((p.x+p.y)*0.7+t*2.1), 1.0,
@@ -6916,8 +6935,14 @@ export function startGame({ canvas, screen = "big", view, player = null, winJing
   // computeHud once per frame at most: the frame loop's "hud" event and a page asking game.hud() (the phone polls it, and asks it
   // again per name tag) share one model (read-only) while the frame, the latest tick, the world and the subject are the same.
   const hudKey = { frame: -1, tick: null, world: null, player: null, followed: null, model: null };
+  // v1.8 (stale HUD): game.lastSnap is the frame loop's sample, so while the loop is paused (the phone's draw screen, a hidden
+  // tab) and on the first read after it resumes, hud().me (hp, flags, mode) was the last frame's, seconds or a round old (the
+  // root of v1.6.1's round-2 explorer prompt). snapTick = the newest tick when lastSnap was taken: a read that finds a newer
+  // tick with no frame since takes a fresh sample (pooled, no garbage), at most once per tick; inside a frame it never does.
+  let snapTick = null;
   function hudNow() {
-    const k = hudKey;
+    const k = hudKey, S = game.snaps;
+    if (S.latest && snapTick !== S.latest) { game.lastSnap = S.sample(); snapTick = S.latest; }
     if (!k.model || k.frame !== game.frames || k.tick !== game.snaps.latest || k.world !== game.world || k.player !== game.player || k.followed !== game.followed) {
       k.model = computeHud(game);
       k.frame = game.frames; k.tick = game.snaps.latest; k.world = game.world; k.player = game.player; k.followed = game.followed;
@@ -6938,6 +6963,7 @@ export function startGame({ canvas, screen = "big", view, player = null, winJing
     applySize();
     const snap = game.snaps.sample();
     game.lastSnap = snap;
+    snapTick = game.snaps.latest; // hudNow: this frame's sample has seen the newest tick
     // During the shot transition.js owns the camera; the followed player stays the same.
     const cam = shot ? rig.finish("chase", "space") : rig.update(dt, t, game, snap); // one reused result object, no allocation
     game.followed = cam.followed;
