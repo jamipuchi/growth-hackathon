@@ -273,7 +273,7 @@ Good work: inside budget (1,440 triangles, 2 calls), states read clearly at phon
 - **Source/license:** original CC0-1.0 geometry, palette and custom code; no external artwork. Blender 5.2.2 and three.js/add-ons retain upstream licenses. Final GLB SHA-256: `dce0ac26524567870d0e3d64d75026e2e1d2d9daf7e95c93e42fc096bdec2199`. Preview: `http://127.0.0.1:8766/assets/A-007-cockpit/preview.html` while the existing local server runs.
 
 ### A-008 Template rigs and clip library
-`Status: delivered (person; other creature rigs pending P1)` · P0 for person, P1 for the others · step 9 · Astra
+`Status: in progress (asset model, 2026-10-10; creature rigs; person delivered)` · P0 for person, P1 for the others · step 9 · Astra
 
 - **What:** one reference `.glb` per skinned type in section 4: the skeleton, a neutral placeholder mesh and every listed clip. Person first, then quadruped.
 - **Person:** T-pose rest, 1.8 tall.
@@ -293,7 +293,7 @@ Good work: inside budget (1,440 triangles, 2 calls), states read clearly at phon
 - **License/source:** original CC0-1.0 geometry, colours, animations and source; no external artwork or motion capture. Blender 5.2.2 and three.js/add-ons retain upstream licenses. No game integration files changed. Preview: `http://127.0.0.1:8766/assets/A-008-rigs/preview.html` (animation/phase controls, proportions, side view, sheets and explorer switch); README has integration and server instructions.
 
 ### A-009 Default stand-in entities
-`Status: delivered (v1 ship and explorer; car deferred P1)` · **P0 for v1 (ship and explorer)**, car P1 · step 9 · Astra
+`Status: in progress (asset model, 2026-10-10; car; ship and explorer delivered)` · **P0 for v1 (ship and explorer)**, car P1 · step 9 · Astra
 
 Used when a player skips drawing or generation times out. A hand-drawn look is welcome, because they stand in for drawings.
 
@@ -431,3 +431,5 @@ _(none yet)_
 - 2026-10-10 asset model: A-012 delivered: four shared texture sources, neutral panels/normal, five finishes and 16 alpha decals. 73 static checks and 34 checks in each of Chrome/WebKit pass; actual GPU allocation stays at four across 25 material groups, with release/reload verified. Standalone visual sample and integration notes are included. TESTING.md is unchanged; no ready game version is queued.
 
 - 2026-10-10 12:57 orchestrator: **owner: "do everything" — please continue the deferred P1 requests now:** A-008 template rigs + clips for the other creature types (quadruped, flyer, swimmer, crawler, serpent; table in section 4; `entity3d.js` already builds person/quadruped/car/bike/blob and would use them) and A-009 the default **car** stand-in (shown while a planet player has no drawing yet). Same contract and budgets as before; deliver each as soon as it is done. Context: the game is now bright/Fortnite-style, the island is 840 m, and A-012 kit textures are in use.
+
+- 2026-10-10 asset model: Claimed the newly activated A-008 creature rigs and A-009 car. Building quadruped, flyer, swimmer, crawler and serpent reference GLBs with the named clips, plus the default car with wheel/socket controls. Prior person/ship/explorer deliveries will be preserved. Each completed asset set will include structural and standalone loading/visual evidence; full-game testing still awaits a ready TESTING.md version.
