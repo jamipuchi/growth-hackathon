@@ -66,6 +66,31 @@ HTTPS_PORT=0 PORT=8000 node server.js          # quickest for a living-room game
 Turn HTTPS off when the certificate step gets in the way (many phones, guests); keep it on when players want tilt.
 Plain `http://<laptop-ip>:8000/controller.html` always works too, even while HTTPS is on.
 
+### Restart everything (v1.6.1)
+
+The big screen has a small **↻ RESTART** button in the bottom left corner (lobby, play and results). Tap it, then tap
+again within 4 s: "RESTART EVERYTHING? EVERYONE REJOINS · CLEARS PLAYERS AND THE HALL OF FAME". The host key is **R**
+twice within 3 s (with `?kb`, where R drills, SHIFT+R). It is a server restart: every phone forgets its player and shows
+JOIN ("The host restarted the game. Join again."), the big screen reloads, and the world and the hall of fame start empty.
+
+How the server restarts (`POST /restart {"confirm": true}`):
+
+- **Under a supervisor** that runs `node server.js` again whenever it exits (a keep-alive loop, pm2, nodemon...), the
+  server exits with code 0 and the supervisor starts a fresh one. Tell the server it is supervised:
+
+  ```
+  export KEEPALIVE=1      # in the keep-alive script, before its `while true; do node server.js; done` loop
+  ```
+
+  Without `KEEPALIVE`, a parent process whose command line names keepalive / pm2 / nodemon / forever / supervisor /
+  runsv / systemd counts as a supervisor too.
+- **Otherwise (the default)** the server starts a detached copy of itself with the same arguments and environment,
+  releases its ports and exits; the copy waits for it to be gone and retries listen until the ports are free (up to
+  30 s). `KEEPALIVE=0` forces this path.
+
+The new server has a new session id (in every world message and in `GET /info`): a phone that comes back to a server
+with another id forgets its player too.
+
 ## How a round plays (on your phone)
 
 1. Scan the QR on the big screen and type your name. Tap FULLSCREEN (or, on an iPhone, add the game to your home
