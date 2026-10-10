@@ -84,7 +84,7 @@
   #scores { position: absolute; left: 1.6rem; top: 1.4rem; width: 19.2rem; z-index: 20; animation: inLeft .55s var(--pop) both; }
   #scoresTitle { display: inline-block; padding: .45rem 1.5rem .55rem 1.2rem; margin: 0 0 .9rem .3rem; }
   #scoresTitle span { font-size: 1.95rem; }
-  #rows { position: relative; height: calc(var(--n, 0) * 3.45rem); }
+  #rows { position: relative; height: calc(var(--n, 0) * 3.45rem + var(--x, 0) * .6rem); }
   .row { position: absolute; left: 0; top: 0; width: 100%; height: 2.95rem; transform: translateY(calc(var(--i, 0) * 3.45rem)); transition: transform .45s var(--pop); }
   .row .in { position: relative; isolation: isolate; height: 100%; display: flex; align-items: center; gap: .6rem; padding: 0 .9rem 0 .45rem; }
   .row.new .in { animation: popIn .4s var(--pop) both; }
@@ -93,6 +93,12 @@
   .row.me .in::before { border-color: var(--gold); background: linear-gradient(180deg, rgb(96 58 210 / .97), rgb(54 28 140 / .97));
                         box-shadow: 0 .28rem 0 var(--shadow), 0 0 1.3rem rgb(255 203 61 / .55); }
   .row.dead { opacity: .55; }
+  /* v1.6: the followed player outside the top 7 is an extra row under rank 7 (a small gap and a dashed rule), never in its place */
+  .row.extra { transform: translateY(calc(var(--i, 0) * 3.45rem + .6rem)); }
+  .row.extra::before { content: ""; position: absolute; left: 2.4rem; right: 1.2rem; top: -.5rem; border-top: .16rem dashed rgb(255 255 255 / .5); }
+  /* the player's true colour as a chip; the name itself is a readable tint of it (dark blues and purples read from the sofa) */
+  .row .sw { flex: none; width: .55rem; height: 1.85rem; transform: skewX(-8deg); border-radius: .15rem; background: var(--pc, #fff);
+             border: .12rem solid rgb(255 255 255 / .85); box-shadow: 0 .14rem 0 var(--shadow); margin-right: -.15rem; }
   .rk { position: relative; isolation: isolate; flex: none; width: 2.2rem; height: 2.2rem; display: grid; place-items: center; font-size: 1.5rem; }
   .rk::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-8deg); border-radius: .28rem;
                 background: linear-gradient(180deg, #4b61f0, #2a3bb8); border: .13rem solid rgb(255 255 255 / .75); }
@@ -153,6 +159,8 @@
   #meters { position: absolute; right: 1.6rem; bottom: 1.6rem; width: 21.6rem; padding: 1rem 1.5rem 1.35rem 1.4rem; z-index: 20; animation: inRight .55s var(--pop) .15s both; --bg: linear-gradient(180deg, rgb(58 38 160 / .96), rgb(30 19 96 / .96)); }
   #who { display: flex; flex-direction: column; align-items: flex-start; gap: .1rem; }
   #who .lbl { font-size: 1.3rem; color: #d8d2ff; letter-spacing: .1em; }
+  #who .lbl::before { content: ""; display: inline-block; width: 1.5rem; height: .95rem; margin-right: .45rem; vertical-align: .05rem; transform: skewX(-8deg);
+                      border-radius: .15rem; background: var(--pc, #fff); border: .12rem solid #fff; box-shadow: 0 .12rem 0 var(--shadow); }
   #whoName { font-size: 2.6rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 .3rem .15rem 0; }
   #dead { display: none; text-align: center; margin-top: .5rem; }
   #meters.dead #dead, #meters.back #dead { display: block; }
@@ -539,7 +547,7 @@ const COPY = {
     scores: "SCOREBOARD",
     more: "+{n} MORE",
     timeLeft: "TIME LEFT",
-    assists: "ALL POWERS ON",
+    assists: "THE CHESTS GLOW · DRAW WHAT YOU NEED", // from 3:00 (no free skills, PLAN.md section 0 decision 1): the phone says the same
     chests: "CHESTS",
     chestsOf: "{open} / {total}",
     following: "FOLLOWING",
@@ -588,7 +596,9 @@ const COPY = {
   },
   sound: { on: "SOUND ON", off: "SOUND OFF" },
   // Server lines that use game words: shown with these plain words instead (banner and kill feed).
-  rewrite: [[/^assists on\b/i, "BONUS TIME! ALL POWERS UNLOCKED · THE CHESTS GLOW"]],
+  // The 3:00 line (old server: "Assists on: every gate skill is unlocked…"; now "3:00! The chests glow. Missing a skill? Draw it now!"):
+  // nothing is ever unlocked for free (PLAN.md section 0), so the TV says what the phones' big "DRAW A SHOVEL" cards say.
+  rewrite: [[/^(assists on\b|3:00! the chests glow\b)/i, "3:00! THE CHESTS GLOW · MISSING A SKILL? DRAW IT NOW!"]],
   help: "HOST KEYS · ENTER start (or skip the podium) · M sound · H hide this",
   // Only with ?kb (a test player that joins as "keyboard"; a stray key on the party laptop never adds a player).
   helpKb: " · TEST PLAYER: arrows steer · W/S thrust · A/D strafe · Q/E rise / sink · SPACE shoot · SHIFT shield · B boost · F flare · C scan · R drill · L land · T take off · G dig · J jump · V view",
@@ -771,6 +781,9 @@ const hudEl = $("hud");
 let view = "none", phase = null, haveTick = false, world = null, tick = null, tickAt = 0;
 const colours = new Map(); // player name -> "#rrggbb"
 const colourOf = (name) => colours.get(name) || "#ffffff";
+// v1.6: a player's colour as name TEXT: a lighter tint of a dark colour (bigscreen-extras readableColour); swatches keep colourOf.
+const textColour = (c) => (BX && BX.readableColour ? BX.readableColour(c) : c);
+const nameColourOf = (name) => textColour(colourOf(name));
 let mocked = null;
 // The players' drawings (v1.5: the hangar cards and the podium show them). server.js puts the drawing's URL on every entity message
 // (entity.image, /drawings/<player>-ship.png?v=<hash>) and on the connect message's entities; a landed player's parked ship has it.
@@ -894,7 +907,7 @@ function boardHtml(lb, max, hi) {
   if (!lb.length || lb.every((r) => !r.stars && !r.total)) return `<div class="lbempty h">${esc(COPY.lobby.boardEmpty)}</div>`;
   const rows = lb.slice(0, max).map((r, i) => {
     const rank = i < 3 ? ` r${i + 1}` : "";
-    return `<div class="lrow${i === 0 ? " first" : ""}${hi && r.name === hi ? " gotStar" : ""}" style="--i:${i}" data-name="${esc(r.name)}"><span class="rk h${rank}">${i + 1}</span><span class="nm h" style="color:${colourOf(r.name)}">${esc(r.name)}</span>` +
+    return `<div class="lrow${i === 0 ? " first" : ""}${hi && r.name === hi ? " gotStar" : ""}" style="--i:${i}" data-name="${esc(r.name)}"><span class="rk h${rank}">${i + 1}</span><span class="nm h" style="color:${nameColourOf(r.name)}">${esc(r.name)}</span>` +
       `<span class="st h${r.stars ? "" : " zero"}">${esc(fmt(COPY.cards.stars, { n: r.stars || 0 }))}</span><span class="tp h">${fmtNum(r.total)}</span></div>`;
   });
   if (lb.length > max) rows.push(`<div class="lmore h">${esc(fmt(COPY.lobby.more, { n: lb.length - max }))}</div>`);
@@ -933,7 +946,7 @@ function renderLobby(h) {
     if (s.bot) continue;
     names.add(s.name);
     // (the hangar's card popping in is the announcement: no toast then; its pop sound is hangarPop)
-    if (known && !known.has(s.name) && !hangar) { ptoast(fmtHtml(COPY.lobby.joined, { name: `<span style="color:${colourOf(s.name)}">${esc(s.name)}</span>` })); sfxPlay("pop"); }
+    if (known && !known.has(s.name) && !hangar) { ptoast(fmtHtml(COPY.lobby.joined, { name: `<span style="color:${nameColourOf(s.name)}">${esc(s.name)}</span>` })); sfxPlay("pop"); }
   }
   known = names;
   renderRoster(h, humans);
@@ -966,7 +979,7 @@ function renderRoster(h, humans) {
   grid.innerHTML = humans.map((s, i) => {
     const st = stars.get(s.name) || s.stars || 0;
     const ok = !!s.ready;
-    return `<div class="rc ${ok ? "ok" : "wait"}" style="animation-delay:${Math.min(i, 12) * 30}ms"><span class="nm h" style="color:${colourOf(s.name)}">${esc(s.name)}</span>` +
+    return `<div class="rc ${ok ? "ok" : "wait"}" style="animation-delay:${Math.min(i, 12) * 30}ms"><span class="nm h" style="color:${nameColourOf(s.name)}">${esc(s.name)}</span>` +
       `<span class="stc h">${st ? esc(fmt(COPY.cards.stars, { n: st })) : ""}</span><span class="mk h">${esc(ok ? COPY.cards.ready : COPY.cards.drawing)}</span></div>`;
   }).join("");
 }
@@ -1003,16 +1016,17 @@ const rowsEl = $("rows"), rowMap = new Map();
 function makeRow() {
   const el = document.createElement("div");
   el.className = "row new";
-  el.innerHTML = '<div class="in"><span class="rk h"></span><span class="nm h"></span><span class="pl"></span><span class="st h"></span><span class="sc h"></span></div>';
+  el.innerHTML = '<div class="in"><span class="rk h"></span><span class="sw"></span><span class="nm h"></span><span class="pl"></span><span class="st h"></span><span class="sc h"></span></div>';
   setTimeout(() => el.classList.remove("new"), 500);
   return { el, rk: el.querySelector(".rk"), nm: el.querySelector(".nm"), pl: el.querySelector(".pl"), st: el.querySelector(".st"), sc: el.querySelector(".sc"), score: null };
 }
 function renderScores(h) {
-  const list = h.scores, cap = 7; // 7 big rows (+ the followed player): the kill feed lives under them, bottom left
+  const list = h.scores, cap = 7; // ranks 1-7 always (+ the followed player): the kill feed lives under them, bottom left
   const vis = [];
   for (let i = 0; i < Math.min(cap, list.length); i++) vis.push({ s: list[i], rank: i + 1 });
   const mi = list.findIndex((s) => s.me);
-  if (mi >= cap) vis[cap - 1] = { s: list[mi], rank: mi + 1 }; // the player being followed always shows
+  const extra = mi >= cap; // the player being followed always shows: an extra highlighted row under rank 7, never in its place
+  if (extra) vis.push({ s: list[mi], rank: mi + 1, extra: true });
   const seen = new Set();
   vis.forEach((v, i) => {
     const s = v.s;
@@ -1030,7 +1044,9 @@ function renderScores(h) {
     const cls = "rk h" + (v.rank <= 3 ? ` r${v.rank}` : "");
     if (r.rk.className !== cls) r.rk.className = cls;
     setText(r.nm, s.name);
-    setColor(r.nm, hex(s.color));
+    setColor(r.nm, textColour(hex(s.color))); // a readable tint for the name, the chip next to it keeps the true colour
+    setVar(r.el, "--pc", hex(s.color));
+    flag(r.el, "extra", !!v.extra);
     setHtml(r.pl, s.mode === "planet" ? ICON.planet : "");
     setText(r.st, s.stars ? fmt(COPY.cards.stars, { n: s.stars }) : ""); // session stars (rounds won tonight)
     flag(r.el, "me", s.me);
@@ -1040,6 +1056,7 @@ function renderScores(h) {
   });
   for (const [name, r] of rowMap) if (!seen.has(name)) { r.el.remove(); rowMap.delete(name); }
   setVar(rowsEl, "--n", String(vis.length));
+  setVar(rowsEl, "--x", extra ? "1" : "0");
   setText($("more"), list.length > vis.length ? fmt(COPY.play.more, { n: list.length - vis.length }) : "");
 }
 
@@ -1097,7 +1114,8 @@ function renderPlay(h) {
   flag($("meters"), "off", !me && performance.now() - meGoneAt > 800); // a camera cut must not replay the slide-in
   if (me) {
     setText($("whoName"), me.name);
-    setColor($("whoName"), hex(me.color || 0x94a3b8));
+    setColor($("whoName"), textColour(hex(me.color || 0x94a3b8)));
+    setVar($("who"), "--pc", hex(me.color || 0x94a3b8)); // the chip before FOLLOWING: the true colour
     const f = me.flags || {};
     // Dead: the whole panel turns red with "DESTROYED" and the seconds to respawn; back: a green "BACK IN THE FIGHT!" for a moment.
     const dead = !!f.dead, now = performance.now();
@@ -1180,7 +1198,7 @@ function buildResults(r, h) {
       const pic = img ? `<img src="${esc(img)}" alt="" onerror="this.parentNode.classList.remove('has');this.remove()">` : "";
       return `<div class="pc p${rank}" style="--pc:${col}">` +
         (rank === 1 ? `<div class="wl h">${ICON.crown}<span>${esc(COPY.results.winner)}</span></div>` : "") +
-        `<div class="nm h hh" style="color:${col}">${esc(name)}</div><div class="pt h">${esc(fmt(COPY.results.points, { n: fmtNum(score) }))}</div>` +
+        `<div class="nm h hh" style="color:${textColour(col)}">${esc(name)}</div><div class="pt h">${esc(fmt(COPY.results.points, { n: fmtNum(score) }))}</div>` +
         `<div class="pic${img ? " has" : ""}">${shipSvg(col)}${pic}` +
         (rank === 1 ? `<div class="starTag sk gold"><span class="h dk">${esc(COPY.results.star)}</span></div>` : "") + "</div>" +
         `<div class="blk h"><span>${rank}</span></div></div>`;
@@ -1197,7 +1215,7 @@ function buildResults(r, h) {
   el.style.setProperty("--rh", cols === 1 ? "2.7rem" : cols === 2 ? "2.4rem" : "2.05rem");
   el.innerHTML = rest.map(([name, score], i) => {
     const idx = base + i;
-    return `<div class="rr" style="--d:${(i * 0.03).toFixed(2)}s"><span class="rk h${rankClass(idx)}">${idx + 1}</span><span class="nm h" style="color:${colourOf(name)}">${esc(name)}</span><span class="pt h">${fmtNum(score)}</span></div>`;
+    return `<div class="rr" style="--d:${(i * 0.03).toFixed(2)}s"><span class="rk h${rankClass(idx)}">${idx + 1}</span><span class="nm h" style="color:${nameColourOf(name)}">${esc(name)}</span><span class="pt h">${fmtNum(score)}</span></div>`;
   }).join("");
   cerApply();
 }
@@ -1267,6 +1285,9 @@ function cerStep(step) {
     void t.offsetWidth; // replay the title's pop for the winner's name
     t.classList.add("reveal");
     confetti();
+    // render.js (WorldSound) also plays "win" when the scoreboard opens: two jingles ~2.6 s apart on the TV. Owner default
+    // (v16): the TV keeps only this fanfare; render.js should skip its "win" on screen "big" via a startGame option (see the v16-tvfix
+    // report), and the instant-end path in cerBegin then plays this fanfare itself (winner, not opened late).
     sfxPlay("fanfare", { volume: 1 });
   } else if (step === "star") flyStar();
   else if (step === "land") landStar();

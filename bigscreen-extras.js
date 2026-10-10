@@ -35,6 +35,34 @@ export const DEFAULT_LINES = {
   rebuilt: "REBUILT THEIR SHIP", wins: "WINS THE ROUND!",
 };
 const escHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+// v1.6: a player's colour as TEXT. Dark colours (dark blue, purple) are hard to read from the sofa on the navy panels, so a name
+// is painted in a lighter tint of its colour (same hue, mixed with white up to a minimum brightness; light colours are unchanged).
+// Swatches, stripes, dots and rings keep the true colour. c = "#rgb" | "#rrggbb" | 0xrrggbb; anything else comes back as it is.
+const readCache = new Map();
+export function readableColour(c, minLum = 0.42) {
+  if (Number.isFinite(c)) c = "#" + (c >>> 0).toString(16).padStart(6, "0").slice(-6);
+  if (typeof c !== "string") return c;
+  const key = c + "|" + minLum;
+  const hit = readCache.get(key);
+  if (hit) return hit;
+  let out = c;
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(c.trim());
+  if (m) {
+    const s = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+    const n = parseInt(s, 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    const lin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+    const lum = (t) => { const f = (v) => v + (255 - v) * t; return 0.2126 * lin(f(r)) + 0.7152 * lin(f(g)) + 0.0722 * lin(f(b)); };
+    if (lum(0) < minLum) {
+      let lo = 0, hi = 1;
+      for (let i = 0; i < 12; i++) { const t = (lo + hi) / 2; if (lum(t) < minLum) lo = t; else hi = t; }
+      const f = (v) => Math.round(v + (255 - v) * hi);
+      out = "#" + ((1 << 24) | (f(r) << 16) | (f(g) << 8) | f(b)).toString(16).slice(1);
+    }
+  }
+  if (readCache.size > 256) readCache.clear();
+  readCache.set(key, out);
+  return out;
+}
 function chipEl(key, label) {
   const c = document.createElement("span");
   c.className = "bse-chip " + key;
@@ -149,7 +177,7 @@ export function injectStyles() {
 .bse-tag-st:empty{display:none}
 .bse-tag-st .bse-chip{display:none;font-size:1.02em}
 .bse-tag-st .bse-chip.on{display:inline-flex}
-.bse-tag-dot{display:none;position:absolute;left:0;bottom:0;width:.95em;height:.95em;margin-left:-.475em;border-radius:50%;background:currentColor;
+.bse-tag-dot{display:none;position:absolute;left:0;bottom:0;width:.95em;height:.95em;margin-left:-.475em;border-radius:50%;background:var(--pc,currentColor);
   border:.17em solid #fff;box-shadow:0 0 0 .13em var(--bse-ink),0 .2em 0 .13em var(--bse-shadow)}
 .bse-tag.m1 .bse-tag-bar{display:none}
 .bse-tag.m1 .bse-tag-name{font-size:1.12em}
@@ -196,7 +224,7 @@ export function injectStyles() {
 .bse-hc.drawn .bse-hc-wait{display:none}
 .bse-hc-wait svg{width:3.6em;height:3.6em;display:block;animation:bse-scribble 1.1s ease-in-out infinite}
 .bse-hc-nm{font:italic 900 1.55em/1.12 var(--bse-fh);text-transform:uppercase;letter-spacing:.02em;text-align:center;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;color:var(--pc);-webkit-text-stroke:.15em var(--bse-ink);paint-order:stroke fill;
+  overflow:hidden;text-overflow:ellipsis;color:var(--pt,var(--pc));-webkit-text-stroke:.15em var(--bse-ink);paint-order:stroke fill;
   text-shadow:0 .12em 0 rgb(10 6 30/.6);padding:0 .15em .12em}
 .bse-hc-st,.bse-hc-ok{position:absolute;top:-.55em;z-index:2;display:none;padding:.18em .55em .26em;border-radius:.6em;white-space:nowrap;
   font:italic 900 1.15em/1 var(--bse-fh);letter-spacing:.04em;text-transform:uppercase;box-shadow:0 0 0 .12em var(--bse-ink),0 .2em 0 .12em var(--bse-shadow)}
@@ -668,7 +696,7 @@ export function createKillFeed(container, opts = {}) {
       if (s.t != null) { parent.appendChild(document.createTextNode(s.t)); continue; }
       const sp = document.createElement("span");
       sp.className = s.n != null ? "bse-nm" : "bse-punch";
-      if (s.n != null) { const col = colourOf(s.n, names); if (col) sp.style.color = col; }
+      if (s.n != null) { const col = colourOf(s.n, names); if (col) sp.style.color = readableColour(col); } // the line's stripe (--c) keeps the true colour
       sp.textContent = piece;
       parent.appendChild(sp);
     }
@@ -689,7 +717,7 @@ export function createKillFeed(container, opts = {}) {
     for (const [piece, col] of colourSegments(text, names)) {
       if (col) {
         const sp = document.createElement("span");
-        sp.style.color = col;
+        sp.style.color = readableColour(col);
         sp.textContent = piece;
         parent.appendChild(sp);
       } else parent.appendChild(document.createTextNode(piece));
@@ -808,7 +836,8 @@ export function createHangar(container, opts = {}) {
       const sig = `${p.color}|${p.ready ? 1 : 0}|${stars}`;
       if (sig !== c.sig) {
         c.sig = sig;
-        c.el.style.setProperty("--pc", p.color || "#ffffff");
+        c.el.style.setProperty("--pc", p.color || "#ffffff"); // the stripe and the join ring: the true colour
+        c.el.style.setProperty("--pt", readableColour(p.color || "#ffffff")); // the name: a readable tint of it
         c.el.classList.toggle("ok", !!p.ready);
         c.st.textContent = stars ? fill(L.stars, stars) : "";
       }
@@ -994,7 +1023,7 @@ export function createNameTags(container, opts = {}) {
         t.shown = true;
       }
       if (p.name !== t.text) t.name.textContent = t.text = p.name;
-      if (p.color !== t.color) t.root.style.color = t.color = p.color;
+      if (p.color !== t.color) { t.color = p.color; t.root.style.color = readableColour(p.color); t.root.style.setProperty("--pc", p.color || ""); } // name: light tint; dot: true colour
       t.p = p;
       // order: the followed player, then humans, then bots; nearest first inside each group (insertion sort, n <= 25)
       t.pri = (focus && p.name === focus ? -1e9 : 0) + (p.bot === true ? 1e6 : 0) + (p.dist || 0);
@@ -1174,7 +1203,7 @@ export function createMiniMap(container, opts = {}) {
     g.textAlign = "center"; g.textBaseline = "bottom";
     g.lineJoin = "round"; g.lineWidth = 5 * k; g.strokeStyle = "#120a2e";
     const t = String(text).toUpperCase();
-    g.strokeText(t, x, y); g.fillStyle = col || "#fff"; g.fillText(t, x, y);
+    g.strokeText(t, x, y); g.fillStyle = col ? readableColour(col) : "#fff"; g.fillText(t, x, y);
   }
   function ring(g, x, y, r, k, t) { // the followed player's pulsing ring
     g.beginPath(); g.arc(x, y, r * (1 + 0.12 * Math.sin(t * 6)), 0, TAU);
