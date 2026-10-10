@@ -663,12 +663,58 @@
 
   const CHECKS = { world: checkWorld, tick: checkTick, layout: checkLayout, input: checkInput, perf: checkPerf, mischief: checkMischief, cooldown: checkCooldown, generated: checkGenerated };
 
+  // v1.9 ROUND LENGTH (owner, 10 Oct 13:41: "make the time of the game selectable let's make it 1 minute by default (boss
+  // almost no life ...)"; "We will wait for 30 seconds only to start the game"). The TV lobby picks 1 / 2 / 3 / 4 MIN or
+  // ENDLESS (POST /mode { minutes }), remembered by the server for the session; world and tick messages carry `minutes`
+  // (ENDLESS plays the 4-minute tuning). 4 = the tuning above, untouched (every pre-v1.9 test and sim). Shorter rounds
+  // scale the space act and the island with the clock: the boss closer with less HP, the planet closer behind it, fewer
+  // chests nearer the landing pad, a little less digging and drilling, and the 3:00 assists at 75% of the round.
+  // quickExplorerSeconds: the phone offers USE A QUICK EXPLORER (POST /default kinds ["explorer"]: a plain person with a
+  // shovel and a drill, counted as the round's explorer drawing) to a landed player with no explorer that long after
+  // landing; chestButtons: the phone adds native DIG / DRILL hold buttons when the explorer can but the pad has none.
+  // dev/v19-demo/balance-1min.mjs measures it (PLAN.md section 0, owner decision 13:41).
+  // LOBBY_WAITS: the lobby auto-start (seconds after the first READY player; 0 = off, the host's START only).
+  const ROUND_MINUTES = [1, 2, 3, 4];
+  const LOBBY_WAITS = [0, 15, 30, 60];
+  const PACES = {
+    1: { bossDistance: 340, bossHp: 300, planetOffset: 200, chestsBase: 2, chestsPerPlayer: 0.5, chestsMax: 14, chestSpread: 18, chestSpreadPerChest: 1.5, digSeconds: 2.5, drillSeconds: 3, quickExplorerSeconds: 12, chestButtons: true },
+    2: { bossDistance: 370, bossHp: 600, planetOffset: 260, chestsBase: 6, chestsPerPlayer: 0.5, chestsMax: 20, chestSpread: 35, chestSpreadPerChest: 3, digSeconds: 3, drillSeconds: 3.5, quickExplorerSeconds: 20, chestButtons: true },
+    3: { bossDistance: 390, bossHp: 900, planetOffset: 310, chestsBase: 10, chestsPerPlayer: 0.6, chestsMax: 26, chestSpread: 48, chestSpreadPerChest: 5, digSeconds: 3.5, drillSeconds: 4, quickExplorerSeconds: null, chestButtons: false },
+  };
+  const BASE_PACE = {
+    bossDistance: TUNING.bossDistance, bossHp: TUNING.boss.hp, planetOffset: TUNING.planet.offset, chestsBase: TUNING.island.chestsBase,
+    chestsPerPlayer: TUNING.island.chestsPerPlayer, chestsMax: TUNING.island.chestsMax, chestSpread: TUNING.island.chestSpread,
+    chestSpreadPerChest: TUNING.island.chestSpreadPerChest, digSeconds: TUNING.island.digSeconds, drillSeconds: TUNING.island.drillSeconds,
+    quickExplorerSeconds: null, chestButtons: false, maxSeconds: ROUND.maxSeconds, assistsAt: ROUND.assistsAt,
+  };
+  const cleanMinutes = (m) => (ROUND_MINUTES.includes(Number(m)) ? Number(m) : 4);
+  // The pacing of a round of `minutes` (1-4; anything else = 4): every number world.js scales with the round length.
+  function pacing(minutes) {
+    const m = cleanMinutes(minutes);
+    if (m === 4) return { minutes: 4, ...BASE_PACE };
+    return { minutes: m, ...BASE_PACE, ...PACES[m], maxSeconds: 60 * m, assistsAt: 45 * m };
+  }
+  // Browsers only (one world per page): this page's ROUND / TUNING take the pacing of `minutes`, so code that reads them
+  // directly (render.js places the locked planet at boss + TUNING.planet.offset once per round) agrees with the server.
+  // Call it before the world message reaches the renderer. Returns the pacing.
+  function applyPacing(minutes) {
+    const p = pacing(minutes);
+    ROUND.maxSeconds = p.maxSeconds; ROUND.assistsAt = p.assistsAt;
+    TUNING.bossDistance = p.bossDistance; TUNING.nebula.distance = p.bossDistance; TUNING.boss.hp = p.bossHp; TUNING.planet.offset = p.planetOffset;
+    Object.assign(TUNING.island, { chestsBase: p.chestsBase, chestsPerPlayer: p.chestsPerPlayer, chestsMax: p.chestsMax, chestSpread: p.chestSpread,
+      chestSpreadPerChest: p.chestSpreadPerChest, digSeconds: p.digSeconds, drillSeconds: p.drillSeconds });
+    return p;
+  }
+  // m:ss for a number of seconds (the assists banner: "3:00!", "0:45!")
+  const clockText = (s) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.round(Math.max(0, s) % 60)).padStart(2, "0")}`;
+
   const normaliseAction = (action) => ALIASES[String(action).toLowerCase()] || String(action).toLowerCase();
   const cleanName = (name) => String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20);
 
   const Contract = {
     SIM_HZ, TICK_HZ, PERF_POST_SECONDS, PHASES, ROUND, TUNING, ROCK_TYPES, ROCK_TYPE_NAMES, SCORING, COLORS, LOOT_KINDS,
     MOVES, STICKS, META_ACTIONS, ALIASES, OBJECTIVES, CHECKS, CHEST_KINDS, MISCHIEF_KINDS, normaliseAction, cleanName,
+    ROUND_MINUTES, LOBBY_WAITS, pacing, applyPacing, cleanMinutes, clockText, // v1.9 round length + lobby auto-start
   };
   root.Contract = Contract;
   if (typeof module !== "undefined") module.exports = Contract;

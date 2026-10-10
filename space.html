@@ -338,6 +338,18 @@
   #endlessBtn > .h:first-child { font-size: 2.2rem; }
   #endlessState { font-size: 1.5rem; padding: .1rem .7rem .15rem; border-radius: .3rem; background: rgb(0 0 0 / .35); }
   #endlessBtn.on #endlessState { background: #ffd34d; color: #1a0f3a; }
+  /* v1.9 (owner 13:41): ROUND 1-4 MIN (ENDLESS beside it) and AUTO-START 15 / 30 / 60 s / OFF, and the lobby's STARTING IN n */
+  #lenPanel { display: flex; align-items: center; gap: 1.3rem; pointer-events: auto; margin-top: -.2rem; }
+  .seg { display: flex; align-items: center; gap: .3rem; }
+  .seg > .lbl { font-size: 1.2rem; color: #e4dfff; padding-right: .35rem; }
+  .seg button { pointer-events: auto; cursor: pointer; border: 0; background: none; font: inherit; color: #fff; min-width: 3rem; padding: .2rem .55rem .3rem; font-size: 1.35rem;
+                --bg: linear-gradient(180deg, rgb(46 34 150 / .96), rgb(22 14 78 / .96)); transition: transform .12s, filter .12s; }
+  .seg button.on { --bg: linear-gradient(180deg, #ffe27a, #ffb000); color: #1a0f3a; }
+  .seg button:hover { filter: brightness(1.12); }
+  .seg button:active { transform: translateY(.15rem) scale(.95); }
+  .seg button:focus-visible { outline: .25rem solid #fff; outline-offset: .3rem; }
+  #autoStartBar { padding: .35rem 1.7rem .5rem; font-size: 2.2rem; white-space: nowrap; --bg: linear-gradient(180deg, #ffe27a, #ffb000); color: #1a0f3a; animation: throb 1s ease-in-out infinite; }
+  #autoStartBar.hidden { display: none; }
   #endWrap { position: absolute; left: 0; right: 0; top: 100%; margin-top: 1rem; display: flex; justify-content: center; }
   #endBtn { pointer-events: auto; cursor: pointer; padding: .35rem 1.1rem .45rem; border: 0; background: none; font: inherit; font-size: 1.5rem; white-space: nowrap;
             --bg: linear-gradient(180deg, #ff7b92, #ff3b5c); }
@@ -536,6 +548,11 @@
         <span id="startLabel" class="h hh" data-copy="lobby.start"></span></button>
       <button id="endlessBtn" class="sk" type="button" aria-pressed="false"><span class="h hh" data-copy="endless.title"></span><small id="endlessState" class="h" data-copy="endless.off"></small></button>
       </div>
+      <div id="lenPanel">
+        <div class="seg" id="lenSeg"><span class="lbl h" data-copy="length.round"></span></div>
+        <div class="seg" id="waitSeg"><span class="lbl h" data-copy="length.auto"></span></div>
+      </div>
+      <div id="autoStartBar" class="sk h hidden"></div>
       <div id="lobbyCount" class="sk navy h"></div>
       <div id="startNote" class="tx"></div>
     </footer>
@@ -570,6 +587,9 @@ const COPY = {
   title: "Space Party",
   brand: "SPACE PARTY",
   hall: "★ HALL OF FAME", // v1.6: the host's button (lobby and results) → hall-of-fame.html
+  // v1.9 (owner 13:41): the round length and the lobby auto-start beside START
+  length: { round: "ROUND · MIN", auto: "AUTO-START", min: "{m}", secs: "{s} S", off: "OFF", toast: "{m}-MINUTE ROUNDS", toastWait: "AUTO-START {s} S AFTER THE FIRST READY PLAYER",
+    toastWaitOff: "AUTO-START OFF · PRESS START", startingIn: "STARTING IN {n}", startingInReady: "STARTING IN {n} · {r} READY", lobbyOnly: "PICK THE LENGTH IN THE LOBBY" },
   lobby: {
     round: "ROUND {n}",
     joinTitle: "SCAN TO JOIN",
@@ -660,7 +680,7 @@ const COPY = {
   sound: { on: "SOUND ON", off: "SOUND OFF" },
   // v1.6 ENDLESS free-for-all (endless.js): the lobby switch, the timer label, END and the toasts.
   endless: { title: "ENDLESS", on: "ON", off: "OFF", label: "ENDLESS", end: "END GAME", confirm: "ENTER AGAIN TO END",
-    toastOn: "ENDLESS ON · NO CLOCK · PLAY AS LONG AS YOU LIKE", toastOff: "ENDLESS OFF · 4:00 ROUNDS", lobbyOnly: "SWITCH ENDLESS IN THE LOBBY" },
+    toastOn: "ENDLESS ON · NO CLOCK · PLAY AS LONG AS YOU LIKE", toastOff: "ENDLESS OFF · {m}:00 ROUNDS", lobbyOnly: "SWITCH ENDLESS IN THE LOBBY" },
   // Server lines that use game words: shown with these plain words instead (banner and kill feed).
   // The 3:00 line (old server: "Assists on: every gate skill is unlocked…"; now "3:00! The chests glow. Missing a skill? Draw it now!"):
   // nothing is ever unlocked for free (PLAN.md section 0), so the TV says what the phones' big "DRAW A SHOVEL" cards say.
@@ -727,6 +747,28 @@ COPY.lobby.steps.forEach((t, i) => {
   $("steps").appendChild(li);
 });
 
+// v1.9 round length: render.js places the locked planet (boss + TUNING.planet.offset) when it handles a world message, before
+// this page hears it; so the stream's world messages apply their pacing (Contract.applyPacing(minutes)) on the way in.
+let pacedMinutes = null;
+(() => {
+  const NativeES = window.EventSource;
+  if (typeof NativeES !== "function" || !window.Contract || typeof Contract.applyPacing !== "function") return;
+  window.EventSource = class extends NativeES {
+    set onmessage(fn) {
+      super.onmessage = typeof fn !== "function" ? fn : (e) => {
+        try {
+          const d = e && e.data;
+          if (typeof d === "string" && d.startsWith('{"type":"world"')) {
+            const mm = /"minutes":([1-4])[,}]/.exec(d), v = mm ? Number(mm[1]) : 4;
+            if (v !== pacedMinutes) { pacedMinutes = v; Contract.applyPacing(v); }
+          }
+        } catch (err) { /* the message goes on as it is */ }
+        return fn.call(this, e);
+      };
+    }
+    get onmessage() { return super.onmessage; }
+  };
+})();
 const game = R.startGame({ canvas: $("c"), screen: "big", view: "spectator", winJingle: false }); // v1.6: one results jingle, this page's fanfare (cerJingle)
 window.__game = game; // for dev tests
 
@@ -1021,7 +1063,7 @@ async function toggleEndless() {
   try {
     const res = await fetch("/mode", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ endless: want }) });
     const j = await res.json().catch(() => null);
-    if (res.ok && j) ptoast(esc(j.mode === "endless" ? COPY.endless.toastOn : COPY.endless.toastOff), 1800);
+    if (res.ok && j) ptoast(esc(j.mode === "endless" ? COPY.endless.toastOn : fmt(COPY.endless.toastOff, { m: j.minutes || 4 })), 1800);
   } catch (e) { /* the world message says what is on */ }
   endlessBusy = false;
   syncEndless();
@@ -1037,6 +1079,57 @@ async function endGame() {
 }
 $("endlessBtn").addEventListener("click", toggleEndless);
 $("endlessBtn").addEventListener("keyup", (e) => { if (e.key === " ") e.preventDefault(); });
+
+// ================= ROUND LENGTH + AUTO-START (v1.9, owner 10 Oct 13:41) =================
+// "make the time of the game selectable let's make it 1 minute by default"; "We will wait for 30 seconds only to start the
+// game". ROUND 1 / 2 / 3 / 4 MIN (ENDLESS is the switch beside it; a length switches it off) and AUTO-START 15 / 30 / 60 S /
+// OFF post /mode { minutes } / { startAfter }; the server remembers both for the session and every screen hears them from
+// the world message (roundMinutes, startAfter). With a READY player the server counts down (startIn): STARTING IN n here
+// and on the phones; START still starts at once.
+const LEN_MINUTES = (window.Contract && Contract.ROUND_MINUTES) || [1, 2, 3, 4];
+const LEN_WAITS = [15, 30, 60, 0];
+function segButton(label, onClick) {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "sk h"; b.textContent = label;
+  b.addEventListener("click", onClick);
+  b.addEventListener("keyup", (e) => { if (e.key === " ") e.preventDefault(); });
+  return b;
+}
+const lenButtons = new Map(), waitButtons = new Map();
+for (const m of LEN_MINUTES) { const b = segButton(fmt(COPY.length.min, { m }), () => postLength({ minutes: m })); lenButtons.set(m, b); $("lenSeg").appendChild(b); }
+for (const s of LEN_WAITS) { const b = segButton(s ? fmt(COPY.length.secs, { s }) : COPY.length.off, () => postLength({ startAfter: s })); waitButtons.set(s, b); $("waitSeg").appendChild(b); }
+let lengthBusy = false;
+async function postLength(body) {
+  sfxUnlock();
+  sfxPlay("click");
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  if (lengthBusy) return;
+  if (body.minutes != null && (view !== "lobby" || phase !== "lobby")) { ptoast(esc(COPY.length.lobbyOnly), 1400); return; }
+  lengthBusy = true;
+  try {
+    const res = await fetch("/mode", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const j = await res.json().catch(() => null);
+    if (res.ok && j) {
+      if (body.minutes != null) ptoast(esc(fmt(COPY.length.toast, { m: j.minutes })), 1600);
+      else ptoast(esc(j.startAfter ? fmt(COPY.length.toastWait, { s: j.startAfter }) : COPY.length.toastWaitOff), 1800);
+    }
+  } catch (e) { /* the world message says what is set */ }
+  lengthBusy = false;
+  syncLength();
+}
+function syncLength() {
+  const pick = world && Number.isFinite(world.roundMinutes) ? world.roundMinutes : world && Number.isFinite(world.minutes) ? world.minutes : 4;
+  const wait = world && Number.isFinite(world.startAfter) ? world.startAfter : 0;
+  const endless = isEndless();
+  for (const [m, b] of lenButtons) flag(b, "on", !endless && m === pick);
+  for (const [s, b] of waitButtons) flag(b, "on", s === wait);
+  const n = tick && tick.phase === "lobby" && Number.isFinite(tick.startIn) ? tick.startIn : null;
+  flag($("autoStartBar"), "hidden", n == null || mocked);
+  $("lobbyCount").style.display = n == null || mocked ? "" : "none"; // STARTING IN n · r READY takes its place
+  if (n != null) setText($("autoStartBar"), lobbyReady > 0 ? fmt(COPY.length.startingInReady, { n, r: lobbyReady }) : fmt(COPY.length.startingIn, { n }));
+}
+game.on("world", syncLength);
+game.on("tick", syncLength);
 $("endBtn").addEventListener("click", endGame);
 
 function leaderboardOf(h) { return Array.isArray(h.leaderboard) ? h.leaderboard : world && Array.isArray(world.leaderboard) ? world.leaderboard : []; }
@@ -1887,10 +1980,19 @@ $("hallBtn").addEventListener("click", () => {
   sfxUnlock();
   sfxPlay("click");
   $("hallBtn").blur();
-  const url = "/hall-of-fame.html?judge=1";
+  // v1.9 (owner 13:41: "make a mock hall of fame we can show as well"): the live hall when this session's archive has
+  // entries, else the mock (hall-of-fame.html?mock=1, bundled drawings, no API call). The tab opens at once (no pop-up
+  // block), then goes to the right one.
   let w = null;
-  try { w = window.open(url, "spaceparty-hall"); } catch (e) { w = null; }
-  if (!w) location.href = url;
+  try { w = window.open("", "spaceparty-hall"); } catch (e) { w = null; }
+  const go = (url) => { if (w && !w.closed) { try { w.location.href = url; return; } catch (e) { /* fall through */ } } location.href = url; };
+  const ctl = typeof AbortController === "function" ? new AbortController() : null;
+  const timer = setTimeout(() => { if (ctl) ctl.abort(); }, 2500);
+  fetch("/hall", ctl ? { signal: ctl.signal } : {}).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((j) => {
+    clearTimeout(timer);
+    const n = j && Array.isArray(j.entries) ? j.entries.length : 0;
+    go(n > 0 ? "/hall-of-fame.html?judge=1" : "/hall-of-fame.html?mock=1");
+  });
 });
 $("hallBtn").addEventListener("keyup", (e) => { if (e.key === " ") e.preventDefault(); });
 

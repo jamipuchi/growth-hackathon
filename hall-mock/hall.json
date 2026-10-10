@@ -1,0 +1,1800 @@
+{
+ "ok": true,
+ "session": "smock19",
+ "startedAt": 1791631200000,
+ "mockHall": true,
+ "judging": {
+  "running": false,
+  "done": 16,
+  "judged": 16,
+  "failed": 0,
+  "skipped": 0,
+  "pending": 0,
+  "unjudged": 0,
+  "total": 16,
+  "calls": 16,
+  "maxCalls": 60,
+  "api": "openai decisions",
+  "model": "gpt-6-luna",
+  "mock": false
+ },
+ "entries": [
+  {
+   "rank": 1,
+   "id": "color-robot",
+   "player": "Captain Crayon",
+   "color": "#22d3ee",
+   "round": 2,
+   "kind": "explorer",
+   "type": "person",
+   "at": 1791632280000,
+   "final": true,
+   "image": "/hall-mock/color-robot.png",
+   "spec": {
+    "v": 1,
+    "type": "person",
+    "view": "front",
+    "facing": "viewer",
+    "style": "robot",
+    "seed": 1040747476,
+    "head": {
+     "shape": "square",
+     "size": 0.25,
+     "gear": "antenna",
+     "face": "eyes",
+     "eyes": 2,
+     "snout": 0,
+     "color": "#c5c8d0",
+     "gearColor": "#ed334b",
+     "faceColor": "#21cbe3"
+    },
+    "torso": {
+     "shape": "box",
+     "width": 0.39,
+     "color": "#2860e9",
+     "belt": false,
+     "emblem": "yellow light"
+    },
+    "arms": {
+     "count": 2,
+     "length": 0.36,
+     "thickness": "normal",
+     "hands": "robot",
+     "color": "#8c919e",
+     "handColor": "#ed334b"
+    },
+    "legs": {
+     "count": 2,
+     "length": 0.24,
+     "thickness": "normal",
+     "feet": "boots",
+     "color": "#8c919e",
+     "feetColor": "#2860e9"
+    },
+    "neck": 0,
+    "tail": {
+     "kind": "none",
+     "color": ""
+    },
+    "vehicle": {
+     "body": "none",
+     "height": 0.15,
+     "cabin": "none",
+     "wheels": 0,
+     "wheelSize": 0.1,
+     "color": "",
+     "rider": false
+    },
+    "items": [
+     {
+      "kind": "blaster",
+      "where": "right hand",
+      "size": 0.22,
+      "color": "#626673",
+      "verb": "shoot"
+     }
+    ],
+    "palette": {
+     "colored": true,
+     "main": "#2860e9",
+     "second": "#8c919e",
+     "accent": "#ed334b",
+     "skin": ""
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "shoot",
+     "part": "gun"
+    },
+    {
+     "verb": "dig",
+     "part": "claws"
+    },
+    {
+     "verb": "jump",
+     "part": "boots"
+    },
+    {
+     "verb": "scan",
+     "part": "antenna"
+    },
+    {
+     "verb": "emp",
+     "part": "lightning bolt"
+    }
+   ],
+   "card": "Your explorer can: walk, jump, shoot (gun), dig (claws), scan (antenna), emp (lightning bolt)",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 93,
+    "effort": 90,
+    "readability": 95,
+    "fun": 91
+   },
+   "score": 92,
+   "comment": "Pincers, a blaster AND a lightning bolt. Overqualified for space.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 2,
+   "id": "monster-truck",
+   "player": "Mr Wobbles",
+   "color": "#a3e635",
+   "round": 3,
+   "kind": "explorer",
+   "type": "car",
+   "at": 1791632827000,
+   "final": true,
+   "image": "/hall-mock/monster-truck.png",
+   "spec": {
+    "v": 1,
+    "type": "car",
+    "view": "side",
+    "facing": "right",
+    "style": "chunky",
+    "seed": 3685390253,
+    "head": {
+     "shape": "none",
+     "size": 0.08,
+     "gear": "none",
+     "face": "none",
+     "eyes": 0,
+     "snout": 0,
+     "color": "",
+     "gearColor": "",
+     "faceColor": ""
+    },
+    "torso": {
+     "shape": "box",
+     "width": 0.06,
+     "color": "",
+     "belt": false,
+     "emblem": ""
+    },
+    "arms": {
+     "count": 0,
+     "length": 0.15,
+     "thickness": "normal",
+     "hands": "none",
+     "color": "",
+     "handColor": ""
+    },
+    "legs": {
+     "count": 0,
+     "length": 0.15,
+     "thickness": "normal",
+     "feet": "none",
+     "color": "",
+     "feetColor": ""
+    },
+    "neck": 0,
+    "tail": {
+     "kind": "none",
+     "color": ""
+    },
+    "vehicle": {
+     "body": "monster truck",
+     "height": 0.31,
+     "cabin": "closed",
+     "wheels": 4,
+     "wheelSize": 0.45,
+     "color": "#24b34b",
+     "rider": false
+    },
+    "items": [
+     {
+      "kind": "drill",
+      "where": "front",
+      "size": 0.15,
+      "color": "#9296a2",
+      "verb": "drill"
+     },
+     {
+      "kind": "lamp",
+      "where": "front",
+      "size": 0.05,
+      "color": "#ffeb36",
+      "verb": "flare"
+     },
+     {
+      "kind": "flames",
+      "where": "back",
+      "size": 0.16,
+      "color": "#ff9500",
+      "verb": "boost"
+     }
+    ],
+    "palette": {
+     "colored": true,
+     "main": "#24b34b",
+     "second": "",
+     "accent": "#7ecbfa",
+     "skin": ""
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "boost",
+     "part": "exhaust flames"
+    },
+    {
+     "verb": "drill",
+     "part": "drill"
+    },
+    {
+     "verb": "flare",
+     "part": "headlight"
+    }
+   ],
+   "card": "Your car can: drive, boost (exhaust flames), drill, flare (headlight)",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 91,
+    "effort": 85,
+    "readability": 90,
+    "fun": 94
+   },
+   "score": 90,
+   "comment": "Drill in front, fire behind, wheels the size of moons. Zero notes.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 3,
+   "id": "color-person",
+   "player": "Zoe",
+   "color": "#f472b6",
+   "round": 1,
+   "kind": "explorer",
+   "type": "person",
+   "at": 1791631754000,
+   "final": true,
+   "image": "/hall-mock/color-person.png",
+   "spec": {
+    "v": 1,
+    "type": "person",
+    "view": "front",
+    "facing": "viewer",
+    "style": "cute",
+    "seed": 1990674400,
+    "head": {
+     "shape": "round",
+     "size": 0.3,
+     "gear": "hair",
+     "face": "eyes",
+     "eyes": 2,
+     "snout": 0,
+     "color": "#ffcca5",
+     "gearColor": "#ff55a5",
+     "faceColor": ""
+    },
+    "torso": {
+     "shape": "box",
+     "width": 0.3,
+     "color": "#ff8000",
+     "belt": true,
+     "emblem": ""
+    },
+    "arms": {
+     "count": 2,
+     "length": 0.3,
+     "thickness": "normal",
+     "hands": "mitten",
+     "color": "#ff8000",
+     "handColor": "#ffcca5"
+    },
+    "legs": {
+     "count": 2,
+     "length": 0.26,
+     "thickness": "normal",
+     "feet": "shoes",
+     "color": "#ff8000",
+     "feetColor": "#2860ed"
+    },
+    "neck": 0,
+    "tail": {
+     "kind": "none",
+     "color": ""
+    },
+    "vehicle": {
+     "body": "none",
+     "height": 0.15,
+     "cabin": "none",
+     "wheels": 0,
+     "wheelSize": 0.1,
+     "color": "",
+     "rider": false
+    },
+    "items": [
+     {
+      "kind": "lamp",
+      "where": "left hand",
+      "size": 0.39,
+      "color": "#ffda40",
+      "verb": "flare"
+     },
+     {
+      "kind": "backpack",
+      "where": "back",
+      "size": 0.29,
+      "color": "#28b34b",
+      "verb": null
+     }
+    ],
+    "palette": {
+     "colored": true,
+     "main": "#ff8000",
+     "second": "#ff55a5",
+     "accent": "#2860ed",
+     "skin": "#ffcca5"
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "jump",
+     "part": "big boots"
+    },
+    {
+     "verb": "flare",
+     "part": "torch"
+    }
+   ],
+   "card": "Your explorer can: walk, jump, flare (torch)",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 84,
+    "effort": 89,
+    "readability": 94,
+    "fun": 87
+   },
+   "score": 89,
+   "comment": "Pink hair puffs and a torch: the dark side of the moon is cancelled.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 4,
+   "id": "color-topview",
+   "player": "Turbo Tia",
+   "color": "#facc15",
+   "round": 1,
+   "kind": "ship",
+   "type": "ship",
+   "at": 1791631761000,
+   "final": true,
+   "image": "/hall-mock/color-topview.png",
+   "spec": {
+    "v": 1,
+    "view": "top",
+    "noseDir": "right",
+    "style": "sleek",
+    "seed": 713981514,
+    "hull": {
+     "shape": "dart",
+     "width": 0.13,
+     "height": 0.1,
+     "nose": "pointed",
+     "tail": "tapered",
+     "color": "#e73547",
+     "stripe": ""
+    },
+    "cockpit": {
+     "kind": "canopy",
+     "at": 0.27,
+     "size": 0.18,
+     "color": "#46c4e8",
+     "windows": 0
+    },
+    "wings": {
+     "count": 2,
+     "shape": "delta",
+     "at": 0.57,
+     "span": 0.84,
+     "chord": 0.36,
+     "mount": "mid",
+     "color": "#ffd63e"
+    },
+    "fins": [
+     {
+      "kind": "side",
+      "at": 0.94,
+      "size": 0.15,
+      "color": "#e73547"
+     },
+     {
+      "kind": "tail",
+      "at": 0.86,
+      "size": 0.24,
+      "color": "#ffd63e",
+      "implied": true
+     }
+    ],
+    "engines": {
+     "count": 1,
+     "size": 0.06,
+     "flame": true,
+     "flameColor": "#ff8000",
+     "layout": "single",
+     "verb": "boost"
+    },
+    "weapons": [
+     {
+      "kind": "cannon",
+      "count": 2,
+      "at": 0.5,
+      "mount": "wings",
+      "size": 0.18,
+      "color": "",
+      "verb": "shoot"
+     }
+    ],
+    "extras": [],
+    "palette": {
+     "colored": true,
+     "main": "#e73547",
+     "second": "#ffd63e",
+     "accent": "#46c4e8"
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "shoot",
+     "part": "upper cannon"
+    },
+    {
+     "verb": "boost",
+     "part": "exhaust flames"
+    }
+   ],
+   "card": "Your ship can: fly, shoot (upper cannon), boost (exhaust flames)",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 80,
+    "effort": 83,
+    "readability": 93,
+    "fun": 85
+   },
+   "score": 85,
+   "comment": "Red hull, yellow wings, two guns. The poster jet, but it fires back.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 5,
+   "id": "horse-saddle",
+   "player": "Lady Neigh",
+   "color": "#fb923c",
+   "round": 3,
+   "kind": "explorer",
+   "type": "quadruped",
+   "at": 1791632848000,
+   "final": true,
+   "image": "/hall-mock/horse-saddle.png",
+   "spec": {
+    "v": 1,
+    "type": "quadruped",
+    "view": "side",
+    "facing": "right",
+    "style": "chunky",
+    "seed": 1387811202,
+    "head": {
+     "shape": "oval",
+     "size": 0.43,
+     "gear": "hair",
+     "face": "eyes",
+     "eyes": 1,
+     "snout": 0.6,
+     "color": "#a16630",
+     "gearColor": "#75451f",
+     "faceColor": ""
+    },
+    "torso": {
+     "shape": "barrel",
+     "width": 0.7,
+     "color": "#a16630",
+     "belt": false,
+     "emblem": ""
+    },
+    "arms": {
+     "count": 0,
+     "length": 0.15,
+     "thickness": "normal",
+     "hands": "none",
+     "color": "",
+     "handColor": ""
+    },
+    "legs": {
+     "count": 4,
+     "length": 0.52,
+     "thickness": "normal",
+     "feet": "hooves",
+     "color": "#a16630",
+     "feetColor": ""
+    },
+    "neck": 0.5,
+    "tail": {
+     "kind": "long",
+     "color": "#75451f"
+    },
+    "vehicle": {
+     "body": "none",
+     "height": 0.15,
+     "cabin": "none",
+     "wheels": 0,
+     "wheelSize": 0.1,
+     "color": "",
+     "rider": false
+    },
+    "items": [
+     {
+      "kind": "saddle",
+      "where": "back",
+      "size": 0.4,
+      "color": "#ed3447",
+      "verb": null
+     }
+    ],
+    "palette": {
+     "colored": true,
+     "main": "#a16630",
+     "second": "#75451f",
+     "accent": "#ed3447",
+     "skin": ""
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [],
+   "card": "Your animal can: run, jump",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 87,
+    "effort": 83,
+    "readability": 88,
+    "fun": 79
+   },
+   "score": 84,
+   "comment": "A horse. In space. With a saddle. Give this cowboy a planet.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 6,
+   "id": "chunky",
+   "player": "Big Kev",
+   "color": "#c084fc",
+   "round": 2,
+   "kind": "ship",
+   "type": "ship",
+   "at": 1791632315000,
+   "final": true,
+   "image": "/hall-mock/chunky.png",
+   "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "seed": 2701635634,
+    "hull": {
+     "shape": "box",
+     "width": 0.4,
+     "height": 0.4,
+     "nose": "pointed",
+     "tail": "flat",
+     "color": "",
+     "stripe": ""
+    },
+    "cockpit": {
+     "kind": "windows",
+     "at": 0.43,
+     "size": 0.15,
+     "color": "",
+     "windows": 1
+    },
+    "wings": {
+     "count": 0,
+     "shape": "straight",
+     "at": 0.5,
+     "span": 0.2,
+     "chord": 0.08,
+     "mount": "mid",
+     "color": ""
+    },
+    "fins": [
+     {
+      "kind": "tail",
+      "at": 0.8,
+      "size": 0.31,
+      "color": ""
+     }
+    ],
+    "engines": {
+     "count": 3,
+     "size": 0.06,
+     "flame": true,
+     "flameColor": "",
+     "layout": "stack",
+     "verb": "boost"
+    },
+    "weapons": [
+     {
+      "kind": "cannon",
+      "count": 1,
+      "at": 0.5,
+      "mount": "top",
+      "size": 0.26,
+      "color": "",
+      "verb": "shoot"
+     },
+     {
+      "kind": "drill",
+      "count": 1,
+      "at": 0,
+      "mount": "nose",
+      "size": 0.2,
+      "color": "",
+      "verb": "shoot"
+     }
+    ],
+    "extras": [
+     {
+      "kind": "legs",
+      "at": 0.55,
+      "mount": "belly",
+      "size": 0.15,
+      "color": "",
+      "label": "",
+      "verb": null
+     }
+    ],
+    "palette": {
+     "colored": false,
+     "main": "",
+     "second": "",
+     "accent": ""
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "shoot",
+     "part": "cannon"
+    },
+    {
+     "verb": "boost",
+     "part": "exhaust flames"
+    }
+   ],
+   "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames)",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 82,
+    "effort": 77,
+    "readability": 84,
+    "fun": 83
+   },
+   "score": 82,
+   "comment": "A flying shoebox with a drill nose and legs. Engineering? No. Genius? Yes.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 7,
+   "id": "saucer",
+   "player": "Professor Pickles",
+   "color": "#60a5fa",
+   "round": 1,
+   "kind": "ship",
+   "type": "ship",
+   "at": 1791631782000,
+   "final": true,
+   "image": "/hall-mock/saucer.png",
+   "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "left",
+    "style": "cute",
+    "seed": 3847401124,
+    "hull": {
+     "shape": "saucer",
+     "width": 1,
+     "height": 0.29,
+     "nose": "round",
+     "tail": "round",
+     "color": "",
+     "stripe": ""
+    },
+    "cockpit": {
+     "kind": "bubble",
+     "at": 0.5,
+     "size": 0.45,
+     "color": "",
+     "windows": 3
+    },
+    "wings": {
+     "count": 0,
+     "shape": "round",
+     "at": 0.5,
+     "span": 0.2,
+     "chord": 0.08,
+     "mount": "mid",
+     "color": ""
+    },
+    "fins": [],
+    "engines": {
+     "count": 1,
+     "size": 0.06,
+     "flame": true,
+     "flameColor": "",
+     "layout": "single",
+     "verb": "boost"
+    },
+    "weapons": [],
+    "extras": [
+     {
+      "kind": "legs",
+      "at": 0.5,
+      "mount": "belly",
+      "size": 0.15,
+      "color": "",
+      "label": "",
+      "verb": null
+     },
+     {
+      "kind": "lamp",
+      "at": 1,
+      "mount": "tail",
+      "size": 0.15,
+      "color": "",
+      "label": "",
+      "verb": "flare"
+     }
+    ],
+    "palette": {
+     "colored": false,
+     "main": "",
+     "second": "",
+     "accent": ""
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "flare",
+     "part": "rear lamp"
+    },
+    {
+     "verb": "boost",
+     "part": "rear lamp"
+    }
+   ],
+   "card": "Your ship can: fly, flare (rear lamp), boost (rear lamp)",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 70,
+    "effort": 73,
+    "readability": 92,
+    "fun": 74
+   },
+   "score": 77,
+   "comment": "Classic saucer, three portholes, a headlamp. Take me to your leader, politely.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 8,
+   "id": "color-messy",
+   "player": "Glitter Gus",
+   "color": "#e879f9",
+   "round": 2,
+   "kind": "ship",
+   "type": "ship",
+   "at": 1791632329000,
+   "final": true,
+   "image": "/hall-mock/color-messy.png",
+   "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "seed": 1399620098,
+    "hull": {
+     "shape": "saucer",
+     "width": 1,
+     "height": 0.41,
+     "nose": "round",
+     "tail": "round",
+     "color": "#279f90",
+     "stripe": ""
+    },
+    "cockpit": {
+     "kind": "canopy",
+     "at": 0.51,
+     "size": 0.35,
+     "color": "#8038ef",
+     "windows": 3
+    },
+    "wings": {
+     "count": 0,
+     "shape": "round",
+     "at": 0.5,
+     "span": 0.2,
+     "chord": 0.08,
+     "mount": "mid",
+     "color": ""
+    },
+    "fins": [],
+    "engines": {
+     "count": 1,
+     "size": 0.13,
+     "flame": true,
+     "flameColor": "#ff8000",
+     "layout": "single",
+     "verb": "boost"
+    },
+    "weapons": [],
+    "extras": [
+     {
+      "kind": "antenna",
+      "at": 0.35,
+      "mount": "top",
+      "size": 0.29,
+      "color": "",
+      "label": "",
+      "verb": "scan"
+     }
+    ],
+    "palette": {
+     "colored": true,
+     "main": "#279f90",
+     "second": "#8038ef",
+     "accent": "#ff8000"
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "boost",
+     "part": "exhaust flames"
+    },
+    {
+     "verb": "scan",
+     "part": "antenna"
+    }
+   ],
+   "card": "Your ship can: fly, boost (exhaust flames), scan (antenna)",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 86,
+    "effort": 61,
+    "readability": 69,
+    "fun": 88
+   },
+   "score": 76,
+   "comment": "A green potato in a purple hat with a jetpack. The room went wild.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 9,
+   "id": "rocket",
+   "player": "Rocket Rosa",
+   "color": "#f87171",
+   "round": 1,
+   "kind": "ship",
+   "type": "ship",
+   "at": 1791631796000,
+   "final": true,
+   "image": "/hall-mock/rocket.png",
+   "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "up",
+    "style": "retro",
+    "seed": 725745989,
+    "hull": {
+     "shape": "rocket",
+     "width": 0.39,
+     "height": 0.39,
+     "nose": "pointed",
+     "tail": "flat",
+     "color": "",
+     "stripe": ""
+    },
+    "cockpit": {
+     "kind": "windows",
+     "at": 0.45,
+     "size": 0.17,
+     "color": "",
+     "windows": 1
+    },
+    "wings": {
+     "count": 0,
+     "shape": "delta",
+     "at": 0.15,
+     "span": 0.2,
+     "chord": 0.08,
+     "mount": "low",
+     "color": ""
+    },
+    "fins": [
+     {
+      "kind": "side",
+      "at": 0.85,
+      "size": 0.31,
+      "color": ""
+     }
+    ],
+    "engines": {
+     "count": 3,
+     "size": 0.06,
+     "flame": true,
+     "flameColor": "",
+     "layout": "row",
+     "verb": "boost"
+    },
+    "weapons": [],
+    "extras": [
+     {
+      "kind": "legs",
+      "at": 0.99,
+      "mount": "tail",
+      "size": 0.25,
+      "color": "",
+      "label": "",
+      "verb": null
+     }
+    ],
+    "palette": {
+     "colored": false,
+     "main": "",
+     "second": "",
+     "accent": ""
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "boost",
+     "part": "exhaust flames"
+    }
+   ],
+   "card": "Your ship can: fly, boost (exhaust flames)",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 61,
+    "effort": 70,
+    "readability": 96,
+    "fun": 72
+   },
+   "score": 75,
+   "comment": "One porthole, three flames, four tiny feet. Textbook liftoff.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 10,
+   "id": "dog-claws",
+   "player": "Barky McBarkface",
+   "color": "#34d399",
+   "round": 2,
+   "kind": "explorer",
+   "type": "quadruped",
+   "at": 1791632343000,
+   "final": true,
+   "image": "/hall-mock/dog-claws.png",
+   "spec": {
+    "v": 1,
+    "type": "quadruped",
+    "view": "side",
+    "facing": "right",
+    "style": "cute",
+    "seed": 1206324079,
+    "head": {
+     "shape": "round",
+     "size": 0.37,
+     "gear": "ears",
+     "face": "eyes",
+     "eyes": 1,
+     "snout": 0,
+     "color": "",
+     "gearColor": "",
+     "faceColor": ""
+    },
+    "torso": {
+     "shape": "round",
+     "width": 0.4,
+     "color": "",
+     "belt": false,
+     "emblem": ""
+    },
+    "arms": {
+     "count": 0,
+     "length": 0.15,
+     "thickness": "thin",
+     "hands": "none",
+     "color": "",
+     "handColor": ""
+    },
+    "legs": {
+     "count": 4,
+     "length": 0.52,
+     "thickness": "thin",
+     "feet": "claws",
+     "color": "",
+     "feetColor": ""
+    },
+    "neck": 0.17,
+    "tail": {
+     "kind": "long",
+     "color": ""
+    },
+    "vehicle": {
+     "body": "none",
+     "height": 0.15,
+     "cabin": "none",
+     "wheels": 0,
+     "wheelSize": 0.1,
+     "color": "",
+     "rider": false
+    },
+    "items": [],
+    "palette": {
+     "colored": false,
+     "main": "",
+     "second": "",
+     "accent": "",
+     "skin": ""
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "dig",
+     "part": "claws"
+    }
+   ],
+   "card": "Your animal can: run, jump, dig (claws)",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 75,
+    "effort": 57,
+    "readability": 71,
+    "fun": 86
+   },
+   "score": 72,
+   "comment": "Stick legs, a party hat and digging claws. Who's a good digger?",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 11,
+   "id": "nose-drill",
+   "player": "Drillbert",
+   "color": "#38bdf8",
+   "round": 2,
+   "kind": "ship",
+   "type": "ship",
+   "at": 1791632357000,
+   "final": true,
+   "image": "/hall-mock/nose-drill.png",
+   "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "sleek",
+    "seed": 1957108974,
+    "hull": {
+     "shape": "dart",
+     "width": 0.23,
+     "height": 0.26,
+     "nose": "pointed",
+     "tail": "flat",
+     "color": "",
+     "stripe": ""
+    },
+    "cockpit": {
+     "kind": "canopy",
+     "at": 0.4,
+     "size": 0.19,
+     "color": "",
+     "windows": 0
+    },
+    "wings": {
+     "count": 2,
+     "shape": "swept",
+     "at": 0.68,
+     "span": 0.34,
+     "chord": 0.3,
+     "mount": "low",
+     "color": ""
+    },
+    "fins": [
+     {
+      "kind": "tail",
+      "at": 0.73,
+      "size": 0.26,
+      "color": ""
+     }
+    ],
+    "engines": {
+     "count": 0,
+     "size": 0.06,
+     "flame": false,
+     "flameColor": "",
+     "layout": "single",
+     "verb": null
+    },
+    "weapons": [
+     {
+      "kind": "drill",
+      "count": 1,
+      "at": 0.09,
+      "mount": "nose",
+      "size": 0.18,
+      "color": "",
+      "verb": "shoot"
+     }
+    ],
+    "extras": [],
+    "palette": {
+     "colored": false,
+     "main": "",
+     "second": "",
+     "accent": ""
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "shoot",
+     "part": "drill"
+    }
+   ],
+   "card": "Your ship can: fly, shoot (drill)",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 69,
+    "effort": 63,
+    "readability": 86,
+    "fun": 68
+   },
+   "score": 72,
+   "comment": "A drill on the nose. Asteroids, consider yourselves warned.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 12,
+   "id": "cannon-flames",
+   "player": "Ace",
+   "color": "#fbbf24",
+   "round": 3,
+   "kind": "ship",
+   "type": "ship",
+   "at": 1791632890000,
+   "final": true,
+   "image": "/hall-mock/cannon-flames.png",
+   "spec": {
+    "v": 1,
+    "view": "top",
+    "noseDir": "right",
+    "style": "sleek",
+    "seed": 4195627566,
+    "hull": {
+     "shape": "dart",
+     "width": 0.24,
+     "height": 0.18,
+     "nose": "pointed",
+     "tail": "flat",
+     "color": "",
+     "stripe": ""
+    },
+    "cockpit": {
+     "kind": "canopy",
+     "at": 0.28,
+     "size": 0.22,
+     "color": "",
+     "windows": 0
+    },
+    "wings": {
+     "count": 2,
+     "shape": "swept",
+     "at": 0.64,
+     "span": 0.64,
+     "chord": 0.36,
+     "mount": "mid",
+     "color": ""
+    },
+    "fins": [
+     {
+      "kind": "tail",
+      "at": 0.86,
+      "size": 0.24,
+      "color": "",
+      "implied": true
+     }
+    ],
+    "engines": {
+     "count": 1,
+     "size": 0.15,
+     "flame": true,
+     "flameColor": "",
+     "layout": "single",
+     "verb": "boost"
+    },
+    "weapons": [
+     {
+      "kind": "cannon",
+      "count": 1,
+      "at": 0.48,
+      "mount": "sides",
+      "size": 0.27,
+      "color": "",
+      "verb": "shoot"
+     }
+    ],
+    "extras": [],
+    "palette": {
+     "colored": false,
+     "main": "",
+     "second": "",
+     "accent": ""
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "shoot",
+     "part": "cannon"
+    },
+    {
+     "verb": "boost",
+     "part": "exhaust flames"
+    }
+   ],
+   "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames)",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 58,
+    "effort": 67,
+    "readability": 91,
+    "fun": 69
+   },
+   "score": 71,
+   "comment": "Cannon on top, flames out back. A fighter that skips the small talk.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 13,
+   "id": "bike-lamp",
+   "player": "Pedal Pete",
+   "color": "#2dd4bf",
+   "round": 3,
+   "kind": "explorer",
+   "type": "bike",
+   "at": 1791632904000,
+   "final": true,
+   "image": "/hall-mock/bike-lamp.png",
+   "spec": {
+    "v": 1,
+    "type": "bike",
+    "view": "side",
+    "facing": "right",
+    "style": "chunky",
+    "seed": 817107451,
+    "head": {
+     "shape": "none",
+     "size": 0.08,
+     "gear": "none",
+     "face": "none",
+     "eyes": 0,
+     "snout": 0,
+     "color": "",
+     "gearColor": "",
+     "faceColor": ""
+    },
+    "torso": {
+     "shape": "slim",
+     "width": 0.06,
+     "color": "",
+     "belt": false,
+     "emblem": ""
+    },
+    "arms": {
+     "count": 0,
+     "length": 0.15,
+     "thickness": "thin",
+     "hands": "none",
+     "color": "",
+     "handColor": ""
+    },
+    "legs": {
+     "count": 0,
+     "length": 0.15,
+     "thickness": "thin",
+     "feet": "none",
+     "color": "",
+     "feetColor": ""
+    },
+    "neck": 0,
+    "tail": {
+     "kind": "none",
+     "color": ""
+    },
+    "vehicle": {
+     "body": "bicycle",
+     "height": 0.35,
+     "cabin": "none",
+     "wheels": 2,
+     "wheelSize": 0.37,
+     "color": "",
+     "rider": false
+    },
+    "items": [
+     {
+      "kind": "lamp",
+      "where": "front",
+      "size": 0.15,
+      "color": "",
+      "verb": "flare"
+     }
+    ],
+    "palette": {
+     "colored": false,
+     "main": "",
+     "second": "",
+     "accent": "",
+     "skin": ""
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "flare",
+     "part": "lamp"
+    }
+   ],
+   "card": "Your bike can: drive, flare (lamp)",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 66,
+    "effort": 62,
+    "readability": 90,
+    "fun": 63
+   },
+   "score": 70,
+   "comment": "A bicycle on a planet with no roads. Headlamp included, helmet not.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 14,
+   "id": "photo-bubble",
+   "player": "Thumbs",
+   "color": "#a78bfa",
+   "round": 1,
+   "kind": "ship",
+   "type": "ship",
+   "at": 1791631831000,
+   "final": true,
+   "image": "/hall-mock/photo-bubble.png",
+   "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "seed": 3790429328,
+    "hull": {
+     "shape": "box",
+     "width": 0.36,
+     "height": 0.37,
+     "nose": "pointed",
+     "tail": "flat",
+     "color": "",
+     "stripe": ""
+    },
+    "cockpit": {
+     "kind": "windows",
+     "at": 0.42,
+     "size": 0.15,
+     "color": "",
+     "windows": 1
+    },
+    "wings": {
+     "count": 0,
+     "shape": "straight",
+     "at": 0.15,
+     "span": 0.2,
+     "chord": 0.08,
+     "mount": "mid",
+     "color": ""
+    },
+    "fins": [
+     {
+      "kind": "tail",
+      "at": 0.8,
+      "size": 0.3,
+      "color": ""
+     }
+    ],
+    "engines": {
+     "count": 0,
+     "size": 0.06,
+     "flame": false,
+     "flameColor": "",
+     "layout": "single",
+     "verb": null
+    },
+    "weapons": [
+     {
+      "kind": "bomb",
+      "count": 1,
+      "at": 0.56,
+      "mount": "belly",
+      "size": 0.14,
+      "color": "",
+      "verb": "blast"
+     }
+    ],
+    "extras": [
+     {
+      "kind": "shield",
+      "at": 0.48,
+      "mount": "around",
+      "size": 1,
+      "color": "",
+      "label": "",
+      "verb": "shield"
+     },
+     {
+      "kind": "spikes",
+      "at": 0.6,
+      "mount": "top",
+      "size": 0.35,
+      "color": "",
+      "label": "",
+      "verb": "mine",
+      "added": true
+     }
+    ],
+    "palette": {
+     "colored": false,
+     "main": "",
+     "second": "",
+     "accent": ""
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "shield",
+     "part": "shield"
+    },
+    {
+     "verb": "blast",
+     "part": "bomb"
+    },
+    {
+     "verb": "mine",
+     "part": "bomb"
+    }
+   ],
+   "card": "Your ship can: fly, shield, blast (bomb), mine (bomb)",
+   "source": "photo",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 76,
+    "effort": 49,
+    "readability": 57,
+    "fun": 79
+   },
+   "score": 65,
+   "comment": "A ship in a shield bubble, with a bomb. The thumb cameo is free.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 15,
+   "id": "jaume-jet",
+   "player": "DJ Jaume",
+   "color": "#fb7185",
+   "round": 3,
+   "kind": "ship",
+   "type": "ship",
+   "at": 1791632918000,
+   "final": true,
+   "image": "/hall-mock/jaume-jet.png",
+   "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "sleek",
+    "seed": 1525781425,
+    "hull": {
+     "shape": "dart",
+     "width": 0.2,
+     "height": 0.16,
+     "nose": "pointed",
+     "tail": "flat",
+     "color": "",
+     "stripe": ""
+    },
+    "cockpit": {
+     "kind": "windows",
+     "at": 0.23,
+     "size": 0.07,
+     "color": "",
+     "windows": 1
+    },
+    "wings": {
+     "count": 0,
+     "shape": "swept",
+     "at": 0.5,
+     "span": 0.2,
+     "chord": 0.08,
+     "mount": "mid",
+     "color": ""
+    },
+    "fins": [
+     {
+      "kind": "tail",
+      "at": 0.81,
+      "size": 0.47,
+      "color": ""
+     },
+     {
+      "kind": "belly",
+      "at": 0.89,
+      "size": 0.17,
+      "color": ""
+     }
+    ],
+    "engines": {
+     "count": 1,
+     "size": 0.11,
+     "flame": true,
+     "flameColor": "",
+     "layout": "single",
+     "verb": "boost"
+    },
+    "weapons": [
+     {
+      "kind": "cannon",
+      "count": 2,
+      "at": 0.19,
+      "mount": "belly",
+      "size": 0.33,
+      "color": "",
+      "verb": "shoot"
+     }
+    ],
+    "extras": [],
+    "palette": {
+     "colored": false,
+     "main": "",
+     "second": "",
+     "accent": ""
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [
+    {
+     "verb": "shoot",
+     "part": "cannons"
+    },
+    {
+     "verb": "boost",
+     "part": "exhaust flames"
+    }
+   ],
+   "card": "Your ship can: fly, shoot (cannons), boost (exhaust flames)",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 64,
+    "effort": 46,
+    "readability": 68,
+    "fun": 81
+   },
+   "score": 65,
+   "comment": "Drawn with one finger, mid-demo. Fastest ink in the galaxy.",
+   "mock": false,
+   "cached": false
+  },
+  {
+   "rank": 16,
+   "id": "blob",
+   "player": "Squish",
+   "color": "#818cf8",
+   "round": 2,
+   "kind": "explorer",
+   "type": "blob",
+   "at": 1791632385000,
+   "final": true,
+   "image": "/hall-mock/blob.png",
+   "spec": {
+    "v": 1,
+    "type": "blob",
+    "view": "front",
+    "facing": "viewer",
+    "style": "cute",
+    "seed": 2137145730,
+    "head": {
+     "shape": "none",
+     "size": 0.08,
+     "gear": "none",
+     "face": "eyes",
+     "eyes": 2,
+     "snout": 0,
+     "color": "",
+     "gearColor": "",
+     "faceColor": ""
+    },
+    "torso": {
+     "shape": "round",
+     "width": 0.7,
+     "color": "",
+     "belt": false,
+     "emblem": ""
+    },
+    "arms": {
+     "count": 0,
+     "length": 0.15,
+     "thickness": "thin",
+     "hands": "none",
+     "color": "",
+     "handColor": ""
+    },
+    "legs": {
+     "count": 0,
+     "length": 0.15,
+     "thickness": "thin",
+     "feet": "none",
+     "color": "",
+     "feetColor": ""
+    },
+    "neck": 0,
+    "tail": {
+     "kind": "none",
+     "color": ""
+    },
+    "vehicle": {
+     "body": "none",
+     "height": 0.15,
+     "cabin": "none",
+     "wheels": 0,
+     "wheelSize": 0.1,
+     "color": "",
+     "rider": false
+    },
+    "items": [],
+    "palette": {
+     "colored": false,
+     "main": "",
+     "second": "",
+     "accent": "",
+     "skin": ""
+    },
+    "source": "model"
+   },
+   "layout": null,
+   "ctrl": null,
+   "htmlSource": null,
+   "skills": [],
+   "card": "Your explorer can: bounce, jump",
+   "source": "draw",
+   "judge": "done",
+   "error": null,
+   "scores": {
+    "creativity": 60,
+    "effort": 31,
+    "readability": 79,
+    "fun": 85
+   },
+   "score": 64,
+   "comment": "No arms, no legs, no worries. Just vibes and a big smile.",
+   "mock": false,
+   "cached": false
+  }
+ ]
+}

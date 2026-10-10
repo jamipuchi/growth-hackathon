@@ -60,6 +60,8 @@ const PUBLIC_FILES = new Set([
 ]);
 const ICONS = path.join(ROOT, "icons");
 const ICON_PATH = /^icons\/[a-z0-9][a-z0-9_.-]{0,63}\.png$/i;   // one level, no dot files, PNG only
+// v1.9 demo (owner 13:41): hall-of-fame.html?mock=1 reads hall-mock/<name>.png|json (one level, no dot files)
+const HALL_MOCK_PATH = /^hall-mock\/[a-z0-9][a-z0-9_-]{0,63}\.(png|json)$/i;
 const TOUCH_ICON = /^apple-touch-icon(-\d{2,3}x\d{2,3})?(-precomposed)?\.png$/; // iOS asks the root for these
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".json": "application/json",
@@ -74,6 +76,9 @@ const botsArg = process.argv.indexOf("--bots");
 const BOTS = botsArg > 0 ? Math.max(0, Math.min(25, Number(process.argv[botsArg + 1]) || 0)) : 0; // 25 players at most (humans take bots' seats)
 const autoArg = process.argv.indexOf("--autostart");
 const AUTOSTART = autoArg > 0 && Number.isFinite(Number(process.argv[autoArg + 1])) ? Math.max(0, Number(process.argv[autoArg + 1])) : null;
+const argNum = (flag, fallback) => { const i = process.argv.indexOf(flag); return i > 0 && Number.isFinite(Number(process.argv[i + 1])) ? Number(process.argv[i + 1]) : fallback; };
+const MINUTES_AT_START = Contract.ROUND_MINUTES.includes(argNum("--minutes", 1)) ? argNum("--minutes", 1) : 1; // v1.9 demo default: 1 minute
+const START_AFTER_AT_START = Contract.LOBBY_WAITS.includes(argNum("--start-after", 30)) ? argNum("--start-after", 30) : 30; // 0 = off
 // v1.6 ENDLESS (owner, 10 Oct 11:53): --endless or ENDLESS=1 starts the server in the endless free-for-all (endless.js).
 const ENDLESS_AT_START = (() => { try { return require("./endless").fromEnv(); } catch { return false; } })();
 
@@ -422,7 +427,9 @@ function freshRound(round, names) {
 }
 
 // v1.7 readyGate (owner 12:26): only the ready players (ship + controller) enter a round; START needs one of them.
-const world = createWorld({ broadcast, autoStart: true, wireAnimations, autostartSeconds: AUTOSTART, onRoundReset: freshRound, readyGate: true });
+// v1.9 (owner 13:41): 1-minute rounds by default and the lobby auto-start 30 s after the first READY player; the TV lobby
+// changes both (POST /mode { minutes, startAfter }), remembered for the session. --minutes N / --start-after S at launch.
+const world = createWorld({ broadcast, autoStart: true, wireAnimations, autostartSeconds: AUTOSTART, onRoundReset: freshRound, readyGate: true, minutes: MINUTES_AT_START, startAfter: START_AFTER_AT_START });
 for (let i = 1; i <= BOTS; i++) world.addBot(`bot${i}`);
 // v1.6 ENDLESS: guarded, so a world.js without the endless hooks still runs (the demo).
 const canEndless = () => typeof world.setEndless === "function" && typeof world.endSession === "function";
@@ -464,6 +471,7 @@ function staticFile(pathname) {
   if (PUBLIC_FILES.has(rel)) return path.join(ROOT, rel);
   if (ICON_PATH.test(rel)) return path.join(ROOT, rel);
   if (TOUCH_ICON.test(rel)) return touchIcon();
+  if (HALL_MOCK_PATH.test(rel)) return path.join(ROOT, rel); // v1.9 demo: the mock hall of fame's bundled data
   if (!rel.startsWith("assets/") || rel.split("/").some((part) => !part || part.startsWith("."))) return null;
   const file = path.normalize(path.join(ROOT, rel));
   if (!file.startsWith(ASSETS + path.sep) || !ASSET_EXTS.has(path.extname(file).toLowerCase())) return null;
@@ -688,10 +696,24 @@ async function handlePost(req, res, url) {
     // v1.6 ENDLESS (endless.js): the big screen's ENDLESS switch, { endless: true | false }. Only in the lobby (it holds for
     // the session START begins and every one after, until switched off); every screen hears it from the world message
     // (`mode: "endless"`, absent in the demo). 409 outside the lobby, 501 with a world.js that has no endless mode.
+    // v1.9 (owner 13:41, additive): { minutes: 1-4 } the round length (lobby only, 409 outside it; 400 for another value),
+    // { startAfter: 0 | 15 | 30 | 60 } the lobby auto-start (any time). A body with neither `endless` nor `mode` leaves
+    // ENDLESS as it is (before v1.9 every POST /mode set it). Picking a length also switches ENDLESS off unless the same
+    // body asks for it. The reply carries minutes and startAfter.
+    const has = (k) => Object.prototype.hasOwnProperty.call(body, k);
+    const state = () => ({ mode: world.endless ? "endless" : "demo", phase: world.phase, minutes: world.minutes, startAfter: world.startAfter });
+    if (has("startAfter") && !world.setStartAfter(Number(body.startAfter))) return json(res, 400, { ok: false, error: "startAfter must be 0, 15, 30 or 60", ...state() });
+    if (has("minutes")) {
+      if (!Contract.ROUND_MINUTES.includes(Number(body.minutes))) return json(res, 400, { ok: false, error: "minutes must be 1, 2, 3 or 4", ...state() });
+      if (world.phase !== "lobby") return json(res, 409, { ok: false, error: "not in the lobby", ...state() });
+      if (!has("endless") && !has("mode") && world.endless && canEndless()) world.setEndless(false);
+      world.setRoundLength(Number(body.minutes));
+    }
+    if (!has("endless") && !has("mode")) return json(res, 200, { ok: true, ...state() });
     if (!canEndless()) return json(res, 501, { ok: false, error: "no endless mode" });
     const on = body.endless === true || body.endless === 1 || body.endless === "1" || body.endless === "true" || body.mode === "endless";
-    if (!world.setEndless(on)) return json(res, 409, { ok: false, error: "not in the lobby", phase: world.phase, mode: world.endless ? "endless" : "demo" });
-    return json(res, 200, { ok: true, mode: world.endless ? "endless" : "demo", phase: world.phase });
+    if (!world.setEndless(on)) return json(res, 409, { ok: false, error: "not in the lobby", ...state() });
+    return json(res, 200, { ok: true, ...state() });
   }
   if (url.pathname === "/end") {
     // v1.6 ENDLESS: the big screen's END button: the endless session ends now (the normal results, then the lobby). 409
@@ -714,12 +736,16 @@ async function handlePost(req, res, url) {
     // server restart) joins first, as for /generate; a name bound to another phone, or a bot's, is refused.
     const player = Contract.cleanName(body.player);
     if (!player) return json(res, 400, { ok: false, error: "player name required" });
-    const kinds = [...new Set((Array.isArray(body.kinds) ? body.kinds : [body.kind]).filter((k) => k === "ship" || k === "controller"))];
-    if (!kinds.length) return json(res, 400, { ok: false, error: "kind must be ship or controller" });
+    // v1.9: kind "explorer" = USE A QUICK EXPLORER (1-2 minute rounds): a plain person with a shovel and a drill, counted as
+    // the round's explorer drawing (world.useDefault); the entity message reaches every screen as for a drawn one.
+    const kinds = [...new Set((Array.isArray(body.kinds) ? body.kinds : [body.kind]).filter((k) => k === "ship" || k === "controller" || k === "explorer"))];
+    if (!kinds.length) return json(res, 400, { ok: false, error: "kind must be ship, controller or explorer" });
     if (!world.players[player] && !world.join(player, tokenOf(body))) return json(res, 400, { ok: false, error: "the game is full" });
     if (boundElsewhere(player, body)) return json(res, 403, { ok: false, error: "name taken" });
     if (typeof world.seat === "function" && !world.seat(player)) return json(res, 400, { ok: false, error: "the game is full" });
-    for (const k of kinds) world.useDefault(player, k);
+    // the quick explorer only in a round being played, for a player in it (400 otherwise, as before v1.9)
+    if (kinds.includes("explorer") && !(typeof world.quickExplorer === "function" && world.quickExplorer(player))) return json(res, 400, { ok: false, error: "the quick explorer is for a player in a round", phase: world.phase });
+    for (const k of kinds) if (k !== "explorer") world.useDefault(player, k);
     return json(res, 200, { ok: true, kinds, ready: world.isReady(player), phase: world.phase });
   }
   if (url.pathname === "/generate") {

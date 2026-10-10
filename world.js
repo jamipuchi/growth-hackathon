@@ -192,8 +192,9 @@ function withSteer(layout) {
 const hasControl = (layout, verb) => (layout || DEFAULT_LAYOUT).buttons.some((b) => Contract.normaliseAction(b.action) === verb);
 
 // The chest count for a round: scales with the players at START so 25 can open them all in about 3:00.
-const chestCount = (players) => clamp(ISL.chestsBase + Math.ceil(Math.max(1, players) * ISL.chestsPerPlayer - 1e-9), 3, ISL.chestsMax);
-const bossHp = (players) => Math.round(T.boss.hp * (1 + T.boss.hpPerExtraPlayer * (Math.max(1, players) - 1)));
+// v1.9: pace (Contract.pacing(minutes)) scales both with the round length; without one: the 4-minute tuning, as before.
+const chestCount = (players, pace = null) => { const k = pace && typeof pace === "object" ? pace : ISL; return clamp(k.chestsBase + Math.ceil(Math.max(1, players) * k.chestsPerPlayer - 1e-9), 3, k.chestsMax); };
+const bossHp = (players, pace = null) => Math.round((pace && typeof pace === "object" ? pace.bossHp : T.boss.hp) * (1 + T.boss.hpPerExtraPlayer * (Math.max(1, players) - 1)));
 // Who the chest count is scaled for: every human counts 1, every bot TUNING.botWeight (bots are fillers, not players;
 // v1.4: 0, they never land). The boss's HP counts every bot TUNING.boss.botWeight instead (v1.4: at a close boss a bot
 // fires about half as hard as a human): 1 human + 24 bots = 1 for the chests, 13 for the HP.
@@ -230,13 +231,18 @@ function ghostBox(layout, action) {
 // score, untouchable), listed in tick.waiting, and their drawings, controller and budget are kept for the next round
 // (onRoundReset only gets the names of those who played). ENDLESS: a waiting player enters as soon as they are ready.
 // Off (tests, tools): everybody plays, as before.
-function createWorld({ broadcast = () => {}, random = Math.random, autoStart = false, wireAnimations = null, autostartSeconds = ROUND.autostartSeconds, onRoundReset = null, readyGate = false } = {}) {
+// v1.9 (owner, 10 Oct 13:41): minutes (1-4, the round length; default 4 = the pre-v1.9 tuning, server.js passes 1) and
+// startAfter (the lobby auto-start: that many seconds after the first READY player; 0 = off, the default; server.js 30).
+function createWorld({ broadcast = () => {}, random = Math.random, autoStart = false, wireAnimations = null, autostartSeconds = ROUND.autostartSeconds, onRoundReset = null, readyGate = false, minutes = 4, startAfter = 0 } = {}) {
   const players = Object.create(null);
   // Hints run on the simulation clock so fast-forward tests see the same ladder as a live round.
   const hints = Rules.createHints({ now: () => Math.round(S.t * 1000) });
   const budget = Rules.createBudget();
   const rand = (min, max) => min + random() * (max - min);
-  const S = { round: 0, phase: "lobby", phaseT: 0, playT: 0, t: 0, seed: 1, playerCount: 1, assists: false, result: null };
+  const S = { round: 0, phase: "lobby", phaseT: 0, playT: 0, t: 0, seed: 1, playerCount: 1, assists: false, result: null,
+    minutes: Contract.cleanMinutes(minutes), startAfter: Contract.LOBBY_WAITS.includes(Number(startAfter)) ? Number(startAfter) : 0, startAt: null };
+  // v1.9 round length: the pacing in force (ENDLESS plays the 4-minute tuning); repace() after a change of either.
+  let pace = Contract.pacing(S.minutes);
   const session = Object.create(null); // name → { stars, total }: the evening's leaderboard
   let rocks = [], bullets = [], bossShots = [], flares = [], mines = [], decoys = [];
   let pickups = [], lootRandom = Math.random; // v1.8 loot: { id, kind, pos, vel, until }
@@ -272,6 +278,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     // +1 drawing per world for every human below the maximum (rules.js refund)
     recharge: () => { if (typeof budget.refund === "function") for (const q of active()) if (!q.bot) { budget.refund(q.name, "space"); budget.refund(q.name, "planet"); } },
   });
+  const repace = () => { pace = Contract.pacing(endless.on ? 4 : S.minutes); };
 
   // ---- World generation ----------------------------------------------------------------------------------------
 
@@ -320,7 +327,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     }
     return true;
   };
-  function buildIsland(count = chestCount(S.playerCount)) {
+  function buildIsland(count = chestCount(S.playerCount, pace)) {
     island = { seed: Math.floor(rand(1, 100000)), size: Terrain.ISLAND_SIZE };
     // Landing spot: dry and low enough near the middle, with room for the chests around it. v1.7: the search rings scale
     // with the island (840 m: 40 to 320 m out every 20 m; 20 to 160 every 10 on the old 420 m island).
@@ -346,7 +353,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   };
   function placeChests(lx, lz, count, force = false) {
     const list = [];
-    const spread = ISL.chestSpread + ISL.chestSpreadPerChest * count;
+    const spread = pace.chestSpread + pace.chestSpreadPerChest * count; // v1.9: scales with the round length
     for (let i = 0; i < 40 * count && list.length < count; i++) {
       const ang = rand(0, Math.PI * 2), d = rand(12, spread);
       const x = lx + Math.cos(ang) * d, z = lz + Math.sin(ang) * d;
@@ -362,12 +369,12 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   function buildWorld() {
     S.seed = Math.floor(rand(1, 1e9));
     const ang = rand(0, Math.PI * 2);
-    const bossPos = { x: Math.cos(ang) * T.bossDistance, y: rand(-40, 40), z: Math.sin(ang) * T.bossDistance };
-    const hp = bossHp(S.playerCount);
+    const bossPos = { x: Math.cos(ang) * pace.bossDistance, y: rand(-40, 40), z: Math.sin(ang) * pace.bossDistance }; // v1.9 pace
+    const hp = bossHp(S.playerCount, pace);
     boss = { id: 1, pos: bossPos, radius: T.boss.radius, armour: 0, hp, maxHp: hp, dead: false, shotCd: T.boss.shotEverySeconds, damageBy: Object.create(null) };
     nebula = { ...bossPos, radius: T.nebula.radius };
     // The planet lies beyond the boss, on the line from spawn: fly past the boss to reach it.
-    planetAt = add(bossPos, norm(bossPos), T.planet.offset);
+    planetAt = add(bossPos, norm(bossPos), pace.planetOffset); // v1.9 pace (phones and TV: Contract.applyPacing)
     planet = null;
     rocks = Array.from({ length: T.rockCount }, () => spawnRock());
     bullets = []; bossShots = []; flares = []; mines = []; decoys = []; revealUntil = Object.create(null);
@@ -704,6 +711,14 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     p.defaults = { ...(p.defaults || {}), [kind]: true };
     return readyNow(p);
   }
+  // v1.9 QUICK EXPLORER (1-2 minute rounds: the phone offers it to a landed player with no explorer drawing, server.js POST
+  // /default kinds ["explorer"]): a plain person with a shovel and a drill, counted as that round's explorer drawing (gone
+  // with the drawings at a new round). Free. Only for a player in a round being played. → the entity, else null.
+  function quickExplorer(name) {
+    const p = getPlayer(name, false, { create: false });
+    if (!p || p.bot || (S.phase !== "playing" && S.phase !== "assists") || (readyGate && !p.inRound)) return null;
+    return setEntity(p.name, "explorer", { type: "person", unlocked: [{ verb: "dig", part: "shovel" }, { verb: "drill", part: "drill" }], parts: [], source: "quick" });
+  }
   // The player's whole pad now: their drawn controller plus added buttons, else the phone's default.
   const layoutOf = (name) => { const p = players[Contract.cleanName(name)]; return (p && p.layout) || DEFAULT_LAYOUT; };
 
@@ -721,7 +736,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   // ship again. onRoundReset (server.js) clears the drawings, their URLs and the generation caches first, so no entity
   // message of the new round can carry an old drawing.
   function newRound() {
-    S.round++; S.phase = "lobby"; S.phaseT = 0; S.playT = 0; S.assists = false; S.result = null;
+    S.round++; S.phase = "lobby"; S.phaseT = 0; S.playT = 0; S.assists = false; S.result = null; S.startAt = null;
     // v1.7 readyGate: only who played the round that ended starts from scratch; a player who WAITED keeps their drawings,
     // controller and drawing budget for this round (they are ready at once).
     const played = (p) => !readyGate || !!p.bot || !!p.inRound;
@@ -762,9 +777,10 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     }
     const roster = active().filter((p) => !readyGate || p.inRound);
     S.playerCount = scaledCount(roster);
-    const hp = bossHp(hpCount(roster));
+    const hp = bossHp(hpCount(roster), pace);
     Object.assign(boss, { hp, maxHp: hp });
-    buildIsland(chestCount(S.playerCount));
+    buildIsland(chestCount(S.playerCount, pace));
+    S.startAt = null; // v1.9 lobby auto-start
     const wait = countdown ? Math.max(0, Number(ROUND.countdownSeconds) || 0) : 0;
     S.phase = wait > 0 ? "countdown" : "playing"; S.phaseT = 0; S.playT = 0;
     for (const p of Object.values(players)) { spawnAt(p); Object.assign(p, { pressed: [], score: 0, lastChest: null, hitBy: {}, run: null, botBoost: false, hitAcc: 0, power: null, bubbleFor: 0 }); }
@@ -781,11 +797,11 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       // Somebody joined (or a bot left) during the 3-2-1: the round is scaled for who is here at GO. The island keeps
       // its shape (a new seed would rebuild the terrain on every screen at GO): only the chests are placed again, and
       // if they do not fit, the START ones stay.
-      const n = scaledCount(active()), hp = bossHp(hpCount(active()));
+      const n = scaledCount(active()), hp = bossHp(hpCount(active()), pace);
       if (n !== S.playerCount || hp !== boss.maxHp) {
         S.playerCount = n;
         Object.assign(boss, { hp, maxHp: hp });
-        const count = chestCount(n);
+        const count = chestCount(n, pace);
         if (count !== chests.length) placeChests(landing.x, landing.z, count); // false: chests unchanged
       }
     }
@@ -799,7 +815,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   // ever given (owner, 10 Oct 09:05).
   function startAssists() {
     S.phase = "assists"; S.assists = true;
-    announce("3:00! The chests glow. Missing a skill? Draw it now!", true);
+    announce(`${Contract.clockText(pace.assistsAt)}! The chests glow. Missing a skill? Draw it now!`, true); // v1.9: 3:00 at 4 min
     sendWorld();
   }
 
@@ -830,8 +846,50 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   // hears it at once (world.mode).
   function setEndless(on) {
     if (S.phase !== "lobby") return false;
-    if (endless.on !== !!on) { endless.set(on); sendWorld(); }
+    if (endless.on !== !!on) { endless.set(on); relayLobby(); }
     return true;
+  }
+
+  // ---- v1.9 round length and lobby auto-start (owner, 10 Oct 13:41) ----------------------------------------------
+  // The TV lobby's 1 / 2 / 3 / 4 MIN (POST /mode { minutes }): lobby only; it holds for every round after, until changed.
+  // The space act and the island follow it (Contract.pacing), so the lobby's world is built again for the new length
+  // (new seed: the boss, the planet and the island move; every screen re-places them from the world message).
+  function setRoundLength(minutes) {
+    if (S.phase !== "lobby" || !Contract.ROUND_MINUTES.includes(Number(minutes))) return false;
+    if (S.minutes !== Number(minutes)) { S.minutes = Number(minutes); relayLobby(); }
+    return true;
+  }
+  // The lobby auto-start (0 = off, 15, 30, 60 s after the first READY player), any phase; a running count restarts.
+  function setStartAfter(seconds) {
+    if (!Contract.LOBBY_WAITS.includes(Number(seconds))) return false;
+    if (S.startAfter !== Number(seconds)) { S.startAfter = Number(seconds); S.startAt = null; sendWorld(); }
+    return true;
+  }
+  // A new pacing in the lobby: the world built again, everybody back on their spawn slot (drawings and READY kept).
+  function relayLobby() {
+    const before = pace;
+    repace();
+    if (S.phase === "lobby" && (before.bossDistance !== pace.bossDistance || before.planetOffset !== pace.planetOffset || before.chestSpread !== pace.chestSpread)) {
+      buildWorld();
+      for (const p of Object.values(players)) spawnAt(p);
+    }
+    sendWorld();
+  }
+  // Lobby auto-start: the count starts when at least one human is READY and stops when nobody is; at 0 the round starts
+  // with the ready players (the 3-2-1 as for START; the others wait, as today). The host's START can come earlier.
+  function lobbyAutoStart() {
+    if (!(S.startAfter > 0)) { S.startAt = null; return; }
+    if (!readyCount()) { if (S.startAt != null) { S.startAt = null; worldDirty = true; } return; }
+    if (S.startAt == null) { S.startAt = S.t + S.startAfter; worldDirty = true; return; }
+    if (S.t >= S.startAt) { S.startAt = null; start({ countdown: true }); }
+  }
+  // Additive message fields: minutes always (the pacing in force: 4 in ENDLESS), startAfter on world messages, startIn
+  // (whole seconds left) while the lobby auto-start counts down.
+  function lengthFields(world = true) {
+    const out = { minutes: pace.minutes };
+    if (world) { out.startAfter = S.startAfter; out.roundMinutes = S.minutes; }
+    if (S.phase === "lobby" && S.startAt != null) out.startIn = Math.max(1, Math.ceil(S.startAt - S.t - 1e-9));
+    return out;
   }
   // The host's END (POST /end): an endless session in play ends now: the normal results (reason "host"), then the lobby.
   function endSession() {
@@ -842,7 +900,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   // The boss back where it died: fresh HP for the players here now, nobody's damage carried over, no shots in flight;
   // the rock field topped up to TUNING.rockCount (new rocks keep 30 m clear of every ship). The planet stays open.
   function respawnBoss() {
-    const hp = bossHp(hpCount(active()));
+    const hp = bossHp(hpCount(active()), pace);
     Object.assign(boss, { hp, maxHp: hp, dead: false, shotCd: T.boss.shotEverySeconds, damageBy: Object.create(null) });
     bossShots = [];
     const ships = active().filter((q) => q.mode === "space" && !q.dead);
@@ -856,8 +914,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   // Opened chests replaced by new ones in new places (endless.js freshChests), as many as the players here now call for.
   function refreshChests() {
     S.playerCount = scaledCount(active());
-    const want = chestCount(S.playerCount);
-    chests = Endless.freshChests(chests, { want, at: landing, spread: ISL.chestSpread + ISL.chestSpreadPerChest * want,
+    const want = chestCount(S.playerCount, pace);
+    chests = Endless.freshChests(chests, { want, at: landing, spread: pace.chestSpread + pace.chestSpreadPerChest * want,
       ok: (x, z) => dry(x, z) && dryLine(landing.x, landing.z, x, z), random });
     sendWorld();
   }
@@ -1284,8 +1342,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     if (chest.dug >= 1) { chest.buried = false; sendWorld(); }
     return true;
   }
-  function dig(p, dt) { p.digging = openChest(p, dt, "dig", "buried", VERB.dig.seconds); }
-  function drillRock(p, dt) { p.drilling = openChest(p, dt, "drill", "rock", VERB.drill.seconds); }
+  function dig(p, dt) { p.digging = openChest(p, dt, "dig", "buried", pace.digSeconds); } // v1.9: = VERB.dig.seconds at 4 min
+  function drillRock(p, dt) { p.drilling = openChest(p, dt, "drill", "rock", pace.drillSeconds); }
 
   // Walking onto an open chest collects it: +1500, and a kill in the next stealSeconds steals half (hurt()).
   function pickup(p) {
@@ -1652,7 +1710,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
 
   // The gate's skill on the entity, and a button for it. The weapon gate takes any weapon (shoot, blast, drill).
   function gateNeeds(p, gate) {
-    if (gate !== "weapon") return { hasSkill: can(p, gate), hasControl: hasControl(p.layout, gate), action: gate };
+    // v1.9: in 1-2 minute rounds the phone adds native DIG / DRILL buttons (pace.chestButtons): no "draw the button" card
+    if (gate !== "weapon") return { hasSkill: can(p, gate), hasControl: hasControl(p.layout, gate) || !!pace.chestButtons, action: gate };
     const mine = Verbs.WEAPONS.filter((v) => can(p, v));
     const bound = mine.find((v) => hasControl(p.layout, v));
     return { hasSkill: mine.length > 0, hasControl: !!bound, action: bound || mine[0] || "shoot" };
@@ -1794,6 +1853,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     if (S.phase === "lobby") {
       for (const p of list) p.pressed = [];
       if (autostartSeconds != null && S.phaseT >= autostartSeconds) start();
+      else lobbyAutoStart();
     } else if (S.phase === "countdown") {
       for (const p of list) p.pressed = [];
       if (S.phaseT >= (Number(ROUND.countdownSeconds) || 0)) { go(); sendWorld(); }
@@ -1802,14 +1862,14 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       if (S.phaseT >= ROUND.scoreboardSeconds) newRound();
     } else {
       S.playT += dt;
-      if (!endless.on && S.phase === "playing" && S.playT >= ROUND.assistsAt) startAssists();
+      if (!endless.on && S.phase === "playing" && S.playT >= pace.assistsAt) startAssists(); // v1.9: 75% of the round
       // v1.7 readyGate + ENDLESS: a waiting player who is ready now enters at once (in space, with a spawn shield)
       if (readyGate && endless.on) {
         for (const p of waitingList()) if (readyNow(p)) { p.inRound = true; spawnAt(p); Object.assign(p, { pressed: [], hitBy: {}, run: null, hitAcc: 0 }); list.push(p); announce(`${p.name} joined the game`); }
       }
       simulate(list, dt);
       if (endless.on) { if (S.phase === "playing") endless.step(dt); } // v1.6 ENDLESS: no clock (endless.js)
-      else if (S.phase !== "scoreboard" && S.playT >= ROUND.maxSeconds) endRound("time");
+      else if (S.phase !== "scoreboard" && S.playT >= pace.maxSeconds) endRound("time"); // v1.9: the picked length
     }
     const revealed = revealedTo().join(",");
     if (revealed !== lastRevealed) { lastRevealed = revealed; worldDirty = true; }
@@ -1880,6 +1940,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       phase: S.phase, ...countdownField(), // v1.4: a screen that connects mid-countdown counts down at once
       ...endless.fields(), // v1.6: mode "endless" while it is on, absent in the demo
       pickups: pickupList(), // v1.8 loot
+      ...lengthFields(true), // v1.9: minutes, roundMinutes (the TV's pick), startAfter, startIn
     };
     if (entities) m.entities = Object.fromEntries(ordered().filter((p) => p.entity).map((p) => [p.name, p.entity]));
     return m;
@@ -1933,7 +1994,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   function tickMessage() {
     return {
       type: "tick", t: Date.now(), round: S.round, phase: S.phase, clock: clock(),
-      left: (S.phase === "playing" || S.phase === "assists") && !endless.on ? r2(Math.max(0, ROUND.maxSeconds - S.playT)) : 0,
+      left: (S.phase === "playing" || S.phase === "assists") && !endless.on ? r2(Math.max(0, pace.maxSeconds - S.playT)) : 0,
+      ...lengthFields(false), // v1.9: minutes, and startIn while the lobby auto-start counts down
       ...countdownField(),
       ...endless.fields(), // v1.6 ENDLESS: mode "endless" (absent in the demo); left 0 = no cap
       ...waitingField(), // v1.7 readyGate: who waits for the next round (absent when nobody does)
@@ -1982,10 +2044,12 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     // v1.6 ENDLESS (endless.js): the switch (lobby only, false otherwise), the host's END (false unless an endless
     // session is in play), and whether it is on.
     setEndless, endSession,
+    // v1.9 (owner 13:41): the round length (lobby only) and the lobby auto-start; minutes / startAfter now; the pacing
+    setRoundLength, setStartAfter, get minutes() { return S.minutes; }, get startAfter() { return S.startAfter; }, get pace() { return pace; },
     // v1.7 readyGate: ready humans now (START needs one), and whether a player is waiting out this round
     readyCount, readyGate: !!readyGate, isWaiting: (name) => waitingList().some((p) => p.name === Contract.cleanName(name)),
     // v1.8 (skipready): SKIP on a drawing step counts for READY (the plain ship / the default buttons)
-    useDefault, isReady: (name) => { const p = players[Contract.cleanName(name)]; return !!p && readyNow(p); },
+    useDefault, quickExplorer, isReady: (name) => { const p = players[Contract.cleanName(name)]; return !!p && readyNow(p); },
     get endless() { return endless.on; },
     get phase() { return S.phase; },
     get round() { return S.round; },

@@ -15,6 +15,8 @@
   script-free frame) or, without it, the button layout. Top 3 on a podium, then the list. Polls GET /hall; ?judge=1 (the
   big screen's HALL OF FAME button) starts judging (POST /hall/judge) on open. One WebGL context for every turntable: each
   view is rendered in turn and copied into its own 2D canvas, only while it is on screen.
+  v1.9 demo (owner 13:41): ?mock=1 or the MOCK toggle shows hall-mock/hall.json instead (16 real sample drawings and their
+  specs, ranked; built by dev/v19-demo/hall-build-mock.mjs). Mock mode makes no API call: no /hall polling, no judging.
 -->
 <style>
   :root {
@@ -68,6 +70,13 @@
   .tabs button { font: italic 800 1.05rem/1 var(--fh); text-transform: uppercase; color: #fff; background: none; border: 0; padding: .6rem 1rem; cursor: pointer; position: relative; isolation: isolate; }
   .tabs button::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-8deg); border-radius: .35rem; background: rgb(255 255 255 / .08); border: .14rem solid rgb(255 255 255 / .35); }
   .tabs button[aria-pressed=true]::before { background: linear-gradient(180deg, #3a82ff, var(--blue2)); border-color: #fff; box-shadow: 0 .25rem 0 var(--shadow); }
+  /* v1.9 demo: the MOCK toggle (?mock=1: the bundled hall-mock/hall.json, no API call) */
+  #mockBtn { align-self: center; font: 800 .7rem/1 var(--fb); letter-spacing: .12em; text-transform: uppercase; color: rgb(255 255 255 / .55); background: none;
+             border: .12rem solid rgb(255 255 255 / .3); border-radius: 1rem; padding: .35rem .6rem .35rem .5rem; cursor: pointer; display: inline-flex; align-items: center; gap: .4rem; }
+  #mockBtn::before { content: ""; width: .55rem; height: .55rem; border-radius: 50%; background: rgb(255 255 255 / .3); }
+  #mockBtn[aria-pressed=true] { color: #fff; background: rgb(255 59 92 / .85); border-color: #fff; }
+  #mockBtn[aria-pressed=true]::before { background: #fff; }
+  body.mockmode #judgeBtn { visibility: hidden; pointer-events: none; }
 
   /* ---- shared pieces ---- */
   .pair { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .5rem; }
@@ -170,6 +179,7 @@
   </header>
   <div class="bar">
     <div id="status" data-state="idle"><span id="statusText">Loading…</span><div class="prog"><i id="progFill"></i></div></div>
+    <button type="button" id="mockBtn" aria-pressed="false" title="Mock hall of fame: bundled sample drawings and scores, no API calls">Mock</button>
     <div class="tabs" role="group" aria-label="Show">
       <button type="button" data-f="all" aria-pressed="true">All</button>
       <button type="button" data-f="ship" aria-pressed="false">Ships</button>
@@ -200,6 +210,9 @@ const rgbOf = (hex) => { const n = parseInt(String(hex || "#22d3ee").slice(1), 1
 const params = new URLSearchParams(location.search);
 
 let data = null, filter = "all", pollTimer = 0;
+// v1.9 demo (owner 13:41): ?mock=1 (or the MOCK toggle) shows hall-mock/hall.json, a pre-built ranked hall of real sample
+// drawings and their specs (dev/v19-demo/hall-build-mock.mjs). Mock mode never calls the API: no /hall polling, no judging.
+let mockMode = params.get("mock") === "1", modeGen = 0;
 
 // ---- 3D: one renderer, many views ------------------------------------------------------------------------------
 // Every turntable is a 2D canvas; the shared WebGL canvas renders one view at a time (viewport in its bottom-left
@@ -516,20 +529,57 @@ function showStatus() {
 
 async function poll() {
   clearTimeout(pollTimer);
+  if (mockMode) return;
+  const g = modeGen;
   try {
     const res = await fetch("/hall", { cache: "no-store" });
+    if (g !== modeGen) return; // switched to the mock meanwhile
     if (res.ok) { data = await res.json(); render(); showStatus(); }
     else $("statusText").textContent = "The hall is offline";
-  } catch { $("statusText").textContent = "Reconnecting…"; }
+  } catch { if (g !== modeGen) return; $("statusText").textContent = "Reconnecting…"; }
   pollTimer = setTimeout(poll, data && data.judging && data.judging.running ? 1500 : 5000);
 }
 
+let mockData = null;
+async function loadMock() {
+  const g = modeGen;
+  try {
+    if (!mockData) {
+      const res = await fetch("/hall-mock/hall.json");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      mockData = await res.json();
+    }
+    if (g !== modeGen) return;
+    data = mockData; render(); showStatus();
+  } catch (err) { if (g === modeGen) $("statusText").textContent = "Mock hall unavailable"; console.warn("[hall] mock:", err?.message || err); }
+}
+
+function setMock(on) {
+  mockMode = !!on;
+  modeGen++;
+  clearTimeout(pollTimer);
+  document.body.classList.toggle("mockmode", mockMode);
+  $("mockBtn").setAttribute("aria-pressed", String(mockMode));
+  const url = new URL(location.href);
+  if (mockMode) { url.searchParams.set("mock", "1"); url.searchParams.delete("judge"); } else url.searchParams.delete("mock");
+  history.replaceState(null, "", url);
+  // the other hall's cards go (their 3D models stay cached by id)
+  for (const map of [cards, rows]) { for (const [, el] of map) { dropViews(el); el.remove(); } map.clear(); }
+  data = null;
+  $("statusText").textContent = "Loading…";
+  $("progFill").style.width = "0%";
+  $("empty").classList.add("off");
+  if (mockMode) loadMock(); else poll();
+}
+
 async function judge() {
+  if (mockMode) return; // the mock hall is pre-judged: no API call
   $("judgeBtn").disabled = true;
+  const g = modeGen;
   try {
     const res = await fetch("/hall/judge", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
     const out = await res.json().catch(() => null);
-    if (out && out.judging && data) { data.judging = out.judging; showStatus(); }
+    if (out && out.judging && data && g === modeGen) { data.judging = out.judging; showStatus(); }
   } catch { /* the next poll shows where it stands */ }
   poll();
 }
@@ -541,7 +591,8 @@ for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("c
   render();
 });
 $("back").addEventListener("click", (ev) => { if (history.length > 1 && document.referrer && new URL(document.referrer).origin === location.origin) { ev.preventDefault(); history.back(); } });
-if (params.get("judge") === "1") judge(); else poll();
+$("mockBtn").addEventListener("click", () => setMock(!mockMode));
+if (mockMode) setMock(true); else if (params.get("judge") === "1") judge(); else poll();
 loadMods(); // the 3D builders load while the list arrives
 </script>
 </body>

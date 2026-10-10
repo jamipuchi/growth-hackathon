@@ -555,6 +555,27 @@
   #waitStrip span { font: italic 800 14px/1.1 "Barlow Condensed", system-ui, sans-serif; letter-spacing: .02em; }
   #waitStrip em { font: 700 12px/1.1 "Barlow", system-ui, sans-serif; font-style: normal; color: #e7dcff; }
   #waitStrip em:empty { display: none; }
+  /* v1.9 the lobby auto-start: "STARTING IN 27" (ready) / "GAME STARTS IN 27" + what to finish (still drawing), on every screen */
+  #startStrip { position: fixed; left: 50%; top: calc(var(--st) + 6px); z-index: 29; transform: translateX(-50%) skewX(-4deg); width: max-content; max-width: 94vw; padding: 4px 20px 6px; display: flex; flex-direction: column; align-items: center; gap: 0;
+    text-align: center; pointer-events: none; color: #fff; background: linear-gradient(180deg, #ffb347, var(--orange) 55%, #e06a00); border: 4px solid var(--ink); border-radius: 8px; box-shadow: 0 5px 0 rgb(0 0 0 / 0.4), 0 0 0 3px var(--gold) inset; }
+  #startStrip.hidden { display: none; }
+  #startStrip b { font: italic 900 30px/1 "Barlow Condensed", system-ui, sans-serif; letter-spacing: .02em; color: #fff; -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; text-shadow: 0 3px 0 rgb(10 6 30 / 0.5); }
+  #startStrip span { font: italic 800 15px/1.1 "Barlow Condensed", system-ui, sans-serif; letter-spacing: .03em; color: #1b0f3a; }
+  #startStrip span:empty { display: none; }
+  body.startin #waitStrip { display: none; }
+  /* v1.9 short rounds: USE A QUICK EXPLORER (orange, one tap) and the native DIG / DRILL hold buttons */
+  .quickexp.hidden { display: none; }
+  .dline .quickexp { min-height: 46px; font-size: 20px; padding: 0 16px; margin-left: auto; animation: qxPulse 1.2s ease-in-out infinite; }
+  .dline .quickexp + .dskip { margin-left: 0; }
+  #expQuick { animation: qxPulse 1.2s ease-in-out infinite; }
+  #expQuick .qx { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+  #expQuick .qx i { font: 700 12px/1.1 var(--f-body); font-style: normal; -webkit-text-stroke: 0; letter-spacing: .04em; margin-top: 3px; }
+  @keyframes qxPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  #natBtns { position: fixed; left: 45vw; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 6; transform: translateX(-50%); display: flex; gap: 12px; }
+  #natBtns.hidden, .natbtn.hidden, body.waiting #natBtns, body.adding #natBtns { display: none; }
+  .natbtn { width: 84px; height: 84px; border-radius: 50%; border: 4px solid var(--ink); color: #fff; font: italic 900 22px/1 var(--f-head); letter-spacing: .02em; -webkit-text-stroke: 1.5px var(--ink); paint-order: stroke fill;
+    background: radial-gradient(circle at 50% 35%, #ffc06a, var(--orange) 60%, #e06a00); box-shadow: 0 6px 0 var(--hard), 0 0 0 3px var(--gold) inset; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  .natbtn.down { transform: translateY(4px) scale(0.94); box-shadow: 0 2px 0 var(--hard), 0 0 0 3px #fff inset; }
   #go { position: fixed; inset: 0; z-index: 9; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; }
   #go b { font: 900 italic 150px/0.8 var(--f-head); text-transform: uppercase; color: var(--gold); -webkit-text-stroke: 11px var(--ink); paint-order: stroke fill; text-shadow: 0 10px 0 rgb(10 6 30 / 0.6); }
   #go.on { animation: goPop 1.15s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
@@ -823,6 +844,7 @@
         <span class="dtxt"><b id="drawTitle"></b><i id="drawSub"></i></span>
         <span class="dq" aria-hidden="true">?</span>
       </button>
+      <button id="quickExp" class="btn orange quickexp hidden" type="button"><span data-copy="quick.explorer"></span></button>
       <button id="useDefault" class="dskip" type="button"></button>
       <button id="drawCancel" class="dskip hidden" type="button" data-copy="draw.cancel"></button>
     </div>
@@ -909,7 +931,6 @@
   </div>
   <div id="redrawMenu" class="hidden"></div>
   <div id="go"><b data-copy="go"></b></div>
-  <div id="waitStrip" class="hidden" role="status"><b></b><span></span><em></em></div>
   <div id="dead" aria-live="assertive">
     <div class="dcard">
       <h2 id="deadTitle" class="hd" data-copy="dead.title"></h2>
@@ -920,7 +941,12 @@
   </div>
   <div id="fight"><b data-copy="dead.fight"></b></div>
   <button id="hudBtn" class="hudbtn" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><use id="hudBtnIcon" href="#i-eye"/></svg><b data-copy="hudBtn.cap"></b></button>
+  <!-- v1.9 short rounds: native DIG / DRILL hold buttons when the explorer can but the pad has no such control -->
+  <div id="natBtns" class="hidden"><button id="natDig" class="natbtn hidden" type="button" data-act="dig" data-copy="native.dig"></button><button id="natDrill" class="natbtn hidden" type="button" data-act="drill" data-copy="native.drill"></button></div>
 </div>
+<!-- v1.7 ROUND IN PROGRESS (v1.9, Codex N8: out of #play, so it shows on the drawing screens too) and v1.9 the lobby auto-start countdown -->
+<div id="waitStrip" class="hidden" role="status"><b></b><span></span><em></em></div>
+<div id="startStrip" class="hidden" role="status" aria-live="polite"><b></b><span></span></div>
 
 <div id="gen" class="sheet hidden">
   <div id="genPic" class="genpic hidden"><img id="genImg" alt=""><i class="scan"></i></div>
@@ -992,8 +1018,9 @@
       <div id="expExample" class="example" role="img"></div>
       <div><p id="expHint"></p>
         <div class="xbtns">
-          <button id="expPhoto" class="btn big" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-camera"/></svg><span data-copy="explorer.photo"></span></button>
-          <button id="expDraw" class="btn blue" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-pencil"/></svg><span data-copy="explorer.draw"></span></button>
+          <button id="expQuick" class="btn big orange quickexp hidden" type="button"><span class="qx"><span data-copy="quick.explorer"></span><i data-copy="quick.sub"></i></span></button>
+          <button id="expDraw" class="btn big" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-pencil"/></svg><span data-copy="explorer.draw"></span></button>
+          <button id="expPhoto" class="btn blue" type="button"><svg class="ic" viewBox="0 0 24 24"><use href="#i-camera"/></svg><span data-copy="explorer.photo"></span></button>
         </div>
         <div id="expCount" class="counter"></div>
       </div>
@@ -1181,6 +1208,11 @@ const COPY = {
   // v1.7 (owner 12:26): only the ready players (ship + controller done) are in a round; the others wait for the next one
   waiting: { title: "ROUND IN PROGRESS", draw: "FINISH YOUR DRAWINGS, YOU'RE IN THE NEXT ROUND", ready: "YOU'RE IN THE NEXT ROUND",
     drawEndless: "FINISH YOUR DRAWINGS TO JUMP IN", joining: "JUMPING IN…", left: "{t} LEFT IN THIS ROUND", soon: "NEXT ROUND IN A MOMENT" },
+  // v1.9 (owner 13:41: the lobby starts by itself 30 s after the first READY player): tick.startIn, the seconds left, on every screen
+  startIn: { ready: "STARTING IN {n}", readySub: "GET READY!", draw: "GAME STARTS IN {n}", drawSub: "FINISH YOUR SHIP + BUTTONS TO JOIN · OR SKIP" },
+  // v1.9 short rounds (Contract.pacing): a ready-made explorer (shovel + drill) after quickExplorerSeconds on the planet, and native DIG / DRILL
+  quick: { explorer: "USE A QUICK EXPLORER", sub: "SHOVEL + DRILL · NO DRAWING" },
+  native: { dig: "DIG", drill: "DRILL" },
   wait: {
     title: "YOU'RE IN!", sub: "Wait for the host to press START on the big screen",
     ready: "I'M READY", readyDone: "READY ✓", redrawShip: "REDRAW SHIP", redrawController: "REDRAW CONTROLLER", uses: "uses 1 drawing",
@@ -1334,6 +1366,31 @@ applyCopy();
 
 const C = window.Contract;
 const V = window.Verbs;
+// ---- v1.9 ROUND LENGTH (owner 13:41: 1 / 2 / 3 / 4 minutes, picked on the TV). world and tick messages carry `minutes`; this page's
+// Contract.ROUND / TUNING take that round's pacing (Contract.applyPacing) BEFORE the renderer sees the world message: render.js places the
+// locked planet at boss + TUNING.planet.offset once per round. render.js reads its own stream, so every EventSource this page opens (the
+// JOIN stream, render.js's, the plain fallback) gets a first "message" listener, added at construction, ahead of the page's own onmessage,
+// that only peeks at `"minutes":N`. No minutes on the wire (an older server): nothing changes (the 4-minute tuning).
+let paceMinutes = null, paceNow = null;
+function setMinutes(m) {
+  if (typeof m !== "number" || !Number.isFinite(m) || m === paceMinutes) return;
+  paceMinutes = m;
+  try { paceNow = typeof C.applyPacing === "function" ? C.applyPacing(m) : typeof C.pacing === "function" ? C.pacing(m) : null; } catch (e) { paceNow = null; console.warn("pacing", e); }
+}
+function curPace() {        // this round's pacing (absent minutes = 4: no quick explorer, no native DIG / DRILL)
+  if (paceNow) return paceNow;
+  try { return typeof C.pacing === "function" ? C.pacing(paceMinutes === null ? 4 : paceMinutes) : null; } catch { return null; }
+}
+(() => {
+  const ES = window.EventSource;
+  if (typeof ES !== "function" || ES.spPaced) return;
+  const RE = /"minutes":\s*(\d+)/;
+  const peek = (ev) => { const d = ev && ev.data; if (typeof d !== "string" || d.indexOf('"minutes"') < 0) return; const mm = RE.exec(d); if (mm) setMinutes(Number(mm[1])); };
+  function PacedEventSource(url, init) { const es = new ES(url, init); try { es.addEventListener("message", peek); } catch {} return es; }
+  PacedEventSource.prototype = ES.prototype;
+  Object.assign(PacedEventSource, { CONNECTING: ES.CONNECTING, OPEN: ES.OPEN, CLOSED: ES.CLOSED, spPaced: true });
+  window.EventSource = PacedEventSource;
+})();
 // HUD extras (vitals, hint sketches, counters, radar, examples) and the name tags; the page still works without them.
 // Sol's controller frame and the mischief effects: new in v1.2, so an older server answers 404: the page then keeps the DOM controls and no effects.
 let MFX = null;      // mischief-fx.js, once loaded (null: the effects are replaced by plain words)
@@ -1375,7 +1432,11 @@ const S = {
   inkButtons: {},            // action -> PNG data URL drawn inside that button's rectangle
   entity: null,              // my latest entity message from the server (what I drive now, with its verbs)
   drawn: { ship: null, explorer: null },   // the entity answers of my finished drawings (result cards, the controller step)
-  drawMode: store.get("drawMode") === "draw" ? "draw" : "photo",
+  drawMode: store.get("drawMode19") === "photo" ? "photo" : "draw",   // v1.9 (owner 13:41): finger drawing by default; a new key, so v1.8's stored "photo" does not win
+  minutes: null,             // v1.9: the round length the host picked (world / tick `minutes`; null = not told = 4)
+  startAfter: null,          // v1.9: the lobby auto-start setting (world.startAfter: 0 off, 15, 30, 60 s)
+  landedAt: null,            // v1.9: performance.now() when my mode turned "planet" (the quick explorer offer counts from it)
+  quickExp: false,           // v1.9: I took the QUICK EXPLORER this round (counts as my explorer drawing: never asked again this round)
   screen: "join", step: "join",
   game: null, gameP: null, ghost: null, tilt: null, view: "chase", wrecked: false,
   lastMode: null, phase: null, explorerAsked: false, sketch: null, sketchNeed: null,
@@ -1393,6 +1454,8 @@ const S = {
   waitedIn: (() => { const r = store.get("waitedIn"); return Number.isFinite(r) ? r : null; })(),   // v1.7: the round I waited out (its end keeps my drawings)
   drawingDown: false,        // "drawing" is down on the server (a draw sheet is open during play)
 };
+const natHeld = {};          // v1.9: the native DIG / DRILL buttons held right now (action -> true)
+let startShown = "";         // v1.9: what the lobby auto-start strip shows ("" = hidden)
 
 // ---------- sound: the sfx singleton of render.js (guarded: it may be missing) ----------
 let sfx = null;
@@ -1503,6 +1566,7 @@ function show(screen) {
   S.screen = screen;
   if (screen !== "join" && installHint) installHint.hide();   // the iPhone hint belongs to the join screen
   for (const id of SCREENS) $(id).classList.toggle("hidden", id !== screen);
+  if (screen !== "play") releaseNative();   // v1.9: a native DIG / DRILL held while the play screen goes away is let go
   syncLandscape();
   syncRendering();
   syncDrawing();
@@ -2017,7 +2081,7 @@ function enterDraw(kind, { redraw = false, photo = false, mode = null } = {}) {
   sfxPlay("pop");
 }
 function setDrawMode(mode) {
-  DR.mode = mode; S.drawMode = mode; store.set("drawMode", mode);
+  DR.mode = mode; S.drawMode = mode; store.set("drawMode19", mode);
   DR.cache = null;
   for (const b of $("drawSeg").children) b.classList.toggle("on", b.dataset.mode === mode);
   const draw = mode === "draw";
@@ -2731,6 +2795,7 @@ function release(id) {
 }
 // Let go of everything: the DOM controls, and the sandboxed frame's controls (its kit sends the releases and a centred stick).
 function releaseAll() {
+  releaseNative();
   for (const id of [...pointers.keys()]) release(id);
   if (S.ctl && S.ctl.handle) { try { S.ctl.handle.releaseAll(); } catch {} }
   S.held = {};
@@ -3184,6 +3249,7 @@ function freshRound() {
   images.clear();
   S.left = { space: C.TUNING.drawings.space, planet: C.TUNING.drawings.planet }; hudCache.leftWorld = null;
   S.explorerAsked = false; S.wrecked = false; S.resultKind = null; S.legendPending = false;
+  S.quickExp = false; S.landedAt = null;   // v1.9: the quick explorer is per round
   S.lastMode = null;     // v1.6.1: the old round's "planet" is not this round's (the explorer prompt, world(), the counters: back in space)
   clearGhost(); clearSketch();
   hitRect = null;
@@ -3193,11 +3259,18 @@ function freshRound() {
   if (S.player && S.screen !== "join") enterDraw("ship");
 }
 function onNetTick(m) {
+  setMinutes(m.minutes);      // v1.9 (the stream peek has normally done it already)
+  if (typeof m.minutes === "number") S.minutes = m.minutes;
   noteRound(m.round);
   const me = m.players && m.players.find((p) => p.name === S.player);
   if (me && me.drawingsLeft) setLeft(me.drawingsLeft);
   S.net.phase = m.phase;
   S.net.mode = (me && me.mode) || null;
+  // v1.9 quick explorer: the clock starts when my mode turns "planet" (back in space: it stops; a new landing starts it again)
+  if (S.net.mode === "planet") { if (S.landedAt === null) S.landedAt = performance.now(); }
+  else if (S.net.mode) S.landedAt = null;
+  syncStartIn(m, me);
+  syncQuickExplorer();
   S.endless = m.mode === "endless"; // v1.6 ENDLESS (tick.mode, absent in the demo)
   // v1.7 (owner 12:26): tick.waiting lists who is not in this round; my drawings then carry over to the next one
   const wait = Array.isArray(m.waiting) ? m.waiting.find((w) => w && w.name === S.player) || null : null;
@@ -3208,6 +3281,96 @@ function onNetTick(m) {
   if (m.phase === "lobby" && me) syncReadyLook(!!(me.flags && me.flags.ready));
   syncDrawing();
   syncCountdown(m);
+}
+// v1.9 LOBBY AUTO-START (owner 13:41: "We will wait for 30 seconds only to start the game"): tick.startIn (lobby only, while the countdown
+// runs: it starts at the first READY player; at 0 the round starts with the ready players). A top strip on every screen (the drawing goes on
+// under it): READY → "STARTING IN 27 · GET READY!"; still drawing → "GAME STARTS IN 27 · FINISH YOUR SHIP + BUTTONS TO JOIN · OR SKIP".
+function syncStartIn(m, me) {
+  const n = m && m.phase === "lobby" && typeof m.startIn === "number" && Number.isFinite(m.startIn) && S.screen !== "join" ? Math.max(0, Math.ceil(m.startIn)) : null;
+  const el = $("startStrip");
+  if (n === null) {
+    if (startShown) { startShown = ""; el.classList.add("hidden"); document.body.classList.remove("startin"); }
+    return;
+  }
+  const ready = !!(me && me.flags && me.flags.ready);
+  const key = (ready ? "r" : "d") + n;
+  if (key === startShown) return;
+  const wasHidden = !startShown;
+  startShown = key;
+  el.children[0].textContent = tpl(ready ? COPY.startIn.ready : COPY.startIn.draw, { n });
+  el.children[1].textContent = ready ? COPY.startIn.readySub : COPY.startIn.drawSub;
+  if (wasHidden) { el.classList.remove("hidden"); document.body.classList.add("startin"); }
+}
+// v1.9 QUICK EXPLORER (short rounds: Contract.pacing(minutes).quickExplorerSeconds, 12 s for 1 min, 20 s for 2): landed that long with no
+// explorer drawing finished → the explorer prompt and the explorer drawing screen offer USE A QUICK EXPLORER (POST /default kinds
+// ["explorer"]: a plain person with a shovel and a drill, the server counts it as this round's explorer drawing, free).
+function quickExplorerDue() {
+  const p = curPace();
+  const secs = p && typeof p.quickExplorerSeconds === "number" ? p.quickExplorerSeconds : null;
+  if (secs === null || S.quickExp || S.drawn.explorer || S.landedAt === null || S.waiting) return false;
+  if (S.net.phase !== "playing" && S.net.phase !== "assists") return false;
+  return performance.now() - S.landedAt >= secs * 1000;
+}
+function syncQuickExplorer() {
+  const due = quickExplorerDue();
+  const onDraw = due && S.screen === "draw" && DR.kind === "explorer";
+  if ($("quickExp").classList.contains("hidden") === onDraw) $("quickExp").classList.toggle("hidden", !onDraw);
+  if ($("expQuick").classList.contains("hidden") === due) $("expQuick").classList.toggle("hidden", !due);
+}
+function useQuickExplorer() {
+  if (S.quickExp || !S.player) return;
+  S.quickExp = true; S.explorerAsked = true;       // counts as drawn: never asked again this round
+  tellDefault(["explorer"]);
+  if (S.screen === "draw" && DR.kind === "explorer") {
+    clearTimeout(specTimer); latest[KINDS.explorer.wire] = null;   // an early answer for the half-drawn explorer is dropped
+    backToGame();                                                  // closeSheets + enterPlay: the "drawing" input goes up (syncDrawing)
+  } else {
+    $("explorer").classList.add("hidden"); syncDrawing(); syncPlayStep();
+  }
+  syncQuickExplorer();
+  sfxPlay("pop");
+}
+$("quickExp").onclick = useQuickExplorer;
+$("expQuick").onclick = useQuickExplorer;
+// v1.9 NATIVE DIG / DRILL (short rounds: Contract.pacing(minutes).chestButtons): on the planet, when my entity can dig / drill but the pad
+// has no control for it, a big hold button sends the same input the pad would (down on press, up on release / cancel).
+function padHas(act) {
+  if (S.ctl && Array.isArray(S.ctl.actions)) return S.ctl.actions.some((a) => C.normaliseAction(a) === act);
+  return layoutHas(act);
+}
+function syncNative(mode, locked) {
+  const p = curPace();
+  const verbs = (S.entity && Array.isArray(S.entity.verbs)) ? S.entity.verbs : [];
+  const live = S.net.phase === "playing" || S.net.phase === "assists";
+  const on = !!(p && p.chestButtons) && live && mode === "planet" && !locked && !S.waiting;
+  let any = false;
+  for (const [id, act] of [["natDig", "dig"], ["natDrill", "drill"]]) {
+    const show = on && verbs.includes(act) && !padHas(act);
+    const el = $(id);
+    if (!show && natHeld[act]) natUp(act);
+    if (el.classList.contains("hidden") === show) el.classList.toggle("hidden", !show);
+    any = any || show;
+  }
+  if ($("natBtns").classList.contains("hidden") === any) $("natBtns").classList.toggle("hidden", !any);
+}
+function natDown(act) {
+  if (natHeld[act]) return;
+  natHeld[act] = true;
+  $(act === "dig" ? "natDig" : "natDrill").classList.add("down");
+  sendInput(act, true);
+}
+function natUp(act) {
+  if (!natHeld[act]) return;
+  natHeld[act] = false;
+  $(act === "dig" ? "natDig" : "natDrill").classList.remove("down");
+  sendInput(act, false);
+}
+function releaseNative() { for (const a of Object.keys(natHeld)) natUp(a); }
+for (const id of ["natDig", "natDrill"]) {
+  const el = $(id), act = el.dataset.act;
+  el.addEventListener("pointerdown", (e) => { e.preventDefault(); try { el.setPointerCapture(e.pointerId); } catch {} natDown(act); });
+  for (const t of ["pointerup", "pointercancel", "lostpointercapture"]) el.addEventListener(t, () => natUp(act));
+  el.addEventListener("contextmenu", (e) => e.preventDefault());
 }
 // v1.7: the ROUND IN PROGRESS strip (any screen) and, on the play screen, the wait banner instead of the pad
 function syncWaiting(wait, m) {
@@ -3289,6 +3452,7 @@ function onRestart(m) {
   // v1.8: nothing of the old game stays over JOIN: the sheets (z 8, above every screen), the v1.7 ROUND IN PROGRESS strip, the 3-2-1, a notice
   closeAdd(); closeSheets();
   S.waiting = false; $("waitStrip").classList.add("hidden"); document.body.classList.remove("waiting");
+  $("startStrip").classList.add("hidden"); document.body.classList.remove("startin"); startShown = "";
   cdLast = null; if (countdownFx) { try { countdownFx.hide(); } catch {} }
   $("notice").classList.add("off");
   $("name").value = "";
@@ -3382,6 +3546,9 @@ function wireGame(game) {
   game.on("tick", onNetTick);
   game.on("entity", (m) => { if (m.player === S.player && m.entity) setEntity(m.entity); });
   game.on("world", (m) => {
+    setMinutes(m.minutes);  // v1.9 (already applied by the stream peek before the renderer saw it; this only covers a missing peek)
+    if (typeof m.minutes === "number") S.minutes = m.minutes;
+    if (typeof m.startAfter === "number") S.startAfter = m.startAfter;
     refreshPad();           // v1.5 (QA M4): a world message also follows every (re)connect of the game's stream (throttled, template only)
     if (m.entities && m.entities[S.player]) setEntity(m.entities[S.player]);
     const parked = (m.island && Array.isArray(m.island.parked) && m.island.parked.find((c) => c.player === S.player)) || null;
@@ -3456,7 +3623,8 @@ function updateHud() {
   // mode the newest tick agrees with counts (the tick is never behind the frame).
   const mode = me && (!S.net.mode || S.net.mode === me.mode) ? me.mode : null;
   if (mode === "space" && !S.endless) S.explorerAsked = false; // v1.6 ENDLESS: asked once per game, not at every landing
-  if (mode === "planet" && !locked && !h.transition && !S.explorerAsked && S.lastMode !== null && h.phase !== "scoreboard") { S.explorerAsked = true; openExplorer(); }
+  if (mode === "planet" && !locked && !h.transition && !S.explorerAsked && !S.quickExp && S.lastMode !== null && h.phase !== "scoreboard") { S.explorerAsked = true; openExplorer(); }
+  syncNative(mode, locked);
   if (mode) S.lastMode = mode;
   if (S.ghost && layoutHas(S.ghost.action)) clearGhost();
   if (S.sketch && sketchDone()) clearSketch();
@@ -4239,7 +4407,7 @@ function openAdd(ghost) {
   setStep("play");
 }
 function setAddMode(mode) {
-  S.drawMode = mode; store.set("drawMode", mode);
+  S.drawMode = mode; store.set("drawMode19", mode);
   const photo = mode === "photo";
   $("add").classList.toggle("camera", photo);
   for (const b of $("addSeg").children) b.classList.toggle("on", b.dataset.mode === mode);
