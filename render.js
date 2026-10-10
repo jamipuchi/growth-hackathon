@@ -3421,7 +3421,7 @@ class SpaceWorld {
   }
 
   // The planet you see: scaled so it never covers less than ~5.7 degrees of the sky, true size inside ~400 m. The landing ring
-  // pulses harder as the camera's subject gets close to the unlocked planet.
+  // turns green (a steady glow, a slow breathe) as the camera's subject gets close to the unlocked planet.
   updatePlanet(dt, t, ctx, camera) {
     const me = ctx.subject, P = this.planet;
     let near = 0;
@@ -4807,19 +4807,24 @@ function loadShrunkTexture(url, w, h) {
   });
 }
 
-// The pulsing landing-range ring: a camera-facing glowing circle that sits just outside the planet. Shown once unlocked.
+// The landing-range ring: a camera-facing glowing circle that sits just outside the planet. Shown once unlocked.
+// Planet strobe fix: a steady glow with a slow fixed breathe (0.4 Hz, brightness swing 14 %); near the planet it turns
+// green and a little brighter, never white. The old pulse was sin(t * (3 + 4 * near)): its phase is t x a frequency that
+// moves with `near`, so each frame `near` changed the phase jumped t x 4 x d(near) radians (hundreds once t is minutes):
+// a full-white additive strobe on the approach. The breathe phase is wrapped in JS (no float32 drift on a TV that runs
+// for hours) and `near` arrives already smoothed by PlanetLook.
 function makeRangeRing(radius, landRange) {
   const mat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 }, uR: { value: radius + landRange }, uIn: { value: 0 } },
+    uniforms: { uTime: { value: 0 }, uR: { value: radius + landRange }, uIn: { value: 0 }, uFade: { value: 1 } },
     vertexShader: /* glsl */ `uniform float uR; varying vec2 vUv;
       void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(0.0,0.0,0.0,1.0); mv.xy += position.xy * uR * 2.3; gl_Position = projectionMatrix * mv; }`,
-    fragmentShader: /* glsl */ `uniform float uTime; uniform float uIn; varying vec2 vUv;
+    fragmentShader: /* glsl */ `uniform float uTime; uniform float uIn; uniform float uFade; varying vec2 vUv;
       void main(){
         float d = length(vUv - 0.5) * 2.3;
-        float pulse = 0.55 + 0.45 * sin(uTime * (3.0 + 4.0 * uIn));
+        float breathe = 0.93 + 0.07 * sin(uTime);
         float e1 = (d - 1.0) * 45.0, e2 = (d - 1.0) * 10.0;
-        float ring = exp(-e1 * e1) * (0.8 + uIn) + exp(-e2 * e2) * 0.25;
-        gl_FragColor = vec4(mix(vec3(0.2,1.0,1.4), vec3(1.0,1.6,1.4), uIn) * ring * pulse * 1.6, 1.0);
+        float ring = exp(-e1 * e1) * (0.8 + 0.3 * uIn) + exp(-e2 * e2) * 0.25;
+        gl_FragColor = vec4(mix(vec3(0.2,1.0,1.4), vec3(0.4,1.3,1.0), uIn) * ring * breathe * 1.2 * uFade, 1.0);
       }`,
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
   });
@@ -4828,10 +4833,14 @@ function makeRangeRing(radius, landRange) {
   mesh.renderOrder = 9;
   return {
     mesh,
-    update(dt, t, near, worldRadius) {
-      mat.uniforms.uTime.value = t;
+    update(dt, t, near, worldRadius, camDist = Infinity) {
+      mat.uniforms.uTime.value = (t * 2.5) % (Math.PI * 2); // the breathe's phase: 2.5 rad/s = 0.4 Hz
       mat.uniforms.uR.value = worldRadius;
-      mat.uniforms.uIn.value = damp(mat.uniforms.uIn.value, +near || 0, 4, dt);
+      mat.uniforms.uIn.value = clamp(+near || 0, 0, 1);
+      // A camera at about the ring's own radius sees this billboard (drawn at the planet's centre depth) blown up into a
+      // screen-wide white column: fade it to 10 % as the camera comes inside 1.8 x the ring radius.
+      const f = clamp((camDist / worldRadius - 1.1) / 0.7, 0, 1);
+      mat.uniforms.uFade.value = 0.1 + 0.9 * f * f * (3 - 2 * f);
     },
     dispose() { mesh.geometry.dispose(); mat.dispose(); },
   };
@@ -4921,16 +4930,19 @@ class PlanetLook {
     if (this.shell) this.shell.mesh.visible = !this.unlocked;
   }
   get ready() { return !!(this.view || this.proc); }
-  // proximity 0..1: how close the camera's subject is (speeds up the ring pulse).
+  // proximity 0..1: how close the camera's subject is (the rings turn green and a little brighter). Smoothed here (~0.7 s)
+  // so a ship on the landing-range edge (proximity flips 0.5 <-> 1) fades instead of flickering; both rings get the
+  // smoothed value.
   update(dt, t, camPos, proximity) {
     if (!this.ready) return;
     const d = camPos.distanceTo(this.root.position);
     const age = Math.min(1, (performance.now() - this.born) / 800);
     this.scale = (Math.max(this.R, d * PLANET_K) / this.R) * Math.max(0.001, 1 - Math.pow(1 - age, 3));
     this.root.scale.setScalar(this.scale);
-    if (this.view) { this.view.setProximity(proximity); this.view.update(dt); }
+    this.near = damp(this.near || 0, clamp(+proximity || 0, 0, 1), 1.5, dt);
+    if (this.view) { this.view.setProximity(this.near); this.view.update(dt); }
     else { this.proc.update(dt, t); this.shell.update(t); }
-    this.ring.update(dt, t, proximity, (this.R + this.landRange) * this.scale);
+    this.ring.update(dt, t, this.near, (this.R + this.landRange) * this.scale, d);
   }
   clear() {
     if (this.view) { this.root.remove(this.view.object3d); this.view.dispose(); this.view = null; }
