@@ -479,6 +479,27 @@
   #hallHint { position: absolute; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 2; padding: .4rem 1.4rem .5rem; font-size: 1.25rem; white-space: nowrap; pointer-events: none; }
   #hallHint b { color: var(--gold); font-weight: inherit; }
 
+  /* v1.9.1 qr-corner (owner 14:55: "make sure qr code is always visible to join", "top left or something"): a compact join code
+     top left in every phase (the 3D play, boss, ENDLESS, the results, the HALL OF FAME over everything: above #hallOver), hidden
+     only while the lobby's big join card is on screen (one code at a time). Same address as the card (showJoin), drawn once per
+     address. It takes the scoreboard's column: the scoreboard moves under it and lists ranks 1-4 (+ the followed player), so the
+     kill feed (bottom left) stays clear. */
+  #qrCorner { position: fixed; left: 1.6rem; top: 1.4rem; z-index: 95; width: 19.2rem; display: flex; align-items: center; gap: .7rem; padding: .55rem .7rem .55rem .55rem;
+              pointer-events: none; --bg: linear-gradient(180deg, rgb(46 34 150 / .97), rgb(22 14 78 / .97)); animation: inLeft .55s var(--pop) both; }
+  #qrCorner.hidden { display: none; }
+  #qrcCode { flex: none; width: 9.4rem; --bse-fs: .5rem; } /* about 180 px at 1080p: white tile, 4-module quiet zone */
+  #qrcCode .bse-qr-tile { box-shadow: 0 0 0 .14rem var(--ink); }
+  #qrcText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .5rem; }
+  #qrcTitle { font-size: 1.75rem; line-height: .95; color: #ffe27a; }
+  #qrcUrl { font-family: var(--fh); font-weight: 700; text-transform: none; letter-spacing: 0; line-height: 1.05; color: #fff; overflow-wrap: anywhere; }
+  #qrcUrl span { display: block; }
+  #qrcUrl .qs { font-size: .95rem; color: #ffe9a3; }
+  #qrcUrl .qh { font-size: 1.32rem; }
+  #qrcUrl .qp { font-size: 1.32rem; color: #ffe9a3; }
+  #qrcUrl .qa { margin-top: .15rem; font-size: .95rem; color: #d8d2ff; }
+  body.qrc #scores { top: 13.2rem; }
+  body.qrc #podium.compact .nobody { align-self: flex-end; } /* the results' NO WINNER plate sits lower, clear of the code */
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; transition-duration: .001ms !important; }
   }
@@ -593,6 +614,8 @@
 </div>
 <!-- v1.9.1: the HALL OF FAME after every round (hallAuto below) -->
 <div id="hallOver" role="dialog" aria-label="Hall of Fame"><div id="hallHint" class="sk navy h"></div></div>
+<!-- v1.9.1 qr-corner: the join code top left, over everything (the hall too), except while the lobby's own join card is up -->
+<aside id="qrCorner" class="sk hidden" aria-label="Scan to join"><div id="qrcCode"></div><div id="qrcText"><div id="qrcTitle" class="h hh" data-copy="lobby.joinTitle"></div><div id="qrcUrl"></div></div></aside>
 
 <script type="module">
 // ONE table with every string a player can read on this page. The HTML is filled from it (data-copy) and the code below
@@ -865,11 +888,31 @@ function fitJoin() {
   if (w > avail) h.style.fontSize = Math.max(1.1, (1.95 * avail) / w).toFixed(2) + "rem";
 }
 if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", fitJoin);
+// v1.9.1 qr-corner: the same address in the top left corner (#qrCorner), drawn once per address like the card's (no per-frame
+// cost). Shown in every view but the lobby (whose card is the code), and over the HALL OF FAME frame in any view.
+let cornerQr = null;
+function cornerJoin(url) {
+  const m = /^(https?:\/\/)?([^/]+)(\/.*)?$/.exec(url);
+  const hp = /^(.*?)(:\d+)?$/.exec(m ? m[2] : url);
+  setHtml($("qrcUrl"), (m && m[1] === "https://" ? '<span class="qs">https://</span>' : "") + `<span class="qh">${esc(hp[1])}</span>` +
+    (hp[2] ? `<span class="qp">${esc(hp[2])}</span>` : "") + (m && m[3] ? `<span class="qa">${esc(m[3])}</span>` : ""));
+  if (cornerQr) cornerQr.setUrl(url);
+  else if (BX) cornerQr = BX.createJoinQR($("qrcCode"), url, { size: "fit", title: false, showUrl: false });
+  syncCorner();
+}
+function syncCorner() {
+  const on = !!cornerQr && ($("hud").dataset.view !== "lobby" || $("hallOver").classList.contains("on"));
+  flag($("qrCorner"), "hidden", !on);
+  flag(document.body, "qrc", on);
+}
+new MutationObserver(syncCorner).observe($("hud"), { attributes: true, attributeFilter: ["data-view"] });
+new MutationObserver(syncCorner).observe($("hallOver"), { attributes: true, attributeFilter: ["class"] });
 function showJoin(url) {
   if (!url || url === joinShown) return;
   joinShown = url;
   setHtml($("joinUrl"), joinHtml(url));
   fitJoin();
+  cornerJoin(url);
   if (qr) { qr.setUrl(url); return; }
   const box = $("qr");
   box.textContent = "";
@@ -1279,7 +1322,9 @@ function makeRow() {
   return { el, rk: el.querySelector(".rk"), nm: el.querySelector(".nm"), pl: el.querySelector(".pl"), st: el.querySelector(".st"), sc: el.querySelector(".sc"), score: null };
 }
 function renderScores(h) {
-  const list = h.scores, cap = 7; // ranks 1-7 always (+ the followed player): the kill feed lives under them, bottom left
+  // ranks 1-7 always (+ the followed player): the kill feed lives under them, bottom left. v1.9.1 qr-corner: 1-4 while the join
+  // code sits above the scoreboard (body.qrc): it moves down 3.4 rows' worth, so a full list still ends where it did (kill feed clear).
+  const list = h.scores, cap = document.body.classList.contains("qrc") ? 4 : 7;
   const vis = [];
   for (let i = 0; i < Math.min(cap, list.length); i++) vis.push({ s: list[i], rank: i + 1 });
   const mi = list.findIndex((s) => s.me);

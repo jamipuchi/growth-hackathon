@@ -174,7 +174,7 @@
   html.embed::-webkit-scrollbar { display: none; }
   html.embed body { overflow-y: auto; }
   html.embed main { max-width: none; padding: 1.1rem 2.2rem 3rem; }
-  html.embed header { grid-template-columns: 1fr; margin-bottom: .8rem; }
+  html.embed header { grid-template-columns: 1fr; margin-bottom: 1.6rem; } /* qr-corner: the TV's join code (top left) stays clear of the scope buttons */
   html.embed .back, html.embed #judgeBtn, html.embed .tabs { display: none !important; }
   html.embed .scope button { font-size: 1.9rem; padding: .85rem 1.7rem; }
   html.embed .title .gt { font-size: 5.4rem; }
@@ -196,10 +196,70 @@
     #list { grid-template-columns: 1fr; }
     .row { grid-template-columns: 2.6rem 9.5rem 1fr auto; gap: .6rem; }
   }
+  /* v1.9.1 qr-corner (owner 14:55, "make sure qr code is always visible to join"): opened as its own page (not the TV's
+     ?embed=1 frame, where space.html draws its own over it), the join code sits top left like on the TV, and the page makes room. */
+  #qrCorner { position: fixed; left: 1.2rem; top: 1.2rem; z-index: 50; width: 19.2rem; display: flex; align-items: center; gap: .7rem; padding: .55rem .7rem .55rem .55rem;
+              pointer-events: none; isolation: isolate; }
+  #qrCorner::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-6deg); border-radius: .5rem;
+                      background: linear-gradient(180deg, rgb(46 34 150 / .97), rgb(22 14 78 / .97)); border: .2rem solid #fff; box-shadow: 0 .4rem 0 var(--shadow); }
+  #qrcCode { flex: none; width: 9.4rem; --bse-fs: .5rem; }
+  #qrcCode .bse-qr-tile { box-shadow: 0 0 0 .14rem var(--ink); }
+  #qrcText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .5rem; }
+  #qrcTitle { font-size: 1.75rem; line-height: .95; color: #ffe27a; font-weight: 900; }
+  #qrcUrl { font-family: var(--fh); font-weight: 700; line-height: 1.05; color: #fff; overflow-wrap: anywhere; }
+  #qrcUrl span { display: block; }
+  #qrcUrl .qs { font-size: .95rem; color: #ffe9a3; }
+  #qrcUrl .qh { font-size: 1.32rem; }
+  #qrcUrl .qp { font-size: 1.32rem; color: #ffe9a3; }
+  #qrcUrl .qa { margin-top: .15rem; font-size: .95rem; color: #d8d2ff; }
+  body.qrc main { padding-left: 22rem; }
 </style>
 <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
 </head>
 <body>
+<!-- v1.9.1 qr-corner: the join code top left (not in the TV's ?embed=1 frame) -->
+<aside id="qrCorner" class="off" aria-label="Scan to join"><div id="qrcCode"></div><div id="qrcText"><div id="qrcTitle" class="h">Scan to join</div><div id="qrcUrl"></div></div></aside>
+<script type="module">
+// v1.9.1 qr-corner: the address the TV's code shows (GET /info every 5 s, so it follows a new LAN address; ?http = the plain-http
+// page, ?join=<url> overrides), drawn once per address with bigscreen-extras' join code. Never a code that points at localhost.
+const q = new URLSearchParams(location.search);
+if (q.get("embed") !== "1") {
+  const BX = await import("./bigscreen-extras.js").catch(() => null);
+  const LOCAL_HOST = /^(localhost|127\.|\[?::1)/, local = LOCAL_HOST.test(location.hostname), http = q.has("http");
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  let qr = null, shown = "", infoAt = -1e9;
+  const show = (url) => {
+    if (!BX || !url || url === shown) return;
+    shown = url;
+    const m = /^(https?:\/\/)?([^/]+)(\/.*)?$/.exec(url), hp = /^(.*?)(:\d+)?$/.exec(m ? m[2] : url);
+    document.getElementById("qrcUrl").innerHTML = (m && m[1] === "https://" ? '<span class="qs">https://</span>' : "") + `<span class="qh">${esc(hp[1])}</span>` +
+      (hp[2] ? `<span class="qp">${esc(hp[2])}</span>` : "") + (m && m[3] ? `<span class="qa">${esc(m[3])}</span>` : "");
+    document.getElementById("qrCorner").classList.remove("off");
+    document.body.classList.add("qrc");
+    if (qr) qr.setUrl(url);
+    else qr = BX.createJoinQR(document.getElementById("qrcCode"), url, { size: "fit", title: false, showUrl: false });
+  };
+  const refresh = async () => {
+    if (performance.now() - infoAt < 4000) return;
+    infoAt = performance.now();
+    try {
+      const r = await fetch("/info", { cache: "no-store" });
+      if (!r.ok) return;
+      const info = await r.json();
+      const url = http && info && typeof info.lanUrl === "string" ? `${info.lanUrl}/controller.html` : info && typeof info.controllerUrl === "string" ? info.controllerUrl : "";
+      let host = "";
+      try { host = new URL(url).hostname; } catch (e) { return; }
+      if (!LOCAL_HOST.test(host) || !local) show(url);
+    } catch (e) { /* an old server: keep what is there */ }
+  };
+  if (q.get("join")) show(q.get("join"));
+  else {
+    if (!local && !http) show(`${location.protocol}//${location.host}/controller.html`);
+    refresh();
+    setInterval(refresh, 5000);
+  }
+}
+</script>
 <main>
   <header>
     <a class="back" href="/space.html" id="back">◀ Back</a>
