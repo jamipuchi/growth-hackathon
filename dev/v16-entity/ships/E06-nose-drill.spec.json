@@ -1,0 +1,264 @@
+{
+  "id": "E06-nose-drill",
+  "model": "gpt-6.1-sol",
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "fighter + drill on the nose",
+  "view": "side",
+  "drawing": "dev/gen-corpus/entity/E06.png",
+  "http": 1,
+  "wallMs": 2642,
+  "ms": 2640,
+  "status": 200,
+  "usage": {
+    "input": 2138,
+    "output": 487,
+    "reasoning": 154
+  },
+  "raw": {
+    "view": "top",
+    "noseDir": "right",
+    "style": "sleek",
+    "hull": {
+      "shape": "dart",
+      "width": 0.26,
+      "height": 0.19,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.27,
+      "size": 0.23,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.69,
+      "span": 0.65,
+      "chord": 0.38,
+      "mount": "mid",
+      "color": ""
+    },
+    "fins": [],
+    "engines": {
+      "count": 0,
+      "size": 0,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single"
+    },
+    "weapons": [
+      {
+        "kind": "drill",
+        "count": 1,
+        "at": 0,
+        "mount": "nose",
+        "size": 0.22,
+        "color": ""
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    }
+  },
+  "spec": {
+    "v": 1,
+    "view": "top",
+    "noseDir": "right",
+    "style": "sleek",
+    "seed": 1571671767,
+    "hull": {
+      "shape": "dart",
+      "width": 0.26,
+      "height": 0.19,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.27,
+      "size": 0.23,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.69,
+      "span": 0.65,
+      "chord": 0.38,
+      "mount": "mid",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.86,
+        "size": 0.24,
+        "color": "",
+        "implied": true
+      }
+    ],
+    "engines": {
+      "count": 0,
+      "size": 0.06,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single",
+      "verb": null
+    },
+    "weapons": [
+      {
+        "kind": "drill",
+        "count": 1,
+        "at": 0,
+        "mount": "nose",
+        "size": 0.22,
+        "color": "",
+        "verb": "shoot"
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 4304,
+    "drawCalls": 3,
+    "glTriangles": 4304,
+    "ms": 11.5,
+    "size": {
+      "x": 1.7020808458328247,
+      "y": 1.0343557596206665,
+      "z": 3.200000047683716
+    },
+    "radius": 1.6374816553032128,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        -0.03,
+        -0.33
+      ],
+      "wing_r": [
+        0.82,
+        -0.22,
+        1.04
+      ],
+      "wing_l": [
+        -0.82,
+        -0.22,
+        1.04
+      ],
+      "back": [
+        0,
+        0.21,
+        1.16
+      ],
+      "engine_l": [
+        -0.03,
+        -0.28,
+        1.6
+      ],
+      "engine_r": [
+        0.03,
+        -0.28,
+        1.6
+      ],
+      "nose": [
+        0,
+        -0.28,
+        -1.6
+      ],
+      "belly": [
+        0,
+        -0.52,
+        0.25
+      ]
+    },
+    "wallMs": 115
+  },
+  "renderKit": {
+    "ok": true,
+    "kit": true,
+    "triangles": 4304,
+    "drawCalls": 3,
+    "glTriangles": 4304,
+    "ms": 4.5,
+    "size": {
+      "x": 1.7020808458328247,
+      "y": 1.0343557596206665,
+      "z": 3.200000047683716
+    },
+    "radius": 1.6374816553032128,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        -0.03,
+        -0.33
+      ],
+      "wing_r": [
+        0.82,
+        -0.22,
+        1.04
+      ],
+      "wing_l": [
+        -0.82,
+        -0.22,
+        1.04
+      ],
+      "back": [
+        0,
+        0.21,
+        1.16
+      ],
+      "engine_l": [
+        -0.03,
+        -0.28,
+        1.6
+      ],
+      "engine_r": [
+        0.03,
+        -0.28,
+        1.6
+      ],
+      "nose": [
+        0,
+        -0.28,
+        -1.6
+      ],
+      "belly": [
+        0,
+        -0.52,
+        0.25
+      ]
+    },
+    "wallMs": 109
+  }
+}

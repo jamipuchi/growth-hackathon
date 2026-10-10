@@ -1,0 +1,167 @@
+{
+  "id": "blob",
+  "model": "gpt-6.1-sol",
+  "tag": null,
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "blob with a face",
+  "type": "blob",
+  "skills": [],
+  "drawing": "dev/gen-corpus/entity/E29.png",
+  "http": 1,
+  "wallMs": 1595,
+  "ms": 1594,
+  "status": 200,
+  "usage": {
+    "input": 2663,
+    "output": 198,
+    "reasoning": 0
+  },
+  "raw": {
+    "type": "blob",
+    "view": "front",
+    "facing": "viewer",
+    "style": "cute",
+    "head": {
+      "shape": "none",
+      "size": 0,
+      "gear": "none",
+      "face": "eyes",
+      "eyes": 2,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "round",
+      "width": 1.18,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0,
+      "thickness": "thin",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 0,
+      "length": 0,
+      "thickness": "thin",
+      "feet": "none",
+      "color": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0,
+      "color": "",
+      "rider": false
+    },
+    "items": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    }
+  },
+  "spec": {
+    "v": 1,
+    "type": "blob",
+    "view": "front",
+    "facing": "viewer",
+    "style": "cute",
+    "seed": 4255159008,
+    "head": {
+      "shape": "none",
+      "size": 0.08,
+      "gear": "none",
+      "face": "eyes",
+      "eyes": 2,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "round",
+      "width": 0.7,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "thin",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "thin",
+      "feet": "none",
+      "color": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0.15,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0.1,
+      "color": "",
+      "rider": false
+    },
+    "items": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "rig": "blob",
+    "triangles": 2194,
+    "drawCalls": 1,
+    "glTriangles": 2194,
+    "ms": 7.2,
+    "size": {
+      "x": 1.449,
+      "y": 1.151,
+      "z": 1.402
+    },
+    "radius": 0.8530601444212478,
+    "clips": [],
+    "clipsLoaded": true,
+    "poses": [
+      "idle",
+      "run",
+      "dig"
+    ],
+    "wallMs": 146
+  }
+}

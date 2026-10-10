@@ -1,0 +1,219 @@
+{
+  "id": "color-robot",
+  "model": "gpt-6.1-sol",
+  "tag": null,
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "generated: coloured box robot (silver head, cyan eyes, red-ball antenna, blue torso + yellow bolt, red pincers, blaster in the image-right hand)",
+  "type": "person",
+  "skills": [
+    "shoot",
+    "scan"
+  ],
+  "drawing": "dev/v14-entity3d/drawings/color-robot.png",
+  "http": 1,
+  "wallMs": 1629,
+  "ms": 1628,
+  "status": 200,
+  "usage": {
+    "input": 2644,
+    "output": 279,
+    "reasoning": 0
+  },
+  "raw": {
+    "type": "person",
+    "view": "front",
+    "facing": "viewer",
+    "style": "robot",
+    "head": {
+      "shape": "square",
+      "size": 0.27,
+      "gear": "antenna",
+      "face": "eyes",
+      "eyes": 2,
+      "snout": 0,
+      "color": "#c5c9d1",
+      "gearColor": "#ed3349",
+      "faceColor": "#20cce4"
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0.43,
+      "color": "#2860eb",
+      "belt": false,
+      "emblem": "lightning"
+    },
+    "arms": {
+      "count": 2,
+      "length": 0.4,
+      "thickness": "normal",
+      "hands": "robot",
+      "color": "#8c929e"
+    },
+    "legs": {
+      "count": 2,
+      "length": 0.26,
+      "thickness": "normal",
+      "feet": "boots",
+      "color": "#8c929e"
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "blaster",
+        "where": "right hand",
+        "size": 0.24,
+        "color": "#606572"
+      }
+    ],
+    "palette": {
+      "colored": true,
+      "main": "#2860eb",
+      "second": "#8c929e",
+      "accent": "#ed3349",
+      "skin": ""
+    }
+  },
+  "spec": {
+    "v": 1,
+    "type": "person",
+    "view": "front",
+    "facing": "viewer",
+    "style": "robot",
+    "seed": 2342930333,
+    "head": {
+      "shape": "square",
+      "size": 0.27,
+      "gear": "antenna",
+      "face": "eyes",
+      "eyes": 2,
+      "snout": 0,
+      "color": "#c5c9d1",
+      "gearColor": "#ed3349",
+      "faceColor": "#20cce4"
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0.43,
+      "color": "#2860eb",
+      "belt": false,
+      "emblem": "lightning"
+    },
+    "arms": {
+      "count": 2,
+      "length": 0.4,
+      "thickness": "normal",
+      "hands": "robot",
+      "color": "#8c929e"
+    },
+    "legs": {
+      "count": 2,
+      "length": 0.26,
+      "thickness": "normal",
+      "feet": "boots",
+      "color": "#8c929e"
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0.15,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0.1,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "blaster",
+        "where": "right hand",
+        "size": 0.24,
+        "color": "#606572",
+        "verb": "shoot"
+      }
+    ],
+    "palette": {
+      "colored": true,
+      "main": "#2860eb",
+      "second": "#8c929e",
+      "accent": "#ed3349",
+      "skin": ""
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "rig": "person",
+    "triangles": 4762,
+    "drawCalls": 3,
+    "glTriangles": 4762,
+    "ms": 9.1,
+    "size": {
+      "x": 1.937,
+      "y": 1.8,
+      "z": 0.61
+    },
+    "radius": 1.0203015120990184,
+    "clips": [
+      "aim",
+      "block",
+      "cast",
+      "celebrate",
+      "climb",
+      "climb_in",
+      "crouch",
+      "die",
+      "dig",
+      "drink",
+      "fall",
+      "flip",
+      "glide",
+      "hit",
+      "idle",
+      "jump",
+      "kneel",
+      "land",
+      "look",
+      "pick_up",
+      "push",
+      "read",
+      "roll",
+      "run",
+      "shoot",
+      "sit",
+      "sprint",
+      "step_out",
+      "swim",
+      "swing",
+      "throw",
+      "walk",
+      "wave"
+    ],
+    "clipsLoaded": true,
+    "poses": [
+      "idle",
+      "run",
+      "dig"
+    ],
+    "wallMs": 149
+  }
+}

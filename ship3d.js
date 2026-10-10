@@ -584,6 +584,29 @@ function inkBox(img, w, h) {
     return [Math.max(0, (x0 - m) / k), Math.max(0, (y0 - m) / k), Math.min(w, (x1 + 1 + m) / k), Math.min(h, (y1 + 1 + m) / k)];
   } catch { return [0, 0, w, h]; }
 }
+// The drawing's ink alone (v1.6): paper (light, unsaturated pixels) becomes transparent, black ink a dark navy, coloured strokes
+// keep their colour a little darker. A canvas the size it is drawn at. Falls back to the raw image if pixels cannot be read.
+function inkLayer(img, x0, y0, bw, bh, w, h) {
+  try {
+    const cv = mkCanvas(w, h), g = cv.getContext("2d", { willReadFrequently: true });
+    g.drawImage(img, x0, y0, bw, bh, 0, 0, w, h);
+    const im = g.getImageData(0, 0, w, h), d = im.data;
+    // the paper's level = the median of the darkest channel (most of a line drawing is paper): a grey photo of paper clears too
+    const hist = new Uint32Array(256);
+    for (let i = 0; i < d.length; i += 4) hist[Math.min(d[i], d[i + 1], d[i + 2])]++;
+    let paper = 255;
+    for (let v = 0, acc = 0, half = d.length / 8; v < 256; v++) { acc += hist[v]; if (acc >= half) { paper = v; break; } }
+    paper = clamp(paper, 110, 255);
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i], gg = d[i + 1], b = d[i + 2], mn = Math.min(r, gg, b), mx = Math.max(r, gg, b);
+      const a = clamp((paper - 30 - mn) / 60, 0, 1) * (d[i + 3] / 255), sat = mx - mn;
+      if (sat > 60) { d[i] = r * 0.8; d[i + 1] = gg * 0.8; d[i + 2] = b * 0.8; } else { d[i] = 22; d[i + 1] = 24; d[i + 2] = 40; }
+      d[i + 3] = Math.round(a * 255);
+    }
+    g.putImageData(im, 0, 0);
+    return cv;
+  } catch { return img; }
+}
 // → { tex, aspect (width / height of the sticker with its nose to the right), rect: [u0, v0, u1, v1], label: rect | null }
 // px: the texture's size (drawn at 512, then scaled: the phone's game view uses 256 so 16 cached ships stay ~6 MB of GPU).
 function makeSticker(img, color, noseDir, label, px = 512) {
@@ -598,23 +621,19 @@ function makeSticker(img, color, noseDir, label, px = 512) {
     aspect = clamp(turned ? bh / bw : bw / bh, 0.7, 2.6);
     const pad = 30, sw = aspect >= W / stH ? W : stH * aspect, sh = sw / aspect;
     const ox = (W - sw) / 2, oy = 0;
-    const col = new THREE.Color(color).getStyle();
-    g.save();
-    const rr = 44, R0 = [ox + 8, oy + 8, sw - 16, sh - 16];
-    g.beginPath(); g.roundRect ? g.roundRect(R0[0], R0[1], R0[2], R0[3], rr) : g.rect(R0[0], R0[1], R0[2], R0[3]);
-    g.fillStyle = "#ddd6c6"; g.fill(); g.lineWidth = 18; g.strokeStyle = col; g.stroke();
-    g.restore();
+    // v1.6: no paper card and no rim any more: only the INK, on transparent paper (the decal shader discards alpha < 0.5),
+    // so the drawing reads as lines painted on the hull, not as a pink label stuck on it.
     const iwid = sw - 2 * pad, ihei = sh - 2 * pad;
+    const dw = turned ? ihei : iwid, dh = turned ? iwid : ihei, k = Math.min(dw / bw, dh / bh);
+    const ink = inkLayer(img, x0, y0, bw, bh, Math.max(1, Math.round(bw * k)), Math.max(1, Math.round(bh * k)));
     g.save();
     g.translate(ox + sw / 2, oy + sh / 2);
     if (noseDir === "left") g.scale(-1, 1);
     else if (noseDir === "up") g.rotate(Math.PI / 2);
     else if (noseDir === "down") g.rotate(-Math.PI / 2);
-    const dw = turned ? ihei : iwid, dh = turned ? iwid : ihei, k = Math.min(dw / bw, dh / bh);
     // the ink drawn a few times with small offsets: thicker lines read at game distance
     const th = Math.max(1.5, Math.min(dw, dh) / 110);
-    g.globalCompositeOperation = "multiply"; // an opaque white drawing keeps the sticker's paper tone (no blown-out white)
-    try { for (const [ox2, oy2] of [[0, 0], [th, 0], [-th, 0], [0, th], [0, -th], [th * 0.7, th * 0.7], [-th * 0.7, -th * 0.7], [th * 0.7, -th * 0.7], [-th * 0.7, th * 0.7]]) g.drawImage(img, x0, y0, bw, bh, -bw * k / 2 + ox2, -bh * k / 2 + oy2, bw * k, bh * k); } catch { /* an undecodable image: a blank sticker */ }
+    try { for (const [ox2, oy2] of [[0, 0], [th, 0], [-th, 0], [0, th], [0, -th], [th * 0.7, th * 0.7], [-th * 0.7, -th * 0.7], [th * 0.7, -th * 0.7], [-th * 0.7, th * 0.7]]) g.drawImage(ink, -bw * k / 2 + ox2, -bh * k / 2 + oy2, bw * k, bh * k); } catch { /* an undecodable image: a blank sticker */ }
     g.restore();
     rect = [ox / W, oy / Hc, (ox + sw) / W, (oy + sh) / Hc];
   }
@@ -680,13 +699,18 @@ function fxMaterial(map) {
       .replace("#include <common>", "#include <common>\nattribute vec4 fx;\nuniform float uLen;\nuniform float uWid;\nuniform float uPow;\nvarying float vK;")
       .replace("#include <begin_vertex>", `vec3 transformed = vec3(position);
   vK = 1.0;
-  if (fx.w > 0.5 && fx.w < 1.5) { transformed.z = fx.z + (position.z - fx.z) * uLen; transformed.xy = fx.xy + (position.xy - fx.xy) * uWid; vK = uPow; }
-  else if (fx.w > 1.5 && fx.w < 2.5) { vK = uPow; }
-  else if (fx.w > 3.5) { vK = uPow; }`)
+  // v1.6: seen from behind (the phone's chase camera), the exhaust points at the camera: a shorter, narrower, dimmer flame and
+  // a smaller glow, so they never hide the hull. bh = 0 from the side or the front, 1 straight from behind.
+  vec3 fxAxV = normalize((modelViewMatrix * vec4(0.0, 0.0, 1.0, 0.0)).xyz);
+  vec3 fxToCam = normalize(-(modelViewMatrix * vec4(fx.xyz, 1.0)).xyz);
+  float bh = smoothstep(0.3, 0.9, dot(fxAxV, fxToCam));
+  if (fx.w > 0.5 && fx.w < 1.5) { transformed.z = fx.z + (position.z - fx.z) * uLen * (1.0 - 0.6 * bh); transformed.xy = fx.xy + (position.xy - fx.xy) * uWid * (1.0 - 0.35 * bh); vK = uPow * (1.0 - 0.45 * bh); }
+  else if (fx.w > 1.5 && fx.w < 2.5) { vK = uPow * (1.0 - 0.45 * bh); }
+  else if (fx.w > 3.5) { vK = uPow * (1.0 - 0.5 * bh); }`)
       .replace("#include <project_vertex>", `vec4 mvPosition;
   if (fx.w > 1.5 && fx.w < 3.5) {
     float sc = length(modelViewMatrix[0].xyz);
-    float grow = fx.w < 2.5 ? 0.55 + 0.45 * min(uPow, 1.6) : 1.0;
+    float grow = fx.w < 2.5 ? (0.55 + 0.45 * min(uPow, 1.6)) * (1.0 - 0.45 * bh) : 1.0;
     mvPosition = modelViewMatrix * vec4(fx.xyz, 1.0);
     mvPosition.xy += position.xy * sc * grow;
   } else {
@@ -714,7 +738,7 @@ function glow(F, c, size, col, type = 3) {
 // A flame from the nozzle exit o (towards +Z): three crossed soft quads, white-yellow core → orange → tip colour.
 function flame(F, o, r, length, tip) {
   F.fxv = [o[0], o[1], o[2], 1];
-  const cols = [[1.7, 1.45, 1.0], [1.5, 0.62, 0.16], tip];
+  const cols = [[1.55, 1.2, 0.72], [1.45, 0.6, 0.16], tip]; // v1.6: a less white core (bright, not blown out)
   for (let k = 0; k < 3; k++) {
     const a = Math.PI * k / 3, d = [Math.cos(a), Math.sin(a), 0], b = F.count, n = [0, 0, 1];
     for (let i = 0; i < 3; i++) {
@@ -959,7 +983,7 @@ function assemble(spec, color, d, sticker) {
       nozzles.push({ p: exit, r: rb });
       // Softer than a lamp: the chase camera sits right behind the nozzle, and render.js adds its own engine glow + trail there.
       disc(F, [exit[0], exit[1], z0 + r * 0.5 + ln * 0.47], [0, 0, 1], r * 0.62, [0.95, 0.6, 0.34], sg(12, 8), 4);
-      glow(F, exit, rb * 1.45, en.flame ? [0.75, 0.42, 0.2] : scl(col.player, 0.7), 2);
+      glow(F, exit, rb * 1.15, en.flame ? [0.62, 0.34, 0.15] : scl(col.player, 0.6), 2); // v1.6: smaller, less white
       if (en.flame) flame(F, [exit[0], exit[1], exit[2] - 0.05], rb * 0.95, rb * 5.2, tip);
     }
     if (nozzles.length) {
@@ -1104,7 +1128,7 @@ function assemble(spec, color, d, sticker) {
         const dir = nose ? [0, 0, -1] : [0, 1, 0], r = clamp(size * 0.35, 0.09, 0.18), c = madd(base, dir, 0.1 + r);
         cyl(Bd, base, madd(base, dir, 0.12), r * 0.8, r * 0.9, sg(12, 8), metal, col.metal);
         sphere(Bd, c, r, sg(12, 8), flat, colX ? mix(colX, [1, 1, 1], 0.4) : C("#fff2a8"), 1, dir);
-        glow(F, c, r * 4.2, scl(colX || [1, 0.85, 0.4], 1.6), 3);
+        glow(F, c, r * 3.0, scl(colX || [1, 0.85, 0.4], 1.15), 3); // v1.6: toned down (it blew out white under the TV bloom)
         break;
       }
       case "shield": {
@@ -1113,7 +1137,7 @@ function assemble(spec, color, d, sticker) {
         const rows = [];
         for (let k = 0; k <= 8; k++) { const a = Math.PI * 2 * k / 8; rows.push({ t: 0.11 + Math.sin(a) * 0.035, a: r + Math.cos(a) * 0.035, b: r + Math.cos(a) * 0.035, v: k / 8 }); }
         rings(Bd, rows, sg(18, 10), frame(c, [0, 1, 0], [0, 0, -1]), flat, colX || C("#4cc9f0"));
-        glow(F, add(c, [0, 0.13, 0]), r * 2.2, scl(colX || [0.3, 0.8, 1], 1.4), 3);
+        glow(F, add(c, [0, 0.13, 0]), r * 1.7, scl(colX || [0.3, 0.8, 1], 1.0), 3); // v1.6: toned down
         break;
       }
       case "cross": sideDecal(DEC.cross, clamp(size, 0.35, 0.6), col.white); break;
@@ -1222,23 +1246,23 @@ function assemble(spec, color, d, sticker) {
   if (sticker && sticker.rect) {
     const [u0, v0, u1, v1] = sticker.rect, asp = sticker.aspect, uvS = (i, j) => [lerp(u0, u1, i), lerp(v0, v1, j)];
     if (saucer) {
-      const h = hull.ht * 1.1, w = Math.min(h * asp, hull.R * 0.9);
+      const h = hull.ht * 0.75, w = Math.min(h * asp, hull.R * 0.6); // v1.6: smaller
       if (!sidePorts) for (const sgn of [1, -1]) patch(Dc, hull, "side", 0, hull.ht * 0.05, w, w / asp, sg(8, 5), sg(5, 3), uvS, [1, 1, 1], 0.012, sgn);
       const zf = (spec.cockpit.kind === "none" ? 0.1 : clamp(spec.cockpit.size * L * 0.9, hull.R * 0.32, hull.R * 0.55) * 1.15) + 0.04, zb = hull.R * 0.88;
-      const l = Math.max(0.3, zb - zf), wx = Math.min(l / asp, hull.R * 0.9);
+      const l = Math.max(0.3, (zb - zf) * 0.85), wx = Math.min(l / asp, hull.R * 0.75);
       patch(Dc, hull, "top", (zf + zb) / 2, 0, l, wx, sg(8, 5), sg(6, 3), uvS, [1, 1, 1], 0.012);
     } else {
       // side: centred behind the cockpit, as tall as the hull allows
       const tc = clamp(0.56, 0.3, 0.7), sc = sec(tc);
-      let h = sc.b * 2 * (sidePorts ? 0.5 : 0.78), w = h * asp;
-      if (w > L * 0.55) { w = L * 0.55; h = w / asp; }
+      let h = sc.b * 2 * (sidePorts ? 0.4 : 0.52), w = h * asp; // v1.6: a smaller, subtler sticker
+      if (w > L * 0.36) { w = L * 0.36; h = w / asp; }
       for (const sgn of [1, -1]) patch(Dc, hull, "side", zAt(tc), sidePorts ? sc.yc - sc.b * 0.42 + h / 2 - sc.b * 0.1 : sc.yc, w, h, sg(10, 6), sg(6, 4), uvS, [1, 1, 1], 0.012, sgn);
       // top: behind the canopy, nose forward
       const cEnd = spec.cockpit.kind === "none" ? 0.2 : clamp(spec.cockpit.at + spec.cockpit.size * 0.55, 0.2, 0.6);
       const tA = clamp(cEnd + 0.03, 0.22, 0.62), st = sec(clamp(tA + 0.15, 0, 0.9));
-      let wx = st.a * 2 * 0.74, l = wx * asp;
+      let wx = st.a * 2 * 0.52, l = wx * asp;
       const room = (0.95 - tA) * L;
-      if (l > Math.min(room, L * 0.5)) { l = Math.min(room, L * 0.5); wx = l / asp; }
+      if (l > Math.min(room, L * 0.32)) { l = Math.min(room, L * 0.32); wx = l / asp; }
       patch(Dc, hull, "top", zAt(tA) + l / 2, 0, l, wx, sg(10, 6), sg(6, 4), uvS, [1, 1, 1], 0.012);
     }
   }
@@ -1291,7 +1315,9 @@ export function buildShip(specIn, { drawingImage = null, color = 0x22d3ee, quali
   for (let k = 0; k < 5; k++) {
     A0 = assemble(spec, color, d, sticker);
     if (A0.tris <= Q[q].tris) break;
-    d *= 0.82;
+    // v1.5 (iPhone hitches): triangles grow about with d², so the next pass jumps to the detail that fits (a little under, at most
+    // 0.82 and at least 0.5 of this one) instead of five 0.82 steps: a busy drawing builds in two passes, not up to five.
+    d *= Math.max(0.5, Math.min(0.82, Math.sqrt(Q[q].tris / A0.tris) * 0.96));
   }
   const { Bd, Dc, F, S } = A0;
   // Centre on the origin and scale the longest horizontal side to SHIP_LENGTH (flames are not counted).

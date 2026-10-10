@@ -1,0 +1,190 @@
+{
+  "id": "bike-lamp",
+  "model": "gpt-6.1-sol",
+  "tag": null,
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "bike + headlamp",
+  "type": "bike",
+  "skills": [
+    "flare"
+  ],
+  "drawing": "dev/gen-corpus/entity/E26.png",
+  "http": 1,
+  "wallMs": 1889,
+  "ms": 1888,
+  "status": 200,
+  "usage": {
+    "input": 2567,
+    "output": 222,
+    "reasoning": 0
+  },
+  "raw": {
+    "type": "bike",
+    "view": "side",
+    "facing": "right",
+    "style": "chunky",
+    "head": {
+      "shape": "none",
+      "size": 0,
+      "gear": "none",
+      "face": "none",
+      "eyes": 0,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "slim",
+      "width": 0,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0,
+      "thickness": "thin",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 0,
+      "length": 0,
+      "thickness": "thin",
+      "feet": "none",
+      "color": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "bicycle",
+      "height": 0.38,
+      "cabin": "none",
+      "wheels": 2,
+      "wheelSize": 0.37,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "lamp",
+        "where": "front",
+        "size": 0.15,
+        "color": ""
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    }
+  },
+  "spec": {
+    "v": 1,
+    "type": "bike",
+    "view": "side",
+    "facing": "right",
+    "style": "chunky",
+    "seed": 3224834556,
+    "head": {
+      "shape": "none",
+      "size": 0.08,
+      "gear": "none",
+      "face": "none",
+      "eyes": 0,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "slim",
+      "width": 0.06,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "thin",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "thin",
+      "feet": "none",
+      "color": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "bicycle",
+      "height": 0.38,
+      "cabin": "none",
+      "wheels": 2,
+      "wheelSize": 0.37,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "lamp",
+        "where": "front",
+        "size": 0.15,
+        "color": "",
+        "verb": "flare"
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "rig": "car",
+    "triangles": 3196,
+    "drawCalls": 2,
+    "glTriangles": 3196,
+    "ms": 9.1,
+    "size": {
+      "x": 0.701,
+      "y": 1.805,
+      "z": 1.958
+    },
+    "radius": 1.1957587712671467,
+    "clips": [
+      "idle",
+      "walk",
+      "run",
+      "jump",
+      "dig"
+    ],
+    "clipsLoaded": true,
+    "poses": [
+      "idle",
+      "run",
+      "dig"
+    ],
+    "wallMs": 155
+  }
+}

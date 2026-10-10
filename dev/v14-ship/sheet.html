@@ -18,7 +18,7 @@
 <div class="grid" id="grid"></div>
 <script type="module">
 const model = new URLSearchParams(location.search).get("model") || "gpt-6.1-sol";
-const base = `/dev/v14-ship/compare/${model}/`;
+const base = new URLSearchParams(location.search).get("base") || `/dev/v14-ship/compare/${model}/`;
 const sum = await (await fetch(base + "summary.json", { cache: "no-store" })).json();
 document.getElementById("title").textContent = `SHIP SPEC · ${model}`;
 document.getElementById("sub").textContent = `${sum.n} drawings · schema failures ${sum.schemaFailures} · latency p50 ${sum.p50} ms · p90 ${sum.p90} ms · max ${sum.max} ms`;

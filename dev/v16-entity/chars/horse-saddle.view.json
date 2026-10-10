@@ -1,0 +1,71 @@
+{
+  "v": 1,
+  "type": "quadruped",
+  "view": "side",
+  "facing": "right",
+  "style": "chunky",
+  "seed": 1877522905,
+  "head": {
+    "shape": "oval",
+    "size": 0.28,
+    "gear": "hair",
+    "face": "eyes",
+    "eyes": 1,
+    "snout": 0.65,
+    "color": "#a3672f",
+    "gearColor": "#70401c",
+    "faceColor": ""
+  },
+  "torso": {
+    "shape": "barrel",
+    "width": 0.5,
+    "color": "#a3672f",
+    "belt": false,
+    "emblem": ""
+  },
+  "arms": {
+    "count": 0,
+    "length": 0.15,
+    "thickness": "normal",
+    "hands": "none",
+    "color": ""
+  },
+  "legs": {
+    "count": 4,
+    "length": 0.48,
+    "thickness": "normal",
+    "feet": "hooves",
+    "color": "#a3672f"
+  },
+  "neck": 0.45,
+  "tail": {
+    "kind": "long",
+    "color": "#70401c"
+  },
+  "vehicle": {
+    "body": "none",
+    "height": 0.15,
+    "cabin": "none",
+    "wheels": 0,
+    "wheelSize": 0.1,
+    "color": "",
+    "rider": false
+  },
+  "items": [
+    {
+      "kind": "saddle",
+      "where": "back",
+      "size": 0.34,
+      "color": "#eb3546",
+      "verb": null
+    }
+  ],
+  "palette": {
+    "colored": true,
+    "main": "#a3672f",
+    "second": "#70401c",
+    "accent": "#eb3546",
+    "skin": ""
+  },
+  "source": "model"
+}

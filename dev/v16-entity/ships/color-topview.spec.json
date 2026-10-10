@@ -1,0 +1,277 @@
+{
+  "id": "color-topview",
+  "model": "gpt-6.1-sol",
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "generated: coloured top view (red hull, yellow wings, blue canopy, orange flames, wing guns)",
+  "view": "top",
+  "drawing": "dev/v14-ship/drawings/color-topview.png",
+  "http": 1,
+  "wallMs": 3833,
+  "ms": 3832,
+  "status": 200,
+  "usage": {
+    "input": 2195,
+    "output": 512,
+    "reasoning": 108
+  },
+  "raw": {
+    "view": "top",
+    "noseDir": "right",
+    "style": "sleek",
+    "hull": {
+      "shape": "dart",
+      "width": 0.14,
+      "height": 0.12,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "red",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.26,
+      "size": 0.18,
+      "color": "#46c5e8"
+    },
+    "wings": {
+      "count": 2,
+      "shape": "delta",
+      "at": 0.56,
+      "span": 0.84,
+      "chord": 0.37,
+      "mount": "mid",
+      "color": "#ffd43b"
+    },
+    "fins": [
+      {
+        "kind": "side",
+        "at": 0.94,
+        "size": 0.14,
+        "color": "red"
+      }
+    ],
+    "engines": {
+      "count": 1,
+      "size": 0.1,
+      "flame": true,
+      "flameColor": "#ff8000",
+      "layout": "single"
+    },
+    "weapons": [
+      {
+        "kind": "laser",
+        "count": 2,
+        "at": 0.5,
+        "mount": "wings",
+        "size": 0.18,
+        "color": "#606471"
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": true,
+      "main": "red",
+      "second": "#ffd43b",
+      "accent": "#46c5e8"
+    }
+  },
+  "spec": {
+    "v": 1,
+    "view": "top",
+    "noseDir": "right",
+    "style": "sleek",
+    "seed": 2287909975,
+    "hull": {
+      "shape": "dart",
+      "width": 0.14,
+      "height": 0.12,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "#e63946",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.26,
+      "size": 0.18,
+      "color": "#46c5e8"
+    },
+    "wings": {
+      "count": 2,
+      "shape": "delta",
+      "at": 0.56,
+      "span": 0.84,
+      "chord": 0.37,
+      "mount": "mid",
+      "color": "#ffd43b"
+    },
+    "fins": [
+      {
+        "kind": "side",
+        "at": 0.94,
+        "size": 0.14,
+        "color": "#e63946"
+      },
+      {
+        "kind": "tail",
+        "at": 0.86,
+        "size": 0.24,
+        "color": "#ffd43b",
+        "implied": true
+      }
+    ],
+    "engines": {
+      "count": 1,
+      "size": 0.1,
+      "flame": true,
+      "flameColor": "#ff8000",
+      "layout": "single",
+      "verb": "boost"
+    },
+    "weapons": [
+      {
+        "kind": "laser",
+        "count": 2,
+        "at": 0.5,
+        "mount": "wings",
+        "size": 0.18,
+        "color": "",
+        "verb": "shoot"
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": true,
+      "main": "#e63946",
+      "second": "#ffd43b",
+      "accent": "#46c5e8"
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 4674,
+    "drawCalls": 3,
+    "glTriangles": 4674,
+    "ms": 11.9,
+    "size": {
+      "x": 2.5884389877319336,
+      "y": 1.0270977020263672,
+      "z": 3.200000047683716
+    },
+    "radius": 1.6804687847231912,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        -0.13,
+        -0.82
+      ],
+      "wing_r": [
+        1.26,
+        -0.21,
+        0.55
+      ],
+      "wing_l": [
+        -1.26,
+        -0.21,
+        0.55
+      ],
+      "back": [
+        0,
+        0.15,
+        0.98
+      ],
+      "engine_l": [
+        -0.09,
+        -0.33,
+        1.6
+      ],
+      "engine_r": [
+        0.09,
+        -0.33,
+        1.6
+      ],
+      "nose": [
+        0.7,
+        -0.4,
+        -0.45
+      ],
+      "belly": [
+        0,
+        -0.51,
+        -0.1
+      ]
+    },
+    "wallMs": 102
+  },
+  "renderKit": {
+    "ok": true,
+    "kit": true,
+    "triangles": 4674,
+    "drawCalls": 3,
+    "glTriangles": 4674,
+    "ms": 5.4,
+    "size": {
+      "x": 2.5884389877319336,
+      "y": 1.0270977020263672,
+      "z": 3.200000047683716
+    },
+    "radius": 1.6804687847231912,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        -0.13,
+        -0.82
+      ],
+      "wing_r": [
+        1.26,
+        -0.21,
+        0.55
+      ],
+      "wing_l": [
+        -1.26,
+        -0.21,
+        0.55
+      ],
+      "back": [
+        0,
+        0.15,
+        0.98
+      ],
+      "engine_l": [
+        -0.09,
+        -0.33,
+        1.6
+      ],
+      "engine_r": [
+        0.09,
+        -0.33,
+        1.6
+      ],
+      "nose": [
+        0.7,
+        -0.4,
+        -0.45
+      ],
+      "belly": [
+        0,
+        -0.51,
+        -0.1
+      ]
+    },
+    "wallMs": 126
+  }
+}

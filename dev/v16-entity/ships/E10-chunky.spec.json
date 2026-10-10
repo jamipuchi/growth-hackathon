@@ -1,0 +1,292 @@
+{
+  "id": "E10-chunky",
+  "model": "gpt-6.1-sol",
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "chunky box ship: cannon, drill, flames, legs",
+  "view": "side",
+  "drawing": "dev/gen-corpus/entity/E10.png",
+  "http": 1,
+  "wallMs": 2675,
+  "ms": 2674,
+  "status": 200,
+  "usage": {
+    "input": 2118,
+    "output": 511,
+    "reasoning": 79
+  },
+  "raw": {
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "hull": {
+      "shape": "box",
+      "width": 0.42,
+      "height": 0.4,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "windows",
+      "at": 0.43,
+      "size": 0.15,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.79,
+      "span": 0.55,
+      "chord": 0.3,
+      "mount": "high",
+      "color": ""
+    },
+    "fins": [],
+    "engines": {
+      "count": 1,
+      "size": 0.16,
+      "flame": true,
+      "flameColor": "",
+      "layout": "single"
+    },
+    "weapons": [
+      {
+        "kind": "cannon",
+        "count": 1,
+        "at": 0.42,
+        "mount": "top",
+        "size": 0.26,
+        "color": ""
+      },
+      {
+        "kind": "drill",
+        "count": 1,
+        "at": 0,
+        "mount": "nose",
+        "size": 0.2,
+        "color": ""
+      }
+    ],
+    "extras": [
+      {
+        "kind": "legs",
+        "at": 0.52,
+        "mount": "belly",
+        "size": 0.16,
+        "color": "",
+        "label": ""
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    }
+  },
+  "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "seed": 3963865601,
+    "hull": {
+      "shape": "box",
+      "width": 0.42,
+      "height": 0.4,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "windows",
+      "at": 0.43,
+      "size": 0.15,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.79,
+      "span": 0.55,
+      "chord": 0.3,
+      "mount": "high",
+      "color": ""
+    },
+    "fins": [],
+    "engines": {
+      "count": 1,
+      "size": 0.16,
+      "flame": true,
+      "flameColor": "",
+      "layout": "single",
+      "verb": "boost"
+    },
+    "weapons": [
+      {
+        "kind": "cannon",
+        "count": 1,
+        "at": 0.42,
+        "mount": "top",
+        "size": 0.26,
+        "color": "",
+        "verb": "shoot"
+      },
+      {
+        "kind": "drill",
+        "count": 1,
+        "at": 0,
+        "mount": "nose",
+        "size": 0.2,
+        "color": "",
+        "verb": "shoot"
+      }
+    ],
+    "extras": [
+      {
+        "kind": "legs",
+        "at": 0.52,
+        "mount": "belly",
+        "size": 0.16,
+        "color": "",
+        "label": "",
+        "verb": "land"
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 3727,
+    "drawCalls": 3,
+    "glTriangles": 3727,
+    "ms": 11.9,
+    "size": {
+      "x": 1.607944130897522,
+      "y": 1.5727092027664185,
+      "z": 3.200000047683716
+    },
+    "radius": 1.652141805610883,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        0.65,
+        -0.03
+      ],
+      "wing_r": [
+        0.77,
+        0.45,
+        1.08
+      ],
+      "wing_l": [
+        -0.77,
+        0.45,
+        1.08
+      ],
+      "engine_l": [
+        -0.11,
+        0.17,
+        1.6
+      ],
+      "engine_r": [
+        0.11,
+        0.17,
+        1.6
+      ],
+      "nose": [
+        0,
+        0.71,
+        -0.54
+      ],
+      "back": [
+        0,
+        0.65,
+        0.75
+      ],
+      "belly": [
+        0,
+        -0.32,
+        0.14
+      ]
+    },
+    "wallMs": 105
+  },
+  "renderKit": {
+    "ok": true,
+    "kit": true,
+    "triangles": 3727,
+    "drawCalls": 3,
+    "glTriangles": 3727,
+    "ms": 7.3,
+    "size": {
+      "x": 1.607944130897522,
+      "y": 1.5727092027664185,
+      "z": 3.200000047683716
+    },
+    "radius": 1.652141805610883,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        0.65,
+        -0.03
+      ],
+      "wing_r": [
+        0.77,
+        0.45,
+        1.08
+      ],
+      "wing_l": [
+        -0.77,
+        0.45,
+        1.08
+      ],
+      "engine_l": [
+        -0.11,
+        0.17,
+        1.6
+      ],
+      "engine_r": [
+        0.11,
+        0.17,
+        1.6
+      ],
+      "nose": [
+        0,
+        0.71,
+        -0.54
+      ],
+      "back": [
+        0,
+        0.65,
+        0.75
+      ],
+      "belly": [
+        0,
+        -0.32,
+        0.14
+      ]
+    },
+    "wallMs": 141
+  }
+}

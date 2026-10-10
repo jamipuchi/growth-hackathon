@@ -18,7 +18,7 @@
 <div class="grid" id="grid"></div>
 <script type="module">
 const model = new URLSearchParams(location.search).get("model") || "gpt-6.1-sol";
-const base = `/dev/v14-entity3d/compare/${model}/`;
+const base = new URLSearchParams(location.search).get("base") || `/dev/v14-entity3d/compare/${model}/`;
 const sum = await (await fetch(base + "summary.json", { cache: "no-store" })).json();
 document.getElementById("title").textContent = `PLANET ENTITY SPEC · ${model}`;
 const ot = sum.outTokens || {};

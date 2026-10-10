@@ -404,6 +404,89 @@ function quadClips() {
   return QUAD_CLIPS;
 }
 const QUAD_LOOPS = new Set(["idle", "walk", "run", "gallop", "dig", "sit"]);
+const VEH_LOOPS = new Set(["idle", "walk", "run", "dig"]);
+
+// v1.6: per-clip tool grip. A person holding a digging tool has it on a prop bone (buildPerson); every A-008 clip gets one more
+// track, the prop's rotation sampled along the clip so the tool points where that clip wants it, in the body's frame:
+//   dig / kneel: from the fists to the ground in front of the feet (both fists end up on the shaft; the drill bores down);
+//   a drill or saw in any other clip: held out forward, a little down;
+//   a shovel or pickaxe in any other clip: along the forearm, tip forward (it hangs at the side and swings with the arm).
+const PROP_TOOLS = new Set(["shovel", "pickaxe", "drill", "saw"]);
+const DIG_TOOLS = new Set(["shovel", "pickaxe"]);
+function propClips(rig, clips) {
+  if (!rig.props || !rig.props.length || !clips.length) return clips;
+  const bones = rig.tree(), root = new THREE.Group();
+  root.add(bones[0]);
+  const by = new Map(bones.map((b) => [b.name, b]));
+  const mixer = new THREE.AnimationMixer(root);
+  const props = rig.props.map((p) => ({ ...p, rest: new THREE.Quaternion().setFromRotationMatrix(rig.restWorld[rig.id(p.bone)]), hand: by.get(`hand_${p.side}`), fore: by.get(`fore_arm_${p.side}`) }));
+  const qh = new THREE.Quaternion(), qw = new THREE.Quaternion(), m = new THREE.Matrix4(), m0 = new THREE.Matrix4(), ph = new THREE.Vector3(), pf = new THREE.Vector3();
+  const D0 = new THREE.Vector3(0, 0, -1), U0 = new THREE.Vector3(0, 1, 0), S0 = new THREE.Vector3().crossVectors(D0, U0);
+  m0.makeBasis(D0, U0, S0).transpose(); // the inverse of the tool's authored frame (orthonormal)
+  const d = new THREE.Vector3(), u = new THREE.Vector3(), s = new THREE.Vector3();
+  const out = [];
+  for (const clip of clips) {
+    const act = mixer.clipAction(clip);
+    act.reset().setLoop(THREE.LoopOnce, 1);
+    act.clampWhenFinished = true;
+    act.play();
+    const digging = clip.name === "dig" || clip.name === "kneel";
+    const n = digging ? 16 : clamp(Math.round(clip.duration * 6), 2, 12);
+    const tr = props.map(() => ({ t: [], v: [] }));
+    for (let i = 0; i <= n; i++) {
+      const t = clip.duration * i / n;
+      act.time = t; mixer.update(0); root.updateMatrixWorld(true);
+      props.forEach((p, j) => {
+        p.hand.getWorldPosition(ph); p.fore.getWorldPosition(pf); p.hand.getWorldQuaternion(qh);
+        if (digging) d.set(0, 0.04, -0.62).sub(ph);
+        else if (DIG_TOOLS.has(p.kind)) { d.copy(ph).sub(pf).normalize().multiplyScalar(0.6); d.y -= 0.7; d.z -= 0.6; } // mostly down, swings a little
+        else d.set(0, -0.25, -1);
+        d.normalize();
+        // a shovel's blade lies across the body (its face forwards); a drill keeps its housing on top
+        if (DIG_TOOLS.has(p.kind)) { s.set(1, 0, 0).addScaledVector(d, -d.x); if (s.lengthSq() < 1e-4) s.set(0, 0, 1); s.normalize(); u.crossVectors(s, d); }
+        else { u.set(0, 1, 0).addScaledVector(d, -d.y); if (u.lengthSq() < 1e-4) u.set(0, 0, 1); u.normalize(); s.crossVectors(d, u); }
+        m.makeBasis(d, u, s).multiply(m0);
+        qw.setFromRotationMatrix(m).multiply(p.rest); // the prop's wanted rotation in the body's frame
+        const local = qh.invert().multiply(qw); // relative to the hand
+        tr[j].t.push(t); tr[j].v.push(local.x, local.y, local.z, local.w);
+      });
+    }
+    act.stop();
+    mixer.uncacheAction(clip);
+    out.push(new THREE.AnimationClip(clip.name, clip.duration, [...clip.tracks, ...props.map((p, j) => new THREE.QuaternionKeyframeTrack(`${p.bone}.quaternion`, tr[j].t, tr[j].v))]));
+  }
+  mixer.uncacheRoot(root);
+  return out;
+}
+
+// v1.6: vehicle clips (car, bike), per build (the rest positions differ): the chassis idles, rocks while driving, noses up in a
+// jump and DIGS: it dips and shudders nose-down, the drill bit (bone "tool") spins and dust puffs (bone "dust", hidden at
+// scale ~0 in every other clip) billow at the front. The wheels stay render.js's (no wheel tracks).
+function vehicleClips(rig) {
+  const ci = rig.index.get("chassis");
+  if (ci == null) return [];
+  const V = rig.veh || {}, T = Math.PI * 2, S = Math.sin;
+  const e = new THREE.Euler(), q = new THREE.Quaternion();
+  const keys = (dur, n, fn, w) => { const times = [], values = []; for (let i = 0; i <= n; i++) { const u = i / n; times.push(u * dur); values.push(...fn(u)); } return [times, values]; };
+  const pos = (bone, dur, n, fn) => { const p0 = rig.local[rig.id(bone)].p; const [t, v] = keys(dur, n, (u) => { const o = fn(u); return [p0[0] + o[0], p0[1] + o[1], p0[2] + o[2]]; }); return new THREE.VectorKeyframeTrack(`${bone}.position`, t, v); };
+  const rot = (bone, dur, n, fn) => { const [t, v] = keys(dur, n, (u) => { const [x, y, z] = fn(u); e.set(x, y, z, "YXZ"); q.setFromEuler(e); return [q.x, q.y, q.z, q.w]; }); return new THREE.QuaternionKeyframeTrack(`${bone}.quaternion`, t, v); };
+  const scale = (bone, dur, n, fn) => { const [t, v] = keys(dur, n, (u) => { const k = fn(u); return [k, k, k]; }); return new THREE.VectorKeyframeTrack(`${bone}.scale`, t, v); };
+  const hasTool = rig.index.has("tool"), hasDust = rig.index.has("dust");
+  const rest = (dur) => [...(hasDust ? [scale("dust", dur, 1, () => 0.001)] : []), ...(hasTool ? [rot("tool", dur, 1, () => [0, 0, 0])] : [])];
+  const k = V.bike ? 0.7 : 1, dip = V.dip || 0.1;
+  const idle = new THREE.AnimationClip("idle", 2, [pos("chassis", 2, 16, (u) => [0, S(u * T * 3) * 0.006 * k, 0]), rot("chassis", 2, 16, (u) => [S(u * T) * 0.004, 0, 0]), ...rest(2)]);
+  const drive = (name, dur, amp) => new THREE.AnimationClip(name, dur, [pos("chassis", dur, 16, (u) => [0, Math.abs(S(u * T)) * amp, 0]), rot("chassis", dur, 16, (u) => [S(u * T) * amp * 0.5, 0, S(u * T * 0.5) * amp * 0.3]), ...rest(dur)]);
+  const jump = new THREE.AnimationClip("jump", 0.8, [pos("chassis", 0.8, 8, (u) => [0, 0.06 * S(u * Math.PI), 0]), rot("chassis", 0.8, 8, (u) => [0.14 * S(u * Math.PI) * k, 0, 0]), ...rest(0.8)]);
+  // dig: two plunges per cycle, nose down, a fast shudder; the bit turns 3 times (quarter-turn keys: shortest-path slerp)
+  const D = 0.6;
+  const dig = new THREE.AnimationClip("dig", D, [
+    pos("chassis", D, 24, (u) => [S(u * T * 6) * 0.012, -dip * (0.6 + 0.4 * S(u * T * 2)), 0]),
+    rot("chassis", D, 24, (u) => [-(V.bike ? 0.1 : 0.09) - 0.045 * S(u * T * 2), 0, S(u * T * 5) * 0.014]),
+    ...(hasTool ? [rot("tool", D, 12, (u) => [0, 0, -u * T * 3])] : []),
+    ...(hasDust ? [scale("dust", D, 12, (u) => 0.75 + 0.3 * S(u * T * 2)), rot("dust", D, 12, (u) => [0, u * T * 0.25, 0])] : []),
+  ]);
+  return [idle, drive("walk", 0.6, 0.012 * k), drive("run", 0.4, 0.02 * k), jump, dig];
+}
 
 // ---- The model: one function per type, parts into B (solid) and F (glow), on the rig's bones --------------------------
 
@@ -833,9 +916,13 @@ function buildPerson(s, P, B, F, rig, rnd) {
     const handed = it.where === "right hand" || it.where === "left hand" || it.where === "both hands" || (HAND_TOOLS.has(k) && !["back", "head", "chest"].includes(it.where));
     if (handed && s.arms.count) {
       const side = it.where === "left hand" ? "l" : "r";
-      on(`hand_${side}`);
       const sx = side === "l" ? 1 : -1, g = [sx * (shoulderHalf + armLen * 0.82 + rA * 1.15), armY, -0.005];
-      const L = k === "shovel" || k === "pickaxe" ? clamp(it.size * H, 0.85, 1.1) : k === "sword" ? clamp(it.size * H, 0.6, 0.9) : clamp(it.size * H, 0.48, 0.6);
+      // v1.6: a digging tool rides its own bone (prop_l / prop_r, a child of the hand at the grip, beyond the 19 A-008 bones) so
+      // each clip holds it its own way (propClips): a shovel hangs at the side, both fists dig with it, a drill points forward.
+      const pb = `prop_${side}`;
+      if (PROP_TOOLS.has(k) && !rig.index.has(pb)) { rig.bone(pb, `hand_${side}`, g); (rig.props || (rig.props = [])).push({ bone: pb, side, kind: k }); on(pb); }
+      else on(`hand_${side}`);
+      const L = k === "shovel" || k === "pickaxe" ? clamp(it.size * H, 0.85, 1.1) : k === "sword" ? clamp(it.size * H, 0.6, 0.9) : k === "drill" || k === "saw" ? clamp(it.size * H * 1.4, 0.62, 0.78) : clamp(it.size * H, 0.48, 0.6); // v1.6: a drill big enough to read on the TV
       // grip: tools along the fist's axis (forward, -Z in the T-pose); a shield's face outwards.
       const d = GRIP[k] || GRIP.default, dd = d.dir, uu = d.up(sx);
       tool(B, F, k, g, dd, uu, L, P, it.color ? C(it.color) : null);
@@ -865,9 +952,12 @@ function buildQuadruped(s, P, B, F, rig, rnd) {
   const bodyR = Lb * lerp(0.33, 0.28, big), bodyW = bodyR * 0.95;
   const backY = legH + bodyR * 0.55;
   const zF = -Lb / 2, zB = Lb / 2;
-  const neckL = Lb * clamp(0.18 + s.neck * 0.9, 0.18, 0.62);
-  const headL = Lb * clamp(0.36 + (s.head.size - 0.25) * 0.5, 0.34, 0.52) * lerp(1, 0.92, big);
-  const neckA = lerp(0.62, 0.88, big); // radians above the horizontal
+  // v1.6: a big (horse-like) animal gets a shorter, thicker, more forward neck (it read as a llama); a small one (dog-like) a
+  // bigger head with a real muzzle, bigger ears and a curled-up tail.
+  const dogLike = big < 0.75, horseLike = !dogLike;
+  const neckL = Lb * clamp(0.18 + s.neck * 0.9, 0.18, 0.62) * lerp(1, 0.8, big);
+  const headL = Lb * clamp(0.36 + (s.head.size - 0.25) * 0.5, 0.34, 0.52) * lerp(1, 0.98, big) * (dogLike ? 1.1 : 1);
+  const neckA = lerp(0.62, 0.7, big); // radians above the horizontal
   const neck0 = [0, backY + bodyR * 0.25, zF - bodyR * 0.25];
   const head0 = add(neck0, [0, Math.sin(neckA) * neckL, -Math.cos(neckA) * neckL]);
   const W = {
@@ -897,17 +987,18 @@ function buildQuadruped(s, P, B, F, rig, rnd) {
   rig.socket("back", "spine_1", [0, backY + bodyR * 0.9, 0.1]);
   // Neck and head.
   on("neck");
-  capsule(B, neck0, head0, bodyR * lerp(0.62, 0.5, big), bodyR * 0.42, sg(12), furReg, fur);
-  if (s.head.gear === "hair" || s.head.gear === "mohawk" || s.items.some((x) => x.kind === "saddle") || big > 0.6) { // a mane along the neck
+  capsule(B, neck0, head0, bodyR * lerp(0.62, 0.68, big), bodyR * lerp(0.42, 0.36, big), sg(12), furReg, fur);
+  if (s.head.gear === "hair" || s.head.gear === "mohawk" || s.items.some((x) => x.kind === "saddle") || horseLike) { // a mane along the neck
     const mane = P.gear || P.tail || dark;
     for (let i = 0; i < 5; i++) { const p = add(lerp3(neck0, head0, 0.1 + i * 0.2), [0, bodyR * 0.42, bodyR * 0.12]); ell(B, p, bodyR * 0.12, bodyR * 0.22, bodyR * 0.2, 8, furReg, mane); }
   }
   on("head");
   const hr = headL * 0.42, hcen = add(head0, [0, hr * 0.35, -hr * 0.2]);
   ell(B, hcen, hr * 0.95, hr * 0.9, hr, sg(16), furReg, P.head || fur);
-  const snL = headL * clamp(0.25 + s.head.snout * 0.6, 0.15, 0.8);
-  const snout0 = add(hcen, [0, -hr * 0.25, -hr * 0.55]), snout1 = add(snout0, [0, -snL * 0.15, -snL]);
-  capsule(B, snout0, snout1, hr * 0.55, hr * 0.48, sg(12), furReg, P.ink ? belly : mix(P.head || fur, [1, 1, 1], 0.3));
+  const snL = headL * clamp(0.25 + (dogLike ? Math.max(s.head.snout, 0.45) : s.head.snout) * 0.6, 0.15, 0.8);
+  // a horse's long face slopes down; a dog's muzzle is level
+  const snout0 = add(hcen, [0, -hr * 0.25, -hr * 0.55]), snout1 = add(snout0, [0, -snL * (horseLike ? 0.55 : 0.12), -snL]);
+  capsule(B, snout0, snout1, hr * (dogLike ? 0.6 : 0.55), hr * (dogLike ? 0.5 : 0.48), sg(12), furReg, P.ink ? belly : horseLike ? shade(P.head || fur, 1.12) : mix(P.head || fur, [1, 1, 1], 0.3));
   ell(B, add(snout1, [0, hr * 0.2, -hr * 0.38]), hr * 0.2, hr * 0.15, hr * 0.14, 8, furReg, P.black); // nose
   eyes(B, [-1, 1].map((sx) => add(hcen, [sx * hr * 0.48, hr * 0.28, -hr * 0.62])), hr * 0.22, nrm([0, 0.05, -1]));
   // ears
@@ -916,6 +1007,7 @@ function buildQuadruped(s, P, B, F, rig, rnd) {
     const e0 = add(hcen, [sx * hr * 0.5, hr * 0.7, hr * 0.1]);
     if (earKind === "horns") capsule(B, e0, add(e0, [sx * hr * 0.4, hr * 0.7, hr * 0.15]), hr * 0.18, hr * 0.05, 8, furReg, P.gear || P.light);
     else if (floppy) ell(B, add(e0, [sx * hr * 0.25, -hr * 0.25, 0]), hr * 0.18, hr * 0.48, hr * 0.32, 10, furReg, dark, { dir: nrm([sx * 0.35, -1, 0]), hint: [0, 0, -1] });
+    else if (dogLike) rings(B, [{ t: 0, a: hr * 0.42, b: hr * 0.17 }, { t: hr * 0.5, a: hr * 0.3, b: hr * 0.12 }, { t: hr * 1.05, a: 0, b: 0 }], 8, frame(e0, nrm([sx * 0.45, 1, 0.05]), [0, 0, -1]), furReg, dark);
     else rings(B, [{ t: 0, a: hr * 0.3, b: hr * 0.14 }, { t: hr * 0.75, a: 0, b: 0 }], 8, frame(e0, nrm([sx * 0.3, 1, 0.1]), [0, 0, -1]), furReg, dark);
   }
   rig.socket("mouth", "head", add(snout1, [0, 0, -hr * 0.45]));
@@ -933,12 +1025,13 @@ function buildQuadruped(s, P, B, F, rig, rnd) {
   rig.socket("feet", "hips", [0, 0, 0]);
   // Tail.
   if (s.tail.kind !== "none") {
-    const t0 = W.tail_1, t1 = W.tail_2, tc = P.tail || (big > 0.6 ? dark : fur);
+    const t0 = W.tail_1, t1 = W.tail_2, tc = P.tail || (horseLike ? dark : fur);
     const longT = s.tail.kind === "long" || s.tail.kind === "bushy" || s.tail.kind === "curly";
-    const t2 = add(t1, longT ? (big > 0.6 ? [0, -0.45, 0.22] : [0, -0.05, 0.25]) : [0, 0.02, 0.06]);
-    on("tail_1"); capsule(B, t0, t1, bodyR * 0.16, bodyR * 0.13, 8, furReg, tc);
+    const t2 = add(t1, longT ? (horseLike ? [0, -0.45, 0.22] : dogLike ? [0, 0.2, 0.12] : [0, -0.05, 0.25]) : [0, 0.02, 0.06]);
+    on("tail_1"); capsule(B, t0, t1, bodyR * (dogLike ? 0.2 : 0.16), bodyR * (dogLike ? 0.18 : 0.13), 8, furReg, tc);
     on("tail_2");
-    if (s.tail.kind === "bushy" || big > 0.6) ell(B, lerp3(t1, t2, 0.55), bodyR * 0.22, len(sub(t2, t1)) * 0.7 + 0.08, bodyR * 0.16, 10, furReg, tc, { dir: nrm(sub(t2, t1)), hint: [1, 0, 0] });
+    if (s.tail.kind === "bushy" || horseLike) ell(B, lerp3(t1, t2, 0.55), bodyR * 0.22, len(sub(t2, t1)) * 0.7 + 0.08, bodyR * 0.16, 10, furReg, tc, { dir: nrm(sub(t2, t1)), hint: [1, 0, 0] });
+    else if (dogLike && longT) tube(B, [t1, add(t1, [0, 0.13, 0.1]), t2, add(t2, [0, 0.02, -0.06])], [bodyR * 0.18, bodyR * 0.16, bodyR * 0.12, bodyR * 0.07], 8, furReg, tc); // curled up
     else capsule(B, t1, t2, bodyR * 0.13, bodyR * 0.07, 8, furReg, tc);
     rig.socket("tail", "tail_2", t2);
   } else rig.socket("tail", "hips", [0, backY, zB + bodyR]);
@@ -952,6 +1045,10 @@ function buildQuadruped(s, P, B, F, rig, rnd) {
       box(B, add(sc, [0, bodyR * 0.12, Lb * 0.14]), bodyW * 0.42, bodyR * 0.14, Lb * 0.04, R("flat"), shade(col || P.red, 0.75), { n: 2.6, seg: 10 }); // cantle
       for (const sx of [-1, 1]) tube(B, [add(sc, [sx * bodyW * 0.7, 0, 0]), add(sc, [sx * bodyW * 1.02, -bodyR * 0.9, 0])], 0.012, 5, R("trim"), P.dark);
       for (const sx of [-1, 1]) box(B, add(sc, [sx * bodyW * 1.04, -bodyR * 0.95, 0]), 0.05, 0.02, 0.05, R("metal"), P.metal, { n: 3, seg: 6 });
+      // v1.6: a rider in the player's colour on the saddle, hands on the reins at the withers, feet in the stirrups
+      const rk = clamp(Lb / 1.0, 0.6, 1.05);
+      rider(B, F, P, { hip: add(sc, [0, bodyR * 0.16, 0.03]), grips: [[0.13 * rk, backY + bodyR * 0.75, zF * 0.6], [-0.13 * rk, backY + bodyR * 0.75, zF * 0.6]],
+        feet: [add(sc, [bodyW * 1.04, -bodyR * 0.88, -0.02]), add(sc, [-bodyW * 1.04, -bodyR * 0.88, -0.02])], lean: 0.12, k: rk });
       continue;
     }
     if (k === "claws") {
@@ -1004,6 +1101,56 @@ function wheel(B, rig, name, c, r, w, P, opt = {}) {
   }
   if (opt.thin) for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI; tube(B, [add(c, [0, Math.cos(a) * ri, Math.sin(a) * ri]), add(c, [0, -Math.cos(a) * ri, -Math.sin(a) * ri])], 0.008, 4, R("metal"), P.metal); }
   rig.wheels.push({ bone: name, radius: r });
+}
+
+// v1.6 helpers for vehicles and mounts.
+// The dig dust: chunky puffs on a "dust" bone (parent root) on the ground at `at`; vehicleClips shows them only in "dig".
+function dustPuffs(B, rig, at, k) {
+  rig.bone("dust", "root", at);
+  B.bone = rig.id("dust");
+  const col = C("#e2c9a0");
+  for (const [x, y, z, r] of [[-0.42, 0.16, 0.05, 0.22], [0.42, 0.18, 0.0, 0.24], [0, 0.26, -0.18, 0.28], [-0.2, 0.46, -0.05, 0.2], [0.24, 0.5, -0.1, 0.17]]) {
+    ell(B, add(at, [x * k, y * k, z * k]), r * k, r * k * 0.85, r * k, sg(9), R("flat"), shade(col, 0.92 + (x + 0.5) * 0.12));
+  }
+}
+// A drill on a vehicle: the housing on the current bone, the bit (collar + hazard cone along -Z) on its own "tool" bone that
+// spins about its axis in "dig".
+function vehicleDrill(B, rig, parent, base, L, P, col) {
+  box(B, add(base, [0, 0, L * 0.06]), L * 0.16, L * 0.16, L * 0.12, R("panels"), col || P.gold, { n: 3.5, seg: 10, dir: [0, 0, -1], hint: [0, 1, 0] });
+  const tip0 = add(base, [0, 0, -L * 0.06]);
+  rig.bone("tool", parent, tip0);
+  B.bone = rig.id("tool");
+  cyl(B, tip0, add(tip0, [0, 0, -L * 0.07]), L * 0.13, L * 0.13, sg(10), R("metal"), P.metal);
+  const rows = [], k = 7;
+  for (let i = 0; i <= k; i++) { const t = i / k; rows.push({ t: L * 0.07 + t * L * 0.55, a: L * 0.13 * (1 - t) + 1e-4, b: L * 0.13 * (1 - t) + 1e-4, v: t }); }
+  rows[rows.length - 1].a = rows[rows.length - 1].b = 0;
+  rings(B, rows, sg(10), frame(tip0, [0, 0, -1], [0, 1, 0]), R("hazard"), [1, 1, 1]);
+  B.bone = rig.id(parent);
+}
+// A small rider in the player's colour (bikes, saddled animals): hips at `hip`, hands on `grips` [left, right], feet on
+// `feet` [left, right]; `lean` tips the torso forward (radians). Rigid on the current bone (the chassis / the back).
+function rider(B, F, P, { hip, grips, feet, lean = 0.3, k = 1 }) {
+  const suit = P.player, dark = P.trim, boot = C("#2b2f3d");
+  const td = nrm([0, Math.cos(lean), -Math.sin(lean)]);
+  ell(B, add(hip, [0, 0.05 * k, 0.02 * k]), 0.15 * k, 0.1 * k, 0.13 * k, sg(10), R("flat"), shade(suit, 0.7));
+  box(B, madd(hip, td, 0.24 * k), 0.15 * k, 0.2 * k, 0.1 * k, R("panels"), suit, { n: 3, seg: 10, dir: td, hint: [0, 0, -1] });
+  const sh = madd(hip, td, 0.42 * k);
+  for (const [i, sx] of [[0, 1], [1, -1]]) { // arms: shoulder → elbow → the grip
+    const s0 = add(sh, [sx * 0.15 * k, 0, 0]), g = grips[i], el = add(lerp3(s0, g, 0.5), [sx * 0.06 * k, -0.06 * k, 0.04 * k]);
+    ell(B, s0, 0.07 * k, 0.07 * k, 0.07 * k, sg(8), R("flat"), shade(suit, 0.85));
+    tube(B, [s0, el, g], [0.05 * k, 0.045 * k, 0.04 * k], sg(7), R("flat"), suit);
+    ell(B, g, 0.055 * k, 0.05 * k, 0.055 * k, 6, R("flat"), dark);
+  }
+  for (const [i, sx] of [[0, 1], [1, -1]]) { // legs: hip → knee (forward, out) → foot
+    const h0 = add(hip, [sx * 0.09 * k, 0.02 * k, 0]), f = feet[i], kn = add(lerp3(h0, f, 0.5), [sx * 0.06 * k, 0.1 * k, -0.18 * k]);
+    tube(B, [h0, kn, f], [0.07 * k, 0.06 * k, 0.05 * k], sg(7), R("flat"), shade(suit, 0.7));
+    box(B, add(f, [0, 0.0, -0.04 * k]), 0.055 * k, 0.045 * k, 0.09 * k, R("flat"), boot, { n: 3, seg: 8, round: 0.02 * k });
+  }
+  // the head: a white helmet with a stripe in the player's colour and a dark visor
+  const hc = add(madd(sh, td, 0.1 * k), [0, 0.13 * k, -0.02 * k]);
+  ell(B, hc, 0.14 * k, 0.14 * k, 0.15 * k, sg(14), R("flat"), P.white);
+  box(B, add(hc, [0, 0.11 * k, 0.01 * k]), 0.035 * k, 0.04 * k, 0.12 * k, R("flat"), suit, { n: 3, seg: 8, round: 0.015 * k });
+  ell(B, add(hc, [0, -0.01 * k, -0.08 * k]), 0.11 * k, 0.07 * k, 0.09 * k, sg(12), R("glass"), mix(P.glass, [0, 0, 0], 0.35), { dir: [0, 0, -1], hint: [0, 1, 0] });
 }
 
 function buildCar(s, P, B, F, rig, rnd) {
@@ -1089,7 +1236,11 @@ function buildCar(s, P, B, F, rig, rnd) {
     }
     if (["drill", "saw", "shovel", "pickaxe", "magnet", "claws"].includes(k)) {
       const front = [0, y0 + hB * 0.45, -L * 0.5 - 0.04];
-      if (k === "drill" || k === "saw") { cyl(B, front, add(front, [0, 0, -0.12]), 0.2, 0.2, sg(12), R("metal"), P.metal); tool(B, F, k, add(front, [0, -0.1, 0.1]), [0, 0, -1], [0, 1, 0], 1.25, P, col); }
+      if (k === "drill" || k === "saw") {
+        cyl(B, front, add(front, [0, 0, -0.12]), 0.2, 0.2, sg(12), R("metal"), P.metal);
+        if (k === "drill" && !rig.index.has("tool")) vehicleDrill(B, rig, "chassis", add(front, [0, 0, -0.2]), 1.25, P, col); // v1.6: the bit spins in "dig"
+        else tool(B, F, k, add(front, [0, -0.1, 0.1]), [0, 0, -1], [0, 1, 0], 1.25, P, col);
+      }
       else if (k === "shovel" || k === "pickaxe" || k === "claws") { // a bulldozer scoop
         for (const sx of [-1, 1]) tube(B, [[sx * Wd * 0.3, y0 + hB * 0.4, -L * 0.42], [sx * Wd * 0.3, wr * 0.45, -L * 0.56]], 0.04, 6, R("metal"), P.steel);
         plate(B, [[-0.5, 0], [0.5, 0], [0.5, 1], [-0.5, 1]].map(([a, b]) => [a * Wd * 0.95, b * 0.32]), [0, 0.06, -L * 0.58], [1, 0, 0], nrm([0, 1, -0.35]), 0.025, R("hazard"), [1, 1, 1], P.steel);
@@ -1118,6 +1269,9 @@ function buildCar(s, P, B, F, rig, rnd) {
     if (it.where === "side" || k === "cross" || k === "lightning" || k === "star") attachment(B, F, k, [Wd / 2 + 0.01, (y0 + y1) / 2, cabinZ], [0, 1, 0], [1, 0, 0], 1.2, P, col);
     else attachment(B, F, k, [0, roofY, cabinZ + cabinL * 0.2], [0, 1, 0], [0, 0, -1], 1.4, P, col);
   }
+  rig.veh = { dip: monster ? 0.22 : 0.12 };
+  dustPuffs(B, rig, [0, 0, -L * 0.5 - 0.5], monster ? 1.3 : 1.1);
+  on("chassis");
   rig.socket("seat", "chassis", [0, y1 + 0.1, cabinZ]);
   rig.socket("roof", "chassis", [0, y1 + cabinH, cabinZ]);
   rig.socket("top", "chassis", [0, y1 + cabinH, cabinZ]);
@@ -1181,10 +1335,19 @@ function buildBike(s, P, B, F, rig, rnd) {
   for (const it of s.items) {
     const k = it.kind, col = it.color ? C(it.color) : null;
     if (k === "lamp" || k === "torch") continue;
+    if (k === "drill" && !rig.index.has("tool")) { vehicleDrill(B, rig, "chassis", add(head, [0, -0.3, -0.32]), 0.7, P, col); continue; } // v1.6: under the bar, spins in "dig"
     if (["blaster", "cannon", "drill", "saw"].includes(k)) { tool(B, F, k === "cannon" ? "blaster" : k, add(head, [0.2, -0.12, -0.05]), [0, 0, -1], [0, 1, 0], 0.7, P, col); continue; }
     if (k === "jetpack" || k === "flames") { const p0 = [0.12, wr + 0.1, zb]; cyl(B, p0, add(p0, [0, 0.05, 0.25]), 0.07, 0.08, sg(10), R("nozzle"), [1, 1, 1]); rings(F, [{ t: 0, a: 0.08, b: 0.08, c: [1.5, 0.9, 0.25] }, { t: 0.5, a: 0, b: 0, c: [0.4, 0.05, 0] }], sg(8), frame(add(p0, [0, 0.05, 0.25]), [0, 0.15, 1]), R("flat"), [1, 0.5, 0.1]); continue; }
     attachment(B, F, k, add(seat, [0, 0.05, 0.25]), [0, 1, 0], [0, 0, 1], 0.9, P, col);
   }
+  // v1.6: the rider (a small person in the player's colour), hands on the bar, feet on the pedals / pegs / the deck
+  const mid = (zb + zf) / 2;
+  const feet = motor ? [[0.17, wr + 0.04, mid + 0.18], [-0.17, wr + 0.04, mid + 0.18]] : scooter ? [[0.09, wr * 0.6 + 0.07, mid + 0.12], [-0.09, wr * 0.6 + 0.07, mid - 0.05]]
+    : [add(crank, [0.13, 0.12, -0.1]), add(crank, [-0.13, -0.12, 0.1])];
+  rider(B, F, P, { hip: add(seat, [0, scooter ? 0.12 : 0.08, 0.03]), grips: [add(head, [0.27, 0.07, 0.05]), add(head, [-0.27, 0.07, 0.05])], feet, lean: scooter ? 0.12 : motor ? 0.5 : 0.55 });
+  rig.veh = { bike: true, dip: 0.07 };
+  dustPuffs(B, rig, [0, 0, zf - 0.55], 0.75);
+  on("chassis");
   rig.socket("seat", "chassis", add(seat, [0, 0.06, 0]));
   rig.socket("front", "chassis", [0, barY, -L / 2]);
   rig.socket("back", "chassis", [0, wr, L / 2]);
@@ -1329,16 +1492,26 @@ export function buildEntity(specIn, { drawingImage = null, color = 0x22d3ee, qua
     if (pt.mirror) patchQuad(Dc, [-pt.c[0], pt.c[1], pt.c[2]], [-pt.n[0], pt.n[1], pt.n[2]], pt.up, pt.r);
   }
   const gBody = toGeometry(B), gFx = toGeometry(F, true), gDecal = Dc.i.length ? toGeometry(Dc) : null;
-  const bb = gBody.boundingBox;
+  // size and radius of the body at rest, without the dig dust (hidden outside the dig clip)
+  const dustBone = rig.index.has("dust") ? rig.id("dust") : -1;
+  const bb = new THREE.Box3();
+  for (let i = 0, v = new THREE.Vector3(); i < B.p.length; i += 3) if (B.b[i / 3] !== dustBone) bb.expandByPoint(v.set(B.p[i], B.p[i + 1], B.p[i + 2]));
   const size = { x: +(bb.max.x - bb.min.x).toFixed(3), y: +(bb.max.y - bb.min.y).toFixed(3), z: +(bb.max.z - bb.min.z).toFixed(3) };
   let radius = 0;
-  for (let i = 0; i < B.p.length; i += 3) radius = Math.max(radius, Math.hypot(B.p[i], B.p[i + 1] - size.y / 2, B.p[i + 2]));
+  for (let i = 0; i < B.p.length; i += 3) if (B.b[i / 3] !== dustBone) radius = Math.max(radius, Math.hypot(B.p[i], B.p[i + 1] - size.y / 2, B.p[i + 2]));
   const triangles = (B.i.length + F.i.length + Dc.i.length) / 3;
   const drawCalls = 1 + (gFx ? 1 : 0) + (gDecal ? 1 : 0);
   const T = tex().T;
   const wheelsOf = rig.wheels.slice();
-  const clipsOf = rig.kind === "person" ? (PERSON_CLIPS || []) : rig.kind === "quadruped" ? quadClips() : [];
-  const loops = rig.kind === "person" ? PERSON_LOOPS : QUAD_LOOPS;
+  // A person's clips: the A-008 library plus the tool-grip tracks of this build (once per build, when the library is in).
+  let propped = null;
+  const personClips = () => {
+    if (!PERSON_CLIPS) return [];
+    if (!propped || propped.src !== PERSON_CLIPS) propped = { src: PERSON_CLIPS, clips: propClips(rig, PERSON_CLIPS) };
+    return propped.clips;
+  };
+  const clipsOf = rig.kind === "person" ? personClips() : rig.kind === "quadruped" ? quadClips() : rig.kind === "car" ? vehicleClips(rig) : [];
+  const loops = rig.kind === "person" ? PERSON_LOOPS : rig.kind === "car" ? VEH_LOOPS : QUAD_LOOPS;
 
   const instance = (o = {}) => {
     const c = o.color ?? color;
@@ -1348,6 +1521,7 @@ export function buildEntity(specIn, { drawingImage = null, color = 0x22d3ee, qua
     root.name = "entity3d";
     const bones = rig.tree();
     root.add(bones[0]);
+    for (const b of bones) if (b.name === "dust") b.scale.setScalar(0.001); // the dig dust (vehicles) shows only while digging
     const skeleton = new THREE.Skeleton(bones, rig.inverses.map((m) => m.clone()));
     const mk = (geo, mat, name, order) => {
       const m = new THREE.SkinnedMesh(geo, mat);
@@ -1371,7 +1545,7 @@ export function buildEntity(specIn, { drawingImage = null, color = 0x22d3ee, qua
     }
     const wheels = wheelsOf.map((w) => ({ pivot: byName.get(w.bone), radius: w.radius, drawn: false }));
     // Animation: one mixer per instance; the clips are shared.
-    const clips = rig.kind === "person" ? (PERSON_CLIPS || []) : clipsOf;
+    const clips = rig.kind === "person" ? personClips() : clipsOf;
     const mixer = clips.length ? new THREE.AnimationMixer(root) : null;
     const clipBy = new Map(clips.map((cl) => [cl.name, cl]));
     let current = null;

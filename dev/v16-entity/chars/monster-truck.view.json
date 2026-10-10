@@ -1,0 +1,85 @@
+{
+  "v": 1,
+  "type": "car",
+  "view": "side",
+  "facing": "right",
+  "style": "chunky",
+  "seed": 4162375022,
+  "head": {
+    "shape": "none",
+    "size": 0.08,
+    "gear": "none",
+    "face": "none",
+    "eyes": 0,
+    "snout": 0,
+    "color": "",
+    "gearColor": "",
+    "faceColor": ""
+  },
+  "torso": {
+    "shape": "box",
+    "width": 0.06,
+    "color": "",
+    "belt": false,
+    "emblem": ""
+  },
+  "arms": {
+    "count": 0,
+    "length": 0.15,
+    "thickness": "normal",
+    "hands": "none",
+    "color": ""
+  },
+  "legs": {
+    "count": 0,
+    "length": 0.15,
+    "thickness": "normal",
+    "feet": "none",
+    "color": ""
+  },
+  "neck": 0,
+  "tail": {
+    "kind": "none",
+    "color": ""
+  },
+  "vehicle": {
+    "body": "monster truck",
+    "height": 0.31,
+    "cabin": "closed",
+    "wheels": 4,
+    "wheelSize": 0.47,
+    "color": "#27b34a",
+    "rider": false
+  },
+  "items": [
+    {
+      "kind": "drill",
+      "where": "front",
+      "size": 0.15,
+      "color": "#9094a0",
+      "verb": "drill"
+    },
+    {
+      "kind": "lamp",
+      "where": "front",
+      "size": 0.05,
+      "color": "#ffdd39",
+      "verb": null
+    },
+    {
+      "kind": "flames",
+      "where": "back",
+      "size": 0.16,
+      "color": "#ff7b00",
+      "verb": "boost"
+    }
+  ],
+  "palette": {
+    "colored": true,
+    "main": "#27b34a",
+    "second": "",
+    "accent": "#80cdf7",
+    "skin": ""
+  },
+  "source": "model"
+}

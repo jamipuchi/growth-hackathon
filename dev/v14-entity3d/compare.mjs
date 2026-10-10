@@ -37,11 +37,16 @@ const PORT = Number(opt("port", 8441));
 const KIT = argv.includes("--kit"); // render with the A-012 texture kit (view.html &kit=1): <id>.kit.png
 const POSES = opt("poses"); // view.html &poses=idle,walk,dig (rows)
 const TAG = opt("tag"); // a variant run (e.g. --tag prompt2) goes to compare/<model>-<tag>/
-const OUT = path.join(HERE, "compare", TAG ? `${MODEL}-${TAG}` : MODEL);
+// --out <dir> (from the repo root): render into another folder (v16: dev/v16-entity/chars), seeded from --from <dir> (the saved
+// specs and summary of an earlier run, e.g. dev/v14-entity3d/compare/gpt-6.1-sol): replays them, no model call.
+const OUT = opt("out") ? path.resolve(ROOT, opt("out")) : path.join(HERE, "compare", TAG ? `${MODEL}-${TAG}` : MODEL);
+const FROM = opt("from") ? path.resolve(ROOT, opt("from")) : null;
+const OUT_URL = "/" + path.relative(ROOT, OUT).split(path.sep).join("/");
 const CAP = 40;
 const USED_FILE = path.join(HERE, "compare", "calls-used.json");
 const bodies = BODIES.filter((d) => !ONLY || ONLY.has(d.id));
 fs.mkdirSync(OUT, { recursive: true });
+if (FROM) for (const f of fs.readdirSync(FROM)) if (/\.spec\.json$|^summary\.json$/.test(f) && !fs.existsSync(path.join(OUT, f))) fs.copyFileSync(path.join(FROM, f), path.join(OUT, f));
 
 const used = () => { try { return JSON.parse(fs.readFileSync(USED_FILE, "utf8")).calls || 0; } catch { return 0; } };
 const addUsed = (n, note) => {
@@ -155,7 +160,7 @@ async function portFree(port) {
 }
 
 async function withBrowser(fn) {
-  if (!(PORT >= 8440 && PORT <= 8449)) throw new Error(`--port ${PORT}: this lane uses 8440-8449`);
+  if (!((PORT >= 8440 && PORT <= 8449) || (PORT >= 8500 && PORT <= 8509))) throw new Error(`--port ${PORT}: this lane uses 8440-8449 (v16: 8500-8509)`);
   if (!(await portFree(PORT))) throw new Error(`port ${PORT} is busy: pick another one in 8440-8449 with --port`);
   const server = spawn(process.execPath, [path.join(HERE, "serve.mjs"), String(PORT)], { stdio: ["ignore", "pipe", "inherit"] });
   let browser = null;
@@ -180,7 +185,7 @@ async function renderPhase() {
       if (!fs.existsSync(specFile)) { console.log(`${d.id}: no spec yet`); continue; }
       const rec = JSON.parse(fs.readFileSync(specFile, "utf8"));
       fs.writeFileSync(path.join(OUT, `${d.id}.view.json`), JSON.stringify(rec.spec, null, 2)); // the bare spec view.html loads
-      const specUrl = `/dev/v14-entity3d/compare/${path.basename(OUT)}/${d.id}.view.json`;
+      const specUrl = `${OUT_URL}/${d.id}.view.json`;
       const imgUrl = `/${imageOf(d).file}`;
       const t0 = Date.now();
       await page.goto(`http://127.0.0.1:${PORT}/dev/v14-entity3d/view.html?spec=${encodeURIComponent(specUrl)}&img=${encodeURIComponent(imgUrl)}&color=22d3ee&quality=big${KIT ? "&kit=1" : ""}${POSES ? `&poses=${encodeURIComponent(POSES)}` : ""}`);
@@ -199,7 +204,7 @@ async function renderPhase() {
 
 async function sheetIn(browser) {
   const page = await browser.newPage({ viewport: { width: 1500, height: 400 } });
-  await page.goto(`http://127.0.0.1:${PORT}/dev/v14-entity3d/sheet.html?model=${encodeURIComponent(path.basename(OUT))}`);
+  await page.goto(`http://127.0.0.1:${PORT}/dev/v14-entity3d/sheet.html?model=${encodeURIComponent(path.basename(OUT))}&base=${encodeURIComponent(OUT_URL + "/")}`);
   await page.waitForFunction(() => window.__ready, null, { timeout: 30000 });
   await page.screenshot({ path: path.join(OUT, "contact.png"), fullPage: true });
   console.log(`contact sheet: ${path.relative(ROOT, path.join(OUT, "contact.png"))}`);

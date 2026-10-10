@@ -1,0 +1,264 @@
+{
+  "id": "photo-E13",
+  "model": "gpt-6.1-sol",
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "PHOTO on lined paper: fighter + cannon + flames",
+  "view": "side",
+  "drawing": "dev/gen-corpus/photos/E13.jpg",
+  "http": 1,
+  "wallMs": 3082,
+  "ms": 3080,
+  "status": 200,
+  "usage": {
+    "input": 2197,
+    "output": 343,
+    "reasoning": 138
+  },
+  "raw": {
+    "view": "top",
+    "noseDir": "right",
+    "style": "sleek",
+    "hull": {
+      "shape": "dart",
+      "width": 0.25,
+      "height": 0.18,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.25,
+      "size": 0.23,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.63,
+      "span": 0.66,
+      "chord": 0.35,
+      "mount": "mid",
+      "color": ""
+    },
+    "fins": [],
+    "engines": {
+      "count": 1,
+      "size": 0.16,
+      "flame": true,
+      "flameColor": "",
+      "layout": "single"
+    },
+    "weapons": [
+      {
+        "kind": "cannon",
+        "count": 1,
+        "at": 0.5,
+        "mount": "top",
+        "size": 0.27,
+        "color": ""
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    }
+  },
+  "spec": {
+    "v": 1,
+    "view": "top",
+    "noseDir": "right",
+    "style": "sleek",
+    "seed": 3989718,
+    "hull": {
+      "shape": "dart",
+      "width": 0.25,
+      "height": 0.18,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.25,
+      "size": 0.23,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.63,
+      "span": 0.66,
+      "chord": 0.35,
+      "mount": "mid",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.86,
+        "size": 0.24,
+        "color": "",
+        "implied": true
+      }
+    ],
+    "engines": {
+      "count": 1,
+      "size": 0.16,
+      "flame": true,
+      "flameColor": "",
+      "layout": "single",
+      "verb": "boost"
+    },
+    "weapons": [
+      {
+        "kind": "cannon",
+        "count": 1,
+        "at": 0.5,
+        "mount": "top",
+        "size": 0.27,
+        "color": "",
+        "verb": "shoot"
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 4129,
+    "drawCalls": 3,
+    "glTriangles": 4129,
+    "ms": 12.9,
+    "size": {
+      "x": 1.9896658658981323,
+      "y": 1.1889182329177856,
+      "z": 3.200000047683716
+    },
+    "radius": 1.7070299998102827,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        -0.05,
+        -0.87
+      ],
+      "wing_r": [
+        0.96,
+        -0.24,
+        0.57
+      ],
+      "wing_l": [
+        -0.96,
+        -0.24,
+        0.57
+      ],
+      "back": [
+        0,
+        0.24,
+        0.9
+      ],
+      "engine_l": [
+        -0.14,
+        -0.31,
+        1.6
+      ],
+      "engine_r": [
+        0.14,
+        -0.31,
+        1.6
+      ],
+      "nose": [
+        0,
+        0.03,
+        -0.75
+      ],
+      "belly": [
+        0,
+        -0.57,
+        -0.14
+      ]
+    },
+    "wallMs": 125
+  },
+  "renderKit": {
+    "ok": true,
+    "kit": true,
+    "triangles": 4129,
+    "drawCalls": 3,
+    "glTriangles": 4129,
+    "ms": 5.6,
+    "size": {
+      "x": 1.9896658658981323,
+      "y": 1.1889182329177856,
+      "z": 3.200000047683716
+    },
+    "radius": 1.7070299998102827,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        -0.05,
+        -0.87
+      ],
+      "wing_r": [
+        0.96,
+        -0.24,
+        0.57
+      ],
+      "wing_l": [
+        -0.96,
+        -0.24,
+        0.57
+      ],
+      "back": [
+        0,
+        0.24,
+        0.9
+      ],
+      "engine_l": [
+        -0.14,
+        -0.31,
+        1.6
+      ],
+      "engine_r": [
+        0.14,
+        -0.31,
+        1.6
+      ],
+      "nose": [
+        0,
+        0.03,
+        -0.75
+      ],
+      "belly": [
+        0,
+        -0.57,
+        -0.14
+      ]
+    },
+    "wallMs": 141
+  }
+}

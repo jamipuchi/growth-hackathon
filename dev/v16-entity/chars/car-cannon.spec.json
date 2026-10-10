@@ -1,0 +1,190 @@
+{
+  "id": "car-cannon",
+  "model": "gpt-6.1-sol",
+  "tag": null,
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "car + cannon on the roof",
+  "type": "car",
+  "skills": [
+    "shoot"
+  ],
+  "drawing": "dev/gen-corpus/entity/E23.png",
+  "http": 1,
+  "wallMs": 1922,
+  "ms": 1922,
+  "status": 200,
+  "usage": {
+    "input": 2567,
+    "output": 222,
+    "reasoning": 0
+  },
+  "raw": {
+    "type": "car",
+    "view": "side",
+    "facing": "left",
+    "style": "chunky",
+    "head": {
+      "shape": "none",
+      "size": 0,
+      "gear": "none",
+      "face": "none",
+      "eyes": 0,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0,
+      "thickness": "normal",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 0,
+      "length": 0,
+      "thickness": "normal",
+      "feet": "none",
+      "color": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "sedan",
+      "height": 0.35,
+      "cabin": "closed",
+      "wheels": 4,
+      "wheelSize": 0.21,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "cannon",
+        "where": "roof",
+        "size": 0.2,
+        "color": ""
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    }
+  },
+  "spec": {
+    "v": 1,
+    "type": "car",
+    "view": "side",
+    "facing": "left",
+    "style": "chunky",
+    "seed": 324091994,
+    "head": {
+      "shape": "none",
+      "size": 0.08,
+      "gear": "none",
+      "face": "none",
+      "eyes": 0,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0.06,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "normal",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "normal",
+      "feet": "none",
+      "color": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "sedan",
+      "height": 0.35,
+      "cabin": "closed",
+      "wheels": 4,
+      "wheelSize": 0.21,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "cannon",
+        "where": "roof",
+        "size": 0.2,
+        "color": "",
+        "verb": "shoot"
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "rig": "car",
+    "triangles": 4000,
+    "drawCalls": 3,
+    "glTriangles": 4000,
+    "ms": 13.7,
+    "size": {
+      "x": 2.095,
+      "y": 2.101,
+      "z": 4.158
+    },
+    "radius": 2.3469898364381767,
+    "clips": [
+      "idle",
+      "walk",
+      "run",
+      "jump",
+      "dig"
+    ],
+    "clipsLoaded": true,
+    "poses": [
+      "idle",
+      "run",
+      "dig"
+    ],
+    "wallMs": 166
+  }
+}

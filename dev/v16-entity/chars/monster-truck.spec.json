@@ -1,0 +1,217 @@
+{
+  "id": "monster-truck",
+  "model": "gpt-6.1-sol",
+  "tag": null,
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "generated: coloured green monster truck, blue window, huge black wheels, exhaust flames at the back, drill at the front",
+  "type": "car",
+  "skills": [
+    "boost",
+    "drill"
+  ],
+  "drawing": "dev/v14-entity3d/drawings/monster-truck.png",
+  "http": 1,
+  "wallMs": 2284,
+  "ms": 2280,
+  "status": 200,
+  "usage": {
+    "input": 2625,
+    "output": 485,
+    "reasoning": 0
+  },
+  "raw": {
+    "type": "car",
+    "view": "side",
+    "facing": "right",
+    "style": "chunky",
+    "head": {
+      "shape": "none",
+      "size": 0,
+      "gear": "none",
+      "face": "none",
+      "eyes": 0,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0,
+      "thickness": "normal",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 0,
+      "length": 0,
+      "thickness": "normal",
+      "feet": "none",
+      "color": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "monster truck",
+      "height": 0.31,
+      "cabin": "closed",
+      "wheels": 4,
+      "wheelSize": 0.47,
+      "color": "#27b34a",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "drill",
+        "where": "front",
+        "size": 0.15,
+        "color": "#9094a0"
+      },
+      {
+        "kind": "lamp",
+        "where": "front",
+        "size": 0.04,
+        "color": "#ffdd39"
+      },
+      {
+        "kind": "flames",
+        "where": "back",
+        "size": 0.16,
+        "color": "orange"
+      }
+    ],
+    "palette": {
+      "colored": true,
+      "main": "#27b34a",
+      "second": "#1c1b23",
+      "accent": "#80cdf7",
+      "skin": ""
+    }
+  },
+  "spec": {
+    "v": 1,
+    "type": "car",
+    "view": "side",
+    "facing": "right",
+    "style": "chunky",
+    "seed": 4162375022,
+    "head": {
+      "shape": "none",
+      "size": 0.08,
+      "gear": "none",
+      "face": "none",
+      "eyes": 0,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0.06,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "normal",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "normal",
+      "feet": "none",
+      "color": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "monster truck",
+      "height": 0.31,
+      "cabin": "closed",
+      "wheels": 4,
+      "wheelSize": 0.47,
+      "color": "#27b34a",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "drill",
+        "where": "front",
+        "size": 0.15,
+        "color": "#9094a0",
+        "verb": "drill"
+      },
+      {
+        "kind": "lamp",
+        "where": "front",
+        "size": 0.05,
+        "color": "#ffdd39",
+        "verb": null
+      },
+      {
+        "kind": "flames",
+        "where": "back",
+        "size": 0.16,
+        "color": "#ff7b00",
+        "verb": "boost"
+      }
+    ],
+    "palette": {
+      "colored": true,
+      "main": "#27b34a",
+      "second": "",
+      "accent": "#80cdf7",
+      "skin": ""
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "rig": "car",
+    "triangles": 4143,
+    "drawCalls": 3,
+    "glTriangles": 4143,
+    "ms": 13.9,
+    "size": {
+      "x": 3.672,
+      "y": 3.213,
+      "z": 5.74
+    },
+    "radius": 3.2719882869058377,
+    "clips": [
+      "idle",
+      "walk",
+      "run",
+      "jump",
+      "dig"
+    ],
+    "clipsLoaded": true,
+    "poses": [
+      "idle",
+      "run",
+      "dig"
+    ],
+    "wallMs": 169
+  }
+}

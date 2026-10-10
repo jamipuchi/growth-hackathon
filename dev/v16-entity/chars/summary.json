@@ -1,0 +1,139 @@
+{
+  "model": "gpt-6.1-sol",
+  "tag": null,
+  "at": "2026-10-10T08:33:10.228Z",
+  "n": 10,
+  "schemaFailures": 0,
+  "p50": 1922,
+  "p90": 3806,
+  "max": 3806,
+  "outTokens": {
+    "p50": 229,
+    "max": 521,
+    "total": 2871
+  },
+  "callsUsed": 20,
+  "cap": 40,
+  "calls": [
+    {
+      "id": "astronaut-shovel",
+      "ms": 2136,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2606,
+        "output": 228,
+        "reasoning": 0
+      }
+    },
+    {
+      "id": "astronaut-drill",
+      "ms": 1467,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2644,
+        "output": 229,
+        "reasoning": 0
+      }
+    },
+    {
+      "id": "car-cannon",
+      "ms": 1922,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2567,
+        "output": 222,
+        "reasoning": 0
+      }
+    },
+    {
+      "id": "bike-lamp",
+      "ms": 1888,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2567,
+        "output": 222,
+        "reasoning": 0
+      }
+    },
+    {
+      "id": "dog-claws",
+      "ms": 1912,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2644,
+        "output": 207,
+        "reasoning": 0
+      }
+    },
+    {
+      "id": "blob",
+      "ms": 1594,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2663,
+        "output": 198,
+        "reasoning": 0
+      }
+    },
+    {
+      "id": "color-person",
+      "ms": 3806,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2644,
+        "output": 521,
+        "reasoning": 41
+      }
+    },
+    {
+      "id": "color-robot",
+      "ms": 1628,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2644,
+        "output": 279,
+        "reasoning": 0
+      }
+    },
+    {
+      "id": "horse-saddle",
+      "ms": 2066,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2644,
+        "output": 280,
+        "reasoning": 0
+      }
+    },
+    {
+      "id": "monster-truck",
+      "ms": 2280,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2625,
+        "output": 485,
+        "reasoning": 0
+      }
+    }
+  ]
+}

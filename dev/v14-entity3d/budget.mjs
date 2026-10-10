@@ -6,7 +6,9 @@ import { spawn } from "child_process";
 import fs from "fs"; import os from "os"; import path from "path"; import { fileURLToPath } from "url";
 const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const PORT = 8441, DIR = path.join(HERE, "compare", "gpt-6.1-sol");
+// node dev/v14-entity3d/budget.mjs [port=8441] [out.json=dev/v14-entity3d/out/budget.json]   (v16: port 8500-8509)
+const PORT = Number(process.argv[2] || 8441), DIR = path.join(HERE, "compare", "gpt-6.1-sol");
+const OUT_FILE = process.argv[3] ? path.resolve(HERE, "../..", process.argv[3]) : path.join(HERE, "out", "budget.json");
 const CACHE = path.join(os.homedir(), "Library/Caches/ms-playwright");
 const newest = (p) => fs.readdirSync(CACHE).filter((x) => new RegExp(`^${p}-\\d+$`).test(x)).sort((a, b) => Number(b.split("-").pop()) - Number(a.split("-").pop()))[0];
 const CHROME = path.join(CACHE, newest("chromium"), "chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing");
@@ -30,13 +32,16 @@ try {
         const t0 = performance.now();
         const e = E.buildEntity(spec, { color: 0x22d3ee, quality });
         const inst = e.instance({ color: 0x22d3ee });
-        r[id][quality] = { triangles: e.triangles, drawCalls: e.drawCalls, buildMs: +e.ms, totalMs: +(performance.now() - t0).toFixed(1), detail: e.detail, size: e.size, clips: e.clips.length, wheels: e.wheels.length };
+        // every clip plays (v1.6: the tool-grip tracks, the vehicle clips) without a missing-bone warning
+        let played = 0; const warn = console.warn; let warned = 0; console.warn = (...a) => { warned++; warn(...a); };
+        try { if (inst.play) for (const c of inst.clips) { inst.play(c.name, { fade: 0 }); inst.update(0.1); played++; } } finally { console.warn = warn; }
+        r[id][quality] = { triangles: e.triangles, drawCalls: e.drawCalls, buildMs: +e.ms, totalMs: +(performance.now() - t0).toFixed(1), detail: e.detail, size: e.size, clips: e.clips.length, played, warned, bones: e.bones.size, wheels: e.wheels.length };
         inst.dispose(); e.dispose();
       }
     }
     return r;
   }, specs));
 } finally { await browser.close(); server.kill(); }
-fs.mkdirSync(path.join(HERE, "out"), { recursive: true });
-fs.writeFileSync(path.join(HERE, "out", "budget.json"), JSON.stringify(out, null, 2));
-for (const [id, q] of Object.entries(out)) console.log(id.padEnd(17), ["lite", "phone", "big"].map((k) => `${k} ${q[k].triangles}t/${q[k].drawCalls}c/${q[k].buildMs}ms`).join("  "), `size ${q.big.size.x}x${q.big.size.y}x${q.big.size.z}`);
+fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
+fs.writeFileSync(OUT_FILE, JSON.stringify(out, null, 2));
+for (const [id, q] of Object.entries(out)) console.log(id.padEnd(17), ["lite", "phone", "big"].map((k) => `${k} ${q[k].triangles}t/${q[k].drawCalls}c/${q[k].buildMs}ms`).join("  "), `size ${q.big.size.x}x${q.big.size.y}x${q.big.size.z}`, `bones ${q.big.bones} clips ${q.big.played}/${q.big.clips} warn ${q.big.warned}`);
