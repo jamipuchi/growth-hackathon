@@ -4,8 +4,9 @@
 // v1.1 (PLAN.md section 0): the host starts the round (start()); it ends at 4:00 or when every chest is open, and most
 // points wins (a star on the session leaderboard). An entity can only use the skills drawn on it (Verbs.entityVerbs);
 // gates: a weapon for the boss, LAND for the planet, DIG (buried chests) and DRILL (chests inside rocks).
-// Bots are fillers, not players: they count TUNING.botWeight for the boss's HP and the chests, fight the boss, never
-// start a fight with a human, never land, and take no prize from a human (botThink, canHurt, hitBoss).
+// Bots are fillers, not players: they count TUNING.boss.botWeight for the boss's HP and TUNING.botWeight for the chests
+// (v1.4: 0, they never land), fight the boss, never start a fight with a human, never land, and take no prize from a
+// human (botThink, canHurt, hitBoss).
 // v1.2: the drill is a planet skill only (rock chests); a ship can never drill the boss.
 // v1.3 mischief (PLAN.md "Mischief"): mine, tractor, EMP, ink bomb and decoy, each unlocked by a drawn part, aimed at
 // the nearest human rival (mischief()); the victim's phone gets a `mischief` message and the kill feed announces it.
@@ -156,9 +157,11 @@ const hasControl = (layout, verb) => (layout || DEFAULT_LAYOUT).buttons.some((b)
 // The chest count for a round: scales with the players at START so 25 can open them all in about 3:00.
 const chestCount = (players) => clamp(ISL.chestsBase + Math.ceil(Math.max(1, players) * ISL.chestsPerPlayer - 1e-9), 3, ISL.chestsMax);
 const bossHp = (players) => Math.round(T.boss.hp * (1 + T.boss.hpPerExtraPlayer * (Math.max(1, players) - 1)));
-// Who the boss's HP and the chest count are scaled for: every human counts 1, every bot TUNING.botWeight (bots are
-// fillers, not players). 1 human + 24 bots = 7.
-const scaledCount = (list) => Math.max(1, r2(list.reduce((n, p) => n + (p.bot ? T.botWeight : 1), 0)));
+// Who the chest count is scaled for: every human counts 1, every bot TUNING.botWeight (bots are fillers, not players;
+// v1.4: 0, they never land). The boss's HP counts every bot TUNING.boss.botWeight instead (v1.4: at a close boss a bot
+// fires about half as hard as a human): 1 human + 24 bots = 1 for the chests, 13 for the HP.
+const scaledCount = (list, botWeight = T.botWeight) => Math.max(1, r2(list.reduce((n, p) => n + (p.bot ? botWeight : 1), 0)));
+const hpCount = (list) => scaledCount(list, T.boss.botWeight ?? T.botWeight);
 
 // The largest box that fits on the pad without touching any control, farthest from the others (PLAN.md section 4, Hints).
 function ghostBox(layout, action) {
@@ -643,7 +646,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     sendWorld();
   }
 
-  // START: the boss's HP and the chest count scale with the players in the round now (bots count botWeight each).
+  // START: the boss's HP and the chest count scale with the players in the round now (bots count boss.botWeight each
+  // for the HP, botWeight each for the chests).
   // countdown (owner, 10 Oct 09:05: a real server phase so every phone counts with the big screen): phase "countdown"
   // for ROUND.countdownSeconds (tick.countdown 3, 2, 1), then GO (go()). Meanwhile nothing moves, fires or thinks,
   // bots included (step() runs no simulate), and presses are dropped; held keys and sticks count from GO. server.js
@@ -651,7 +655,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   function start({ countdown = false } = {}) {
     if (S.phase !== "lobby") return false;
     S.playerCount = scaledCount(active());
-    const hp = bossHp(S.playerCount);
+    const hp = bossHp(hpCount(active()));
     Object.assign(boss, { hp, maxHp: hp });
     buildIsland(chestCount(S.playerCount));
     const wait = countdown ? Math.max(0, Number(ROUND.countdownSeconds) || 0) : 0;
@@ -668,10 +672,9 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       // Somebody joined (or a bot left) during the 3-2-1: the round is scaled for who is here at GO. The island keeps
       // its shape (a new seed would rebuild the terrain on every screen at GO): only the chests are placed again, and
       // if they do not fit, the START ones stay.
-      const n = scaledCount(active());
-      if (n !== S.playerCount) {
+      const n = scaledCount(active()), hp = bossHp(hpCount(active()));
+      if (n !== S.playerCount || hp !== boss.maxHp) {
         S.playerCount = n;
-        const hp = bossHp(n);
         Object.assign(boss, { hp, maxHp: hp });
         const count = chestCount(n);
         if (count !== chests.length) placeChests(landing.x, landing.z, count); // false: chests unchanged

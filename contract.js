@@ -19,30 +19,35 @@
   const ROUND = { autostartSeconds: null, maxSeconds: 240, assistsAt: 180, scoreboardSeconds: 10, countdownSeconds: 3 };
   // 1 unit = 1 m. Distances are the tuning targets from PLAN.md; playtests adjust them here only.
   const TUNING = {
-    // v1.3 pacing (PLAN.md section 0: a round ends at 4:00 or when every chest is open; 25 players open all chests in
-    // about 3:00, an expert's round ends about 3:00, a regular's about 4:00; owner, 10 Oct 09:05: about 60 s cruising
-    // to the boss, about 40 s holding BOOST). The flight stays as it was (bossDistance 1100: 1100 / 18 ≈ 61 s cruising;
-    // FORWARD + BOOST ≈ 41 s). The round grows after the boss instead. Old → new: boss.hp 2400 → 3000, planet.offset
-    // 600 → 800, island.digSeconds 2 → 3, drillSeconds 2.5 → 3.5, chestSpread 40 → 48, worldRadius 2000 → 2200 (the
-    // planet sits at ≈ 1900 m), rockCount 320 → 340 (destroyed rocks are not replaced any more).
+    // v1.4 pacing (PLAN.md section 0, owner 10 Oct 10:00: "make sure you are not that far away from the boss + it has
+    // less life so it can be completed faster"; "we want most of the time to be spent on the planet"). Space is a short
+    // opening act: the boss about 20 s cruising (15 s with BOOST), down in about 10-15 s of shared fire, the planet
+    // close behind it; most of the round is on the planet (more chests, spread wider, a little more digging and
+    // drilling). A round still ends at 4:00 or when every chest is open. Old → new: bossDistance 1100 → 400
+    // (nebula.distance too), boss.hp 3000 → 1200, boss.hpPerExtraPlayer 0.5 → 0.3, boss.botWeight new 0.5 (the boss's
+    // HP counts a bot as half a player: at a close boss 24 bots fire ≈ 450 dps), botWeight 0.25 → 0 (only the chests
+    // use it now: bots never land), boss.respawnDistance 300 → 200, rockCluster.radius 320 → 220, planet.offset
+    // 800 → 350, island.chestsBase 2 → 15, chestsPerPlayer 0.7 → 0.65, chestsMax 20 → 32 (render.js draws at most 32
+    // chests), chestSpread 48 → 34, chestSpreadPerChest 2 → 4, digSeconds 3 → 4, drillSeconds 3.5 → 4.5.
     // Speeds (unchanged): cruise 18, FORWARD +3 = 21 m/s; BOOST ×1.7 drains a full tank in 3.3 s, then pulses (1 s
-    // recharge to 20%, 0.67 s boost): 40% duty = ×1.28, so FORWARD + BOOST held ≈ 26.9 m/s.
-    // Last e2e (1 human + 24 bots, count 7: boss 9600 HP, 7 chests): expert ended 141 s, regular 221 s. Now:
-    //   expert (boosts, draws in the lobby): boss reached ≈ 38 s · 12000 HP (bots + expert ≈ 315 dps) ≈ 38 s → dead
-    //     ≈ 77 s · 800 m to the planet ≈ 28 s → ≈ 108 s · land 3 s · 7 chests (spread up to 62 m; 4 × 3 s dig +
-    //     3 × 3.5 s drill + walking) ≈ 60 s → ends ≈ 170 s ≈ 2:50.
-    //   regular (no boost, waits for each hint, draws in 12 s): boss ≈ 50 s · weapon gate ≈ 14 s · boss dead (mostly
-    //     bots) ≈ 85 s · planet ≈ 38 s → ≈ 123 s · LAND gate + land ≈ 18 s → ≈ 141 s · explorer ≈ 19 s → ≈ 160 s ·
-    //     DIG gate + dig ≈ 21 s → first chest ≈ 181 s · DRILL gate (no free skills at 3:00: the hint says "draw X")
-    //     · chests 2-7 ≈ 55 s → the 4:00 cap ends it (≈ 5-7 of 7 chests): ≈ 4:00.
-    //   25 humans (count 25: boss 39000 HP, 20 chests): fly 41-61 s · ≈ 20 guns × 47 dps ≈ 41 s → boss dead ≈ 100 s ·
-    //     planet ≈ 30-38 s → ≈ 135 s · land + explorer ≈ 15 s → ≈ 150 s · 20 chests within 48 + 2 × 20 = 88 m, about
-    //     one per player (walk ≈ 10 s + 3-3.5 s, gates for the regulars) → all open ≈ 175-190 s ≈ 3:00.
+    // recharge to 20%, 0.67 s boost): 40% duty = ×1.28. Spawn centre → boss: cruise 21 s, holding BOOST 15 s, FORWARD +
+    // BOOST 13 s; boss → the planet's landing range 16 s at cruise (dev/v14-pacing/flight.mjs).
+    // dev/netcode/balance-sim.mjs, 1 human + 24 bots (boss 5520 HP, 16 chests up to 98 m from the pad), seeds 1-6:
+    //   expert (boosts, draws in the lobby): boss reached 0:11 · down 0:19-0:20 (11-12 s from the first hit) · landed
+    //     0:35-0:39 · 16 chests (8 × 4 s dig + 8 × 4.5 s drill + walking) → every chest open at 2:54-3:12.
+    //   regular (no boost, waits for each hint, draws in 12 s): boss 0:15 · down (bots) 0:27-0:28 · planet 0:43-0:45 ·
+    //     a new ship with legs + the LAND button → landed 1:19-1:22 · explorer + DIG + DRILL → first chest 2:02-2:05 ·
+    //     still opening chests at the 4:00 cap (11-13 of 16).
+    //   25 humans (boss 9840 HP, 32 chests up to 162 m out; dev/v14-pacing/crowd-sim.mjs, 4 experts + 21 regulars):
+    //     boss down 0:30 (the regulars' guns come with their drawings) · experts land 0:45, regulars 1:04-1:22 · every
+    //     chest open at 2:09-2:20 when each human takes the chest nearest to them, 3:01-3:59 when the crowd bunches on
+    //     one chest at a time: ≈ 3:00 for a real room in between, 52-74% (≈ 63%) of the round on the planet.
+    //     First-timers only (no experts), spread out: 2:43-3:14, 59-65% on the planet.
     // Bots never land, so they never open a chest: the chests are the humans' alone.
     worldRadius: 2200,
-    bossDistance: 1100,
+    bossDistance: 400,
     rockCount: 340,
-    rockCluster: { share: 0.6, radius: 320 },   // share of the rocks within radius m of the boss
+    rockCluster: { share: 0.6, radius: 220 },   // share of the rocks within radius m of the boss
     spawnSpacing: 12,                           // unused since v1.3 (old readers): spawns use spawnRadius
     // v1.3 spawn (ruthless PvP): ships start on a sunflower disc of radius spawnRadius m across the line to the boss
     // (25 ships ≈ 40 m apart, side by side, all facing the boss; humans take the inner slots); rocks keep 40 m clear
@@ -67,27 +72,30 @@
     shield: { drainPerSecond: 0.35, rechargePerSecond: 0.15 },
     boost: { drainPerSecond: 0.3, rechargePerSecond: 0.2 },
     // The boss floats in a colourful (decorative) nebula at bossDistance, visible from far away.
-    nebula: { distance: 1100, radius: 220 },   // = bossDistance (world.js centres it on the boss)
+    nebula: { distance: 400, radius: 220 },   // = bossDistance (world.js centres it on the boss)
     flare: { seconds: 14, radius: 120 },
     // No armour gate any more (armour is always 0 on the wire; TUNING.boss.armour stays for old readers). Any weapon
-    // hurts it. maxHp = hp × (1 + hpPerExtraPlayer × (players − 1)), players counted at START as humans + botWeight ×
-    // bots (bots are fillers, not players; the chest count uses the same number): solo ≈ 38 s of steady fire (one gun
-    // lands ≈ 80 dps; v1.3 hp 3000, was 2400), 25 players ≈ 20 s all firing. v1.2: ships have no drill (it is a planet skill for the chests
+    // hurts it. maxHp = hp × (1 + hpPerExtraPlayer × (players − 1)), players counted at START as humans +
+    // boss.botWeight × bots (bots are fillers, not players, but at a close boss they fire about half as hard as a
+    // human): solo ≈ 15 s of steady fire (one gun lands ≈ 80 dps; v1.4 hp 1200, was 3000), 1 human + 24 bots 5520 HP ≈
+    // 12 s, 25 players 9840 HP ≈ 10 s once 10 guns fire. v1.2: ships have no drill (it is a planet skill for the chests
     // locked in rocks); boss.drillRange / drillPerSecond are unused and stay only for old readers.
-    botWeight: 0.25,
+    botWeight: 0, // v1.4: the chest count only (humans + botWeight × bots); bots never land, so they add no chest
     // It shoots back: every shotEverySeconds / √(ships in shotRange), at a random one of them. A ship destroyed in
     // space respawns where it died, but at least respawnDistance m from a living boss.
-    boss: { radius: 20, armour: 100, hp: 3000, hpPerExtraPlayer: 0.5, drillRange: 14, drillPerSecond: 100, shotEverySeconds: 1.2, shotRange: 260, shotSpeed: 70, shotDamage: 10, shotLife: 4, respawnDistance: 300 },
+    boss: { radius: 20, armour: 100, hp: 1200, hpPerExtraPlayer: 0.3, botWeight: 0.5, drillRange: 14, drillPerSecond: 100, shotEverySeconds: 1.2, shotRange: 260, shotSpeed: 70, shotDamage: 10, shotLife: 4, respawnDistance: 200 },
     scan: { range: 250, seconds: 8 },
     drawings: { space: 5, planet: 5 },   // finished drawings per player per round (PLAN.md, Drawing budget)
     // v1 keeps the world simple: plain rocks plus bonus crystals. The other types stay defined for later.
     rockTypesInPlay: ["stone", "crystal"],
-    planet: { offset: 800, radius: 40, landRange: 25, landingSeconds: 3, takeoffSeconds: 2, parkedShipHp: 300 },
-    // Chests: count = clamp(chestsBase + ceil(players × chestsPerPlayer), 3, chestsMax), half buried (DIG), half in
-    // rocks (DRILL). chestSpread grows by chestSpreadPerChest per chest. Planet movement per entity type: walkSpeed ×
-    // speeds[type]; jumps only for the types in jumpers.
-    island: { chests: 3, chestsBase: 2, chestsPerPlayer: 0.7, chestsMax: 20, chestSpread: 48, chestSpreadPerChest: 2,
-      walkSpeed: 8, runMultiplier: 2, jumpSpeed: 9, gravity: 24, digSeconds: 3, drillSeconds: 3.5, pickupRange: 3, explorerDrawSeconds: 15,
+    planet: { offset: 350, radius: 40, landRange: 25, landingSeconds: 3, takeoffSeconds: 2, parkedShipHp: 300 },
+    // Chests: count = clamp(chestsBase + ceil(players × chestsPerPlayer), 3, chestsMax), players = humans + botWeight ×
+    // bots (v1.4: humans only): 16 for one human, 19 for 5, 22 for 10, 32 for 25 (render.js draws at most 32). Half
+    // buried (DIG), half in rocks (DRILL). chestSpread grows by chestSpreadPerChest per chest (16 chests: up to 98 m
+    // from the pad; 32: 162 m). Planet movement per entity type: walkSpeed × speeds[type]; jumps only for the types in
+    // jumpers.
+    island: { chests: 3, chestsBase: 15, chestsPerPlayer: 0.65, chestsMax: 32, chestSpread: 34, chestSpreadPerChest: 4,
+      walkSpeed: 8, runMultiplier: 2, jumpSpeed: 9, gravity: 24, digSeconds: 4, drillSeconds: 4.5, pickupRange: 3, explorerDrawSeconds: 15,
       speeds: { person: 1, quadruped: 1.6, car: 2.4, bike: 2.2, blob: 1.1 }, jumpers: ["person", "quadruped", "blob"] },
     // Ruthless (PLAN.md section 0): killing a player within stealSeconds after they opened a chest steals stealShare of
     // its points. Refused verbs explain themselves at most once per refusalToastSeconds per verb.
@@ -287,13 +295,18 @@
    *                        unlocked: [{ verb, part }],                   // the card: what the drawing unlocked and why
    *                        parts: [{ name, x, y }],                      // drawn parts, x, y fractions of the drawing
    *                        source: "plain"|"model"|"devkit"|"bot", anims, image?,
-   *                        spec?,                                        // v1.4, ships only: the drawing as 3D parts
+   *                        spec?,                                        // v1.4, ships: the drawing as 3D parts
    *                                                                      // (astra-ship.js: hull, cockpit, wings, fins,
    *                                                                      // engines, weapons, extras, palette; source
    *                                                                      // "model" | "entity"), built by ship3d.js on
-   *                                                                      // every screen; also on island.parked[]. A
-   *                                                                      // model spec that lands after the /generate
-   *                                                                      // answer re-sends the entity
+   *                                                                      // every screen; also on island.parked[].
+   *                                                                      // Explorers (person, quadruped, car, bike,
+   *                                                                      // blob): the BODY spec (astra-body.js: type,
+   *                                                                      // head, torso, arms, legs, tail, vehicle,
+   *                                                                      // items, palette; source "model" | "entity"),
+   *                                                                      // built rigged by entity3d.js. A model spec
+   *                                                                      // that lands after the /generate answer
+   *                                                                      // re-sends the entity
    *                        card,                                         // v1.3: the unlock card in plain words, ≤ 200
    *                                                                      // chars ("Your ship can: fly, shoot (cannon)"):
    *                                                                      // Astra's for a drawing, else Verbs.cardOf
@@ -306,7 +319,7 @@
    * GET  /events?player=<name> | ?screen=big          // SSE. A phone names itself (it alone gets its toast, mischief
    *                                                  // and controller html); the TV says screen=big (no toasts).
    *                                                  // A stream with neither gets everything, as before
-   * GET  /ship-spec?v=<hash>                          → { ok, spec } | 404   // v1.4: the spec of a ship drawing by the
+   * GET  /ship-spec?v=<hash>                          → { ok, spec } | 404   // v1.4: the spec of a ship (or explorer: body spec) drawing by the
    *                                                  // ?v= of its /drawings URL (sha1 of the PNG, 10 hex): the phone's
    *                                                  // result card (its first ship comes before its event stream)
    * GET  /info                                        → { lanUrl, httpsUrl, controllerUrl, bigScreenUrl }   // v1.2: the

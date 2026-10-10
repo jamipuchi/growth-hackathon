@@ -1,9 +1,10 @@
 // Fast-forward tests of world.js, v1.1 rules (PLAN.md section 0): the START button, the 4:00 cap and the all-chests
 // end, most points wins plus stars, unlockable skills (refusals, dev kit, redraws, assists), the boss (any weapon, HP
 // scaling, shooting back), chest kinds and counts, planet movement per type, ruthless steals and wrecks, the hint ladder
-// (parts, then buttons), and tick size with 25 players. v1.1 balance: bots count 0.25 (boss HP, chests), flight times
-// (cruise ~60 s, full boost ~40 s), bots' fire discipline and revenge, human shots through bots, the +1000 for humans,
-// wreck +150, dry chest walks and bays, the shore slide. The whole route with 24 bots: dev/netcode/balance-sim.mjs.
+// (parts, then buttons), and tick size with 25 players. v1.4 balance: bots count 0.5 for the boss's HP and 0 for the
+// chests, flight times (cruise ~20 s, holding BOOST ~15 s), bots' fire discipline and revenge, human shots through
+// bots, the +1000 for humans, wreck +150, dry chest walks and bays, the shore slide. The whole route with 24 bots:
+// dev/netcode/balance-sim.mjs; a room of 25 humans: dev/v14-pacing/crowd-sim.mjs.
 // Run: node dev/netcode/sim-test.js
 const assert = require("assert");
 const Contract = require("../../contract");
@@ -196,7 +197,7 @@ test("4:00 cap, assists at 3:00, most points wins, stars, scoreboard 10 s → lo
 
 // ---- The whole route, solo, dev kit (as with ASTRA_MOCK=1) ----------------------------------------------------------
 
-test("solo expert round: fly ~1 min, shoot the boss ~30 s, land, open all 3 chests → round ends early", () => {
+test("solo expert round: fly ~15 s, shoot the boss ~15 s, land, open the chests → round ends early", () => {
   const h = harness(42);
   const me = "jaume";
   h.w.join(me);
@@ -204,6 +205,10 @@ test("solo expert round: fly ~1 min, shoot the boss ~30 s, land, open all 3 ches
   h.w.setEntity(me, "explorer", devKit("explorer"));
   h.w.setLayout(me, LAYOUT);
   h.w.start();
+  // v1.4: a solo round has chestCount(1) chests (balance-sim.mjs plays the pacing with all of them); this route
+  // keeps 3.
+  assert.strictEqual(h.dbg().chests.length, chestCount(1));
+  h.dbg().chests.length = 3;
   const boss = () => h.dbg().boss.pos;
   const spawnDist = dist(h.p(me).pos, boss());
   const cruise = spawnDist / T.cruiseSpeed;
@@ -230,6 +235,7 @@ test("solo expert round: fly ~1 min, shoot the boss ~30 s, land, open all 3 ches
   const landed = h.dbg().playT;
   assert.strictEqual(h.p(me).entity.type, "person");
   for (const c of h.dbg().chests) {
+    walkTo(h, me, h.dbg().landing, 3); // every chest is a dry straight walk from the pad (v1.4: up to 98 m out)
     walkTo(h, me, c, 2);
     const verb = c.kind === "buried" ? "dig" : "drill";
     h.input(me, verb, true);
@@ -304,7 +310,7 @@ test("full redraws replace the entity; land needs legs, dig a shovel, drill a dr
 // ---- Boss --------------------------------------------------------------------------------------------------------------
 
 test("boss: any weapon hurts it, HP scales with players, it shoots back", () => {
-  assert.strictEqual(bossHp(1), T.boss.hp); assert.strictEqual(bossHp(25), T.boss.hp * 13); // v1.3: hp 3000
+  assert.strictEqual(bossHp(1), T.boss.hp); assert.strictEqual(bossHp(25), Math.round(T.boss.hp * 8.2)); // v1.4: hp 1200, +0.3 per player
   const h = harness(7);
   h.w.join("ana");
   h.w.start();
@@ -322,15 +328,15 @@ test("boss: any weapon hurts it, HP scales with players, it shoots back", () => 
   h.input("ana", "shoot", false);
   h.wait(3, () => { aim(h, "ana", b.pos); h.input("ana", "back", true); });
   assert(p.hp < hp1 || p.dead, "the boss shot back");
-  // 25 humans at START: 13× the HP.
+  // 25 humans at START: 8.2× the HP.
   const big = harness(8);
   for (let i = 1; i <= 25; i++) big.w.join(`p${i}`);
   big.w.start();
-  assert.strictEqual(big.dbg().boss.maxHp, T.boss.hp * 13); assert.strictEqual(big.w.worldMessage().playerCount, 25);
-  return `${dps.toFixed(0)} dps from one gun → solo ${(T.boss.hp / dps).toFixed(0)} s of steady fire; 25 players ${(T.boss.hp * 13 / dps / 25).toFixed(0)} s all firing`;
+  assert.strictEqual(big.dbg().boss.maxHp, Math.round(T.boss.hp * 8.2)); assert.strictEqual(big.w.worldMessage().playerCount, 25);
+  return `${dps.toFixed(0)} dps from one gun → solo ${(T.boss.hp / dps).toFixed(0)} s of steady fire; 25 players ${(T.boss.hp * 8.2 / dps / 25).toFixed(0)} s all firing`;
 });
 
-test("bigger space (v1.3): boss ~1100 m, planet 800 m beyond, rocks dense around the boss, 25 spawn slots ≥ 35 m apart", () => {
+test("space (v1.4): boss ~400 m, planet 350 m beyond, rocks dense around the boss, 25 spawn slots ≥ 35 m apart", () => {
   const h = harness(9);
   h.w.join("ana"); for (let i = 1; i <= 24; i++) h.w.addBot(`bot${i}`);
   h.w.start();
@@ -357,13 +363,13 @@ test("bigger space (v1.3): boss ~1100 m, planet 800 m beyond, rocks dense around
 // ---- Planet --------------------------------------------------------------------------------------------------------
 
 test("chests: two kinds, count scales with players, each a dry straight walk from the pad", () => {
-  assert.deepStrictEqual([1, 2, 5, 7, 10, 25, 40].map(chestCount), [3, 4, 6, 7, 9, 20, 20]);
+  assert.deepStrictEqual([1, 2, 5, 7, 10, 25, 40].map(chestCount), [16, 17, 19, 20, 22, 32, 32]); // v1.4
   const h = harness(10);
   for (let i = 1; i <= 25; i++) h.w.join(`p${i}`);
   h.w.start();
   const cs = h.w.worldMessage().chests;
-  assert.strictEqual(cs.length, 20);
-  assert.strictEqual(cs.filter((c) => c.kind === "rock").length, 10);
+  assert.strictEqual(cs.length, 32);
+  assert.strictEqual(cs.filter((c) => c.kind === "rock").length, 16);
   const L = h.dbg().landing;
   const far = Math.max(...cs.map((c) => Math.hypot(c.x - L.x, c.z - L.z)));
   // No lagoon between the pad and any chest, over many islands.
@@ -385,14 +391,14 @@ test("chests: two kinds, count scales with players, each a dry straight walk fro
       for (const x of [bx, bx + 2.5]) assert(Terrain.height(x, bz, d.island.seed) > 0.3, `seed ${seed}: bay ${i} in the water`);
     }
   }
-  return `25 players → ${cs.length} chests (10 buried, 10 in rocks), farthest ${far.toFixed(0)} m from the pad; ${checked} chests on 30 islands all a dry walk from the pad, all 25 bays dry`;
+  return `25 players → ${cs.length} chests (16 buried, 16 in rocks), farthest ${far.toFixed(0)} m from the pad; ${checked} chests on 30 islands all a dry walk from the pad, all 25 bays dry`;
 });
 
 // ---- Balance with bots (PLAN.md section 0; orchestrator decisions for v1.1) -----------------------------------------
 
-test("bots are fillers: boss HP and chests scale with humans + 0.25 × bots", () => {
+test("bots are fillers: the boss's HP counts a bot as half a player, the chests count humans only (v1.4)", () => {
   const counts = [];
-  for (const [humans, bots, hp, nChests] of [[1, 24, T.boss.hp * 4, 7], [3, 22, T.boss.hp * 4.75, 8], [25, 0, T.boss.hp * 13, 20], [1, 0, T.boss.hp, 3]]) {
+  for (const [humans, bots, hp, nChests] of [[1, 24, Math.round(T.boss.hp * 4.6), 16], [3, 22, Math.round(T.boss.hp * 4.9), 17], [25, 0, Math.round(T.boss.hp * 8.2), 32], [1, 0, T.boss.hp, 16]]) {
     const h = harness(20 + humans);
     for (let i = 1; i <= humans; i++) h.w.join(`p${i}`);
     for (let i = 1; i <= bots; i++) h.w.addBot(`bot${i}`);
@@ -412,7 +418,7 @@ test("bots are fillers: boss HP and chests scale with humans + 0.25 × bots", ()
   return counts.join("; ") + `; "Bot 3" joins as ${j.player}`;
 });
 
-test("speed (owner, 10 Oct 09:05): cruise ~60 s to the boss, a full-boost run ~40 s, the planet ~40 s further at cruise", () => {
+test("speed (owner, 10 Oct 10:00): cruise ~20 s to the boss, holding BOOST ~15 s, the planet ~16 s further at cruise", () => {
   const T0 = (opts) => {
     const h = harness(31);
     h.w.join("ana"); h.w.setEntity("ana", "ship", devKit("ship"));
@@ -423,15 +429,16 @@ test("speed (owner, 10 Oct 09:05): cruise ~60 s to the boss, a full-boost run ~4
     if (opts.boost) h.input("ana", "boost", true);
     if (opts.forward) h.input("ana", "forward", true);
     const t0 = h.dbg().playT;
-    h.until("at the boss", () => dist(p.pos, b.pos) - b.radius <= 0.5 + T.boss.radius * 0 + 1, 120, () => { aim(h, "ana", b.pos); p.spawnShield = 1; p.hp = 100; });
+    // The ship stops at boss radius + SHIP_RADIUS (1.5 m): "at the boss" is within 2 m of its surface.
+    h.until("at the boss", () => dist(p.pos, b.pos) - b.radius <= 2, 120, () => { aim(h, "ana", b.pos); p.spawnShield = 1; p.hp = 100; });
     return h.dbg().playT - t0;
   };
   const cruise = T0({}), boost = T0({ boost: true }), full = T0({ boost: true, forward: true });
   const planetCruise = (T.planet.offset - T.planet.radius - T.planet.landRange) / T.cruiseSpeed;
-  assert(cruise > 55 && cruise < 65, `cruise ${cruise}`);
-  assert(boost > 38 && boost < 48, `boost only ${boost}`);
-  assert(full > 34 && full < 45, `forward + boost ${full}`);
-  assert(planetCruise > 35 && planetCruise < 45, `planet ${planetCruise}`);
+  assert(cruise > 18 && cruise < 24, `cruise ${cruise}`);
+  assert(boost > 13 && boost < 18, `boost only ${boost}`);
+  assert(full > 11 && full < 16, `forward + boost ${full}`);
+  assert(planetCruise > 13 && planetCruise < 19, `planet ${planetCruise}`);
   return `to the boss: cruise ${cruise.toFixed(1)} s, holding BOOST ${boost.toFixed(1)} s, FORWARD + BOOST ${full.toFixed(1)} s; boss → landing range at cruise ${planetCruise.toFixed(1)} s`;
 });
 
@@ -576,24 +583,32 @@ test("walkers slide along the shore (most head-on walks into the sea keep moving
   return `${slid}/${tried} head-on walks into the sea slid along the shore (> 2 m in 2 s), 0 of ${total} steps on the water`;
 });
 
-test("25 explorers open all 20 chests in about a minute after landing", () => {
+test("25 explorers open all 32 chests in 1-3 minutes after landing (v1.4: most of the round is on the planet)", () => {
   const h = harness(11);
   const names = Array.from({ length: 25 }, (_, i) => `p${i + 1}`);
   for (const n of names) { h.w.join(n); h.w.setEntity(n, "ship", devKit("ship")); h.w.setEntity(n, "explorer", devKit("explorer")); h.w.setLayout(n, LAYOUT); }
   h.w.start();
   killBoss(h, "p1");
-  for (const n of names) landNow(h, n);
+  // All 25 press LAND together (landNow one after another would use up 75 s of the round).
+  const pl = h.dbg().planet;
+  for (const n of names) { h.p(n).pos = { x: pl.x + pl.radius + 10, y: pl.y, z: pl.z }; h.input(n, "land", true); h.input(n, "land", false); }
+  h.until("all landed", () => names.every((n) => h.p(n).mode === "planet" && !h.p(n).landingFor), 6);
   const t0 = h.dbg().playT;
-  const chests = h.dbg().chests;
+  const chests = h.dbg().chests, pad = h.dbg().landing, seed = h.dbg().island.seed;
+  assert.strictEqual(chests.length, chestCount(25));
+  // Every chest is a dry straight walk from the pad, not always from another chest (v1.4: up to 162 m out): with a
+  // lagoon on the straight line, walk back to the pad first.
+  const Terrain = require("../../terrain");
+  const wet = (a, b) => { const k = Math.ceil(dist2(a, b) / 2); for (let i = 1; i < k; i++) if (Terrain.height(a.x + ((b.x - a.x) * i) / k, a.z + ((b.z - a.z) * i) / k, seed) <= 0.3) return true; return false; };
   // Each one heads to the nearest chest still closed (or open but not collected) and works it.
-  h.until("all chests open", () => h.w.phase === "scoreboard", 120, () => {
+  h.until("all chests open", () => h.w.phase === "scoreboard", 230, () => {
     for (const n of names) {
       const p = h.p(n);
       const left = chests.filter((c) => !c.open);
       if (!left.length) return;
       const c = left.reduce((a, b) => (dist2(a, p.pos) < dist2(b, p.pos) ? a : b));
       const d = dist2(c, p.pos);
-      const err = aim(h, n, { ...c, y: 0 });
+      const err = aim(h, n, { ...(d > 1.5 && wet(p.pos, c) ? pad : c), y: 0 });
       h.axis(n, "move", 0, d > 1.5 && err < 0.6 ? 1 : 0);
       h.input(n, "boost", true);
       h.input(n, "dig", d < 2.5 && c.kind === "buried");
@@ -601,9 +616,9 @@ test("25 explorers open all 20 chests in about a minute after landing", () => {
     }
   });
   const took = h.dbg().playT - t0;
-  assert(took < 90, `took ${took}`);
+  assert(took > 45 && took < 210, `took ${took}`);
   assert.strictEqual(h.w.worldMessage().result.reason, "chests");
-  return `20 chests in ${took.toFixed(1)} s from touchdown (scripted, no fighting)`;
+  return `${chests.length} chests in ${took.toFixed(1)} s from touchdown (scripted, one crowd, no fighting)`;
 });
 
 test("planet movement per type: person walks, car/bike fast and no jump, quadruped runs, blob bounces", () => {
@@ -1063,9 +1078,9 @@ test("v1.4 countdown: START plays a 3-2-1 (tick.countdown 3, 2, 1); nothing move
   const goAt = h.dbg().t - h.dbg().phaseT; // sim seconds at GO
   assert.deepStrictEqual(seen, [3, 2, 1], "whole seconds left");
   assert.strictEqual(h.w.tickMessage().countdown, undefined, "no countdown field in play");
-  assert.strictEqual(h.dbg().playerCount, 3, "bob, joined during the countdown, counts at GO (2 humans + 4 × 0.25)");
-  assert.strictEqual(h.dbg().boss.maxHp, bossHp(3)); assert.notStrictEqual(hp0, bossHp(3));
-  assert.strictEqual(h.dbg().chests.length, chestCount(3));
+  assert.strictEqual(h.dbg().playerCount, 2, "bob, joined during the countdown, counts at GO (2 humans; v1.4: bots add no chest)");
+  assert.strictEqual(h.dbg().boss.maxHp, bossHp(2 + 4 * T.boss.botWeight)); assert.notStrictEqual(hp0, h.dbg().boss.maxHp);
+  assert.strictEqual(h.dbg().chests.length, chestCount(2));
   const goWorld = h.msgs.filter((x) => x.m.type === "world").pop().m;
   assert.strictEqual(goWorld.phase, "playing"); assert.strictEqual(goWorld.countdown, undefined);
   const atGo = Object.fromEntries(Object.values(h.w.players).map((p) => [p.name, { ...p.pos }]));
@@ -1075,7 +1090,7 @@ test("v1.4 countdown: START plays a 3-2-1 (tick.countdown 3, 2, 1); nothing move
   assert(Object.values(h.w.players).filter((p) => p.bot).every((p) => dist(p.pos, atGo[p.name]) > 1), "bots fly from GO");
   const plain = harness(62); plain.w.join("ana");
   assert.strictEqual(plain.w.start(), true); assert.strictEqual(plain.w.phase, "playing", "world.start() without the countdown: at once (tests, --autostart)");
-  return `countdown ${seen.join("-")} then GO at ${goAt.toFixed(2)} s; boss ${hp0} → ${bossHp(3)} HP after bob joined mid-countdown`;
+  return `countdown ${seen.join("-")} then GO at ${goAt.toFixed(2)} s; boss ${hp0} → ${h.dbg().boss.maxHp} HP after bob joined mid-countdown`;
 });
 
 test("v1.4 late hints: from 3:00 every human missing a gate skill gets one big DRAW X card (part first, then button); nothing is granted", () => {
