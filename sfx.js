@@ -2,9 +2,9 @@
 // No audio files, no dependencies, no build step. ES module for the phone and the big screen.
 //
 //   import { createSfx, SOUNDS, renderSound } from "./sfx.js";
-//   const sfx = createSfx();                            // makes the AudioContext, pre-renders every sound in idle time
+//   const sfx = createSfx();                            // makes the AudioContext, pre-renders the game sounds in idle time
 //   sfx.play("laser", { pan: -0.3, volume: 0.8 });      // false until the first tap / click / key unlocked audio
-//   const drill = sfx.loop("drill"); /* ... */ drill.stop();   // held actions: drill, dig, tractor, boost, shield
+//   const drill = sfx.loop("drill"); /* ... */ drill.stop();   // held actions: drill, dig, tractor, boost, shield; TV lobby: ambience
 //
 // renderSound() is pure and deterministic (seeded noise), so Node can test every sound without WebAudio.
 // Design rules for every sound: 4 ms soft attack, smooth fade-out (no clicks), peak 0.88, and almost nothing above
@@ -19,10 +19,13 @@ export const SOUNDS = [
   "hit", "crack", "scan", "flare", "death", "respawn",
   // v1.3: the steal sting (chest points or the boss's last hit snatched) and the hit-confirm tick when MY shot lands
   "steal", "hitmark",
+  // v1.5: the TV's lobby hangar, the results podium and the lobby ambience loop (TV only: built on first play)
+  "card-pop", "podium", "fanfare", "star", "ambience",
 ];
 
-// Sounds with a seamless loop variant for held actions. loop() on any other name repeats its one-shot.
-export const LOOPS = ["drill", "dig", "tractor", "boost", "shield"];
+// Sounds with a seamless loop variant: the held actions, and the TV lobby's ambience. loop() on any other name repeats its
+// one-shot.
+export const LOOPS = ["drill", "dig", "tractor", "boost", "shield", "ambience"];
 
 // ---------------------------------------------------------------------------------------------------------- DSP
 
@@ -716,10 +719,106 @@ function hitmark(sr) {
   return finish(out, sr, { attack: 0.002, release: 0.03, lp: 7500 });
 }
 
+function cardPop(sr) {
+  // a card popping into the lobby hangar: a toy "bloop" (round sine sweeping up 280 -> 880 Hz in 60 ms, a whisper of
+  // 2nd harmonic), a small bright ping an octave up at 45 ms, a little room; soft edges so ten in a row stay friendly
+  const n = round(sr * 0.36), out = new Float32Array(n);
+  let ph = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / sr;
+    ph += (280 + 600 * smooth01(t / 0.06)) / sr;
+    out[i] = (sin(TAU * ph) + 0.1 * sin(TAU * 2 * ph)) * (1 - exp(-t / 0.008)) * exp(-t / 0.08);
+  }
+  bell(out, sr, 0.045, 1760, 0.3, 0.05, [[1, 1, 1], [2, 0.1, 0.5]]);
+  reverb(out, sr, 0.12, 0.4);
+  return finish(out, sr, { release: 0.08, lp: 6000 });
+}
+
+function podium(sr) {
+  // a podium block rising: a short whoosh sweeping up, then it locks in place with a punchy saturated thump (the
+  // harmonics carry it on small speakers) and a bright wood-and-metal clack
+  const n = round(sr * 0.6), out = new Float32Array(n), nz = noise("podium");
+  const T0 = 0.25, bp = svf(sr), ck = svf(sr).set(3000, 1.8);
+  let ph = 0, pph = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / sr, s = t - T0, u = min(1, t / T0);
+    if ((i & 3) === 0) bp.set(300 + 2400 * u * u, 1.4);
+    const x = nz();
+    bp.run(x);
+    ck.run(x);
+    let y = bp.bp * 0.8 * u * sqrt(u) * (s < 0 ? 1 : exp(-s / 0.012));
+    if (s >= 0) {
+      ph += (52 + 140 * exp(-s / 0.03)) / sr;
+      pph += (105 + 220 * exp(-s / 0.02)) / sr;
+      y += (tanh(2.4 * sin(TAU * ph)) * exp(-s / 0.12) * 0.9 + tanh(2 * sin(TAU * pph)) * exp(-s / 0.045) * 0.45) * min(1, s / 0.003);
+      y += ck.bp * exp(-s / 0.008) * 0.7;
+    }
+    out[i] = y;
+  }
+  bell(out, sr, T0, 1150, 0.28, 0.04, [[1, 1, 1], [2.72, 0.55, 0.5], [5.2, 0.2, 0.3]]);
+  reverb(out, sr, 0.1, 0.4);
+  return finish(out, sr, { release: 0.12 });
+}
+
+function fanfare(sr) {
+  // the winner's reveal, in G so it does not echo win's C: a cymbal swell into a brass "ta-DAAA" (a short D5 pickup, then
+  // a held G major chord with vibrato), a saturated timpani G on the downbeat, a bell arpeggio rising out of the hit
+  const n = round(sr * 1.9), out = new Float32Array(n), nz = noise("fanfare");
+  const TD = 0.34, G2 = 98, G3 = 196, G4 = 392, B4 = 493.88, D5 = 587.33, G5 = 783.99;
+  const hp = svf(sr).set(2500, 0.7), lp = svf(sr).set(6500, 0.7), sw = svf(sr), ml = svf(sr).set(900, 0.7);
+  let ph = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / sr, s = t - TD, u = min(1, t / TD);
+    if ((i & 3) === 0 && s < 0) sw.set(1500 + 3500 * u * u, 1.3);
+    const x = nz();
+    hp.run(x);
+    sw.run(x);
+    ml.run(x);
+    const cym = lp.run(hp.hp) * (s < 0 ? pow(u, 2.5) : 0.65 * exp(-s / 0.4) + 0.35 * exp(-s / 0.04)); // swell, then a crash
+    let y = cym * 0.4 + sw.bp * 0.45 * (s < 0 ? u * u * u : exp(-s / 0.02));
+    if (s >= 0) { // timpani: G2 dropping in from 128 Hz with a fifth-ish overtone, saturated, and the mallet's thud
+      const at = min(1, s / 0.003);
+      ph += (G2 + 30 * exp(-s / 0.04)) / sr;
+      y += tanh(1.8 * (sin(TAU * ph) + 0.3 * sin(TAU * 1.5 * ph) * exp(-s / 0.15))) * exp(-s / 0.32) * at * 0.55;
+      y += ml.lp * exp(-s / 0.012) * at * 0.8;
+    }
+    out[i] = y;
+  }
+  brass(out, sr, TD - 0.13, 0.08, D5, 0.5, 0.06); // "ta"
+  brass(out, sr, TD - 0.13, 0.08, D5 / 2, 0.28, 0.06);
+  [[G4, 0.42], [B4, 0.36], [D5, 0.36], [G5, 0.44]].forEach(([f, a], k) => brass(out, sr, TD + k * 0.01, 0.9, f, a, 0.45)); // "DAAA"
+  brass(out, sr, TD, 0.9, G3, 0.5, 0.45);
+  [1567.98, 1975.53, 2349.32, 3135.96].forEach((f, k) => bell(out, sr, TD + 0.1 + k * 0.07, f, 0.2 - 0.025 * k, 0.35 - 0.03 * k, [[1, 1, 1], [2, 0.2, 0.5]]));
+  reverb(out, sr, 0.22, 1.1);
+  return finish(out, sr, { release: 0.3 });
+}
+
+function star(sr) {
+  // the winner's star flying into the leaderboard: a glittery whoosh sweeping up while soft bell sparkles climb a G major
+  // pentatonic for ~0.9 s, then a bright "ding" as it lands at 0.96 s (G6, a fifth above, a shimmering twin)
+  const n = round(sr * 1.45), out = new Float32Array(n), nz = noise("star");
+  const TL = 0.96, bp = svf(sr), gl = svf(sr).set(4300, 2.5), lp = svf(sr).set(6500, 0.7);
+  for (let i = 0; i < n; i++) {
+    const t = i / sr, s = t - TL, u = min(1, t / TL);
+    if ((i & 3) === 0) bp.set(450 * pow(9, u), 1.8); // 450 -> 4050 Hz
+    bp.run(nz());
+    gl.run(nz() > 1 - (2 * (40 + 200 * u)) / sr ? nz() : 0); // glitter: sparse ticks ringing high, denser as it flies
+    out[i] = lp.run(bp.bp * 0.4 + gl.bp * 0.5) * smooth01(t / 0.3) * (s < 0 ? 0.6 + 0.4 * u : exp(-s / 0.05));
+  }
+  [1174.66, 1318.51, 1567.98, 1760, 1975.53, 2349.32, 2637.02, 3135.96].forEach((f, k) =>
+    bell(out, sr, 0.08 + 0.11 * k, f, 0.12 + 0.014 * k, 0.12, [[1, 1, 1], [2.02, 0.15, 0.5]]));
+  bell(out, sr, TL, 1567.98, 0.6, 0.25);
+  bell(out, sr, TL, 1567.98 * 1.004, 0.2, 0.35, SOFT_BELL);
+  bell(out, sr, TL + 0.004, 2349.32, 0.24, 0.2, [[1, 1, 1], [2, 0.12, 0.5]]);
+  reverb(out, sr, 0.2, 0.7);
+  return finish(out, sr, { release: 0.35, lp: 7500 });
+}
+
 const RECIPES = {
   laser, boost, shield, drill, dig, land, takeoff, chest, kill, emp, ink, tractor, mine, hint, countdown, win,
-  hit, crack, scan, flare, death, respawn, steal, hitmark,
-  "ui-tap": uiTap, "countdown-go": countdownGo,
+  hit, crack, scan, flare, death, respawn, steal, hitmark, podium, fanfare, star,
+  "ui-tap": uiTap, "countdown-go": countdownGo, "card-pop": cardPop,
+  ambience: (sr) => finish(ambienceLoop(sr), sr, { attack: 0.8, release: 1.5 }), // the loop below, faded in and out
   explosion: (sr) => explosion(sr, "medium"),
   "explosion-small": (sr) => explosion(sr, "small"),
   "explosion-medium": (sr) => explosion(sr, "medium"),
@@ -752,6 +851,67 @@ function loopBuild(sr, len, build) {
 
 // frequency snapped to whole cycles per loop so the tone is periodic
 const cyc = (f, len) => max(1, round(f * len)) / len;
+
+// The TV lobby's ambience, a quiet 8 s loop until START: a warm pad drifting Cmaj9 -> Am9 -> Cmaj9 once per loop
+// (equal-power cosine crossfade), sines with slightly detuned triangle twins (slow chorus) through a gentle low-pass that
+// breathes, a very soft filtered-noise air, a few quiet high bell twinkles. Every frequency and LFO is snapped with cyc();
+// the twinkles are rendered past the loop end and their tails folded into the head.
+const AMBIENCE = [ // [Hz, level, chord: 0 both / 1 Cmaj9 / 2 Am9, wave: 0 sine / 1 triangle]
+  [130.81, 0.5, 1, 0], [131.4, 0.15, 1, 1], [196, 0.34, 1, 0], [587.33, 0.13, 1, 0],
+  [220, 0.42, 2, 0], [219.1, 0.13, 2, 1], [261.63, 0.3, 2, 0], [392, 0.2, 2, 0],
+  [329.63, 0.3, 0, 0], [330.8, 0.08, 0, 1], [493.88, 0.18, 0, 0], [492.5, 0.05, 0, 1],
+];
+// [s, Hz, level]: Cmaj9 tones near the loop ends, Am9 tones mid-loop, the shared E and B in between
+const TWINKLES = [[0.6, 1975.53, 0.05], [1.95, 1318.51, 0.04], [3.2, 1760, 0.045], [4.1, 2093, 0.035], [4.25, 2637.02, 0.03], [5.75, 1975.53, 0.04], [7.3, 2349.32, 0.045]];
+function ambienceLoop(sr) {
+  const out = loopBuild(sr, 8, (sr2, len) => {
+    const nz = noise("loop-ambience"), lp = svf(sr2), hp = svf(sr2).set(1100, 0.7), air = svf(sr2).set(4200, 0.7);
+    const vs = AMBIENCE.map(([f, a, ch, w], k) => { // sines by recurrence (no sin() per sample), start phases spread
+      const fr = cyc(f, len), dw = (TAU * fr) / sr2, p0 = (0.37 * k) % 1;
+      return { a, ch, w, g: 0, ph: p0, dph: fr / sr2, c: 2 * cos(dw), y: sin(TAU * p0), ym: sin(TAU * p0 - dw) };
+    });
+    const fx = cyc(1 / len, len), fl = cyc(0.25, len), fa = cyc(0.375, len);
+    let k = 0, ag = 0;
+    return (t, a) => {
+      if ((k++ & 7) === 0) { // slow controls every 8 samples (the loop length is a multiple of 8): crossfade, low-pass, air
+        const x = 0.5 - 0.5 * cos(TAU * fx * t), gA = cos((PI / 2) * x), gB = sin((PI / 2) * x);
+        for (const v of vs) v.g = v.a * (v.ch === 1 ? gA : v.ch === 2 ? gB : 1);
+        lp.set(1550 + 400 * sin(TAU * fl * t), 0.6);
+        ag = 0.08 * (0.6 + 0.4 * sin(TAU * fa * t + 1));
+      }
+      let s = 0;
+      for (const v of vs) {
+        if (v.w) {
+          s += tri(v.ph) * v.g;
+          v.ph += v.dph;
+          if (v.ph >= 1) v.ph -= 1;
+        } else {
+          s += v.y * v.g;
+          const yn = v.c * v.y - v.ym;
+          v.ym = v.y;
+          v.y = yn;
+        }
+      }
+      a.tone = lp.run(s);
+      hp.run(nz());
+      a.noise = air.run(hp.hp) * ag;
+    };
+  });
+  const N = out.length, W = round(sr * 3), tw = new Float32Array(N + W), parts = [[1, 1, 1], [2, 0.12, 0.45]];
+  for (const [t0, f, a] of TWINKLES) {
+    bell(tw, sr, t0, f, a, 0.45, parts);
+    bell(tw, sr, t0, f * 1.003, a * 0.4, 0.55, parts);
+  }
+  let pk = 0;
+  for (let i = 0; i < N; i++) {
+    out[i] += tw[i] + (i < W ? tw[N + i] : 0); // the overhang folded into the head: the tails wrap around the seam
+    const v = abs(out[i]);
+    if (v > pk) pk = v;
+  }
+  const g = 0.88 / (pk || 1);
+  for (let i = 0; i < N; i++) out[i] *= g;
+  return out;
+}
 
 const LOOP_RECIPES = {
   drill: (sr) => loopBuild(sr, 1, (sr2, len) => {
@@ -806,6 +966,7 @@ const LOOP_RECIPES = {
       a.noise = 0;
     };
   }),
+  ambience: ambienceLoop,
 };
 
 // ---------------------------------------------------------------------------------------------- public render
@@ -839,6 +1000,7 @@ const LEVEL = {
   death: 0.25, takeoff: 0.24, "countdown-go": 0.28, countdown: 0.2, boost: 0.2, shield: 0.18, land: 0.18, emp: 0.22, ink: 0.19,
   respawn: 0.2, tractor: 0.18, drill: 0.18, dig: 0.19, crack: 0.18, scan: 0.16, flare: 0.17, laser: 0.13, hit: 0.12,
   "ui-tap": 0.09, hint: 0.13, steal: 0.24, hitmark: 0.11, "loop:drill": 0.12, "loop:dig": 0.14, "loop:tractor": 0.12, "loop:boost": 0.15, "loop:shield": 0.08,
+  "card-pop": 0.16, podium: 0.2, fanfare: 0.3, star: 0.2, ambience: 0.06, "loop:ambience": 0.06, // v1.5 TV: the ambience sits under everything
 };
 function loudness(x, sr) {
   const hpa = exp((-TAU * 250) / sr), lpa = 1 - exp((-TAU * 6000) / sr), w = min(x.length, round(sr * 0.1));
@@ -856,16 +1018,17 @@ function loudness(x, sr) {
   return sqrt(best / w);
 }
 // Random pitch spread per play (+-) so a burst of the same sound does not phase into a machine-gun comb.
-const VARY = { laser: 0.05, hit: 0.06, hitmark: 0.04, "ui-tap": 0.03, dig: 0.05, "explosion-small": 0.05, "explosion-medium": 0.04, "explosion-large": 0.03, land: 0.04, crack: 0.05 };
+const VARY = { laser: 0.05, hit: 0.06, hitmark: 0.04, "ui-tap": 0.03, dig: 0.05, "explosion-small": 0.05, "explosion-medium": 0.04, "explosion-large": 0.03, land: 0.04, crack: 0.05, "card-pop": 0.04 };
 // Loops start with a short spin-up (the playback rate rises) and wind down when stopped.
 const SPIN = { drill: 0.7, boost: 0.8, tractor: 0.85, shield: 0.92 };
 
-// Idle-time render order: what the first seconds of a round need comes first.
+// Idle-time render order: what the first seconds of a round need comes first. The v1.5 TV-only sounds (card-pop, podium,
+// fanfare, star, ambience and its loop) are left out: they are built on first play, so phones never render them.
 const ORDER = [
   "ui-tap", "laser", "hit", "hitmark", "explosion-small", "explosion-medium", "countdown", "countdown-go", "boost", "shield", "chest", "kill", "steal",
   "land", "dig", "drill", "takeoff", "emp", "ink", "tractor", "mine", "hint", "win", "explosion-large", "crack", "scan", "flare",
   "death", "respawn",
-].concat(LOOPS.map((n) => "loop:" + n));
+].concat(LOOPS.filter((n) => n !== "ambience").map((n) => "loop:" + n));
 
 const clamp01 = (v) => (v > 1 ? 1 : v > 0 ? v : 0);
 const inertLoop = Object.freeze({ stop() {}, setPan() {}, setVolume() {} });

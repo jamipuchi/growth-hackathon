@@ -1,5 +1,5 @@
-// Big-screen extras: join QR, kill feed (icon chips, KO lines), player name tags (declutter, status chips). Fortnite-like (chunky,
-// slanted, outlined). No dependencies.
+// Big-screen extras: join QR, kill feed (icon chips, KO lines), player name tags (declutter, status chips), the live map and (v1.5)
+// the lobby hangar (a card per player with their ship drawing). Fortnite-like (chunky, slanted, outlined). No dependencies.
 // Sizes are in em: the host page sets --bse-fs (space.html: 1rem, which scales with the screen); default 10px (the phone).
 // The look does not read any generic page variable (a page's own --ink or --shadow means something else); the only page input
 // is --bse-fs. controller.html also uses createNameTags({ max: 25 }) (play mode, update(list) with no options).
@@ -47,7 +47,7 @@ export function injectStyles() {
   const s = document.createElement("style");
   s.id = STYLE_ID;
   s.textContent = `
-.bse-qr,.bse-feed,.bse-tags{--bse-fh:"Barlow Condensed",Impact,"Arial Narrow",system-ui,sans-serif;
+.bse-qr,.bse-feed,.bse-tags,.bse-hangar{--bse-fh:"Barlow Condensed",Impact,"Arial Narrow",system-ui,sans-serif;
   --bse-fb:Barlow,system-ui,-apple-system,"Segoe UI",sans-serif;--bse-ink:#120a2e;
   --bse-shadow:#0a0830;--bse-ok:#4ade5a;font-size:var(--bse-fs,10px)}
 
@@ -175,9 +175,53 @@ export function injectStyles() {
 .bse-tag-mark.ok{color:var(--bse-ok)}
 .bse-tag-mark.wait{color:#c8c2ff}
 .bse-tag-mark.bot{color:#aeb0d4}
+/* lobby hangar (createHangar): one card per player, their ship drawing on a paper tile; every size is in em of the card
+   (font-size = a tenth of its width), so the same card works from 2 big ones to 25 small ones */
+.bse-hangar{display:grid;grid-template-columns:repeat(var(--hc,4),var(--hw,10em));gap:var(--hg,1em);justify-content:center;align-content:center;
+  flex:1 1 auto;width:100%;min-height:0;pointer-events:none}
+.bse-hangar:empty{display:none}
+.bse-hc{--pc:#fff;position:relative;isolation:isolate;width:var(--hw,10em);font-size:calc(var(--hw,10em)*.1);padding:.45em .45em .4em;
+  display:flex;flex-direction:column;gap:.3em}
+.bse-hc::before{content:"";position:absolute;inset:0;z-index:-1;transform:skewX(-6deg);border-radius:.7em;
+  background:linear-gradient(180deg,rgb(46 34 150/.95),rgb(22 14 78/.95));border:.2em solid rgb(255 255 255/.7);
+  box-shadow:inset 0 -.42em 0 var(--pc),0 .4em 0 var(--bse-shadow)}
+.bse-hc.ok::before{border-color:var(--bse-ok);box-shadow:inset 0 -.42em 0 var(--pc),0 .4em 0 var(--bse-shadow),0 0 1.1em rgb(74 222 90/.55)}
+.bse-hc-pic{position:relative;aspect-ratio:1/1;border-radius:.45em;overflow:hidden;transform:rotate(-2deg);border:.2em solid #fff;
+  background:repeating-linear-gradient(180deg,#fffdf4 0 1.15em,#dfe8ff 1.15em 1.22em);box-shadow:0 0 0 .13em var(--bse-ink),0 .28em 0 .13em var(--bse-shadow)}
+.bse-hc:nth-child(even) .bse-hc-pic{transform:rotate(2deg)}
+.bse-hc-pic img{position:absolute;left:6%;top:6%;width:88%;height:88%;object-fit:contain;opacity:0}
+.bse-hc.drawn .bse-hc-pic img{opacity:1}
+.bse-hc-wait{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35em;color:#5a4cb0;
+  font:italic 900 1.25em/1 var(--bse-fh);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.bse-hc.drawn .bse-hc-wait{display:none}
+.bse-hc-wait svg{width:3.6em;height:3.6em;display:block;animation:bse-scribble 1.1s ease-in-out infinite}
+.bse-hc-nm{font:italic 900 1.55em/1.12 var(--bse-fh);text-transform:uppercase;letter-spacing:.02em;text-align:center;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;color:var(--pc);-webkit-text-stroke:.15em var(--bse-ink);paint-order:stroke fill;
+  text-shadow:0 .12em 0 rgb(10 6 30/.6);padding:0 .15em .12em}
+.bse-hc-st,.bse-hc-ok{position:absolute;top:-.55em;z-index:2;display:none;padding:.18em .55em .26em;border-radius:.6em;white-space:nowrap;
+  font:italic 900 1.15em/1 var(--bse-fh);letter-spacing:.04em;text-transform:uppercase;box-shadow:0 0 0 .12em var(--bse-ink),0 .2em 0 .12em var(--bse-shadow)}
+.bse-hc-st{left:-.5em;background:linear-gradient(180deg,#ffe27a,#ffb000);color:#241400;transform:rotate(-6deg)}
+.bse-hc-st:not(:empty){display:block}
+.bse-hc-ok{right:-.5em;background:var(--bse-ok);color:#08260f;transform:rotate(5deg)}
+.bse-hc.ok .bse-hc-ok{display:block;animation:bse-pop .4s cubic-bezier(.34,1.56,.64,1) both}
+.bse-hc-ok .s,.bse-hangar.compact .bse-hc-ok .l{display:none}
+.bse-hangar.compact .bse-hc-ok .s{display:inline}
+.bse-hangar.compact .bse-hc-nm{font-size:2em}
+.bse-hangar.compact .bse-hc-st,.bse-hangar.compact .bse-hc-ok{font-size:1.7em}
+.bse-hangar.compact .bse-hc-wait span{display:none}
+.bse-hc.in{animation:bse-hc-in .6s cubic-bezier(.34,1.56,.64,1) both}
+.bse-hc.in.quiet{animation-duration:.4s}
+.bse-hc.in::after{content:"";position:absolute;inset:-.5em;border-radius:1em;border:.35em solid var(--pc);pointer-events:none;animation:bse-ring .7s ease-out both}
+.bse-hc.in.quiet::after{display:none}
+.bse-hc.fresh .bse-hc-pic{animation:bse-pic .55s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes bse-hc-in{0%{opacity:0;transform:translateY(-1.6em) scale(.35) rotate(-8deg)}55%{opacity:1;transform:translateY(.25em) scale(1.12) rotate(2deg)}
+  100%{opacity:1;transform:none}}
+@keyframes bse-ring{0%{opacity:.95;transform:scale(.85)}100%{opacity:0;transform:scale(1.3)}}
+@keyframes bse-pic{0%{transform:scale(1.35) rotate(-8deg);filter:brightness(1.8)}100%{filter:none}}
+@keyframes bse-scribble{0%,100%{transform:translate(-.3em,.15em) rotate(-10deg)}50%{transform:translate(.3em,-.15em) rotate(8deg)}}
 @keyframes bse-pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
 @keyframes bse-flash{0%{filter:brightness(2.2) saturate(1.7)}100%{filter:none}}
-@media (prefers-reduced-motion:reduce){.bse-tag-card.bse-pop,.bse-feed-item.ko.in::before,.bse-feed-item.ko.in .bse-chip.ko{animation:none}.bse-feed-item.in,.bse-feed-item.out{transition:opacity .2s}}
+@media (prefers-reduced-motion:reduce){.bse-tag-card.bse-pop,.bse-feed-item.ko.in::before,.bse-feed-item.ko.in .bse-chip.ko,.bse-hc.in,.bse-hc.in::after,.bse-hc.fresh .bse-hc-pic,.bse-hc-wait svg,.bse-hc.ok .bse-hc-ok{animation:none}.bse-feed-item.in,.bse-feed-item.out{transition:opacity .2s}}
 `;
   document.head.appendChild(s);
 }
@@ -537,6 +581,10 @@ const EMOJI_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{2693}\u{2695}-\u{26FF}]️?/gu
 // so a reworded server line still reads fine.
 const NM = "([a-z0-9]{1,20})";
 const fill = (tpl, n) => String(tpl).replace("{n}", n == null ? "" : n).replace(/\s+/g, " ").trim();
+// world.js says "💥 Someone destroyed the boss!" when it knows no killer: never a player name (names are lowercase), so no name
+// piece for it, just the boss chip and BOSS DOWN!.
+const NOBODY = "Someone";
+const bossLine = (m, L) => (m[1] === NOBODY ? [{ c: "boss" }, { p: L.swarm }] : [{ n: m[1] }, { c: "boss" }, { p: L.lastHit }]);
 const FUN = [
   [new RegExp(`^${NM} scrambled ${NM}'s buttons`, "i"), (m, L) => [{ n: m[1] }, { c: "emp" }, { n: m[2] }, { p: L.emp }]],
   [new RegExp(`^${NM} inked ${NM}'s screen`, "i"), (m, L) => [{ n: m[1] }, { c: "ink" }, { n: m[2] }, { p: L.ink }]],
@@ -547,9 +595,9 @@ const FUN = [
   // the boss (world.js v1.3): "ana destroyed the boss! +1000. …", "ana stole the boss from bob! +1000. …", "The swarm brought the
   // boss down! ana did the most damage: +1000. …"; the v1.2 "ana landed the last hit on the boss (stolen from bob)" reads the same
   [new RegExp(`^${NM} stole the boss from ${NM}`, "i"), (m, L) => [{ n: m[1] }, { c: "boss" }, { p: L.lastHitStolen }, { n: m[2] }]],
-  [new RegExp(`^${NM} destroyed the boss`, "i"), (m, L) => [{ n: m[1] }, { c: "boss" }, { p: L.lastHit }]],
+  [new RegExp(`^${NM} destroyed the boss`, "i"), bossLine],
   [new RegExp(`^${NM} landed the last hit on the boss \\(stolen from ${NM}\\)`, "i"), (m, L) => [{ n: m[1] }, { c: "boss" }, { p: L.lastHitStolen }, { n: m[2] }]],
-  [new RegExp(`^${NM} landed the last hit on the boss`, "i"), (m, L) => [{ n: m[1] }, { c: "boss" }, { p: L.lastHit }]],
+  [new RegExp(`^${NM} landed the last hit on the boss`, "i"), bossLine],
   [/^the swarm brought the boss down!?(?: ([a-z0-9]{1,20}) did the most damage)?/i, (m, L) => [{ c: "boss" }, { p: L.swarm }].concat(m[1] ? [{ n: m[1] }, { t: L.topDamage }] : [])],
   [new RegExp(`^${NM} wrecked ${NM}'s ship(?: \\(\\+?(\\d+)\\))?`, "i"), (m, L) => [{ n: m[1] }, { c: "wreck" }, { n: m[2] }, { p: L.wreck + (m[3] ? ` +${m[3]}` : "") }]],
   [new RegExp(`^${NM}'s ship was wrecked`, "i"), (m, L) => [{ c: "wreck" }, { n: m[1] }, { p: L.wreck }]],
@@ -683,6 +731,120 @@ export function createKillFeed(container, opts = {}) {
     item.t2 = setTimeout(() => remove(item), ttl);
   }
   return { el, push, clear: () => items.slice().forEach(remove), destroy: () => { items.slice().forEach(remove); el.remove(); } };
+}
+
+/* ---------- lobby hangar ---------- */
+
+// createHangar(container, opts) → { el, update(list), fit(), clear(), destroy() }: the lobby's cards, one per player.
+// list = the humans in the lobby in join order: [{ name, color, image, ready, stars }] (image = their ship drawing's URL, the
+// entity message's `image`, or null while they draw). A card pops in when someone joins (the cards of the first fill come in
+// quietly: a page opened mid-lobby makes no noise), shows the drawing on a paper tile (a scribbling pencil and "DRAWING…" until
+// it exists; a new drawing pops in once it has loaded, so a broken one never shows), the name in the player's colour, ✔ READY
+// and the session stars. The grid fits the container (the column count that makes the cards biggest, up to 25 cards, at most
+// opts.maxCard em wide). opts: { labels: { ready, readyShort, drawing, stars: "★ {n}" }, maxCard: 15, onPop(kind, name) } with
+// kind "join" | "drawing" (the page plays its pop sound there). update() only touches what changed: call it at the hud rate.
+const PENCIL_SVG = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40l3.2-10.4L33.4 7.4a4.2 4.2 0 0 1 6 0l1.2 1.2a4.2 4.2 0 0 1 0 6L18.4 36.8z" fill="#ffcb3d" stroke="#120a2e" stroke-width="3" stroke-linejoin="round"/><path d="M8 40l3.2-10.4 7.2 7.2z" fill="#ffe9c4" stroke="#120a2e" stroke-width="3" stroke-linejoin="round"/><path d="M8 40l1.4-4.4 3 3z" fill="#120a2e"/><path d="M29.4 11.4l7.2 7.2" stroke="#120a2e" stroke-width="3"/></svg>';
+export function createHangar(container, opts = {}) {
+  injectStyles();
+  const L = Object.assign({ ready: "✔ READY", readyShort: "✔", drawing: "DRAWING…", stars: "★ {n}" }, opts.labels || {});
+  const maxCard = opts.maxCard || 15;
+  const el = document.createElement("div");
+  el.className = "bse-hangar";
+  container.appendChild(el);
+  const cards = new Map(); // name → card
+  let primed = false, layoutKey = "", count = 0;
+
+  function makeCard(name, quiet, i) {
+    const d = document.createElement("div");
+    d.className = "bse-hc in" + (quiet ? " quiet" : "");
+    const delay = quiet ? Math.min(i, 24) * 28 : 0; // the first fill cascades in
+    if (delay) d.style.animationDelay = delay + "ms";
+    d.innerHTML = `<div class="bse-hc-pic"><div class="bse-hc-wait">${PENCIL_SVG}<span></span></div><img alt="" draggable="false"></div>` +
+      '<div class="bse-hc-nm"></div><span class="bse-hc-st"></span><span class="bse-hc-ok"><span class="l"></span><span class="s"></span></span>';
+    d.querySelector(".bse-hc-wait span").textContent = L.drawing;
+    d.querySelector(".bse-hc-nm").textContent = name;
+    d.querySelector(".bse-hc-ok .l").textContent = L.ready;
+    d.querySelector(".bse-hc-ok .s").textContent = L.readyShort;
+    setTimeout(() => { d.classList.remove("in", "quiet"); d.style.animationDelay = ""; }, 900 + delay);
+    return { el: d, img: d.querySelector("img"), st: d.querySelector(".bse-hc-st"), name, url: "", shown: "", sig: "", quiet, born: performance.now() };
+  }
+  // A new drawing is loaded off screen first; it replaces the old one (or the pencil) only once it has arrived.
+  function setImage(c, url) {
+    if (!url || url === c.url) return; // no URL (yet): keep what is there
+    c.url = url;
+    const pre = new Image();
+    pre.onerror = () => setTimeout(() => { if (c.url === url) c.url = c.shown; }, 4000); // a failed load is tried again (next update) after 4 s
+    pre.onload = () => {
+      if (c.url !== url || cards.get(c.name) !== c) return;
+      const first = !c.shown;
+      c.shown = url;
+      c.img.src = url;
+      c.el.classList.add("drawn");
+      if (first && c.quiet && performance.now() - c.born < 2500) return; // the first fill: no fanfare for drawings that were already there
+      c.el.classList.remove("fresh");
+      void c.el.offsetWidth; // restart the pop for a redraw
+      c.el.classList.add("fresh");
+      setTimeout(() => { if (c.shown === url) c.el.classList.remove("fresh"); }, 700);
+      // a player who joins with a drawing already made (a rejoin) gets one pop, the join's
+      if (opts.onPop && !(first && performance.now() - c.born < 1500)) opts.onPop("drawing", c.name);
+    };
+    pre.src = url;
+  }
+  function update(list) {
+    const seen = new Set();
+    let i = 0;
+    for (const p of list || []) {
+      if (!p || !p.name || seen.has(p.name)) continue;
+      seen.add(p.name);
+      let c = cards.get(p.name);
+      if (!c) {
+        c = makeCard(p.name, !primed, i);
+        cards.set(p.name, c);
+        if (primed && opts.onPop) opts.onPop("join", p.name);
+      }
+      if (el.children[i] !== c.el) el.insertBefore(c.el, el.children[i] || null); // join order; moves only what is out of place
+      i++;
+      const stars = p.stars || 0;
+      const sig = `${p.color}|${p.ready ? 1 : 0}|${stars}`;
+      if (sig !== c.sig) {
+        c.sig = sig;
+        c.el.style.setProperty("--pc", p.color || "#ffffff");
+        c.el.classList.toggle("ok", !!p.ready);
+        c.st.textContent = stars ? fill(L.stars, stars) : "";
+      }
+      setImage(c, p.image);
+    }
+    for (const [name, c] of cards) if (!seen.has(name)) { c.el.remove(); cards.delete(name); }
+    primed = true;
+    if (cards.size !== count) { count = cards.size; fit(); }
+  }
+  // The column count that gives the biggest cards in the container's box (a card is about 1.26 times as tall as it is wide).
+  function fit() {
+    const n = cards.size;
+    if (!n) return;
+    const r = container.getBoundingClientRect();
+    if (r.width < 20 || r.height < 20) { layoutKey = ""; return; } // hidden: the ResizeObserver fits it when it shows again
+    const fs = parseFloat(getComputedStyle(el).fontSize) || 16;
+    const gap = (n > 12 ? 0.75 : 1.1) * fs;
+    let best = 0, cols = 1;
+    for (let c = 1; c <= n; c++) {
+      const rows = Math.ceil(n / c);
+      const w = Math.min((r.width - (c - 1) * gap) / c, (r.height - (rows - 1) * gap) / rows / 1.26, maxCard * fs);
+      if (w > best + 0.5) { best = w; cols = c; }
+    }
+    const w = Math.max(24, Math.floor(best));
+    const key = `${cols}|${w}|${gap}`;
+    if (key === layoutKey) return;
+    layoutKey = key;
+    el.style.setProperty("--hc", String(cols));
+    el.style.setProperty("--hw", w + "px");
+    el.style.setProperty("--hg", gap.toFixed(1) + "px");
+    el.classList.toggle("compact", w < 8.5 * fs);
+  }
+  let ro = null;
+  if (typeof ResizeObserver === "function") { ro = new ResizeObserver(() => { layoutKey = ""; fit(); }); ro.observe(container); }
+  const clear = () => { for (const c of cards.values()) c.el.remove(); cards.clear(); count = 0; primed = false; layoutKey = ""; };
+  return { el, update, fit: () => { layoutKey = ""; fit(); }, clear, destroy: () => { clear(); if (ro) ro.disconnect(); el.remove(); }, get size() { return cards.size; } };
 }
 
 /* ---------- name tags ---------- */

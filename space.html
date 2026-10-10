@@ -262,7 +262,8 @@
   .lbempty::before { content: "★"; font-size: 6.5rem; line-height: 1; color: rgb(255 203 61 / .4); -webkit-text-stroke: 0; text-shadow: 0 .3rem 0 rgb(10 6 30 / .5); }
 
   /* who is in: one chip per player (name in their colour, READY or DRAWING), no tags over the ships */
-  #roster { position: absolute; left: 27.4rem; right: 25.4rem; top: 10.2rem; bottom: 16.6rem; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; }
+  /* between the join card (1.8rem + max(23.6rem, 340px)) and the session board (1.8rem + max(21.8rem, 318px)): never under either, even at 1280x720 */
+  #roster { position: absolute; left: max(27.4rem, calc(3.8rem + 340px)); right: max(25.4rem, calc(3.6rem + 318px)); top: 10.2rem; bottom: 16.6rem; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; }
   #rosterGrid { width: 100%; display: grid; grid-template-columns: repeat(var(--rc, 2), minmax(0, 1fr)); gap: .7rem 1.1rem; align-content: center; }
   #rosterGrid:empty { display: none; }
   .rc { position: relative; isolation: isolate; display: flex; align-items: center; gap: .55rem; height: var(--rch, 3.4rem); padding: 0 .9rem 0 .7rem; animation: popIn .38s var(--pop) both; }
@@ -277,6 +278,19 @@
   .rc .stc:empty { display: none; }
   #rosterEmpty { display: none; font-size: 3rem; text-align: center; line-height: 1.1; animation: throb 1.8s ease-in-out infinite; }
   #rosterEmpty.on { display: block; }
+  /* v1.5 hangar (bigscreen-extras createHangar): a card per player with their ship drawing; the chips above are the fallback */
+  #roster.hangar #rosterGrid { display: none; }
+
+  /* attract mode: an empty lobby for a minute cycles tips on a sticker hanging from the join card (the code stays clear) */
+  #tip { position: absolute; left: -.8rem; right: -.8rem; top: calc(100% - 1.3rem); min-height: 5.4rem; display: none; flex-direction: column; align-items: center;
+         justify-content: center; padding: 1.15rem 1.4rem 1rem; text-align: center; z-index: 3; --bg: linear-gradient(180deg, #ffe27a, #ffb000); transform: rotate(-1.5deg); }
+  #join.attract #tip { display: flex; }
+  #tip .tl { position: absolute; left: 1.1rem; top: -1.25rem; padding: .22rem .95rem .32rem; font-size: 1.45rem; }
+  #tipText { font-size: 2.15rem; line-height: 1.02; }
+  #tip.flip { animation: tipFlip .6s var(--pop) both; }
+  #join.attract .bse-qr-tile { animation: qrGlow 2.4s ease-in-out infinite; }
+  @keyframes tipFlip { 0% { opacity: 0; transform: rotate(-1.5deg) perspective(40rem) rotateX(85deg) scale(.85); } 100% { opacity: 1; transform: rotate(-1.5deg); } }
+  @keyframes qrGlow { 0%, 100% { box-shadow: 0 0 0 .18em #120a2e, 0 .55em 0 .18em #0a0830; } 50% { box-shadow: 0 0 0 .18em #120a2e, 0 .55em 0 .18em #0a0830, 0 0 2.6rem .5rem rgb(255 214 90 / .8); } }
 
   #startZone { position: absolute; left: 0; right: 0; bottom: 1.9rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; z-index: 20; animation: inUp .6s var(--pop) .1s both; }
   #startBtn { pointer-events: auto; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 1.1rem; width: 28rem; height: 7.8rem; padding: 0 2rem; border: 0; background: none;
@@ -311,25 +325,62 @@
   #resSub:empty, #resSub.off { display: none; }
   #resBody { position: absolute; left: 4rem; right: 4rem; top: 9.6rem; bottom: 7.2rem; display: grid; grid-template-columns: minmax(0, 1fr) 23.4rem; gap: 2.6rem; }
   #resLeft { display: flex; flex-direction: column; min-height: 0; }
-  #podium { height: 18.2rem; flex: none; display: flex; align-items: flex-end; justify-content: center; gap: 1.5rem; margin-bottom: 1.4rem; }
+  /* v1.5 ceremony: the places rise one at a time (3rd, 2nd, then the winner): .up = rising now (animated), .shown = already up
+     (a rebuilt or skipped screen, no animation). Each place: crown (1st), name, points, their drawing standing on the block. */
+  #podium { height: 18.6rem; flex: none; display: flex; align-items: flex-end; justify-content: center; gap: 1.5rem; margin-bottom: 1.2rem; }
   #podium.compact { height: 8.6rem; align-items: center; }
   .nobody { align-self: center; padding: 1.2rem 3rem 1.4rem; font-size: 3rem; text-align: center; animation: popIn .5s var(--pop) both; }
-  .pc { position: relative; flex: 1 1 0; min-width: 0; max-width: 17.5rem; display: flex; flex-direction: column; align-items: center; animation: riseIn .6s var(--pop) both; animation-delay: var(--d, 0s); }
+  .pc { position: relative; isolation: isolate; flex: 1 1 0; min-width: 0; max-width: 17.5rem; display: flex; flex-direction: column; align-items: center; opacity: 0; }
+  .pc.up, .pc.shown { opacity: 1; }
   .pc .wl { display: flex; align-items: center; gap: .5rem; font-size: 1.5rem; color: var(--gold); margin-bottom: .1rem; }
   .pc .wl svg { width: 2.4rem; height: 1.8rem; display: block; animation: throb 1.6s ease-in-out infinite; }
-  .pc .nm { max-width: 100%; font-size: 2.6rem; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: .1rem .3rem .3rem; }
-  .pc.p1 .nm { font-size: 4rem; }
-  .pc .pt { font-size: 2rem; color: #fff6c8; }
-  .pc .starTag { margin-top: .5rem; padding: .3rem 1.2rem .4rem; font-size: 1.6rem; transform: rotate(-3deg); animation: tagIn .5s var(--pop) .9s both; }
-  .pc .blk { position: relative; isolation: isolate; width: 100%; display: grid; place-items: center; margin-top: .6rem; font-size: 3.4rem; color: #241400; -webkit-text-stroke: 0; text-shadow: 0 .14rem 0 rgb(255 255 255 / .55); }
+  .pc .nm { max-width: 100%; font-size: 2.4rem; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: .1rem .3rem .25rem; }
+  .pc.p1 .nm { font-size: 3.2rem; }
+  .pc .pt { font-size: 1.8rem; color: #fff6c8; }
+  .pc .pic { position: relative; width: var(--ps, 4.6rem); aspect-ratio: 1; margin-top: .4rem; border-radius: .6rem; border: .2rem solid #fff; transform: rotate(-3deg);
+             background: repeating-linear-gradient(180deg, #fffdf4 0 .9rem, #dfe8ff .9rem .96rem); box-shadow: 0 0 0 .14rem var(--ink), 0 .3rem 0 .14rem var(--shadow); }
+  .pc.p2 .pic { transform: rotate(3deg); }
+  .pc .pic img { position: absolute; left: 6%; top: 6%; width: 88%; height: 88%; object-fit: contain; }
+  .pc .pic svg { position: absolute; left: 14%; top: 14%; width: 72%; height: 72%; }
+  .pc .pic.has svg { display: none; }
+  .p1 { --ps: 6.2rem; }
+  .p2 { --ps: 5rem; }
+  .p3 { --ps: 4.4rem; }
+  .pc .starTag { position: absolute; right: -2.6rem; top: -1.1rem; padding: .3rem 1rem .4rem; font-size: 1.45rem; white-space: nowrap; transform: rotate(-3deg); z-index: 2; }
+  .pc .blk { position: relative; isolation: isolate; width: 100%; display: grid; place-items: center; margin-top: .5rem; font-size: 2.6rem; color: #241400; -webkit-text-stroke: 0; text-shadow: 0 .14rem 0 rgb(255 255 255 / .55); transform-origin: 50% 100%; }
   .pc .blk::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-8deg); border-radius: .4rem; border: .2rem solid #fff; box-shadow: 0 .4rem 0 var(--shadow), 0 0 0 .2rem var(--ink), inset 0 .5rem 0 var(--pc, #fff); background: var(--pbg); }
   .p1 { --pbg: linear-gradient(180deg, #fff0a0, #ffb800); }
   .p2 { --pbg: linear-gradient(180deg, #f4f7ff, #a3afd3); }
   .p3 { --pbg: linear-gradient(180deg, #ffc690, #d9782f); }
-  .p1 .blk { height: 5.8rem; }
-  .p2 .blk { height: 4.4rem; }
-  .p3 .blk { height: 3.4rem; }
+  .p1 .blk { height: 4.2rem; font-size: 3.2rem; }
+  .p2 .blk { height: 3.2rem; }
+  .p3 .blk { height: 2.4rem; }
+  .pc.up .blk { animation: blkUp .5s var(--pop) both; }
+  .pc.up .pic { animation: dropIn .6s var(--pop) .16s both; }
+  .pc.up .nm, .pc.up .pt, .pc.up .wl { animation: popIn .42s var(--pop) .32s both; }
+  .pc.up .starTag { animation: tagIn .5s var(--pop) .75s both; }
+  .pc.p1.up::before { content: ""; position: absolute; left: 50%; top: 45%; width: 24rem; height: 24rem; margin: -12rem 0 0 -12rem; z-index: -1; border-radius: 50%; pointer-events: none;
+                      background: radial-gradient(circle, rgb(255 226 122 / .7), rgb(255 176 0 / .25) 40%, transparent 68%); animation: burst 1.3s ease-out both; }
+  @keyframes blkUp { 0% { transform: scaleY(0); } 65% { transform: scaleY(1.14); } 100% { transform: scaleY(1); } }
+  @keyframes dropIn { 0% { opacity: 0; transform: translateY(-4.5rem) scale(.5) rotate(-14deg); } 60% { opacity: 1; transform: translateY(.3rem) scale(1.08) rotate(3deg); } 100% { opacity: 1; } }
+  @keyframes burst { 0% { opacity: 0; transform: scale(.3); } 25% { opacity: 1; } 100% { opacity: 0; transform: scale(1.5); } }
+  #resTitle.reveal { animation: titleIn .55s var(--pop) both; }
+  @keyframes titleIn { 0% { opacity: 0; transform: scale(1.7); } 60% { opacity: 1; transform: scale(.94); } 100% { opacity: 1; transform: none; } }
+  /* the winner's star flies from the podium into the session leaderboard; the row it lands on flashes */
+  .flyStar { position: fixed; left: 0; top: 0; z-index: 60; pointer-events: none; font-family: var(--fh); font-weight: 900; font-size: 4.4rem; line-height: 1; color: #ffd84a;
+             -webkit-text-stroke: .1em var(--ink); paint-order: stroke fill; text-shadow: 0 0 1.4rem rgb(255 214 90 / .95), 0 .2rem 0 var(--shadow); will-change: transform, opacity; }
+  .flyStar.spark { font-size: 2rem; color: #fff3b0; -webkit-text-stroke: 0; text-shadow: 0 0 .9rem #ffd84a; }
+  .landRing { position: fixed; left: 0; top: 0; width: 6rem; height: 6rem; margin: -3rem 0 0 -3rem; border-radius: 50%; border: .45rem solid #ffd84a; pointer-events: none; z-index: 59;
+              box-shadow: 0 0 1.4rem rgb(255 214 90 / .9); animation: ringOut .65s ease-out both; }
+  @keyframes ringOut { 0% { opacity: 1; transform: translate(var(--x), var(--y)) scale(.25); } 100% { opacity: 0; transform: translate(var(--x), var(--y)) scale(1.9); } }
+  #resLb.calm .lrow { animation: none; }
+  .lrow.gotStar::before { border-color: var(--gold); box-shadow: 0 .28rem 0 var(--shadow), 0 0 1.6rem rgb(255 203 61 / .9); animation: starFlash 1.3s ease-out both; }
+  .lrow.gotStar .st { display: inline-block; animation: starBump .7s var(--pop) both; }
+  @keyframes starFlash { 0% { filter: brightness(2.3) saturate(1.4); } 100% { filter: none; } }
+  @keyframes starBump { 0% { transform: scale(2.6) rotate(-12deg); } 100% { transform: none; } }
   #resRest { flex: 1; min-height: 0; display: grid; grid-auto-flow: column; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); grid-template-rows: repeat(var(--rn, 6), var(--rh, 2.4rem)); gap: .4rem 1.4rem; align-content: start; }
+  #resRest.hold .rr { animation: none; opacity: 0; }
+  #resRest.now .rr { animation: none; }
   .rr { position: relative; isolation: isolate; display: flex; align-items: center; gap: .7rem; padding: 0 1rem 0 .5rem; animation: popIn .4s var(--pop) both; animation-delay: var(--d, 0s); }
   .rr::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-8deg); border-radius: .3rem; background: linear-gradient(180deg, rgb(40 29 128 / .92), rgb(20 13 68 / .92)); border: .13rem solid rgb(255 255 255 / .45); box-shadow: 0 .22rem 0 var(--shadow); }
   .rr .rk { width: 1.7rem; height: 1.7rem; font-size: 1.1rem; }
@@ -412,6 +463,7 @@
       <div id="qr"></div>
       <div id="joinUrl" class="tx"></div>
       <ol id="steps"></ol>
+      <div id="tip" class="sk gold"><div class="tl sk purple"><span class="h" data-copy="lobby.tipLabel"></span></div><span id="tipText" class="h hh dk"></span></div>
     </aside>
     <section id="roster"><div id="rosterGrid"></div><div id="rosterEmpty" class="h hh"></div></section>
     <aside id="leaderboard" class="card">
@@ -477,6 +529,10 @@ const COPY = {
     joined: "+ {name} JOINED",
     rosterEmpty: "← SCAN THE CODE TO JOIN",
     getReady: "GET READY!",
+    // attract mode (nobody in the lobby for a minute): one tip at a time on a sticker under the join code
+    tipLabel: "TIP",
+    tips: ["DRAW A GUN TO SHOOT", "STEAL THE BOSS'S LAST HIT", "DRAW FLAMES ON YOUR SHIP TO BOOST", "DRAW A BUTTON FOR EVERY POWER",
+      "DRAW A SHOVEL TO DIG UP CHESTS", "DRAW A DRILL TO OPEN ROCK CHESTS", "WRECK PARKED SHIPS FOR POINTS", "MOST POINTS WINS A ★"],
   },
   cards: { ready: "✔ READY", readyShort: "✔", drawing: "DRAWING…", drawingShort: "…", bot: "BOT", stars: "★ {n}" },
   play: {
@@ -511,6 +567,7 @@ const COPY = {
     timesUp: "TIME'S UP!",
     allChests: "EVERY CHEST IS OPEN!",
     roundOver: "ROUND OVER",
+    drumroll: "AND THE WINNER IS…", // under the title while 3rd and 2nd rise
     wins: "{name} WINS!",
     winner: "WINNER",
     star: "★ +1 STAR",
@@ -532,7 +589,7 @@ const COPY = {
   sound: { on: "SOUND ON", off: "SOUND OFF" },
   // Server lines that use game words: shown with these plain words instead (banner and kill feed).
   rewrite: [[/^assists on\b/i, "BONUS TIME! ALL POWERS UNLOCKED · THE CHESTS GLOW"]],
-  help: "HOST KEYS · ENTER start · M sound · H hide this",
+  help: "HOST KEYS · ENTER start (or skip the podium) · M sound · H hide this",
   // Only with ?kb (a test player that joins as "keyboard"; a stray key on the party laptop never adds a player).
   helpKb: " · TEST PLAYER: arrows steer · W/S thrust · A/D strafe · Q/E rise / sink · SPACE shoot · SHIFT shield · B boost · F flare · C scan · R drill · L land · T take off · G dig · J jump · V view",
 };
@@ -603,6 +660,45 @@ const unlockOnce = () => { sfxUnlock(); removeEventListener("pointerdown", unloc
 addEventListener("pointerdown", unlockOnce, true);
 addEventListener("keydown", unlockOnce, true);
 let muted = false;
+// v1.5 sounds, sfx.js names render.js does not map (so they reach the engine as they are). render.js plays "win" when the results
+// open and every game sound; the page's own are only these, never one of render.js's: "card-pop" when a hangar card pops in (higher
+// when a drawing arrives), "podium" as 3rd and 2nd rise, "fanfare" for the winner, "star" for the star's flight, and the lobby's
+// soft "ambience" loop (fades in once audio is unlocked, fades out at START). sfx.js builds these TV-only sounds on first use:
+// warm() builds them silently a moment before they are needed.
+let popAt = 0;
+function hangarPop(kind) {
+  const now = performance.now();
+  if (now - popAt < 120) return; // a burst of joins is one pop
+  popAt = now;
+  sfxPlay("card-pop", kind === "join" ? { volume: 0.9 } : { volume: 0.7, pitch: 1.22 });
+}
+const warm = (...names) => { if (getSfx()?.unlocked) for (const n of names) sfxPlay(n, { volume: 0 }); };
+let amb = null, ambVol = 0, ambAt = 0, ambFade = 0;
+const AMB_VOL = 0.55;
+function stopAmbience(fade) {
+  clearInterval(ambFade);
+  if (!amb) return;
+  try { amb.stop(fade); } catch (e) { /* sound is optional */ }
+  amb = null;
+}
+function syncAmbience() {
+  const want = view === "lobby" && phase !== "countdown" && !starting && !document.hidden;
+  if (amb && (!want || performance.now() - ambAt > 50 * 60e3)) stopAmbience(1.2); // off, or renewed before sfx.js's safety stop (maxSeconds)
+  if (!want || amb) return;
+  const sf = getSfx();
+  if (!sf || !sf.unlocked || typeof sf.loop !== "function") return; // waits for the first click or key
+  try { amb = sf.loop("ambience", { volume: 0.01, maxSeconds: 3600 }); } catch (e) { return; }
+  ambVol = 0.01; ambAt = performance.now();
+  warm("card-pop");
+  const h = amb, id = setInterval(() => { // ~2 s fade-in
+    if (amb !== h) { clearInterval(id); return; }
+    ambVol = Math.min(AMB_VOL, ambVol + 0.025);
+    try { h.setVolume(ambVol); } catch (e) { /* sound is optional */ }
+    if (ambVol >= AMB_VOL) clearInterval(id);
+  }, 100);
+  ambFade = id;
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden) stopAmbience(0.3); }); // the hud (and syncAmbience) stops with the tab
 
 // ---- join code. The server knows where phones can reach it (GET /info: controllerUrl, the HTTPS one when that is up), so the code
 // is right even when this page is open on localhost. ?join=<url> overrides it. No /info (an old server): this page's own host,
@@ -676,10 +772,19 @@ let view = "none", phase = null, haveTick = false, world = null, tick = null, ti
 const colours = new Map(); // player name -> "#rrggbb"
 const colourOf = (name) => colours.get(name) || "#ffffff";
 let mocked = null;
+// The players' drawings (v1.5: the hangar cards and the podium show them). server.js puts the drawing's URL on every entity message
+// (entity.image, /drawings/<player>-ship.png?v=<hash>) and on the connect message's entities; a landed player's parked ship has it.
+const shipImg = new Map(), otherImg = new Map(); // name → URL: the ship drawing / the latest planet drawing
+function noteDrawing(name, e) { if (name && e && typeof e.image === "string" && e.image) (e.type === "ship" ? shipImg : otherImg).set(name, e.image); }
+const drawingOf = (name) => (mocked && mocked.img && mocked.img.get(name)) || shipImg.get(name) || otherImg.get(name) || null;
+game.on("entity", (m) => { if (m) noteDrawing(m.player, m.entity); });
 
 const killFeed = BX ? BX.createKillFeed(hudEl, { max: 5, life: 6500, labels: COPY.feed, lines: COPY.feedLines, side: "left" }) : null;
 const nameTags = BX ? BX.createNameTags(hudEl, { max: 25, offset: 6, labels: COPY.feed }) : null;
 const miniMap = BX && BX.createMiniMap ? BX.createMiniMap($("mapSlot"), { labels: COPY.map }) : null;
+// v1.5 lobby hangar: a card per player with their ship drawing (the chips of renderRoster are the fallback without it)
+const hangar = BX && BX.createHangar ? BX.createHangar($("roster"), { labels: { ready: COPY.cards.ready, readyShort: COPY.cards.readyShort, drawing: COPY.cards.drawing, stars: COPY.cards.stars }, onPop: hangarPop }) : null;
+if (hangar) $("roster").classList.add("hangar");
 const tagOpts = { limit: 0, focus: null };
 const bots = new Set(); // names of the filler players (tick flags.bot): their kills are dim in the feed, their tags come last
 let followed = null; // the player the TV director follows (hud.followed; the game API has no `followed` of its own)
@@ -695,6 +800,8 @@ let bossWasDead = null, bossRound = -1;
 game.on("world", (m) => {
   const wasResult = world && world.result ? world.result.round : null;
   world = m;
+  if (m.entities) for (const k of Object.keys(m.entities)) noteDrawing(k, m.entities[k]);
+  if (m.island && Array.isArray(m.island.parked)) for (const c of m.island.parked) if (c && c.player && c.image) shipImg.set(c.player, c.image);
   if (m.result && m.result.round !== wasResult) { suppressBannerUntil = performance.now() + 700; hideBanner(); }
   // BOSS DOWN! when this round's boss goes from alive to dead (a fallback for when the announce line did not say so first)
   const boss = Array.isArray(m.targets) ? m.targets.find((t) => t.kind === "boss") : null;
@@ -735,6 +842,8 @@ async function startRound() {
   if (starting || view !== "lobby" || phase === "countdown") return;
   starting = true;
   setStartState("busy");
+  syncAmbience(); // the lobby's ambience fades out at START
+  setAttract(false);
   let next = "busy";
   try {
     const res = await fetch("/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ countdown: !NO_COUNTDOWN }) });
@@ -781,21 +890,23 @@ $("startBtn").addEventListener("click", startRound);
 $("startBtn").addEventListener("keyup", (e) => { if (e.key === " ") e.preventDefault(); });
 
 function leaderboardOf(h) { return Array.isArray(h.leaderboard) ? h.leaderboard : world && Array.isArray(world.leaderboard) ? world.leaderboard : []; }
-function boardHtml(lb, max) {
+function boardHtml(lb, max, hi) {
   if (!lb.length || lb.every((r) => !r.stars && !r.total)) return `<div class="lbempty h">${esc(COPY.lobby.boardEmpty)}</div>`;
   const rows = lb.slice(0, max).map((r, i) => {
     const rank = i < 3 ? ` r${i + 1}` : "";
-    return `<div class="lrow${i === 0 ? " first" : ""}" style="--i:${i}"><span class="rk h${rank}">${i + 1}</span><span class="nm h" style="color:${colourOf(r.name)}">${esc(r.name)}</span>` +
+    return `<div class="lrow${i === 0 ? " first" : ""}${hi && r.name === hi ? " gotStar" : ""}" style="--i:${i}" data-name="${esc(r.name)}"><span class="rk h${rank}">${i + 1}</span><span class="nm h" style="color:${colourOf(r.name)}">${esc(r.name)}</span>` +
       `<span class="st h${r.stars ? "" : " zero"}">${esc(fmt(COPY.cards.stars, { n: r.stars || 0 }))}</span><span class="tp h">${fmtNum(r.total)}</span></div>`;
   });
   if (lb.length > max) rows.push(`<div class="lmore h">${esc(fmt(COPY.lobby.more, { n: lb.length - max }))}</div>`);
   return rows.join("");
 }
-function renderBoard(el, lb, max) {
-  const sig = max + "|" + lb.map((r) => `${r.name}:${r.stars}:${r.total}:${colourOf(r.name)}`).join("|");
+// hi (the results ceremony): the row the winner's star just landed on flashes, and the other rows do not pop in again
+function renderBoard(el, lb, max, hi = "") {
+  const sig = max + "|" + hi + "|" + lb.map((r) => `${r.name}:${r.stars}:${r.total}:${colourOf(r.name)}`).join("|");
   if (el._sig === sig) return;
   el._sig = sig;
-  el.innerHTML = boardHtml(lb, max);
+  el.innerHTML = boardHtml(lb, max, hi);
+  flag(el, "calm", !!hi);
 }
 const ptoast = (html, ms = 2600) => {
   const d = document.createElement("div");
@@ -821,15 +932,26 @@ function renderLobby(h) {
   for (const s of h.scores) {
     if (s.bot) continue;
     names.add(s.name);
-    if (known && !known.has(s.name)) { ptoast(fmtHtml(COPY.lobby.joined, { name: `<span style="color:${colourOf(s.name)}">${esc(s.name)}</span>` })); sfxPlay("pop"); }
+    // (the hangar's card popping in is the announcement: no toast then; its pop sound is hangarPop)
+    if (known && !known.has(s.name) && !hangar) { ptoast(fmtHtml(COPY.lobby.joined, { name: `<span style="color:${colourOf(s.name)}">${esc(s.name)}</span>` })); sfxPlay("pop"); }
   }
   known = names;
   renderRoster(h, humans);
+  updateAttract(humans.length);
 }
-// The roster in the middle of the lobby: one chip per person (name in their colour, READY / DRAWING…, session stars). Bots are only
-// counted (under START). No name tags over the ships in the lobby: they hid the lobby text.
+// The roster in the middle of the lobby. v1.5: the hangar, one card per person in join order (their ship drawing, or a pencil and
+// DRAWING… until it exists; the name in their colour; ✔ READY; session stars). Without bigscreen-extras: one chip per person (name,
+// READY / DRAWING…, stars). Bots are only counted (under START). No name tags over the ships in the lobby: they hid the lobby text.
+const joinOrder = new Map(); // name → when this screen first saw them: cards keep their place, newcomers go last
 function renderRoster(h, humans) {
   const stars = new Map(leaderboardOf(h).map((r) => [r.name, r.stars || 0]));
+  if (hangar) {
+    flag($("rosterEmpty"), "on", !humans.length);
+    for (const s of humans) if (!joinOrder.has(s.name)) joinOrder.set(s.name, joinOrder.size);
+    hangar.update(humans.slice().sort((a, b) => joinOrder.get(a.name) - joinOrder.get(b.name)).map((s) => ({
+      name: s.name, color: colourOf(s.name), image: s.image || shipImg.get(s.name) || null, ready: !!s.ready, stars: stars.get(s.name) || s.stars || 0 })));
+    return;
+  }
   let sig = humans.length + "|";
   for (const s of humans) sig += `${s.name}:${s.ready ? 1 : 0}:${stars.get(s.name) || s.stars || 0}:${colourOf(s.name)};`;
   if (sig === infoSig) return;
@@ -849,6 +971,32 @@ function renderRoster(h, humans) {
   }).join("");
 }
 const fmtHtml = (tpl, v) => String(tpl).replace(/\{(\w+)\}/g, (_, k) => (v && v[k] != null ? v[k] : ""));
+
+// Attract mode: nobody has joined for a minute (?attract=<seconds> to test) → the join card glows and a sticker under the code cycles
+// COPY.lobby.tips, one every 6 s. The first player in (or START) ends it at once.
+const ATTRACT_MS = (params.has("attract") ? Math.max(0, +params.get("attract") || 0) : 60) * 1000;
+let emptySince = performance.now(), attractOn = false, tipTimer = 0, tipIdx = -1;
+function updateAttract(humans) {
+  const now = performance.now();
+  if (view !== "lobby" || phase === "countdown" || starting || humans > 0) emptySince = now;
+  setAttract(now - emptySince >= ATTRACT_MS && humans === 0 && view === "lobby");
+}
+function setAttract(on) {
+  on = !!on;
+  if (on === attractOn) return;
+  attractOn = on;
+  flag($("join"), "attract", on);
+  clearInterval(tipTimer);
+  if (on) { nextTip(); tipTimer = setInterval(nextTip, 6000); }
+}
+function nextTip() {
+  const tips = COPY.lobby.tips, el = $("tip");
+  tipIdx = (tipIdx + 1) % tips.length;
+  setText($("tipText"), tips[tipIdx]);
+  el.classList.remove("flip");
+  void el.offsetWidth; // replay the flip for every tip
+  el.classList.add("flip");
+}
 
 // ================= PLAY =================
 const rowsEl = $("rows"), rowMap = new Map();
@@ -997,8 +1145,17 @@ function drawMap() {
 }
 
 // ================= RESULTS =================
-let resSig = "";
+// v1.5 ceremony: the round-over reason is the title ("AND THE WINNER IS…" under it) while the podium rises one place at a time:
+// 3rd, then 2nd (a "podium" thump each), then the winner (the fanfare, "X WINS!", confetti). The winner's star then flies into the
+// session leaderboard (their row shows one star fewer until it lands) and the full list cascades in: about 6.3 s of the 10 s
+// scoreboard. Enter (the host) skips to the end. A page opened during the results, ?noceremony, reduced motion and the mock show the end at
+// once (mock("results", { ceremony: true }) or __bigscreen.ceremony() plays it). render.js plays "win" as the screen opens.
+const NO_CEREMONY = params.has("noceremony");
+let resSig = "", cer = null; // cer: { key (result round, -1 = none yet), plan { step: seconds }, done { step: true }, timers, winner, final, reason, lb, flash }
+let resultsLate = false; // this page opened during the results: no ceremony, the end at once
 function rankClass(i) { return i < 3 ? ` r${i + 1}` : ""; }
+// A podium place with no drawing yet: a chunky ship in the player's colour
+const shipSvg = (col) => `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4l7 16 11 6-11 4-7 14-7-14-11-4 11-6z" fill="${col}" stroke="#120a2e" stroke-width="3" stroke-linejoin="round"/><circle cx="24" cy="21" r="4.5" fill="#fff" stroke="#120a2e" stroke-width="2.5"/></svg>`;
 function buildResults(r, h) {
   const have = !!r;
   // ONE winner: the server's world.result.winner (most points). The list is put in line with it (the winner first, the others
@@ -1009,27 +1166,27 @@ function buildResults(r, h) {
     const i = scores.findIndex((x) => x[0] === winner);
     if (i < 0) scores.unshift([winner, 0]); else if (i > 0) scores.unshift(scores.splice(i, 1)[0]);
   }
-  const title = winner ? fmt(COPY.results.wins, { name: winner }) : have ? COPY.results.nobody : COPY.results.roundOver;
-  setGT($("resTitle"), title);
-  flag($("resTitle"), "long", title.length > 16);
-  const reason = have ? (r.reason === "chests" ? COPY.results.allChests : COPY.results.timesUp) : "";
-  setText($("resSub").firstChild, reason);
-  flag($("resSub"), "off", !reason);
+  cer.winner = winner;
+  cer.final = winner ? fmt(COPY.results.wins, { name: winner }) : have ? COPY.results.nobody : COPY.results.roundOver;
+  cer.reason = have ? (r.reason === "chests" ? COPY.results.allChests : COPY.results.timesUp) : "";
   const pod = $("podium");
   flag(pod, "compact", !winner);
   if (!winner) {
     pod.innerHTML = have ? `<div class="nobody sk navy h hh">${esc(COPY.results.noStar)}</div>` : "";
   } else {
     pod.innerHTML = [1, 0, 2].filter((i) => scores[i]).map((i) => {
-      const [name, score] = scores[i], col = colourOf(name), rank = i + 1;
-      return `<div class="pc p${rank}" style="--pc:${col};--d:${rank === 1 ? ".4s" : rank === 2 ? ".2s" : ".05s"}">` +
+      const [name, score] = scores[i], col = colourOf(name), rank = i + 1, img = drawingOf(name);
+      // their drawing stands on the block (a failed image falls back to the colour ship)
+      const pic = img ? `<img src="${esc(img)}" alt="" onerror="this.parentNode.classList.remove('has');this.remove()">` : "";
+      return `<div class="pc p${rank}" style="--pc:${col}">` +
         (rank === 1 ? `<div class="wl h">${ICON.crown}<span>${esc(COPY.results.winner)}</span></div>` : "") +
         `<div class="nm h hh" style="color:${col}">${esc(name)}</div><div class="pt h">${esc(fmt(COPY.results.points, { n: fmtNum(score) }))}</div>` +
-        (rank === 1 ? `<div class="starTag sk gold"><span class="h dk">${esc(COPY.results.star)}</span></div>` : "") +
+        `<div class="pic${img ? " has" : ""}">${shipSvg(col)}${pic}` +
+        (rank === 1 ? `<div class="starTag sk gold"><span class="h dk">${esc(COPY.results.star)}</span></div>` : "") + "</div>" +
         `<div class="blk h"><span>${rank}</span></div></div>`;
     }).join("");
   }
-  // everyone else, by points, in 1 to 3 columns so 25 players still fit
+  // everyone else, by points, in 1 to 3 columns so 25 players still fit (they cascade in at the end of the ceremony)
   const base = winner ? Math.min(3, scores.length) : 0;
   const rest = scores.slice(base);
   const cols = rest.length <= 6 ? 1 : rest.length <= 14 ? 2 : 3;
@@ -1037,19 +1194,152 @@ function buildResults(r, h) {
   const el = $("resRest");
   el.style.setProperty("--cols", cols);
   el.style.setProperty("--rn", rn);
-  el.style.setProperty("--rh", cols === 1 ? "2.7rem" : cols === 2 ? "2.4rem" : "2.1rem");
+  el.style.setProperty("--rh", cols === 1 ? "2.7rem" : cols === 2 ? "2.4rem" : "2.05rem");
   el.innerHTML = rest.map(([name, score], i) => {
     const idx = base + i;
-    return `<div class="rr" style="--d:${(0.5 + i * 0.03).toFixed(2)}s"><span class="rk h${rankClass(idx)}">${idx + 1}</span><span class="nm h" style="color:${colourOf(name)}">${esc(name)}</span><span class="pt h">${fmtNum(score)}</span></div>`;
+    return `<div class="rr" style="--d:${(i * 0.03).toFixed(2)}s"><span class="rk h${rankClass(idx)}">${idx + 1}</span><span class="nm h" style="color:${colourOf(name)}">${esc(name)}</span><span class="pt h">${fmtNum(score)}</span></div>`;
   }).join("");
+  cerApply();
 }
 function renderResults(h) {
   const r = h.result || (world && world.result) || null;
   const lb = leaderboardOf(h);
+  const key = r ? r.round : -1;
+  if (!cer || cer.key !== key) { cerBegin(r, h, false); resSig = ""; }
+  cer.lb = lb;
   const sig = JSON.stringify(r) + "|" + (r ? "" : h.scores.map((s) => s.name + s.score).join()) + "|" + h.scores.map((s) => colourOf(s.name)).join();
   if (sig !== resSig) { resSig = sig; buildResults(r, h); }
-  renderBoard($("resLb"), lb, 10);
+  renderBoard($("resLb"), cerBoard(lb), 10, cer.flash && cer.winner ? cer.winner : "");
   setHtml($("resNext"), fmtB(COPY.results.next, { n: Math.max(0, Math.ceil(h.clock || 0)) }));
+}
+// The title: the reason while the podium rises ("AND THE WINNER IS…" under it), "X WINS!" from the winner's step (reason under it).
+function showResTitle() {
+  const fin = !cer.winner || !!cer.done.first;
+  const text = fin ? cer.final : cer.reason || COPY.results.roundOver;
+  setGT($("resTitle"), text);
+  flag($("resTitle"), "long", text.length > 16);
+  const sub = fin ? cer.reason : COPY.results.drumroll;
+  setText($("resSub").firstChild, sub);
+  flag($("resSub"), "off", !sub);
+}
+function cerBegin(r, h, force) {
+  cerStop();
+  const winner = r && r.winner ? r.winner : null;
+  const n = r && Array.isArray(r.scores) ? r.scores.length : 0;
+  const places = winner ? Math.min(3, Math.max(1, n)) : 0;
+  const plan = {};
+  let t = 0.75;
+  if (places >= 3) { plan.third = t; t += 0.9; }
+  if (places >= 2) { plan.second = t; t += 1.0; }
+  if (winner) { plan.first = t; plan.star = t + 1.35; plan.land = t + 2.5; plan.list = t + 2.6; } else plan.list = 0.3; // 3 places: list at 5.25 s, all in by ~6.4 s
+  cer = { key: r ? r.round : -1, plan, done: {}, timers: [], winner, final: "", reason: "", lb: null, flash: false };
+  const late = !mocked && resultsLate; // opened mid-scoreboard
+  if (!force && (!r || NO_CEREMONY || reduceMotion || late || (mocked && !mocked.ceremony))) { // the end at once (confetti for a winner, no star flash)
+    for (const k of Object.keys(plan)) cer.done[k] = true;
+    if (winner) confetti();
+    return;
+  }
+  warm("podium", "fanfare", "star"); // built now, silently: no hitch when they play
+  for (const [k, at] of Object.entries(plan)) cer.timers.push(setTimeout(() => cerStep(k), at * 1000));
+}
+function cerStop() {
+  if (cer) { cer.timers.forEach(clearTimeout); cer.timers.length = 0; }
+  for (const e of document.querySelectorAll(".flyStar, .landRing")) e.remove();
+}
+// A rebuilt results screen keeps what the ceremony already showed (no animation for it).
+function cerApply() {
+  const pod = $("podium");
+  for (const [step, rank] of [["third", 3], ["second", 2], ["first", 1]]) { const el = pod.querySelector(".p" + rank); if (el && (cer.done[step] || cer.done.list)) el.classList.add("shown"); }
+  showResTitle();
+  flag($("resRest"), "hold", !cer.done.list);
+  flag($("resRest"), "now", !!cer.done.list);
+}
+function cerStep(step) {
+  if (!cer || cer.done[step]) return;
+  cer.done[step] = true;
+  if (step === "third" || step === "second" || step === "first") {
+    const el = $("podium").querySelector(step === "first" ? ".p1" : step === "second" ? ".p2" : ".p3");
+    if (el) el.classList.add("up");
+    if (step !== "first") { sfxPlay("podium", { volume: 0.85, pitch: step === "third" ? 0.85 : 1 }); return; }
+    showResTitle();
+    const t = $("resTitle");
+    t.classList.remove("reveal");
+    void t.offsetWidth; // replay the title's pop for the winner's name
+    t.classList.add("reveal");
+    confetti();
+    sfxPlay("fanfare", { volume: 1 });
+  } else if (step === "star") flyStar();
+  else if (step === "land") landStar();
+  else if (step === "list") {
+    flag($("resRest"), "now", false);
+    flag($("resRest"), "hold", false);
+    for (const el of $("podium").querySelectorAll(".pc:not(.up):not(.shown)")) el.classList.add("shown"); // a place with no step of its own
+  }
+}
+// Enter: everything at once (no sound), the star already in the leaderboard.
+function cerFinish() {
+  if (!cer) return;
+  const hadFirst = !!cer.done.first;
+  cerStop();
+  for (const k of Object.keys(cer.plan)) cer.done[k] = true;
+  for (const el of $("podium").querySelectorAll(".pc")) { el.classList.remove("up"); el.classList.add("shown"); }
+  showResTitle();
+  flag($("resRest"), "hold", false);
+  flag($("resRest"), "now", true);
+  cer.flash = true;
+  if (cer.lb) renderBoard($("resLb"), cer.lb, 10, cer.winner || "");
+  if (!hadFirst && cer.winner) confetti();
+}
+// Before the star lands, the winner's row shows the stars they had before this round (the server has already counted it). The
+// server's order stays: the row does not move when the star lands on it.
+function cerBoard(lb) {
+  if (!cer || cer.done.land || !cer.winner) return lb;
+  const w = lb.find((x) => x.name === cer.winner);
+  if (!w || !(w.stars > 0)) return lb;
+  return lb.map((x) => (x === w ? { ...x, stars: x.stars - 1 } : x));
+}
+const lbRowOf = (name) => (name ? [...$("resLb").querySelectorAll(".lrow")].find((e) => e.dataset.name === name) || null : null);
+// The star flies on an arc from the winner's "+1 STAR" tag to their row's stars (or the board's title when the row is not shown),
+// five sparks trailing it; it lands (landStar) when the flight ends, or at the plan's time if anything is off.
+function flyStar() {
+  const pod = $("podium");
+  const from = pod.querySelector(".p1 .starTag") || pod.querySelector(".p1 .pic");
+  const row = lbRowOf(cer.winner);
+  const to = (row && row.querySelector(".st")) || document.querySelector("#resBoard .ribbon");
+  if (!from || !to || typeof from.animate !== "function") return;
+  sfxPlay("star", { volume: 0.85 });
+  const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+  const x0 = a.left + a.width / 2, y0 = a.top + a.height / 2, x1 = b.left + b.width / 2, y1 = b.top + b.height / 2;
+  const mx = (x0 + x1) / 2, my = Math.min(y0, y1) - innerHeight * 0.16;
+  const at = (x, y, s, deg) => `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -50%) scale(${s}) rotate(${deg}deg)`;
+  const frames = [
+    { transform: at(x0, y0, 1.2, 0), opacity: 0 },
+    { transform: at(x0, y0 - innerHeight * 0.05, 2.3, 40), opacity: 1, offset: 0.14 },
+    { transform: at(mx, my, 1.7, 200), opacity: 1, offset: 0.55 },
+    { transform: at(x1, y1, 0.75, 360), opacity: 1 },
+  ];
+  const mine = cer;
+  for (let i = 5; i >= 0; i--) {
+    const s = document.createElement("div");
+    s.className = "flyStar" + (i ? " spark" : "");
+    s.textContent = "★";
+    hudEl.appendChild(s);
+    const anim = s.animate(frames, { duration: 1000, delay: i * 45, easing: "cubic-bezier(.45,.05,.35,1)", fill: "both" });
+    anim.onfinish = () => { s.remove(); if (!i && cer === mine) cerStep("land"); };
+  }
+}
+function landStar() {
+  for (const e of document.querySelectorAll(".flyStar:not(.spark)")) e.remove(); // (the sparks finish their trail and go)
+  cer.flash = true;
+  renderBoard($("resLb"), cer.lb || [], 10, cer.winner || "");
+  const st = lbRowOf(cer.winner)?.querySelector(".st");
+  if (!st || reduceMotion) return;
+  const b = st.getBoundingClientRect(), ring = document.createElement("div");
+  ring.className = "landRing";
+  ring.style.setProperty("--x", (b.left + b.width / 2).toFixed(1) + "px");
+  ring.style.setProperty("--y", (b.top + b.height / 2).toFixed(1) + "px");
+  hudEl.appendChild(ring);
+  setTimeout(() => ring.remove(), 700);
 }
 function confetti() {
   const box = $("confetti");
@@ -1076,8 +1366,11 @@ function enterPhase(h) {
   view = next;
   hudEl.dataset.view = next;
   if (nameTags) nameTags.setMode(next === "lobby" ? "lobby" : "play");
+  if (next !== "lobby") setAttract(false);
   if (next === "lobby") {
     known = null; infoSig = ""; starting = false; fitJoin(); refreshInfo();
+    emptySince = performance.now(); // attract mode counts its minute from here
+    if (hangar && before === "results") hangar.clear(); // the cards cascade in again, quietly
     if (phase === "countdown") setStartState("busy"); // a page opened during the 3-2-1 keeps its digit
     else {
       setStartState("idle"); hideSting();
@@ -1088,8 +1381,8 @@ function enterPhase(h) {
     pipTotal = pipOpen = -1; firstLanded = false; lastFinalSec = 0;
     if (before === "lobby") goSting(h); // START → the 3-2-1 (over the lobby) → GO!; an older server: START → GO!
   }
-  if (next === "results") { resSig = ""; hideBanner(); hideSting(); confetti(); }
-  if (before === "results") $("confetti").textContent = "";
+  if (next === "results") { resSig = ""; cerStop(); cer = null; resultsLate = before === "none"; hideBanner(); hideSting(); } // the confetti waits for the winner (cerStep)
+  if (before === "results") { $("confetti").textContent = ""; cerStop(); cer = null; }
 }
 function onHud(h) {
   if (!haveTick || !h) return;
@@ -1103,6 +1396,7 @@ function onHud(h) {
   if (view === "lobby") { if (phase !== "countdown" || !known) renderLobby(h); }
   else if (view === "play") renderPlay(h);
   else if (view === "results") renderResults(h);
+  syncAmbience();
 }
 game.on("hud", (h) => { if (!mocked) onHud(h); });
 
@@ -1232,6 +1526,7 @@ addEventListener("keydown", (e) => {
   const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (view === "lobby" && key === "Enter") { e.preventDefault(); if (!e.repeat) startRound(); return; }
+  if (view === "results" && key === "Enter") { e.preventDefault(); if (!e.repeat) cerFinish(); return; } // the host skips the podium
   if (key === "h") { if (!e.repeat) document.body.classList.toggle("help"); return; }
   if (key === "m") {
     if (e.repeat) return;
@@ -1258,11 +1553,32 @@ addEventListener("blur", () => Object.values(KEYMAP).forEach((a) => joined && po
 
 // ================= preview without a round (for screenshots and tests) =================
 // window.__bigscreen.mock("lobby" | "play" | "results", { players: 8, bots: 0, left: 187, assists: false, reason: "time" | "chests",
-// noRounds: true, nobody: true, me: 1, dead: true, crowd: true (every ship in a small cluster), planet: true (boss down, planet map) }) shows that
+// noRounds: true, nobody: true, me: 1, dead: true, crowd: true (every ship in a small cluster), planet: true (boss down, planet map), ceremony: true
+// (results: play the v1.5 podium ceremony instead of showing its end) }) shows that
 // screen with made-up players; mock(null) (or unmock()) goes back to the live game. __bigscreen.feed(text) pushes an announce line (kill feed +
 // banner) as if the server had sent it. __bigscreen.sting(text, opts) shows a sting; __bigscreen.countdown() plays the 3-2-1 digits (no START, in the lobby).
-// URL shortcut: space.html?mock=results&players=25 (also &bots=N &dead &crowd &nobody &planet &reason=chests &me=i &left=s)
+// URL shortcut: space.html?mock=results&players=25 (also &bots=N &dead &crowd &nobody &planet &reason=chests &me=i &left=s &ceremony)
 const MOCK_NAMES = ["ana", "ben", "carla", "dani", "eli", "fran", "gina", "hugo", "ivan", "julia", "kai", "lara", "marc", "nora", "omar", "pau", "quim", "rita", "sam", "tina", "uri", "vera", "wes", "xavi", "yara"];
+// A quick ship doodle in black ink (like a phone photo of paper) for the mock hangar and podium: a body, two wings, a cockpit,
+// a gun on every other one, flames on two in three. Seeded by i, so a mock looks the same every time.
+function mockDrawing(i) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 128;
+  const g = c.getContext && c.getContext("2d");
+  if (!g) return null;
+  const r = (k) => ((Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) % 1 + 1) % 1;
+  const line = (pts) => { g.beginPath(); pts.forEach(([x, y], j) => (j ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke(); };
+  g.lineWidth = 5; g.lineCap = "round"; g.lineJoin = "round"; g.strokeStyle = "#1b1530";
+  g.translate(62, 64); g.rotate((r(1) - 0.5) * 0.6);
+  const w = 24 + r(2) * 12, hh = 12 + r(3) * 7;
+  g.beginPath(); g.ellipse(0, 0, w, hh, 0, 0, Math.PI * 2); g.stroke();
+  line([[-w * 0.3, -hh * 0.7], [-w * 0.15, -hh - 16 - r(4) * 10], [w * 0.25, -hh * 0.75]]);
+  line([[-w * 0.3, hh * 0.7], [-w * 0.15, hh + 16 + r(5) * 10], [w * 0.25, hh * 0.75]]);
+  g.beginPath(); g.arc(w * 0.38, -1, 5 + r(6) * 4, 0, Math.PI * 2); g.stroke();
+  if (i % 2 === 0) line([[w * 0.55, hh * 0.45], [w + 15, hh * 0.45]]);
+  if (i % 3 !== 1) line([[-w, -6], [-w - 11, -3], [-w - 6, 0], [-w - 15, 4], [-w, 6]]);
+  try { return c.toDataURL("image/png"); } catch (e) { return null; }
+}
 function buildMock(kind, o) {
   const n = Math.max(0, Math.min(25, o.players == null ? 8 : o.players));
   const pal = (globalThis.Contract && Contract.COLORS) || [0x22d3ee, 0xf472b6, 0xa3e635];
@@ -1270,7 +1586,9 @@ function buildMock(kind, o) {
   const scores = MOCK_NAMES.slice(0, n).map((name, i) => ({
     name, color: pal[i % pal.length], score: o.nobody ? 0 : Math.max(0, 5200 - i * (n > 12 ? 190 : 430) - ((i * 37) % 90)), mode: i % 5 === 3 ? "planet" : "space",
     ready: i % 3 !== 1, bot: !!o.bots && i >= n - o.bots, dead: i === 4, me: i === me, stars: i === 0 ? 2 : i === 2 ? 1 : 0,
+    image: i % 4 === 1 || (kind !== "lobby" && kind !== "results") ? null : mockDrawing(i), // one in four still drawing
   }));
+  const img = new Map(scores.filter((s) => s.image).map((s) => [s.name, s.image]));
   const leaderboard = o.noRounds ? scores.map((s) => ({ name: s.name, stars: 0, total: 0 })) : scores.map((s) => ({ name: s.name, stars: s.stars, total: Math.round(s.score * 2.2) })).sort((a, b) => b.stars - a.stars || b.total - a.total);
   const left = o.left == null ? 187 : o.left;
   const mp = scores[me] || scores[0];
@@ -1311,20 +1629,23 @@ function buildMock(kind, o) {
       : { name: s.name, color: hex(s.color), mode: "space", x: BOSS.x * f * (o.planet ? 1.3 : 1) + j * 0.95, z: BOSS.z * f * (o.planet ? 1.3 : 1) + j * 0.3, bot: s.bot, dead: s.dead, invisible: false };
   });
   const map = { world: mapWorld, players: mapPlayers, followed: mp ? mp.name : null, colours: new Map(scores.map((s) => [s.name, hex(s.color)])), chests: "2/7" };
-  return { hud, tags, map };
+  return { hud, tags, map, img };
 }
 window.__bigscreen = {
   COPY,
   mock(kind, o = {}) {
     if (!kind) return this.unmock();
     mocked = buildMock(kind, o);
+    mocked.ceremony = !!o.ceremony; // results: play the podium ceremony (else the end at once, for screenshots)
+    cerStop(); cer = null; resSig = ""; // a second mock("results") starts its own ceremony
+    if (hangar) hangar.clear(); // a mock lobby fills quietly; mockJoin() pops
     known = null; infoSig = ""; $("pops").textContent = "";
     haveTick = true;
     tick = tick || { left: mocked.hud.left };
     onHud(mocked.hud);
     return mocked.hud;
   },
-  unmock() { mocked = null; },
+  unmock() { mocked = null; cerStop(); cer = null; resSig = ""; known = null; if (hangar) hangar.clear(); }, // the live screen comes back quietly
   // Test hook: pushes one announce line through the same path as a server announcement (kill feed + banner), e.g.
   // __bigscreen.feed("⚡ ana scrambled bob's buttons"), feed("ana ✕ bob 💣"), feed("💰 ana stole 750 points from bob!").
   feed(text, big = false) { onAnnounce({ type: "announce", text: String(text), big: !!big }); },
@@ -1332,10 +1653,36 @@ window.__bigscreen = {
   sting: (text, o) => sting(text, o || {}),
   countdown: () => localCountdown(), // the server phase's 3-2-1 digits, played here (no START)
   followed: () => followed, // the player the director follows (from hud.followed)
+  // v1.5: skip() = the host's Enter on the results (the end of the ceremony at once); ceremony() replays it (results screen);
+  // attract(on) forces attract mode on / off (lobby); mockJoin(name, { ready, drawn }) adds a player to a mocked lobby (the card
+  // pops in with its sound; drawn: true gives them a doodle, or a later mockJoin of the same name with drawn: true draws it).
+  skip: () => cerFinish(),
+  ceremony() {
+    if (view !== "results") return false;
+    const h = mocked ? mocked.hud : typeof game.hud === "function" ? game.hud() : null;
+    if (!h) return false;
+    $("confetti").textContent = "";
+    cerBegin(h.result || (world && world.result) || null, h, true);
+    resSig = "";
+    renderResults(h);
+    return true;
+  },
+  attract(on = true) { emptySince = on ? -Infinity : performance.now(); setAttract(on && view === "lobby"); return attractOn; },
+  mockJoin(name, o = {}) {
+    if (!mocked || mocked.hud.phase !== "lobby") return false;
+    const key = globalThis.Contract && Contract.cleanName ? Contract.cleanName(name) : String(name);
+    const pal = (globalThis.Contract && Contract.COLORS) || [0x22d3ee];
+    let s = mocked.hud.scores.find((x) => x.name === key);
+    if (!s) { s = { name: key, color: pal[mocked.hud.scores.length % pal.length], score: 0, mode: "space", ready: false, bot: false, dead: false, me: false, stars: 0, image: null }; mocked.hud.scores.push(s); }
+    if (o.ready != null) s.ready = !!o.ready;
+    if (o.drawn && !s.image) s.image = mockDrawing(mocked.hud.scores.indexOf(s) + 7);
+    onHud(mocked.hud);
+    return true;
+  },
 };
 if (params.get("mock")) {
   const num = (k) => (params.get(k) == null ? undefined : +params.get(k));
-  window.__bigscreen.mock(params.get("mock"), { players: num("players"), bots: num("bots"), left: num("left"), me: num("me"), assists: params.has("assists"), noRounds: params.has("norounds"), nobody: params.has("nobody"), dead: params.has("dead"), crowd: params.has("crowd"), planet: params.has("planet"), reason: params.get("reason") || undefined });
+  window.__bigscreen.mock(params.get("mock"), { players: num("players"), bots: num("bots"), left: num("left"), me: num("me"), assists: params.has("assists"), noRounds: params.has("norounds"), nobody: params.has("nobody"), dead: params.has("dead"), crowd: params.has("crowd"), planet: params.has("planet"), reason: params.get("reason") || undefined, ceremony: params.has("ceremony") });
 }
 </script>
 </body>
