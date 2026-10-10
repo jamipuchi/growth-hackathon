@@ -567,9 +567,20 @@
   .quickexp.hidden { display: none; }
   .dline .quickexp { min-height: 46px; font-size: 20px; padding: 0 16px; margin-left: auto; animation: qxPulse 1.2s ease-in-out infinite; }
   .dline .quickexp + .dskip { margin-left: 0; }
-  #expQuick { animation: qxPulse 1.2s ease-in-out infinite; }
-  #expQuick .qx { display: flex; flex-direction: column; align-items: center; line-height: 1; }
-  #expQuick .qx i { font: 700 12px/1.1 var(--f-body); font-style: normal; -webkit-text-stroke: 0; letter-spacing: .04em; margin-top: 3px; }
+  #expQuick, #playQuick { animation: qxPulse 1.2s ease-in-out infinite; }
+  #expQuick .qx, #playQuick .qx { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+  #expQuick .qx i, #playQuick .qx i { font: 700 12px/1.1 var(--f-body); font-style: normal; -webkit-text-stroke: 0; letter-spacing: .04em; margin-top: 3px; }
+  /* v1.9 fix: SKIP on the explorer prompt still gets the offer: on the play screen, bottom centre (above DIG / DRILL), until I have an explorer */
+  #playQuickBox { position: fixed; left: 45vw; bottom: calc(var(--sb) + 14px); z-index: 6; transform: translateX(-50%); }
+  #natBtns:not(.hidden) ~ #playQuickBox { bottom: calc(var(--sb) + 112px); }
+  #playQuickBox.hidden, body.waiting #playQuickBox, body.adding #playQuickBox { display: none; }
+  #playQuick { min-height: 54px; padding: 0 14px; font-size: 19px; white-space: nowrap; }     /* about DIG + DRILL's width: between a stick and the buttons */
+  #playQuick .qx i { font-size: 11px; }
+  /* v1.9 fix: while the STARTING IN strip shows, the drawing screen's instruction line (and the example / camera card) sit under it
+     (--startH: the strip's height, measured by syncStartIn) */
+  body.startin #draw .dline { top: calc(var(--startH, 66px) + 4px); }
+  body.startin #draw .guide, body.startin #draw .camcard { padding-top: calc(var(--startH, 66px) + 52px); }
+  @media (orientation: landscape) { body.startin #draw .example { height: min(42vh, 200px); } }
   @keyframes qxPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
   #natBtns { position: fixed; left: 45vw; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 6; transform: translateX(-50%); display: flex; gap: 12px; }
   #natBtns.hidden, .natbtn.hidden, body.waiting #natBtns, body.adding #natBtns { display: none; }
@@ -943,6 +954,8 @@
   <button id="hudBtn" class="hudbtn" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><use id="hudBtnIcon" href="#i-eye"/></svg><b data-copy="hudBtn.cap"></b></button>
   <!-- v1.9 short rounds: native DIG / DRILL hold buttons when the explorer can but the pad has no such control -->
   <div id="natBtns" class="hidden"><button id="natDig" class="natbtn hidden" type="button" data-act="dig" data-copy="native.dig"></button><button id="natDrill" class="natbtn hidden" type="button" data-act="drill" data-copy="native.drill"></button></div>
+  <!-- v1.9 fix: after SKIP on the explorer prompt, USE A QUICK EXPLORER stays on the play screen (short rounds, once due) -->
+  <div id="playQuickBox" class="hidden"><button id="playQuick" class="btn orange quickexp" type="button"><span class="qx"><span data-copy="quick.explorer"></span><i data-copy="quick.sub"></i></span></button></div>
 </div>
 <!-- v1.7 ROUND IN PROGRESS (v1.9, Codex N8: out of #play, so it shows on the drawing screens too) and v1.9 the lobby auto-start countdown -->
 <div id="waitStrip" class="hidden" role="status"><b></b><span></span><em></em></div>
@@ -3300,6 +3313,7 @@ function syncStartIn(m, me) {
   el.children[0].textContent = tpl(ready ? COPY.startIn.ready : COPY.startIn.draw, { n });
   el.children[1].textContent = ready ? COPY.startIn.readySub : COPY.startIn.drawSub;
   if (wasHidden) { el.classList.remove("hidden"); document.body.classList.add("startin"); }
+  if (el.offsetHeight) document.body.style.setProperty("--startH", el.offsetHeight + "px");   // v1.9 fix: the drawing screen's instruction line goes under it
 }
 // v1.9 QUICK EXPLORER (short rounds: Contract.pacing(minutes).quickExplorerSeconds, 12 s for 1 min, 20 s for 2): landed that long with no
 // explorer drawing finished → the explorer prompt and the explorer drawing screen offer USE A QUICK EXPLORER (POST /default kinds
@@ -3316,6 +3330,9 @@ function syncQuickExplorer() {
   const onDraw = due && S.screen === "draw" && DR.kind === "explorer";
   if ($("quickExp").classList.contains("hidden") === onDraw) $("quickExp").classList.toggle("hidden", !onDraw);
   if ($("expQuick").classList.contains("hidden") === due) $("expQuick").classList.toggle("hidden", !due);
+  // v1.9 fix: SKIP on the explorer prompt (or no prompt at all): the same offer on the play screen, until I have an explorer
+  const onPlay = due && S.screen === "play" && S.step === "play" && $("explorer").classList.contains("hidden");
+  if ($("playQuickBox").classList.contains("hidden") === onPlay) $("playQuickBox").classList.toggle("hidden", !onPlay);
 }
 function useQuickExplorer() {
   if (S.quickExp || !S.player) return;
@@ -3332,6 +3349,7 @@ function useQuickExplorer() {
 }
 $("quickExp").onclick = useQuickExplorer;
 $("expQuick").onclick = useQuickExplorer;
+$("playQuick").onclick = useQuickExplorer;
 // v1.9 NATIVE DIG / DRILL (short rounds: Contract.pacing(minutes).chestButtons): on the planet, when my entity can dig / drill but the pad
 // has no control for it, a big hold button sends the same input the pad would (down on press, up on release / cancel).
 function padHas(act) {
@@ -4578,7 +4596,7 @@ function openExplorer() {
 }
 $("expPhoto").onclick = () => { if (S.left.planet <= 0) return; enterDraw("explorer", { photo: true }); $("camInput").click(); };   // straight to the camera
 $("expDraw").onclick = () => { if (S.left.planet <= 0) return; enterDraw("explorer", { mode: "draw" }); };
-$("expDefault").onclick = () => { $("explorer").classList.add("hidden"); syncDrawing(); syncPlayStep(); };   // plain astronaut
+$("expDefault").onclick = () => { $("explorer").classList.add("hidden"); syncDrawing(); syncPlayStep(); syncQuickExplorer(); };   // plain astronaut (v1.9: the quick explorer stays on offer)
 
 // ============================================================================================================
 // Lifecycle
