@@ -630,6 +630,32 @@
   #add { z-index: 8; justify-content: flex-start; background: rgb(8 6 28 / 0.3); }
   #add.camera { background: rgb(8 6 28 / 0.92); }
   body.adding #hud, body.adding #legend, body.adding #chip { visibility: hidden; }   /* v1.4: only the pad and my controller's ink behind it */
+
+  /* v1.5 the HUD switch (owner, 10 Oct 11:23): one small eye button in a corner no drawn control covers (placeHudBtn, re-placed on rotate /
+     resize / a new controller). body.hudoff hides the normal UI: vitals, objective, timer, score, radar, the tool row, name tags, toasts,
+     chips, hit markers, coach bubbles. Always kept: the 3D view (never paused), my controller, the 3-2-1 / GO!, the death card, the results,
+     the wait banner, the big late card and the mischief that acts on the controls (EMP swap, ink). */
+  .hudbtn { position: fixed; z-index: 7; width: 46px; height: 46px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; color: #fff; isolation: isolate;
+    pointer-events: auto; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.08s; }
+  .hudbtn::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-9deg); background: rgb(13 11 46 / 0.78); border: 3px solid var(--ink); border-radius: 6px; box-shadow: 0 3px 0 var(--hard); }
+  .hudbtn:active { transform: scale(0.9); }
+  .hudbtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
+  .hudbtn b { font: 900 italic 11px/1 var(--f-head); letter-spacing: 0.08em; -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
+  .hudbtn.off { color: var(--ink); }
+  .hudbtn.off::before { background: linear-gradient(#ffe58a, var(--gold)); }
+  .hudbtn.off b { color: #fff; }
+  .hudbtn.hidden, body.adding .hudbtn { display: none; }
+  /* the corner it sits in (data-at), with the HUD row making room for it on its side */
+  .hudbtn[data-at="tl"] { left: calc(var(--sl) + 8px); top: calc(var(--st) + 8px); }
+  .hudbtn[data-at="tr"] { right: calc(var(--sr) + 8px); top: calc(var(--st) + 8px); }
+  .hudbtn[data-at="bl"] { left: calc(var(--sl) + 8px); bottom: calc(var(--sb) + 8px); }
+  .hudbtn[data-at="br"] { right: calc(var(--sr) + 8px); bottom: calc(var(--sb) + 8px); }
+  body[data-hudbtn="tl"] #hud { padding-left: calc(var(--sl) + 66px); }
+  body[data-hudbtn="tr"] #hud { padding-right: calc(var(--sr) + 66px); }
+  body.hudoff #hud, body.hudoff #legend, body.hudoff #chip, body.hudoff #toast, body.hudoff #tip, body.hudoff #redrawMenu, body.hudoff #hurt,
+    body.hudoff .bse-tags, body.hudoff .pe-coach, body.hudoff .mfx-toasts, body.hudoff [data-mfx="hit"], body.hudoff [data-mfx="toast"] { visibility: hidden !important; }
+  /* v1.5 no overlaps (HUD shown): a HUD piece over the control a finger is on fades to 25 % until the finger lifts (overlapFade) */
+  .ovf:not(.off) { opacity: 0.25 !important; transition: opacity 0.12s !important; }
   #addRegion { position: fixed; z-index: 1; display: flex; align-items: center; justify-content: center; pointer-events: none; border: 3.5px dashed var(--gold); border-radius: 14px; background: rgb(255 203 61 / 0.08);
     font: 900 italic 24px/1 var(--f-head); letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
   /* v1.4: the tools are a slim rail on the right edge (the pad under it is the whole play area, so the new button lands where it is drawn) */
@@ -684,6 +710,7 @@
     <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20l1-4 11-11 3 3L8 19z"/><path d="M14 7l3 3"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7c2 0 3.8.8 5.3 1.8M22 12s-4 7-10 7c-2 0-3.8-.8-5.3-1.8"/><path d="M9.9 14.1a3 3 0 0 1 4.2-4.2"/><path d="M4 20 20 4"/></symbol>
     <symbol id="i-tilt" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2" transform="rotate(-20 12 12)"/><path d="M3 8a10 10 0 0 0 0 8M21 8a10 10 0 0 1 0 8"/></symbol>
     <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" fill="none"/></symbol>
     <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6" fill="none"/></symbol>
@@ -832,6 +859,7 @@
     </div>
   </div>
   <div id="fight"><b data-copy="dead.fight"></b></div>
+  <button id="hudBtn" class="hudbtn" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><use id="hudBtnIcon" href="#i-eye"/></svg><b data-copy="hudBtn.cap"></b></button>
 </div>
 
 <div id="gen" class="sheet hidden">
@@ -1098,6 +1126,8 @@ const COPY = {
   tools: { add: "Add a button", redraw: "Redraw", view: "Change the camera", tilt: "Tilt to steer", sound: "Sound", full: "Full screen" },
   // the short caption under each HUD tool, shown for a few seconds the first times the play screen opens
   toolCaps: { add: "BUTTON", redraw: "REDRAW", view: "CAMERA", tilt: "TILT", sound: "SOUND", full: "FULL" },
+  // v1.5 the HUD switch (owner, 10 Oct 11:23): hides / shows everything but the game, my controller and the big moments
+  hudBtn: { cap: "HUD", hide: "Hide the HUD", show: "Show the HUD", hidden: "HUD HIDDEN · TAP HUD TO BRING IT BACK", shown: "HUD BACK ON" },
   // v1.4 full screen (owner, 10 Oct 09:33): the button, and the one-time iPhone hint (Safari has no full screen for pages; a home-screen app is)
   fs: { cap: "FULL SCREEN", on: "Full screen", off: "Leave full screen", hint: "For full screen: tap {share} Share, then Add to Home Screen" },
   // v1.4 (owner, 10 Oct 09:05: no free skills at 3:00): from 3:00 a big card with the part's example and one tap to draw it. The server's
@@ -1142,6 +1172,7 @@ const COPY = {
     move: { title: "DRAG TO MOVE", text: "The circle you drew is your stick" },
     buttons: { title: "YOUR BUTTONS = YOUR SKILLS", text: "Each box you drew does what its word says" },
     pencil: { title: "✏️ REDRAW · + ADD A BUTTON", text: "Draw a better ship, or one more button", textPlanet: "Draw a better explorer, or one more button" },
+    hud: { title: "TIP: HUD HIDES THE EXTRAS", text: "Tap it to see only the game and your buttons" },
   },
   // v1.5 vibration (Android; iPhones have none): the switch on the wait banner
   haptics: { on: "📳 VIBRATION ON", off: "📳 VIBRATION OFF" },
@@ -2607,6 +2638,7 @@ function release(id) {
   if (!p) return;
   const ctl = p.ctl;
   pointers.delete(id);
+  ovfOut("p" + id);
   onControlUp(ctl);
   if (ctl.b.type === "stick") {
     ctl.el.classList.remove("down"); ctl.knob.style.transform = "";
@@ -2619,6 +2651,7 @@ function releaseAll() {
   if (S.ctl && S.ctl.handle) { try { S.ctl.handle.releaseAll(); } catch {} }
   S.held = {};
   for (const a of Object.keys(holdTimers)) { clearTimeout(holdTimers[a]); delete holdTimers[a]; }
+  ovfClear();
 }
 
 // ---- the tip above a control: "🔒 BOOST · draw an exhaust with fire on your ship" (locked), "EMP · READY IN 12 S" (cooling down), or what a
@@ -2721,6 +2754,7 @@ hits.addEventListener("pointerdown", (e) => {
     ctl.on = !ctl.on; ctl.el.classList.toggle("on", ctl.on); sendInput(ctl.b.action, ctl.on); if (ctl.info) onControlDown(ctl); return;
   }
   pointers.set(e.pointerId, { ctl, place });
+  ovfIn("p" + e.pointerId, place.el.getBoundingClientRect());     // v1.5: HUD pieces over this control fade while it is held
   onControlDown(ctl);
   if (ctl.b.type === "stick") { ctl.el.classList.add("down"); moveStick(ctl, e, place); }
   else press(ctl, true);
@@ -2859,6 +2893,7 @@ function sbReady(rec) {
   rec.live = true;
   syncDisabled();
   hideTip();
+  placeHudBtn();
   maybeLegend();
 }
 const sbLabel = (act) => { const c = S.ctl && S.ctl.handle.controls().find((o) => o.action === act); return String((c && c.label) || verbName(act)).toUpperCase(); };
@@ -2877,16 +2912,20 @@ function sbPress(rec, action) {
   juice(controlBox(act));        // v1.5: the frame squashes the button itself (ctrl-sandbox.js KIT_CSS); the ring and the click are the page's
   if (act === "view") toggleView();
   tipOnPress(act, sbLabel(act), () => sbRect(act));
+  ovfIn("a" + act, sbRect(act));
 }
 function sbRelease(rec, action) {
   if (S.ctl !== rec) return;
   const act = C.normaliseAction(action);
   sendInput(act, false);
   tipOnRelease(act);
+  ovfOut("a" + act);
 }
 function sbAxis(rec, axis, x, y) {
   if (S.ctl !== rec) return;
+  const was = !!S.held[axis];
   S.held[axis] = !!(x || y);
+  if (S.held[axis] !== was) { if (was) ovfOut("s" + axis); else ovfIn("s" + axis, sbRect(axis)); }
   sendAxis(axis, x, y, !x && !y);
 }
 
@@ -2993,6 +3032,7 @@ async function enterPlay() {
   hitRect = null;
   setStep(S.phase === "playing" || S.phase === "assists" ? "play" : "wait");
   if (S.layout) { buildHits(); paintInk(); }
+  placeHudBtn();
   ensureCtl();       // Sol's controller frame (the DOM controls just built work until it is live, and always when it cannot be used)
   maybeLegend();
   if (!enterPlay.caps) { enterPlay.caps = true; showToolCaps(); }
@@ -3103,7 +3143,7 @@ function wireGame(game) {
     const tags = BX.createNameTags($("play"), { max: 25, offset: 4 });
     // above the 3D view and the drawn controls, under the HUD, banners, tips and sheets (z 4 and up)
     if (tags.el) tags.el.style.zIndex = "1";
-    game.on("frame", () => tags.update(game.projectPlayers()));
+    game.on("frame", () => { if (!hudOff) tags.update(game.projectPlayers()); });   // v1.5: hidden by the HUD switch: no work
   }
   game.on("toast", (m) => { if (!m.player || m.player === S.player) onToast(m); });
   // Personal messages and the kill feed. render.js sends mischief / cooldown to every phone on older builds: each handler keeps only mine.
@@ -3169,7 +3209,7 @@ function updateHud() {
     vitals.update({ hp: me ? me.hp : C.TUNING.shipHp, maxHp: C.TUNING.shipHp, shieldEnergy: me ? me.shieldEnergy : 1, boostEnergy: me ? me.boostEnergy : 1, dead, respawnIn,
       shieldOff: known && !S.entity.verbs.includes("shield"), boostOff: known && !S.entity.verbs.includes("boost") });
   }
-  if (radar) radar.update(h.radar || [], me && me.mode === "planet" ? 100 : 300);
+  if (radar && !hudOff) radar.update(h.radar || [], me && me.mode === "planet" ? 100 : 300);   // v1.5: hidden by the HUD switch: no work
   // phases: lobby → the wait banner, playing → GO!, scoreboard → the results; the drawings are kept across rounds
   if (h.phase !== S.phase) onPhase(h.phase, h);
   if (h.phase === "scoreboard") renderResults(h);
@@ -3188,6 +3228,7 @@ function updateHud() {
   if (S.ghost && layoutHas(S.ghost.action)) clearGhost();
   if (S.sketch && sketchDone()) clearSketch();
   maybeCoach(h);
+  if (performance.now() - hudBtnAt > 1000) placeHudBtn();     // v1.5: a new or replaced controller moves the HUD switch out of its way
 }
 function onPhase(phase, h) {
   S.phase = phase;
@@ -3635,10 +3676,12 @@ function coachSteps() {
   if (btn) out.push({ ...COPY.coach.buttons, rect: () => { const c = liveControls().find((o) => o.action === btn.action); return c && c.rect; } });
   const P = COPY.coach.pencil;
   out.push({ title: P.title, text: S.lastMode === "planet" ? P.textPlanet : P.text, rect: () => $("tRedraw").getBoundingClientRect() });
+  out.push({ ...COPY.coach.hud, rect: () => $("hudBtn").getBoundingClientRect() });     // v1.5: the HUD switch, once
   return out;
 }
 function maybeCoach(h) {
   if (!coach) return;
+  if (hudOff) { if (coach.isOpen()) { coachState.idx = coach.index(); coach.hide(); } return; }   // v1.5: the HUD switch hides the bubbles too
   const live = (h.phase === "playing" || h.phase === "assists") && S.screen === "play" && S.step === "play" && !h.transition;
   if (coach.isOpen()) {
     if (!live || !calmNow()) { coachState.idx = coach.index(); coach.hide(); }
@@ -3650,6 +3693,84 @@ function maybeCoach(h) {
   if (performance.now() - coachState.at < 2500 || !calmNow()) return;
   coach.show(coachSteps(), coachState.idx);
 }
+
+// ---------- v1.5 the HUD switch and no overlaps (owner, 10 Oct 11:23: "the normal phone UI overlaps the generated controller") ----------
+// #hudBtn, one small eye button, always on the play screen, in the first corner (top right, top left, bottom right, bottom left) that no
+// drawn control covers; re-placed on rotate / resize, when a controller goes live and once a second from updateHud. A tap hides / shows the
+// normal UI (body.hudoff, CSS above): the 3D view keeps rendering, my controller and the big moments stay. Remembered per phone (sp.hudOff).
+let hudOff = store.get("hudOff") === true;
+// Every drawn control on the screen in CSS px: Sol's frame when it is live, else the DOM controls (both fill the play area).
+function controlRects() {
+  const out = [];
+  if (S.screen !== "play") return out;
+  const push = (fr, c) => { if (c && [c.x, c.y, c.w, c.h].every(Number.isFinite)) out.push({ left: fr.left + c.x * fr.width, top: fr.top + c.y * fr.height, right: fr.left + (c.x + c.w) * fr.width, bottom: fr.top + (c.y + c.h) * fr.height }); };
+  if (S.ctl && S.ctl.live && S.ctl.handle) {
+    let list = []; try { list = S.ctl.handle.controls() || []; } catch {}
+    const fr = $("ctl").getBoundingClientRect();
+    for (const c of list) push(fr, c);
+  } else if (S.layout) {
+    const fr = areaRect();
+    for (const c of S.layout.buttons) push(fr, c);
+  }
+  return out;
+}
+const overlapArea = (a, b, pad = 0) => Math.max(0, Math.min(a.right, b.right + pad) - Math.max(a.left, b.left - pad)) * Math.max(0, Math.min(a.bottom, b.bottom + pad) - Math.max(a.top, b.top - pad));
+const HUDBTN_PX = 46, HUDBTN_M = 8;
+let hudBtnAt = 0;
+function placeHudBtn() {
+  hudBtnAt = performance.now();
+  const btn = $("hudBtn");
+  if (S.screen !== "play") return btn.dataset.at;
+  const a = areaRect(), rects = controlRects(), n = HUDBTN_PX, m = HUDBTN_M;
+  const spots = { tr: [a.right - m - n, a.top + m], tl: [a.left + m, a.top + m], br: [a.right - m - n, a.bottom - m - n], bl: [a.left + m, a.bottom - m - n] };
+  let best = "tr", bestCost = Infinity;
+  for (const k of ["tr", "tl", "br", "bl"]) {       // the first free corner in this order, else the least covered one
+    const [x, y] = spots[k], r = { left: x, top: y, right: x + n, bottom: y + n };
+    let cost = 0;
+    for (const c of rects) cost += overlapArea(r, c, 6);
+    if (cost < bestCost - 0.5) { best = k; bestCost = cost; }
+    if (cost === 0) break;
+  }
+  if (btn.dataset.at !== best) { btn.dataset.at = best; document.body.dataset.hudbtn = best; }
+  return best;
+}
+function setHudOff(off, { say = false } = {}) {
+  hudOff = !!off;
+  document.body.classList.toggle("hudoff", hudOff);
+  const btn = $("hudBtn");
+  btn.classList.toggle("off", hudOff);
+  btn.setAttribute("aria-pressed", String(hudOff));
+  btn.setAttribute("aria-label", hudOff ? COPY.hudBtn.show : COPY.hudBtn.hide);
+  $("hudBtnIcon").setAttribute("href", hudOff ? "#i-eyeoff" : "#i-eye");
+  if (hudOff) { hideTip(); ovfClear(); $("redrawMenu").classList.add("hidden"); if (coach && coach.isOpen()) { coachState.idx = coach.index(); coach.hide(); } }
+  if (say) notice(hudOff ? COPY.hudBtn.hidden : COPY.hudBtn.shown, 2200);
+  return hudOff;
+}
+$("hudBtn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  setHudOff(!hudOff, { say: true });
+  store.set("hudOff", hudOff);
+  sfxPlay("click", { volume: 0.3, pitch: 1.1 });
+});
+
+// No overlaps while the HUD is shown: a HUD piece over the control a finger is on fades to 25 % (.ovf) until that finger lifts. The controls
+// never move (they are where the player drew them); the HUD pieces take no touches except the tool row, which the corner button skirts.
+const OVF_SEL = "#vitals, #hud .tool, #hud .objpanel, #timer, #score, #radar, #chip:not(.off), #toast:not(.off), #legend.on .chip, .mfx-toasts .mfx-t, .pe-coach-bub";
+const ovfHeld = new Map();     // finger / action key -> the control's rect
+function ovfApply() {
+  for (const el of document.querySelectorAll(".ovf")) el.classList.remove("ovf");
+  if (hudOff || !ovfHeld.size) return;
+  const held = [...ovfHeld.values()];
+  for (const el of document.querySelectorAll(OVF_SEL)) {
+    const r = el.getBoundingClientRect();
+    if (r.width && held.some((c) => overlapArea(r, c, 4) > 0)) el.classList.add("ovf");
+  }
+}
+function ovfIn(key, r) { if (!r || !(r.right > r.left)) return; ovfHeld.set(key, { left: r.left, top: r.top, right: r.right, bottom: r.bottom }); ovfApply(); }
+function ovfOut(key) { if (ovfHeld.delete(key)) ovfApply(); }
+function ovfClear() { ovfHeld.clear(); ovfApply(); }
+setHudOff(hudOff);       // the choice this phone made last time (after the declarations above: setHudOff clears the fades)
+if (!$("hudBtn").dataset.at) { $("hudBtn").dataset.at = "tr"; document.body.dataset.hudbtn = "tr"; }
 
 // ---------- faint sketch hints (riddle step 2) ----------
 const SKETCH_VERB = { drill: "drill", landing: "land", shovel: "dig", gun: "shoot" };
@@ -3910,6 +4031,7 @@ function onResize() {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     hitRect = null; hideTip();
+    if (S.screen === "play") { placeHudBtn(); ovfClear(); }      // v1.5: the HUD switch follows a rotate
     if (S.screen === "play" && S.layout) paintInk();
     if (S.screen === "draw") sizePad();
     if (!$("add").classList.contains("hidden") && addState) { placeAddRegion(); if (S.drawMode !== "photo") addSketch.resize(); }
@@ -4013,6 +4135,8 @@ window.__spTest = {
   haptics() { return { supported: !!(HAP && HAP.supported()), on: hapOn, log: hapLog.slice() }; },
   progress(kind = "ship") { showGen(kind, null); return !$("genProg").classList.contains("hidden"); },
   stream() { return { early: !!earlyEs, wired: gameWired }; },
+  // hud(off)   v1.5 the HUD switch: off true / false (omitted: toggle) -> { off, at: the corner it sits in, rects: drawn controls on screen }
+  hud(off) { setHudOff(off === undefined ? !hudOff : !!off); store.set("hudOff", hudOff); return { off: hudOff, at: placeHudBtn(), rects: controlRects().length }; },
   juice(action = "shoot") { const r = controlBox(C.normaliseAction(action)); juice(r); return !!r; },
   installHint() { if (installHint) installHint.show(); return !!installHint; },
   toolCaps() { $("hud").classList.add("caps"); clearTimeout(showToolCaps.t); showToolCaps.t = setTimeout(() => $("hud").classList.remove("caps"), 6000); },
