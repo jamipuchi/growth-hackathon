@@ -18,7 +18,8 @@
 // spec (version 1):
 //   { v: 1, view: "side"|"top"|"front"|"angled", noseDir: "right"|"left"|"up"|"down", style, seed,
 //     hull: { shape: "capsule"|"wedge"|"saucer"|"box"|"dart"|"rocket", width, height, nose, tail, color, stripe },
-//     cockpit: { kind: "none"|"bubble"|"canopy"|"visor"|"windows", at, size, color },
+//     cockpit: { kind: "none"|"bubble"|"canopy"|"visor"|"windows", at, size, color, windows },   // windows: portholes drawn
+//                                                                                (v1.8; 0 = none drawn / not counted)
 //     wings: { count: 0|2|4, shape, at, span, chord, mount, color },
 //     fins: [{ kind: "tail"|"side"|"belly", at, size, color }],                      // ≤ 3
 //     engines: { count: 0..4, size, flame, flameColor, layout },
@@ -68,7 +69,7 @@ const SCHEMA = obj({
   noseDir: enumOf(NOSE_DIRS),
   style: enumOf(STYLES),
   hull: obj({ shape: enumOf(HULLS), width: num, height: num, nose: enumOf(NOSES), tail: enumOf(TAILS), color: str, stripe: str }),
-  cockpit: obj({ kind: enumOf(COCKPITS), at: num, size: num, color: str }),
+  cockpit: obj({ kind: enumOf(COCKPITS), at: num, size: num, color: str, windows: int }),
   wings: obj({ count: int, shape: enumOf(WING_SHAPES), at: num, span: num, chord: num, mount: enumOf(MOUNTS_WING), color: str }),
   fins: { type: "array", items: obj({ kind: enumOf(FINS), at: num, size: num, color: str }) },
   engines: obj({ count: int, size: num, flame: { type: "boolean" }, flameColor: str, layout: enumOf(ENGINE_LAYOUTS) }),
@@ -81,25 +82,28 @@ function prompt(source) {
   const input = source === "draw"
     ? "The image is a finger drawing made on a phone screen."
     : "The image is usually a PHOTO of a paper drawing, cropped to the drawing and possibly turned by 90 degrees. Ignore paper lines, grids, shadows and fingers.";
+  // v1.8 (owner 13:04: "VERY VERY GOOD"): read at high effort from the full-resolution drawing, so the prompt asks for a
+  // careful, faithful reading: every drawn part once, counted and measured, with the colour of that part.
   return [
-    "You turn a hand-drawn SPACESHIP into a 3D model for a cartoony party game (Fortnite style: chunky, bright). Read the drawing and describe the ship as a list of parts. A builder makes the 3D ship from your answer, so describe what the PLAYER DREW, as faithfully as you can, and make it a cool, complete ship.",
+    "You turn a hand-drawn SPACESHIP into a 3D model for a cartoony party game (Fortnite style: chunky, bright). Read the drawing and describe the ship as a list of parts. A builder makes the 3D ship from your answer, so describe what the PLAYER DREW, as faithfully as you can, and make it a cool, complete ship. The player must recognise THEIR drawing in the 3D ship.",
     input,
-    "view: where the drawing was seen from: \"side\" (profile), \"top\" (from above: wings spread out on BOTH sides of the body, e.g. one wing above and one below it in the image), \"front\" (nose towards the viewer) or \"angled\". noseDir: where the nose points in the image.",
+    "Work carefully: first find the body, then go over every stroke and decide which part it is; every deliberately drawn part appears once in your answer (a part you skip is missing from the 3D ship). Count things exactly (windows, engines, guns, fins) and measure positions, lengths and proportions on the drawing; do not use typical values when the drawing shows something else.",
+    "view: where the drawing was seen from: \"side\" (profile: the body's outline from the side, with a fin on top or a wing seen edge-on or as one triangle below the body), \"top\" (from above: wings spread out on BOTH sides of the body, mirror images of each other, e.g. one wing above and one below it in the image), \"front\" (nose towards the viewer: a round or symmetric body with wings at the same height left and right) or \"angled\". noseDir: where the nose points in the image (the end with the cockpit, a point or the guns; flames and exhaust are always at the back).",
     "The ship frame: the nose is the front, the tail the back. at = where a part's centre sits along the ship, 0 = tip of the nose, 1 = back of the tail. size = the part's length as a fraction of the whole ship's length (0.05 tiny to 1 the whole ship). Measure them on the drawing.",
-    "hull: the main body. shape: \"dart\" (long, thin, pointed: jets, fighters), \"wedge\" (flat triangle-like), \"capsule\" (rounded tube), \"rocket\" (tall tube with a cone nose), \"saucer\" (round disc, UFO), \"box\" (blocky, square sides). width and height: the body's biggest width and height as fractions of its length (a slim jet ~0.18, a chunky box ~0.45, a saucer width ~1.0 height ~0.35). From a side view you cannot see the width and from a top view not the height: guess them from the shape. nose and tail: their shape. color: the body's colour as drawn; stripe: a second colour drawn on the body as stripes or panels, else \"\".",
-    "cockpit: the cockpit, canopy, window or bubble where a pilot sits (\"windows\" = a row of small windows or portholes). \"none\" only if nothing like it is drawn. at, size, color as drawn (\"\" if no colour).",
-    "wings: count 0, 2 or 4 (a pair counts as 2; a side view that shows one wing means 2). shape: delta (triangle), swept (angled back), straight, forward (swept forward) or round. at: where the wing root's centre is along the ship; span: tip to tip, as a fraction of the ship's length (a jet ~0.8, a rocket's small wings ~0.4); chord: the wing's depth along the ship. mount: low, mid or high on the body. A side view hides the wings: if the drawing is a plane-like ship with a fin or a wing line, give it a pair of plausible wings. Rockets and saucers may have none.",
-    "fins: tail fins (upright, at the back), side fins, belly fins. At most 3 entries; a matching pair is ONE entry. Skip fins already counted as wings.",
-    "engines: count = the nozzles or thrusters at the back (0 if none drawn; flames or exhaust lines alone count as 1). flame: true when fire, flames, exhaust lines or jets come out of the back. flameColor: their drawn colour, else \"\". layout: single, pair (side by side), row (three or four side by side), stack (one above the other) or pods (on the wings). size: the nozzle's diameter as a fraction of the ship's length.",
-    "weapons: every gun, cannon, laser, blaster, missile, drill or saw (a drill or saw on a ship counts as a weapon), and bombs hanging under or behind it. A small box or block with a barrel or tube sticking out is a cannon (not a window). A cone or point with rings, ridges, zigzag or spiral lines, usually on the nose, is a \"drill\" (not a missile). count 1 or 2 (a pair under the wings is 2), at, mount (nose, top, belly, wings, sides), size, color. At most 4 entries.",
-    "extras: everything else deliberately drawn, at most 6: antenna (a stick with a ball or tip), dish (a radar dish), eye (a big eye), legs (landing legs or struts with feet), parachute, lamp (a small circle or bulb with straight rays fanning out; it is NOT an exhaust, even at the back: flames are wavy tongues or jets), shield (a bubble or ring around the ship, mount \"around\"), cross (a red or plus-sign cross), bomb, portal (a swirl), cape (or a ghost sheet), spikes (along the back), magnet (a U shape), lightning (a zigzag bolt), octopus (or squid, ink bottle), mini copy (a second, smaller copy of the ship), window, stripe, star, number, text (letters or a name written on it: put them in label), skull, flag, propeller, other. label: the written text or number, else \"\".",
-    "palette: colored = true only if the drawing uses colours other than a single dark pen or pencil; main, second, accent = the drawing's colours, most used first (\"\" when not drawn). With a single dark pen everything stays \"\": the game paints the ship in the player's colour. Every colour is \"#rrggbb\" or a simple colour name (\"red\", \"teal\").",
+    "hull: the main body. shape: \"dart\" (long, thin, pointed: jets, fighters), \"wedge\" (flat triangle-like), \"capsule\" (rounded tube), \"rocket\" (tall tube with a cone nose), \"saucer\" (round disc, UFO), \"box\" (blocky, square sides). width and height: the body's biggest width and height as fractions of its length, measured (a slim jet ~0.18, a chunky box ~0.45, a saucer width ~1.0 height ~0.35). From a side view you cannot see the width and from a top view not the height: guess them from the shape. nose and tail: their shape as drawn. color: the body's fill colour as drawn; stripe: a second colour drawn on the body as stripes or panels, else \"\".",
+    "cockpit: the cockpit, canopy, window or bubble where a pilot sits (\"windows\" = only portholes or small windows, no canopy). \"none\" only if nothing like it is drawn. at, size, color as drawn (\"\" if no colour). windows: how many separate small windows or portholes are drawn on the body, counted exactly (a single porthole is 1; 0 if none). Windows are counted here only, never in extras.",
+    "wings: only wings that are drawn: count 0, 2 or 4 (a pair counts as 2; a side view that shows one wing means 2). A fin is not a wing, and a ship drawn without wings (a rocket, a saucer, a box ship with only a fin) has count 0: do not add wings that are not drawn. shape: delta (triangle), swept (angled back), straight, forward (swept forward) or round. at: where the wing root's centre is along the ship; span: tip to tip, as a fraction of the ship's length, measured (from a side view, twice the drawn wing's length); chord: the wing's depth along the ship. mount: low, mid or high on the body. color: the wings' own colour.",
+    "fins: tail fins (upright, at the back), side fins, belly fins, as drawn: a big drawn fin gets a big size. At most 3 entries; a matching pair is ONE entry. Skip fins already counted as wings. A rocket's fins at its base are fins (kind side), not wings.",
+    "engines: count = the nozzles or thrusters drawn at the back (0 if none drawn; flames or exhaust lines alone count as 1; three separate jets of flame mean 3). flame: true when fire, flames, exhaust lines or jets come out of the back. flameColor: their drawn colour, else \"\". layout: single, pair (side by side), row (three or four side by side), stack (one above the other) or pods (on the wings). size: the nozzle's diameter as a fraction of the ship's length.",
+    "weapons: every gun, cannon, laser, blaster, missile, drill or saw (a drill or saw on a ship counts as a weapon), and bombs hanging under or behind it. A small box or block with a barrel or tube sticking out is a cannon (not a window). A cone or point with rings, ridges, zigzag or spiral lines, usually on the nose, is a \"drill\" (not a missile). count 1 or 2 (a pair under the wings is 2), at, mount (nose, top, belly, wings, sides), size (measured: a long barrel is long), color. At most 4 entries.",
+    "extras: everything else deliberately drawn, at most 6: antenna (a stick with a ball or tip), dish (a radar dish), eye (a big eye), legs (ONE entry for all landing legs or struts with feet), parachute, lamp (a small circle or bulb with straight rays fanning out; it is NOT an exhaust, even at the back: flames are wavy tongues or jets), shield (a bubble or ring around the ship, mount \"around\"), cross (a red or plus-sign cross), bomb, portal (a swirl), cape (or a ghost sheet), spikes (along the back), magnet (a U shape), lightning (a zigzag bolt), octopus (or squid, ink bottle), mini copy (a second, smaller copy of the ship), stripe, star, number, text (letters or a name written on it: put them in label), skull, flag, propeller, other. label: the written text or number, else \"\". Windows and portholes are never extras (cockpit.windows counts them).",
+    "palette: colored = true only if the drawing uses colours other than a single dark pen or pencil; main, second, accent = the drawing's colours, most used first (\"\" when not drawn). With a single dark pen everything stays \"\": the game paints the ship in the player's colour. Every colour is \"#rrggbb\" (the colour as drawn, e.g. a drawn bright red is \"#e63946\", not a dark red) or a simple colour name (\"red\", \"teal\"). Give each part the colour of THAT part in the drawing (a purple dome on a green body: cockpit purple, hull green); \"\" for a part drawn only in the dark pen.",
     "style: the drawing's mood: sleek, chunky, cute, menacing or retro.",
-    "Be generous: an unclear blob becomes the closest plausible part (a bump on top → a cockpit, a line at the back → a fin, scribbles behind it → flames). Every ship has a hull; never return an empty ship. Do not invent weapons, legs, flames or extras that are not drawn.",
+    "Be generous but faithful: an unclear blob becomes the closest plausible part (a bump on top → a cockpit, a line at the back → a fin, scribbles behind it → flames), and every ship has a hull; never return an empty ship. Do not invent weapons, legs, flames, wings or extras that are not drawn, and do not drop any part that is drawn.",
   ].join("\n");
 }
 
-function request(image, { source = "photo", model = "gpt-6.1-sol", tier = "ultrafast", effort = "medium", maxTokens = 1800, detail = "low" } = {}) {
+function request(image, { source = "photo", model = "gpt-6.1-sol", tier = "ultrafast", effort = "medium", maxTokens = 8000, detail = "high" } = {}) {
   const req = {
     model,
     input: [{ role: "user", content: [{ type: "input_text", text: prompt(source) }, { type: "input_image", image_url: image, detail }] }],
@@ -163,7 +167,8 @@ function normalize(raw, { seed = 0 } = {}) {
     stripe: color(h.stripe),
   };
   const c = raw.cockpit && typeof raw.cockpit === "object" ? raw.cockpit : {};
-  const cockpit = { kind: pick(c.kind, COCKPITS, "canopy"), at: r3(clamp(c.at, 0, 1, 0.28)), size: r3(clamp(c.size, 0.06, 0.6, 0.22)), color: color(c.color) };
+  const cockpit = { kind: pick(c.kind, COCKPITS, "canopy"), at: r3(clamp(c.at, 0, 1, 0.28)), size: r3(clamp(c.size, 0.06, 0.6, 0.22)), color: color(c.color),
+    windows: Math.round(clamp(c.windows, 0, 8, 0)) };
   const w = raw.wings && typeof raw.wings === "object" ? raw.wings : {};
   const count = Math.round(clamp(w.count, 0, 4, 2));
   const wings = {
@@ -198,12 +203,21 @@ function normalize(raw, { seed = 0 } = {}) {
       return { kind, count: clamp(x.count, 1, 2, 1) >= 1.5 ? 2 : 1, at: r3(clamp(x.at, 0, 1, 0.3)), mount: pick(x.mount, WEAPON_MOUNTS, kind === "drill" ? "nose" : "belly"),
         size: r3(clamp(x.size, 0.06, 0.6, 0.25)), color: color(x.color), verb: verbOfPart("weapons", kind) };
     });
-  const extras = (Array.isArray(raw.extras) ? raw.extras : []).filter((x) => x && typeof x === "object").slice(0, MAX_EXTRAS)
-    .map((x) => {
-      const kind = pick(x.kind, EXTRAS, "other");
-      return { kind, at: r3(clamp(x.at, 0, 1, 0.5)), mount: pick(x.mount, EXTRA_MOUNTS, kind === "legs" ? "belly" : kind === "shield" ? "around" : "top"),
-        size: r3(clamp(x.size, 0.04, 1, 0.15)), color: color(x.color), label: label(x.label), verb: verbOfPart("extras", kind) };
-    });
+  const extras = [];
+  for (const x of (Array.isArray(raw.extras) ? raw.extras : []).filter((e) => e && typeof e === "object")) {
+    const kind = pick(x.kind, EXTRAS, "other");
+    const part = { kind, at: r3(clamp(x.at, 0, 1, 0.5)), mount: pick(x.mount, EXTRA_MOUNTS, kind === "legs" ? "belly" : kind === "shield" ? "around" : "top"),
+      size: r3(clamp(x.size, 0.04, 1, 0.15)), color: color(x.color), label: label(x.label), verb: verbOfPart("extras", kind) };
+    // v1.8: landing legs stand under the ship ("belly") or on its tail (a rocket standing on its fins: ship3d's tail-sitter
+    // legs), never on top, the nose or the sides; and they are one part: legs listed one by one merge into one set (no
+    // 8-legged box ship). ship3d.js places its own pairs around `at`.
+    if (kind === "legs") {
+      if (part.mount !== "tail") part.mount = "belly";
+      const twin = extras.find((e) => e.kind === "legs");
+      if (twin) { twin.at = r3((twin.at + part.at) / 2); twin.size = r3(Math.max(twin.size, part.size)); continue; }
+    }
+    if (extras.length < MAX_EXTRAS) extras.push(part);
+  }
   const p = raw.palette && typeof raw.palette === "object" ? raw.palette : {};
   const palette = { colored: p.colored === true, main: color(p.main), second: color(p.second), accent: color(p.accent) };
   if (!palette.colored) { palette.main = palette.second = palette.accent = ""; }

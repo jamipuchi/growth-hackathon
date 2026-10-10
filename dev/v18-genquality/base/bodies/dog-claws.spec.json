@@ -1,0 +1,413 @@
+{
+  "id": "dog-claws",
+  "set": "bodies",
+  "tag": "base",
+  "desc": "dog with big digging claws",
+  "drawing": "dev/gen-corpus/entity/E28.png",
+  "source": "draw",
+  "expected": {
+    "type": "quadruped",
+    "skills": [
+      "dig"
+    ]
+  },
+  "wallMs": 1960,
+  "specWallMs": 2472,
+  "httpLog": [
+    {
+      "type": "spec",
+      "ms": 2472,
+      "status": 200,
+      "usage": {
+        "input": 2644,
+        "output": 495,
+        "reasoning": 131
+      },
+      "effort": "medium",
+      "detail": "low",
+      "maxTokens": 1800,
+      "tier": "ultrafast"
+    },
+    {
+      "type": "read",
+      "ms": 1859,
+      "status": 200,
+      "usage": {
+        "input": 1407,
+        "output": 265,
+        "reasoning": 92
+      },
+      "effort": "medium",
+      "detail": "low",
+      "maxTokens": 1600,
+      "tier": "ultrafast"
+    }
+  ],
+  "spec": {
+    "v": 1,
+    "type": "quadruped",
+    "view": "side",
+    "facing": "right",
+    "style": "cute",
+    "seed": 1206324079,
+    "head": {
+      "shape": "round",
+      "size": 0.36,
+      "gear": "ears",
+      "face": "eyes",
+      "eyes": 1,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "barrel",
+      "width": 0.65,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "thin",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 4,
+      "length": 0.46,
+      "thickness": "thin",
+      "feet": "claws",
+      "color": ""
+    },
+    "neck": 0.17,
+    "tail": {
+      "kind": "long",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0.15,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0.1,
+      "color": "",
+      "rider": false
+    },
+    "items": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    },
+    "source": "model"
+  },
+  "read": {
+    "ms": 1859,
+    "status": 200,
+    "usage": {
+      "input": 1407,
+      "output": 265,
+      "reasoning": 92
+    },
+    "effort": "medium",
+    "detail": "low",
+    "maxTokens": 1600,
+    "tier": "ultrafast",
+    "raw": {
+      "looksLike": "entity",
+      "type": "quadruped",
+      "parts": [
+        {
+          "name": "body",
+          "x": 0.456,
+          "y": 0.463
+        },
+        {
+          "name": "head",
+          "x": 0.854,
+          "y": 0.261
+        },
+        {
+          "name": "ear",
+          "x": 0.819,
+          "y": 0.102
+        },
+        {
+          "name": "eye",
+          "x": 0.881,
+          "y": 0.243
+        },
+        {
+          "name": "neck",
+          "x": 0.71,
+          "y": 0.39
+        },
+        {
+          "name": "tail",
+          "x": 0.102,
+          "y": 0.3
+        },
+        {
+          "name": "legs",
+          "x": 0.464,
+          "y": 0.744
+        },
+        {
+          "name": "claws",
+          "x": 0.663,
+          "y": 0.922
+        }
+      ],
+      "verbs": [
+        "dig"
+      ],
+      "unlocked": [
+        {
+          "verb": "dig",
+          "part": "claws"
+        }
+      ]
+    }
+  },
+  "entity": {
+    "type": "quadruped",
+    "verbs": [
+      "dig",
+      "jump",
+      "takeoff"
+    ],
+    "unlocked": [
+      {
+        "verb": "dig",
+        "part": "claws"
+      }
+    ],
+    "parts": [
+      {
+        "name": "body",
+        "x": 0.456,
+        "y": 0.463
+      },
+      {
+        "name": "head",
+        "x": 0.854,
+        "y": 0.261
+      },
+      {
+        "name": "ear",
+        "x": 0.819,
+        "y": 0.102
+      },
+      {
+        "name": "eye",
+        "x": 0.881,
+        "y": 0.243
+      },
+      {
+        "name": "neck",
+        "x": 0.71,
+        "y": 0.39
+      },
+      {
+        "name": "tail",
+        "x": 0.102,
+        "y": 0.3
+      },
+      {
+        "name": "legs",
+        "x": 0.464,
+        "y": 0.744
+      },
+      {
+        "name": "claws",
+        "x": 0.663,
+        "y": 0.922
+      }
+    ],
+    "source": "model",
+    "card": "Your animal can: run, jump, dig (claws)",
+    "fallback": false
+  },
+  "typeOk": true,
+  "missing": [],
+  "extra": [],
+  "ms": 2472,
+  "usage": {
+    "input": 2644,
+    "output": 495,
+    "reasoning": 131
+  },
+  "raw": {
+    "type": "quadruped",
+    "view": "side",
+    "facing": "right",
+    "style": "cute",
+    "head": {
+      "shape": "round",
+      "size": 0.36,
+      "gear": "ears",
+      "face": "eyes",
+      "eyes": 1,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "barrel",
+      "width": 0.65,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0,
+      "thickness": "thin",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 4,
+      "length": 0.46,
+      "thickness": "thin",
+      "feet": "claws",
+      "color": ""
+    },
+    "neck": 0.17,
+    "tail": {
+      "kind": "long",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0,
+      "color": "",
+      "rider": false
+    },
+    "items": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    }
+  },
+  "schemaOk": true,
+  "specCall": {
+    "ms": 2472,
+    "status": 200,
+    "usage": {
+      "input": 2644,
+      "output": 495,
+      "reasoning": 131
+    },
+    "effort": "medium",
+    "detail": "low",
+    "maxTokens": 1800,
+    "tier": "ultrafast",
+    "raw": {
+      "type": "quadruped",
+      "view": "side",
+      "facing": "right",
+      "style": "cute",
+      "head": {
+        "shape": "round",
+        "size": 0.36,
+        "gear": "ears",
+        "face": "eyes",
+        "eyes": 1,
+        "snout": 0,
+        "color": "",
+        "gearColor": "",
+        "faceColor": ""
+      },
+      "torso": {
+        "shape": "barrel",
+        "width": 0.65,
+        "color": "",
+        "belt": false,
+        "emblem": ""
+      },
+      "arms": {
+        "count": 0,
+        "length": 0,
+        "thickness": "thin",
+        "hands": "none",
+        "color": ""
+      },
+      "legs": {
+        "count": 4,
+        "length": 0.46,
+        "thickness": "thin",
+        "feet": "claws",
+        "color": ""
+      },
+      "neck": 0.17,
+      "tail": {
+        "kind": "long",
+        "color": ""
+      },
+      "vehicle": {
+        "body": "none",
+        "height": 0,
+        "cabin": "none",
+        "wheels": 0,
+        "wheelSize": 0,
+        "color": "",
+        "rider": false
+      },
+      "items": [],
+      "palette": {
+        "colored": false,
+        "main": "",
+        "second": "",
+        "accent": "",
+        "skin": ""
+      }
+    }
+  },
+  "render": {
+    "ok": true,
+    "kit": false,
+    "rig": "quadruped",
+    "triangles": 4636,
+    "drawCalls": 2,
+    "glTriangles": 4636,
+    "ms": 14.1,
+    "size": {
+      "x": 0.501,
+      "y": 1.256,
+      "z": 2.051
+    },
+    "radius": 1.1775185028458914,
+    "clips": [
+      "idle",
+      "walk",
+      "run",
+      "gallop",
+      "jump",
+      "dig",
+      "sit",
+      "bite",
+      "hit",
+      "die"
+    ],
+    "clipsLoaded": true,
+    "poses": [
+      "idle",
+      "run",
+      "dig"
+    ],
+    "wallMs": 211
+  }
+}

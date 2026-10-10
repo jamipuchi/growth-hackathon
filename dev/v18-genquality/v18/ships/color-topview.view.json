@@ -1,0 +1,74 @@
+{
+  "v": 1,
+  "view": "top",
+  "noseDir": "right",
+  "style": "sleek",
+  "seed": 713981514,
+  "hull": {
+    "shape": "dart",
+    "width": 0.13,
+    "height": 0.1,
+    "nose": "pointed",
+    "tail": "tapered",
+    "color": "#e63946",
+    "stripe": ""
+  },
+  "cockpit": {
+    "kind": "bubble",
+    "at": 0.265,
+    "size": 0.18,
+    "color": "#48c6e6",
+    "windows": 0
+  },
+  "wings": {
+    "count": 2,
+    "shape": "delta",
+    "at": 0.56,
+    "span": 0.83,
+    "chord": 0.36,
+    "mount": "mid",
+    "color": "#ffd83d"
+  },
+  "fins": [
+    {
+      "kind": "side",
+      "at": 0.93,
+      "size": 0.14,
+      "color": "#e63946"
+    },
+    {
+      "kind": "tail",
+      "at": 0.86,
+      "size": 0.24,
+      "color": "#ffd83d",
+      "implied": true
+    }
+  ],
+  "engines": {
+    "count": 2,
+    "size": 0.06,
+    "flame": true,
+    "flameColor": "#ff8000",
+    "layout": "pair",
+    "verb": "boost"
+  },
+  "weapons": [
+    {
+      "kind": "cannon",
+      "count": 2,
+      "at": 0.5,
+      "mount": "wings",
+      "size": 0.19,
+      "color": "",
+      "verb": "shoot"
+    }
+  ],
+  "extras": [],
+  "palette": {
+    "colored": true,
+    "main": "#ffd83d",
+    "second": "#e63946",
+    "accent": "#48c6e6"
+  },
+  "source": "model"
+}

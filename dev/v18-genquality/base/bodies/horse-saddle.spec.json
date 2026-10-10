@@ -1,0 +1,460 @@
+{
+  "id": "horse-saddle",
+  "set": "bodies",
+  "tag": "base",
+  "desc": "generated: coloured brown horse, dark mane and long tail, black hooves, red saddle (side view, facing right)",
+  "drawing": "dev/v14-entity3d/drawings/horse-saddle.png",
+  "source": "draw",
+  "expected": {
+    "type": "quadruped",
+    "skills": []
+  },
+  "wallMs": 2256,
+  "specWallMs": 2703,
+  "httpLog": [
+    {
+      "type": "spec",
+      "ms": 2702,
+      "status": 200,
+      "usage": {
+        "input": 2644,
+        "output": 537,
+        "reasoning": 91
+      },
+      "effort": "medium",
+      "detail": "low",
+      "maxTokens": 1800,
+      "tier": "ultrafast"
+    },
+    {
+      "type": "read",
+      "ms": 2154,
+      "status": 200,
+      "usage": {
+        "input": 1407,
+        "output": 328,
+        "reasoning": 99
+      },
+      "effort": "medium",
+      "detail": "low",
+      "maxTokens": 1600,
+      "tier": "ultrafast"
+    }
+  ],
+  "spec": {
+    "v": 1,
+    "type": "quadruped",
+    "view": "side",
+    "facing": "right",
+    "style": "chunky",
+    "seed": 1387811202,
+    "head": {
+      "shape": "oval",
+      "size": 0.38,
+      "gear": "hair",
+      "face": "eyes",
+      "eyes": 1,
+      "snout": 0.55,
+      "color": "#a1652e",
+      "gearColor": "#75451f",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "barrel",
+      "width": 0.55,
+      "color": "#a1652e",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "normal",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 4,
+      "length": 0.55,
+      "thickness": "normal",
+      "feet": "hooves",
+      "color": "#a1652e"
+    },
+    "neck": 0.43,
+    "tail": {
+      "kind": "long",
+      "color": "#75451f"
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0.15,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0.1,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "saddle",
+        "where": "back",
+        "size": 0.4,
+        "color": "#ed3546",
+        "verb": null
+      }
+    ],
+    "palette": {
+      "colored": true,
+      "main": "#a1652e",
+      "second": "#75451f",
+      "accent": "#ed3546",
+      "skin": ""
+    },
+    "source": "model"
+  },
+  "read": {
+    "ms": 2154,
+    "status": 200,
+    "usage": {
+      "input": 1407,
+      "output": 328,
+      "reasoning": 99
+    },
+    "effort": "medium",
+    "detail": "low",
+    "maxTokens": 1600,
+    "tier": "ultrafast",
+    "raw": {
+      "looksLike": "entity",
+      "type": "quadruped",
+      "parts": [
+        {
+          "name": "body",
+          "x": 0.447,
+          "y": 0.493
+        },
+        {
+          "name": "head",
+          "x": 0.812,
+          "y": 0.257
+        },
+        {
+          "name": "neck",
+          "x": 0.677,
+          "y": 0.397
+        },
+        {
+          "name": "ear",
+          "x": 0.758,
+          "y": 0.144
+        },
+        {
+          "name": "mane",
+          "x": 0.656,
+          "y": 0.291
+        },
+        {
+          "name": "tail",
+          "x": 0.178,
+          "y": 0.62
+        },
+        {
+          "name": "legs",
+          "x": 0.473,
+          "y": 0.702
+        },
+        {
+          "name": "hooves",
+          "x": 0.477,
+          "y": 0.883
+        },
+        {
+          "name": "saddle",
+          "x": 0.457,
+          "y": 0.382
+        },
+        {
+          "name": "stirrup",
+          "x": 0.468,
+          "y": 0.509
+        },
+        {
+          "name": "eye",
+          "x": 0.796,
+          "y": 0.22
+        },
+        {
+          "name": "nostril",
+          "x": 0.883,
+          "y": 0.295
+        }
+      ],
+      "verbs": [],
+      "unlocked": []
+    }
+  },
+  "entity": {
+    "type": "quadruped",
+    "verbs": [
+      "jump",
+      "takeoff"
+    ],
+    "unlocked": [],
+    "parts": [
+      {
+        "name": "body",
+        "x": 0.447,
+        "y": 0.493
+      },
+      {
+        "name": "head",
+        "x": 0.812,
+        "y": 0.257
+      },
+      {
+        "name": "neck",
+        "x": 0.677,
+        "y": 0.397
+      },
+      {
+        "name": "ear",
+        "x": 0.758,
+        "y": 0.144
+      },
+      {
+        "name": "mane",
+        "x": 0.656,
+        "y": 0.291
+      },
+      {
+        "name": "tail",
+        "x": 0.178,
+        "y": 0.62
+      },
+      {
+        "name": "legs",
+        "x": 0.473,
+        "y": 0.702
+      },
+      {
+        "name": "hooves",
+        "x": 0.477,
+        "y": 0.883
+      },
+      {
+        "name": "saddle",
+        "x": 0.457,
+        "y": 0.382
+      },
+      {
+        "name": "stirrup",
+        "x": 0.468,
+        "y": 0.509
+      },
+      {
+        "name": "eye",
+        "x": 0.796,
+        "y": 0.22
+      },
+      {
+        "name": "nostril",
+        "x": 0.883,
+        "y": 0.295
+      }
+    ],
+    "source": "model",
+    "card": "Your animal can: run, jump",
+    "fallback": false
+  },
+  "typeOk": true,
+  "missing": [],
+  "extra": [],
+  "ms": 2702,
+  "usage": {
+    "input": 2644,
+    "output": 537,
+    "reasoning": 91
+  },
+  "raw": {
+    "type": "quadruped",
+    "view": "side",
+    "facing": "right",
+    "style": "chunky",
+    "head": {
+      "shape": "oval",
+      "size": 0.38,
+      "gear": "hair",
+      "face": "eyes",
+      "eyes": 1,
+      "snout": 0.55,
+      "color": "#a1652e",
+      "gearColor": "#75451f",
+      "faceColor": "#211e28"
+    },
+    "torso": {
+      "shape": "barrel",
+      "width": 0.55,
+      "color": "#a1652e",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0,
+      "thickness": "normal",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 4,
+      "length": 0.55,
+      "thickness": "normal",
+      "feet": "hooves",
+      "color": "#a1652e"
+    },
+    "neck": 0.43,
+    "tail": {
+      "kind": "long",
+      "color": "#75451f"
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "saddle",
+        "where": "back",
+        "size": 0.4,
+        "color": "#ed3546"
+      }
+    ],
+    "palette": {
+      "colored": true,
+      "main": "#a1652e",
+      "second": "#75451f",
+      "accent": "#ed3546",
+      "skin": ""
+    }
+  },
+  "schemaOk": true,
+  "specCall": {
+    "ms": 2702,
+    "status": 200,
+    "usage": {
+      "input": 2644,
+      "output": 537,
+      "reasoning": 91
+    },
+    "effort": "medium",
+    "detail": "low",
+    "maxTokens": 1800,
+    "tier": "ultrafast",
+    "raw": {
+      "type": "quadruped",
+      "view": "side",
+      "facing": "right",
+      "style": "chunky",
+      "head": {
+        "shape": "oval",
+        "size": 0.38,
+        "gear": "hair",
+        "face": "eyes",
+        "eyes": 1,
+        "snout": 0.55,
+        "color": "#a1652e",
+        "gearColor": "#75451f",
+        "faceColor": "#211e28"
+      },
+      "torso": {
+        "shape": "barrel",
+        "width": 0.55,
+        "color": "#a1652e",
+        "belt": false,
+        "emblem": ""
+      },
+      "arms": {
+        "count": 0,
+        "length": 0,
+        "thickness": "normal",
+        "hands": "none",
+        "color": ""
+      },
+      "legs": {
+        "count": 4,
+        "length": 0.55,
+        "thickness": "normal",
+        "feet": "hooves",
+        "color": "#a1652e"
+      },
+      "neck": 0.43,
+      "tail": {
+        "kind": "long",
+        "color": "#75451f"
+      },
+      "vehicle": {
+        "body": "none",
+        "height": 0,
+        "cabin": "none",
+        "wheels": 0,
+        "wheelSize": 0,
+        "color": "",
+        "rider": false
+      },
+      "items": [
+        {
+          "kind": "saddle",
+          "where": "back",
+          "size": 0.4,
+          "color": "#ed3546"
+        }
+      ],
+      "palette": {
+        "colored": true,
+        "main": "#a1652e",
+        "second": "#75451f",
+        "accent": "#ed3546",
+        "skin": ""
+      }
+    }
+  },
+  "render": {
+    "ok": true,
+    "kit": false,
+    "rig": "quadruped",
+    "triangles": 4136,
+    "drawCalls": 2,
+    "glTriangles": 4136,
+    "ms": 15.8,
+    "size": {
+      "x": 0.72,
+      "y": 2.083,
+      "z": 2.722
+    },
+    "radius": 1.538344766685228,
+    "clips": [
+      "idle",
+      "walk",
+      "run",
+      "gallop",
+      "jump",
+      "dig",
+      "sit",
+      "bite",
+      "hit",
+      "die"
+    ],
+    "clipsLoaded": true,
+    "poses": [
+      "idle",
+      "run",
+      "dig"
+    ],
+    "wallMs": 204
+  }
+}

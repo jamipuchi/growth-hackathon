@@ -1,0 +1,143 @@
+{
+  "tag": "v18",
+  "set": "ships",
+  "at": "2026-10-10T11:22:30.149Z",
+  "n": 12,
+  "schemaFailures": 0,
+  "p50": 9467,
+  "p90": 11664,
+  "max": 13985,
+  "read": {
+    "p50": 3018,
+    "p90": 5045,
+    "max": 5128,
+    "failures": 0
+  },
+  "calls": [
+    {
+      "id": "E01-plain-fighter",
+      "ms": 10938,
+      "schemaOk": true,
+      "usage": {
+        "input": 2523,
+        "output": 2397,
+        "reasoning": 2070
+      },
+      "readMs": 2490
+    },
+    {
+      "id": "E04-cannon-flames",
+      "ms": 13985,
+      "schemaOk": true,
+      "usage": {
+        "input": 2504,
+        "output": 3255,
+        "reasoning": 2875
+      },
+      "readMs": 3365
+    },
+    {
+      "id": "E06-nose-drill",
+      "ms": 9467,
+      "schemaOk": true,
+      "usage": {
+        "input": 2504,
+        "output": 2294,
+        "reasoning": 1916
+      },
+      "readMs": 4543
+    },
+    {
+      "id": "E08-saucer",
+      "ms": 6803,
+      "schemaOk": true,
+      "usage": {
+        "input": 2504,
+        "output": 1260,
+        "reasoning": 881
+      },
+      "readMs": 3865
+    },
+    {
+      "id": "E09-rocket",
+      "ms": 6846,
+      "schemaOk": true,
+      "usage": {
+        "input": 2504,
+        "output": 1535,
+        "reasoning": 1163
+      },
+      "readMs": 3018
+    },
+    {
+      "id": "E10-chunky",
+      "ms": 8317,
+      "schemaOk": true,
+      "usage": {
+        "input": 2484,
+        "output": 1896,
+        "reasoning": 1425
+      },
+      "readMs": 5128
+    },
+    {
+      "id": "genqa-topview",
+      "schemaOk": true
+    },
+    {
+      "id": "jaume-jet",
+      "ms": 11664,
+      "schemaOk": true,
+      "usage": {
+        "input": 2484,
+        "output": 2793,
+        "reasoning": 2384
+      },
+      "readMs": 5045
+    },
+    {
+      "id": "photo-E13",
+      "ms": 11010,
+      "schemaOk": true,
+      "usage": {
+        "input": 2903,
+        "output": 2616,
+        "reasoning": 2236
+      },
+      "readMs": 2344
+    },
+    {
+      "id": "photo-E16",
+      "ms": 6509,
+      "schemaOk": true,
+      "usage": {
+        "input": 2903,
+        "output": 1430,
+        "reasoning": 1013
+      },
+      "readMs": 2377
+    },
+    {
+      "id": "color-topview",
+      "ms": 10433,
+      "schemaOk": true,
+      "usage": {
+        "input": 2561,
+        "output": 2402,
+        "reasoning": 1981
+      },
+      "readMs": 3012
+    },
+    {
+      "id": "color-messy",
+      "ms": 9440,
+      "schemaOk": true,
+      "usage": {
+        "input": 2542,
+        "output": 2009,
+        "reasoning": 1643
+      },
+      "readMs": 2469
+    }
+  ]
+}

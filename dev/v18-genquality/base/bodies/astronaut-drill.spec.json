@@ -1,0 +1,478 @@
+{
+  "id": "astronaut-drill",
+  "set": "bodies",
+  "tag": "base",
+  "desc": "astronaut + hand drill",
+  "drawing": "dev/gen-corpus/entity/E18.png",
+  "source": "draw",
+  "expected": {
+    "type": "person",
+    "skills": [
+      "drill"
+    ]
+  },
+  "wallMs": 2698,
+  "specWallMs": 2698,
+  "httpLog": [
+    {
+      "type": "spec",
+      "ms": 2504,
+      "status": 200,
+      "usage": {
+        "input": 2644,
+        "output": 477,
+        "reasoning": 78
+      },
+      "effort": "medium",
+      "detail": "low",
+      "maxTokens": 1800,
+      "tier": "ultrafast"
+    },
+    {
+      "type": "read",
+      "ms": 2696,
+      "status": 200,
+      "usage": {
+        "input": 1407,
+        "output": 335,
+        "reasoning": 149
+      },
+      "effort": "medium",
+      "detail": "low",
+      "maxTokens": 1600,
+      "tier": "ultrafast"
+    }
+  ],
+  "spec": {
+    "v": 1,
+    "type": "person",
+    "view": "front",
+    "facing": "viewer",
+    "style": "chunky",
+    "seed": 1033052725,
+    "head": {
+      "shape": "round",
+      "size": 0.27,
+      "gear": "astronaut helmet",
+      "face": "visor",
+      "eyes": 0,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0.27,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 2,
+      "length": 0.27,
+      "thickness": "thin",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 2,
+      "length": 0.37,
+      "thickness": "thin",
+      "feet": "none",
+      "color": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0.15,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0.1,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "drill",
+        "where": "right hand",
+        "size": 0.21,
+        "color": "",
+        "verb": "drill"
+      },
+      {
+        "kind": "blaster",
+        "where": "left hand",
+        "size": 0.32,
+        "color": "",
+        "verb": "shoot",
+        "added": true
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    },
+    "source": "model"
+  },
+  "read": {
+    "ms": 2696,
+    "status": 200,
+    "usage": {
+      "input": 1407,
+      "output": 335,
+      "reasoning": 149
+    },
+    "effort": "medium",
+    "detail": "low",
+    "maxTokens": 1600,
+    "tier": "ultrafast",
+    "raw": {
+      "looksLike": "entity",
+      "type": "person",
+      "parts": [
+        {
+          "name": "helmet",
+          "x": 0.39,
+          "y": 0.16
+        },
+        {
+          "name": "visor",
+          "x": 0.387,
+          "y": 0.173
+        },
+        {
+          "name": "body",
+          "x": 0.389,
+          "y": 0.453
+        },
+        {
+          "name": "left arm",
+          "x": 0.138,
+          "y": 0.443
+        },
+        {
+          "name": "right arm",
+          "x": 0.635,
+          "y": 0.438
+        },
+        {
+          "name": "legs",
+          "x": 0.387,
+          "y": 0.788
+        },
+        {
+          "name": "feet",
+          "x": 0.387,
+          "y": 0.966
+        },
+        {
+          "name": "drill",
+          "x": 0.83,
+          "y": 0.577
+        }
+      ],
+      "verbs": [
+        "drill",
+        "shoot"
+      ],
+      "unlocked": [
+        {
+          "verb": "drill",
+          "part": "drill"
+        },
+        {
+          "verb": "shoot",
+          "part": "drill"
+        }
+      ]
+    }
+  },
+  "entity": {
+    "type": "person",
+    "verbs": [
+      "shoot",
+      "drill",
+      "jump",
+      "takeoff"
+    ],
+    "unlocked": [
+      {
+        "verb": "drill",
+        "part": "drill"
+      },
+      {
+        "verb": "shoot",
+        "part": "drill"
+      }
+    ],
+    "parts": [
+      {
+        "name": "helmet",
+        "x": 0.39,
+        "y": 0.16
+      },
+      {
+        "name": "visor",
+        "x": 0.387,
+        "y": 0.173
+      },
+      {
+        "name": "body",
+        "x": 0.389,
+        "y": 0.453
+      },
+      {
+        "name": "left arm",
+        "x": 0.138,
+        "y": 0.443
+      },
+      {
+        "name": "right arm",
+        "x": 0.635,
+        "y": 0.438
+      },
+      {
+        "name": "legs",
+        "x": 0.387,
+        "y": 0.788
+      },
+      {
+        "name": "feet",
+        "x": 0.387,
+        "y": 0.966
+      },
+      {
+        "name": "drill",
+        "x": 0.83,
+        "y": 0.577
+      }
+    ],
+    "source": "model",
+    "card": "Your explorer can: walk, jump, drill, shoot (drill)",
+    "fallback": false
+  },
+  "typeOk": true,
+  "missing": [],
+  "extra": [
+    "shoot"
+  ],
+  "ms": 2504,
+  "usage": {
+    "input": 2644,
+    "output": 477,
+    "reasoning": 78
+  },
+  "raw": {
+    "type": "person",
+    "view": "front",
+    "facing": "viewer",
+    "style": "chunky",
+    "head": {
+      "shape": "round",
+      "size": 0.27,
+      "gear": "astronaut helmet",
+      "face": "visor",
+      "eyes": 0,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0.27,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 2,
+      "length": 0.27,
+      "thickness": "thin",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 2,
+      "length": 0.37,
+      "thickness": "thin",
+      "feet": "none",
+      "color": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "drill",
+        "where": "right hand",
+        "size": 0.21,
+        "color": ""
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    }
+  },
+  "schemaOk": true,
+  "specCall": {
+    "ms": 2504,
+    "status": 200,
+    "usage": {
+      "input": 2644,
+      "output": 477,
+      "reasoning": 78
+    },
+    "effort": "medium",
+    "detail": "low",
+    "maxTokens": 1800,
+    "tier": "ultrafast",
+    "raw": {
+      "type": "person",
+      "view": "front",
+      "facing": "viewer",
+      "style": "chunky",
+      "head": {
+        "shape": "round",
+        "size": 0.27,
+        "gear": "astronaut helmet",
+        "face": "visor",
+        "eyes": 0,
+        "snout": 0,
+        "color": "",
+        "gearColor": "",
+        "faceColor": ""
+      },
+      "torso": {
+        "shape": "box",
+        "width": 0.27,
+        "color": "",
+        "belt": false,
+        "emblem": ""
+      },
+      "arms": {
+        "count": 2,
+        "length": 0.27,
+        "thickness": "thin",
+        "hands": "none",
+        "color": ""
+      },
+      "legs": {
+        "count": 2,
+        "length": 0.37,
+        "thickness": "thin",
+        "feet": "none",
+        "color": ""
+      },
+      "neck": 0,
+      "tail": {
+        "kind": "none",
+        "color": ""
+      },
+      "vehicle": {
+        "body": "none",
+        "height": 0,
+        "cabin": "none",
+        "wheels": 0,
+        "wheelSize": 0,
+        "color": "",
+        "rider": false
+      },
+      "items": [
+        {
+          "kind": "drill",
+          "where": "right hand",
+          "size": 0.21,
+          "color": ""
+        }
+      ],
+      "palette": {
+        "colored": false,
+        "main": "",
+        "second": "",
+        "accent": "",
+        "skin": ""
+      }
+    }
+  },
+  "render": {
+    "ok": true,
+    "kit": false,
+    "rig": "person",
+    "triangles": 4465,
+    "drawCalls": 3,
+    "glTriangles": 4465,
+    "ms": 18.6,
+    "size": {
+      "x": 1.507,
+      "y": 1.795,
+      "z": 0.736
+    },
+    "radius": 0.9556790615555655,
+    "clips": [
+      "aim",
+      "block",
+      "cast",
+      "celebrate",
+      "climb",
+      "climb_in",
+      "crouch",
+      "die",
+      "dig",
+      "drink",
+      "fall",
+      "flip",
+      "glide",
+      "hit",
+      "idle",
+      "jump",
+      "kneel",
+      "land",
+      "look",
+      "pick_up",
+      "push",
+      "read",
+      "roll",
+      "run",
+      "shoot",
+      "sit",
+      "sprint",
+      "step_out",
+      "swim",
+      "swing",
+      "throw",
+      "walk",
+      "wave"
+    ],
+    "clipsLoaded": true,
+    "poses": [
+      "idle",
+      "run",
+      "dig"
+    ],
+    "wallMs": 223
+  }
+}

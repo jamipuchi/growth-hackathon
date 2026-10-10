@@ -1,0 +1,601 @@
+{
+  "cap": 120,
+  "calls": 119,
+  "log": [
+    {
+      "at": "2026-10-10T11:10:50.964Z",
+      "n": 1,
+      "note": "base ships/E01-plain-fighter spec"
+    },
+    {
+      "at": "2026-10-10T11:10:50.978Z",
+      "n": 1,
+      "note": "base ships/E01-plain-fighter read"
+    },
+    {
+      "at": "2026-10-10T11:10:50.980Z",
+      "n": 1,
+      "note": "base ships/E04-cannon-flames spec"
+    },
+    {
+      "at": "2026-10-10T11:10:50.981Z",
+      "n": 1,
+      "note": "base ships/E04-cannon-flames read"
+    },
+    {
+      "at": "2026-10-10T11:10:50.983Z",
+      "n": 1,
+      "note": "base ships/E06-nose-drill spec"
+    },
+    {
+      "at": "2026-10-10T11:10:50.983Z",
+      "n": 1,
+      "note": "base ships/E06-nose-drill read"
+    },
+    {
+      "at": "2026-10-10T11:10:50.984Z",
+      "n": 1,
+      "note": "base ships/E08-saucer spec"
+    },
+    {
+      "at": "2026-10-10T11:10:50.985Z",
+      "n": 1,
+      "note": "base ships/E08-saucer read"
+    },
+    {
+      "at": "2026-10-10T11:10:54.404Z",
+      "n": 1,
+      "note": "base ships/E09-rocket spec"
+    },
+    {
+      "at": "2026-10-10T11:10:54.405Z",
+      "n": 1,
+      "note": "base ships/E09-rocket read"
+    },
+    {
+      "at": "2026-10-10T11:10:55.233Z",
+      "n": 1,
+      "note": "base ships/E10-chunky spec"
+    },
+    {
+      "at": "2026-10-10T11:10:55.259Z",
+      "n": 1,
+      "note": "base ships/E10-chunky read"
+    },
+    {
+      "at": "2026-10-10T11:10:55.378Z",
+      "n": 1,
+      "note": "base ships/jaume-jet spec"
+    },
+    {
+      "at": "2026-10-10T11:10:55.413Z",
+      "n": 1,
+      "note": "base ships/jaume-jet read"
+    },
+    {
+      "at": "2026-10-10T11:10:55.659Z",
+      "n": 1,
+      "note": "base ships/photo-E13 spec"
+    },
+    {
+      "at": "2026-10-10T11:10:55.660Z",
+      "n": 1,
+      "note": "base ships/photo-E13 read"
+    },
+    {
+      "at": "2026-10-10T11:10:55.922Z",
+      "n": 1,
+      "note": "base ships/photo-E16 spec"
+    },
+    {
+      "at": "2026-10-10T11:10:55.923Z",
+      "n": 1,
+      "note": "base ships/photo-E16 read"
+    },
+    {
+      "at": "2026-10-10T11:10:58.296Z",
+      "n": 1,
+      "note": "base ships/color-topview spec"
+    },
+    {
+      "at": "2026-10-10T11:10:58.297Z",
+      "n": 1,
+      "note": "base ships/color-topview read"
+    },
+    {
+      "at": "2026-10-10T11:10:58.529Z",
+      "n": 1,
+      "note": "base ships/color-messy spec"
+    },
+    {
+      "at": "2026-10-10T11:10:58.530Z",
+      "n": 1,
+      "note": "base ships/color-messy read"
+    },
+    {
+      "at": "2026-10-10T11:10:59.367Z",
+      "n": 1,
+      "note": "base bodies/astronaut-shovel spec"
+    },
+    {
+      "at": "2026-10-10T11:10:59.367Z",
+      "n": 1,
+      "note": "base bodies/astronaut-shovel read"
+    },
+    {
+      "at": "2026-10-10T11:10:59.993Z",
+      "n": 1,
+      "note": "base bodies/astronaut-drill spec"
+    },
+    {
+      "at": "2026-10-10T11:10:59.993Z",
+      "n": 1,
+      "note": "base bodies/astronaut-drill read"
+    },
+    {
+      "at": "2026-10-10T11:11:01.437Z",
+      "n": 1,
+      "note": "base bodies/car-cannon spec"
+    },
+    {
+      "at": "2026-10-10T11:11:01.437Z",
+      "n": 1,
+      "note": "base bodies/car-cannon read"
+    },
+    {
+      "at": "2026-10-10T11:11:01.848Z",
+      "n": 1,
+      "note": "base bodies/bike-lamp spec"
+    },
+    {
+      "at": "2026-10-10T11:11:01.849Z",
+      "n": 1,
+      "note": "base bodies/bike-lamp read"
+    },
+    {
+      "at": "2026-10-10T11:11:02.281Z",
+      "n": 1,
+      "note": "base bodies/dog-claws spec"
+    },
+    {
+      "at": "2026-10-10T11:11:02.282Z",
+      "n": 1,
+      "note": "base bodies/dog-claws read"
+    },
+    {
+      "at": "2026-10-10T11:11:02.691Z",
+      "n": 1,
+      "note": "base bodies/blob spec"
+    },
+    {
+      "at": "2026-10-10T11:11:02.692Z",
+      "n": 1,
+      "note": "base bodies/blob read"
+    },
+    {
+      "at": "2026-10-10T11:11:04.464Z",
+      "n": 1,
+      "note": "base bodies/color-person spec"
+    },
+    {
+      "at": "2026-10-10T11:11:04.465Z",
+      "n": 1,
+      "note": "base bodies/color-person read"
+    },
+    {
+      "at": "2026-10-10T11:11:04.566Z",
+      "n": 1,
+      "note": "base bodies/color-robot spec"
+    },
+    {
+      "at": "2026-10-10T11:11:04.566Z",
+      "n": 1,
+      "note": "base bodies/color-robot read"
+    },
+    {
+      "at": "2026-10-10T11:11:04.568Z",
+      "n": 1,
+      "note": "base bodies/horse-saddle spec"
+    },
+    {
+      "at": "2026-10-10T11:11:04.568Z",
+      "n": 1,
+      "note": "base bodies/horse-saddle read"
+    },
+    {
+      "at": "2026-10-10T11:11:04.756Z",
+      "n": 1,
+      "note": "base bodies/monster-truck spec"
+    },
+    {
+      "at": "2026-10-10T11:11:04.757Z",
+      "n": 1,
+      "note": "base bodies/monster-truck read"
+    },
+    {
+      "at": "2026-10-10T11:16:35.544Z",
+      "n": 1,
+      "note": "v18 ships/E01-plain-fighter spec"
+    },
+    {
+      "at": "2026-10-10T11:16:35.560Z",
+      "n": 1,
+      "note": "v18 ships/E01-plain-fighter read"
+    },
+    {
+      "at": "2026-10-10T11:16:35.562Z",
+      "n": 1,
+      "note": "v18 ships/E04-cannon-flames spec"
+    },
+    {
+      "at": "2026-10-10T11:16:35.563Z",
+      "n": 1,
+      "note": "v18 ships/E04-cannon-flames read"
+    },
+    {
+      "at": "2026-10-10T11:16:35.565Z",
+      "n": 1,
+      "note": "v18 ships/E06-nose-drill spec"
+    },
+    {
+      "at": "2026-10-10T11:16:35.567Z",
+      "n": 1,
+      "note": "v18 ships/E06-nose-drill read"
+    },
+    {
+      "at": "2026-10-10T11:16:35.568Z",
+      "n": 1,
+      "note": "v18 ships/E08-saucer spec"
+    },
+    {
+      "at": "2026-10-10T11:16:35.568Z",
+      "n": 1,
+      "note": "v18 ships/E08-saucer read"
+    },
+    {
+      "at": "2026-10-10T11:16:42.375Z",
+      "n": 1,
+      "note": "v18 ships/E09-rocket spec"
+    },
+    {
+      "at": "2026-10-10T11:16:42.375Z",
+      "n": 1,
+      "note": "v18 ships/E09-rocket read"
+    },
+    {
+      "at": "2026-10-10T11:16:45.034Z",
+      "n": 1,
+      "note": "v18 ships/E10-chunky spec"
+    },
+    {
+      "at": "2026-10-10T11:16:45.034Z",
+      "n": 1,
+      "note": "v18 ships/E10-chunky read"
+    },
+    {
+      "at": "2026-10-10T11:16:49.222Z",
+      "n": 1,
+      "note": "v18 ships/jaume-jet spec"
+    },
+    {
+      "at": "2026-10-10T11:16:49.222Z",
+      "n": 1,
+      "note": "v18 ships/jaume-jet read"
+    },
+    {
+      "at": "2026-10-10T11:16:49.549Z",
+      "n": 1,
+      "note": "v18 ships/photo-E13 spec"
+    },
+    {
+      "at": "2026-10-10T11:16:49.549Z",
+      "n": 1,
+      "note": "v18 ships/photo-E13 read"
+    },
+    {
+      "at": "2026-10-10T11:16:49.551Z",
+      "n": 1,
+      "note": "v18 ships/photo-E16 spec"
+    },
+    {
+      "at": "2026-10-10T11:16:49.552Z",
+      "n": 1,
+      "note": "v18 ships/photo-E16 read"
+    },
+    {
+      "at": "2026-10-10T11:16:53.353Z",
+      "n": 1,
+      "note": "v18 ships/color-topview spec"
+    },
+    {
+      "at": "2026-10-10T11:16:53.354Z",
+      "n": 1,
+      "note": "v18 ships/color-topview read"
+    },
+    {
+      "at": "2026-10-10T11:16:56.062Z",
+      "n": 1,
+      "note": "v18 ships/color-messy spec"
+    },
+    {
+      "at": "2026-10-10T11:16:56.062Z",
+      "n": 1,
+      "note": "v18 ships/color-messy read"
+    },
+    {
+      "at": "2026-10-10T11:17:00.561Z",
+      "n": 1,
+      "note": "v18 bodies/astronaut-shovel spec"
+    },
+    {
+      "at": "2026-10-10T11:17:00.562Z",
+      "n": 1,
+      "note": "v18 bodies/astronaut-shovel read"
+    },
+    {
+      "at": "2026-10-10T11:17:00.887Z",
+      "n": 1,
+      "note": "v18 bodies/astronaut-drill spec"
+    },
+    {
+      "at": "2026-10-10T11:17:00.888Z",
+      "n": 1,
+      "note": "v18 bodies/astronaut-drill read"
+    },
+    {
+      "at": "2026-10-10T11:17:03.787Z",
+      "n": 1,
+      "note": "v18 bodies/car-cannon spec"
+    },
+    {
+      "at": "2026-10-10T11:17:03.787Z",
+      "n": 1,
+      "note": "v18 bodies/car-cannon read"
+    },
+    {
+      "at": "2026-10-10T11:17:04.852Z",
+      "n": 1,
+      "note": "v18 bodies/bike-lamp spec"
+    },
+    {
+      "at": "2026-10-10T11:17:04.852Z",
+      "n": 1,
+      "note": "v18 bodies/bike-lamp read"
+    },
+    {
+      "at": "2026-10-10T11:17:05.503Z",
+      "n": 1,
+      "note": "v18 bodies/dog-claws spec"
+    },
+    {
+      "at": "2026-10-10T11:17:05.503Z",
+      "n": 1,
+      "note": "v18 bodies/dog-claws read"
+    },
+    {
+      "at": "2026-10-10T11:17:06.593Z",
+      "n": 1,
+      "note": "v18 bodies/blob spec"
+    },
+    {
+      "at": "2026-10-10T11:17:06.594Z",
+      "n": 1,
+      "note": "v18 bodies/blob read"
+    },
+    {
+      "at": "2026-10-10T11:17:09.345Z",
+      "n": 1,
+      "note": "v18 bodies/color-person spec"
+    },
+    {
+      "at": "2026-10-10T11:17:09.347Z",
+      "n": 1,
+      "note": "v18 bodies/color-person read"
+    },
+    {
+      "at": "2026-10-10T11:17:09.731Z",
+      "n": 1,
+      "note": "v18 bodies/color-robot spec"
+    },
+    {
+      "at": "2026-10-10T11:17:09.732Z",
+      "n": 1,
+      "note": "v18 bodies/color-robot read"
+    },
+    {
+      "at": "2026-10-10T11:17:10.145Z",
+      "n": 1,
+      "note": "v18 bodies/horse-saddle spec"
+    },
+    {
+      "at": "2026-10-10T11:17:10.146Z",
+      "n": 1,
+      "note": "v18 bodies/horse-saddle read"
+    },
+    {
+      "at": "2026-10-10T11:17:11.571Z",
+      "n": 1,
+      "note": "v18 bodies/monster-truck spec"
+    },
+    {
+      "at": "2026-10-10T11:17:11.574Z",
+      "n": 1,
+      "note": "v18 bodies/monster-truck read"
+    },
+    {
+      "at": "2026-10-10T11:17:42.661Z",
+      "n": 1,
+      "note": "v18med ships/E01-plain-fighter spec"
+    },
+    {
+      "at": "2026-10-10T11:17:42.674Z",
+      "n": 1,
+      "note": "v18med ships/E04-cannon-flames spec"
+    },
+    {
+      "at": "2026-10-10T11:17:42.675Z",
+      "n": 1,
+      "note": "v18med ships/E06-nose-drill spec"
+    },
+    {
+      "at": "2026-10-10T11:17:42.677Z",
+      "n": 1,
+      "note": "v18med ships/E08-saucer spec"
+    },
+    {
+      "at": "2026-10-10T11:17:46.514Z",
+      "n": 1,
+      "note": "v18med ships/E09-rocket spec"
+    },
+    {
+      "at": "2026-10-10T11:17:47.119Z",
+      "n": 1,
+      "note": "v18med ships/E10-chunky spec"
+    },
+    {
+      "at": "2026-10-10T11:17:50.511Z",
+      "n": 1,
+      "note": "v18med ships/jaume-jet spec"
+    },
+    {
+      "at": "2026-10-10T11:17:50.699Z",
+      "n": 1,
+      "note": "v18med ships/photo-E13 spec"
+    },
+    {
+      "at": "2026-10-10T11:17:50.701Z",
+      "n": 1,
+      "note": "v18med ships/photo-E16 spec"
+    },
+    {
+      "at": "2026-10-10T11:17:52.027Z",
+      "n": 1,
+      "note": "v18med ships/color-topview spec"
+    },
+    {
+      "at": "2026-10-10T11:17:53.580Z",
+      "n": 1,
+      "note": "v18med ships/color-messy spec"
+    },
+    {
+      "at": "2026-10-10T11:17:55.110Z",
+      "n": 1,
+      "note": "v18med bodies/astronaut-shovel spec"
+    },
+    {
+      "at": "2026-10-10T11:17:56.175Z",
+      "n": 1,
+      "note": "v18med bodies/astronaut-drill spec"
+    },
+    {
+      "at": "2026-10-10T11:17:56.826Z",
+      "n": 1,
+      "note": "v18med bodies/car-cannon spec"
+    },
+    {
+      "at": "2026-10-10T11:17:58.127Z",
+      "n": 1,
+      "note": "v18med bodies/bike-lamp spec"
+    },
+    {
+      "at": "2026-10-10T11:17:58.755Z",
+      "n": 1,
+      "note": "v18med bodies/dog-claws spec"
+    },
+    {
+      "at": "2026-10-10T11:17:59.101Z",
+      "n": 1,
+      "note": "v18med bodies/blob spec"
+    },
+    {
+      "at": "2026-10-10T11:18:00.487Z",
+      "n": 1,
+      "note": "v18med bodies/color-person spec"
+    },
+    {
+      "at": "2026-10-10T11:18:01.786Z",
+      "n": 1,
+      "note": "v18med bodies/color-robot spec"
+    },
+    {
+      "at": "2026-10-10T11:18:01.901Z",
+      "n": 1,
+      "note": "v18med bodies/horse-saddle spec"
+    },
+    {
+      "at": "2026-10-10T11:18:02.194Z",
+      "n": 1,
+      "note": "v18med bodies/monster-truck spec"
+    },
+    {
+      "at": "2026-10-10T11:23:12.026Z",
+      "n": 1,
+      "note": "ctl-low controllers/C06 read"
+    },
+    {
+      "at": "2026-10-10T11:23:12.037Z",
+      "n": 1,
+      "note": "ctl-low controllers/C08 read"
+    },
+    {
+      "at": "2026-10-10T11:23:12.038Z",
+      "n": 1,
+      "note": "ctl-low controllers/C19 read"
+    },
+    {
+      "at": "2026-10-10T11:24:47.083Z",
+      "n": 1,
+      "note": "ctl-high controllers/C06 read"
+    },
+    {
+      "at": "2026-10-10T11:24:47.095Z",
+      "n": 1,
+      "note": "ctl-high controllers/C08 read"
+    },
+    {
+      "at": "2026-10-10T11:24:47.096Z",
+      "n": 1,
+      "note": "ctl-high controllers/C19 read"
+    },
+    {
+      "at": "2026-10-10T11:26:22.138Z",
+      "n": 1,
+      "note": "final ships/E10-chunky spec"
+    },
+    {
+      "at": "2026-10-10T11:26:22.152Z",
+      "n": 1,
+      "note": "final ships/E10-chunky read"
+    },
+    {
+      "at": "2026-10-10T11:26:22.153Z",
+      "n": 1,
+      "note": "final ships/color-messy spec"
+    },
+    {
+      "at": "2026-10-10T11:26:22.154Z",
+      "n": 1,
+      "note": "final ships/color-messy read"
+    },
+    {
+      "at": "2026-10-10T11:26:22.155Z",
+      "n": 1,
+      "note": "final bodies/color-person spec"
+    },
+    {
+      "at": "2026-10-10T11:26:22.156Z",
+      "n": 1,
+      "note": "final bodies/color-person read"
+    },
+    {
+      "at": "2026-10-10T11:26:22.157Z",
+      "n": 1,
+      "note": "final bodies/color-robot spec"
+    },
+    {
+      "at": "2026-10-10T11:26:22.158Z",
+      "n": 1,
+      "note": "final bodies/color-robot read"
+    }
+  ]
+}

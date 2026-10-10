@@ -1,0 +1,453 @@
+{
+  "id": "E08-saucer",
+  "set": "ships",
+  "tag": "v18med",
+  "desc": "saucer + legs + lamp",
+  "drawing": "dev/gen-corpus/entity/E08.png",
+  "source": "draw",
+  "expected": {
+    "type": "ship",
+    "skills": [
+      "land",
+      "flare"
+    ]
+  },
+  "wallMs": 3865,
+  "specWallMs": 3836,
+  "readsFrom": "v18",
+  "read": {
+    "ms": 3865,
+    "status": 200,
+    "usage": {
+      "input": 1160,
+      "output": 753,
+      "reasoning": 481
+    },
+    "effort": "high",
+    "detail": "high",
+    "maxTokens": 6000,
+    "tier": "ultrafast",
+    "raw": {
+      "looksLike": "entity",
+      "type": "ship",
+      "parts": [
+        {
+          "name": "body",
+          "x": 0.442,
+          "y": 0.548
+        },
+        {
+          "name": "cockpit",
+          "x": 0.441,
+          "y": 0.229
+        },
+        {
+          "name": "left window",
+          "x": 0.236,
+          "y": 0.57
+        },
+        {
+          "name": "middle window",
+          "x": 0.44,
+          "y": 0.568
+        },
+        {
+          "name": "right window",
+          "x": 0.645,
+          "y": 0.569
+        },
+        {
+          "name": "left landing leg",
+          "x": 0.292,
+          "y": 0.843
+        },
+        {
+          "name": "right landing leg",
+          "x": 0.595,
+          "y": 0.843
+        },
+        {
+          "name": "rear lamp",
+          "x": 0.904,
+          "y": 0.551
+        }
+      ],
+      "verbs": [
+        "flare",
+        "boost"
+      ],
+      "unlocked": [
+        {
+          "verb": "flare",
+          "part": "rear lamp"
+        },
+        {
+          "verb": "boost",
+          "part": "rear lamp"
+        }
+      ]
+    }
+  },
+  "httpLog": [
+    {
+      "type": "spec",
+      "ms": 3833,
+      "status": 200,
+      "usage": {
+        "input": 2504,
+        "output": 638,
+        "reasoning": 261
+      },
+      "effort": "medium",
+      "detail": "high",
+      "maxTokens": 8000,
+      "tier": "ultrafast"
+    }
+  ],
+  "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "left",
+    "style": "cute",
+    "seed": 3847401124,
+    "hull": {
+      "shape": "saucer",
+      "width": 1,
+      "height": 0.29,
+      "nose": "round",
+      "tail": "round",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "bubble",
+      "at": 0.5,
+      "size": 0.45,
+      "color": "",
+      "windows": 3
+    },
+    "wings": {
+      "count": 0,
+      "shape": "round",
+      "at": 0.5,
+      "span": 0.2,
+      "chord": 0.08,
+      "mount": "mid",
+      "color": ""
+    },
+    "fins": [],
+    "engines": {
+      "count": 1,
+      "size": 0.06,
+      "flame": true,
+      "flameColor": "",
+      "layout": "single",
+      "verb": "boost"
+    },
+    "weapons": [],
+    "extras": [
+      {
+        "kind": "legs",
+        "at": 0.5,
+        "mount": "belly",
+        "size": 0.15,
+        "color": "",
+        "label": "",
+        "verb": null
+      },
+      {
+        "kind": "lamp",
+        "at": 1,
+        "mount": "tail",
+        "size": 0.15,
+        "color": "",
+        "label": "",
+        "verb": "flare"
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "model"
+  },
+  "entity": {
+    "type": "ship",
+    "verbs": [
+      "boost",
+      "flare"
+    ],
+    "unlocked": [
+      {
+        "verb": "flare",
+        "part": "rear lamp"
+      },
+      {
+        "verb": "boost",
+        "part": "rear lamp"
+      }
+    ],
+    "parts": [
+      {
+        "name": "body",
+        "x": 0.442,
+        "y": 0.548
+      },
+      {
+        "name": "cockpit",
+        "x": 0.441,
+        "y": 0.229
+      },
+      {
+        "name": "left window",
+        "x": 0.236,
+        "y": 0.57
+      },
+      {
+        "name": "middle window",
+        "x": 0.44,
+        "y": 0.568
+      },
+      {
+        "name": "right window",
+        "x": 0.645,
+        "y": 0.569
+      },
+      {
+        "name": "left landing leg",
+        "x": 0.292,
+        "y": 0.843
+      },
+      {
+        "name": "right landing leg",
+        "x": 0.595,
+        "y": 0.843
+      },
+      {
+        "name": "rear lamp",
+        "x": 0.904,
+        "y": 0.551
+      }
+    ],
+    "source": "model",
+    "card": "Your ship can: fly, flare (rear lamp), boost (rear lamp)",
+    "fallback": false
+  },
+  "typeOk": true,
+  "missing": [
+    "land"
+  ],
+  "extra": [
+    "boost"
+  ],
+  "ms": 3833,
+  "usage": {
+    "input": 2504,
+    "output": 638,
+    "reasoning": 261
+  },
+  "raw": {
+    "view": "side",
+    "noseDir": "left",
+    "style": "cute",
+    "hull": {
+      "shape": "saucer",
+      "width": 1,
+      "height": 0.29,
+      "nose": "round",
+      "tail": "round",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "bubble",
+      "at": 0.5,
+      "size": 0.45,
+      "color": "",
+      "windows": 3
+    },
+    "wings": {
+      "count": 0,
+      "shape": "round",
+      "at": 0.5,
+      "span": 0,
+      "chord": 0,
+      "mount": "mid",
+      "color": ""
+    },
+    "fins": [],
+    "engines": {
+      "count": 0,
+      "size": 0,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single"
+    },
+    "weapons": [],
+    "extras": [
+      {
+        "kind": "legs",
+        "at": 0.5,
+        "mount": "belly",
+        "size": 0.15,
+        "color": "",
+        "label": ""
+      },
+      {
+        "kind": "lamp",
+        "at": 1,
+        "mount": "tail",
+        "size": 0.15,
+        "color": "",
+        "label": ""
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    }
+  },
+  "schemaOk": true,
+  "specCall": {
+    "ms": 3833,
+    "status": 200,
+    "usage": {
+      "input": 2504,
+      "output": 638,
+      "reasoning": 261
+    },
+    "effort": "medium",
+    "detail": "high",
+    "maxTokens": 8000,
+    "tier": "ultrafast",
+    "raw": {
+      "view": "side",
+      "noseDir": "left",
+      "style": "cute",
+      "hull": {
+        "shape": "saucer",
+        "width": 1,
+        "height": 0.29,
+        "nose": "round",
+        "tail": "round",
+        "color": "",
+        "stripe": ""
+      },
+      "cockpit": {
+        "kind": "bubble",
+        "at": 0.5,
+        "size": 0.45,
+        "color": "",
+        "windows": 3
+      },
+      "wings": {
+        "count": 0,
+        "shape": "round",
+        "at": 0.5,
+        "span": 0,
+        "chord": 0,
+        "mount": "mid",
+        "color": ""
+      },
+      "fins": [],
+      "engines": {
+        "count": 0,
+        "size": 0,
+        "flame": false,
+        "flameColor": "",
+        "layout": "single"
+      },
+      "weapons": [],
+      "extras": [
+        {
+          "kind": "legs",
+          "at": 0.5,
+          "mount": "belly",
+          "size": 0.15,
+          "color": "",
+          "label": ""
+        },
+        {
+          "kind": "lamp",
+          "at": 1,
+          "mount": "tail",
+          "size": 0.15,
+          "color": "",
+          "label": ""
+        }
+      ],
+      "palette": {
+        "colored": false,
+        "main": "",
+        "second": "",
+        "accent": ""
+      }
+    }
+  },
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 4085,
+    "drawCalls": 3,
+    "glTriangles": 4085,
+    "ms": 24.6,
+    "size": {
+      "x": 3.200000047683716,
+      "y": 1.848508596420288,
+      "z": 3.091362476348877
+    },
+    "radius": 1.6104773346577226,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        0.58,
+        0
+      ],
+      "wing_r": [
+        1.59,
+        -0.03,
+        0.15
+      ],
+      "wing_l": [
+        -1.59,
+        -0.03,
+        0.15
+      ],
+      "engine_l": [
+        -0.07,
+        -0.07,
+        1.54
+      ],
+      "engine_r": [
+        0.07,
+        -0.07,
+        1.54
+      ],
+      "nose": [
+        0,
+        -0.07,
+        -1.56
+      ],
+      "back": [
+        0,
+        0.28,
+        0.77
+      ],
+      "belly": [
+        0,
+        -0.37,
+        0
+      ]
+    },
+    "wallMs": 301
+  }
+}

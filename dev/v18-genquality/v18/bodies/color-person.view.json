@@ -1,0 +1,80 @@
+{
+  "v": 1,
+  "type": "person",
+  "view": "front",
+  "facing": "viewer",
+  "style": "cute",
+  "seed": 1990674400,
+  "head": {
+    "shape": "round",
+    "size": 0.31,
+    "gear": "hair",
+    "face": "eyes",
+    "eyes": 2,
+    "snout": 0,
+    "color": "#ffcca4",
+    "gearColor": "#ff55aa",
+    "faceColor": "#ffcca4"
+  },
+  "torso": {
+    "shape": "box",
+    "width": 0.3,
+    "color": "#ff8000",
+    "belt": true,
+    "emblem": ""
+  },
+  "arms": {
+    "count": 2,
+    "length": 0.3,
+    "thickness": "normal",
+    "hands": "mitten",
+    "color": "#ff8000",
+    "handColor": "#ffcca4"
+  },
+  "legs": {
+    "count": 2,
+    "length": 0.26,
+    "thickness": "normal",
+    "feet": "shoes",
+    "color": "#ff8000",
+    "feetColor": "#2563eb"
+  },
+  "neck": 0,
+  "tail": {
+    "kind": "none",
+    "color": ""
+  },
+  "vehicle": {
+    "body": "none",
+    "height": 0.15,
+    "cabin": "none",
+    "wheels": 0,
+    "wheelSize": 0.1,
+    "color": "",
+    "rider": false
+  },
+  "items": [
+    {
+      "kind": "lamp",
+      "where": "left hand",
+      "size": 0.39,
+      "color": "#ffda44",
+      "verb": "flare"
+    },
+    {
+      "kind": "backpack",
+      "where": "back",
+      "size": 0.28,
+      "color": "#25b44a",
+      "verb": null
+    }
+  ],
+  "palette": {
+    "colored": true,
+    "main": "#ff8000",
+    "second": "#ff55aa",
+    "accent": "#25b44a",
+    "skin": "#ffcca4"
+  },
+  "source": "model"
+}

@@ -1,0 +1,537 @@
+{
+  "id": "monster-truck",
+  "set": "bodies",
+  "tag": "v18",
+  "desc": "generated: coloured green monster truck, blue window, huge black wheels, exhaust flames at the back, drill at the front",
+  "drawing": "dev/v14-entity3d/drawings/monster-truck.png",
+  "source": "draw",
+  "expected": {
+    "type": "car",
+    "skills": [
+      "boost",
+      "drill"
+    ]
+  },
+  "wallMs": 3766,
+  "specWallMs": 9028,
+  "httpLog": [
+    {
+      "type": "spec",
+      "ms": 9025,
+      "status": 200,
+      "usage": {
+        "input": 2939,
+        "output": 1864,
+        "reasoning": 1362
+      },
+      "effort": "high",
+      "detail": "high",
+      "maxTokens": 8000,
+      "tier": "ultrafast"
+    },
+    {
+      "type": "read",
+      "ms": 3660,
+      "status": 200,
+      "usage": {
+        "input": 1388,
+        "output": 691,
+        "reasoning": 420
+      },
+      "effort": "high",
+      "detail": "high",
+      "maxTokens": 6000,
+      "tier": "ultrafast"
+    }
+  ],
+  "spec": {
+    "v": 1,
+    "type": "car",
+    "view": "side",
+    "facing": "right",
+    "style": "chunky",
+    "seed": 3685390253,
+    "head": {
+      "shape": "none",
+      "size": 0.08,
+      "gear": "none",
+      "face": "none",
+      "eyes": 0,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0.06,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "normal",
+      "hands": "none",
+      "color": "",
+      "handColor": ""
+    },
+    "legs": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "normal",
+      "feet": "none",
+      "color": "",
+      "feetColor": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "monster truck",
+      "height": 0.31,
+      "cabin": "closed",
+      "wheels": 4,
+      "wheelSize": 0.47,
+      "color": "#22b14c",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "drill",
+        "where": "front",
+        "size": 0.15,
+        "color": "#9295a2",
+        "verb": "drill"
+      },
+      {
+        "kind": "lamp",
+        "where": "front",
+        "size": 0.05,
+        "color": "#ffe13b",
+        "verb": "flare"
+      },
+      {
+        "kind": "flames",
+        "where": "back",
+        "size": 0.16,
+        "color": "#ff9c00",
+        "verb": "boost"
+      }
+    ],
+    "palette": {
+      "colored": true,
+      "main": "",
+      "second": "#22b14c",
+      "accent": "#80caff",
+      "skin": ""
+    },
+    "source": "model"
+  },
+  "read": {
+    "ms": 3660,
+    "status": 200,
+    "usage": {
+      "input": 1388,
+      "output": 691,
+      "reasoning": 420
+    },
+    "effort": "high",
+    "detail": "high",
+    "maxTokens": 6000,
+    "tier": "ultrafast",
+    "raw": {
+      "looksLike": "entity",
+      "type": "car",
+      "parts": [
+        {
+          "name": "truck bed",
+          "x": 0.306,
+          "y": 0.375
+        },
+        {
+          "name": "cab",
+          "x": 0.689,
+          "y": 0.295
+        },
+        {
+          "name": "window",
+          "x": 0.617,
+          "y": 0.225
+        },
+        {
+          "name": "door handle",
+          "x": 0.568,
+          "y": 0.337
+        },
+        {
+          "name": "rear wheel",
+          "x": 0.274,
+          "y": 0.709
+        },
+        {
+          "name": "front wheel",
+          "x": 0.728,
+          "y": 0.709
+        },
+        {
+          "name": "rear suspension",
+          "x": 0.276,
+          "y": 0.474
+        },
+        {
+          "name": "front suspension",
+          "x": 0.725,
+          "y": 0.474
+        },
+        {
+          "name": "exhaust pipe",
+          "x": 0.104,
+          "y": 0.383
+        },
+        {
+          "name": "exhaust flames",
+          "x": 0.046,
+          "y": 0.374
+        },
+        {
+          "name": "drill",
+          "x": 0.938,
+          "y": 0.393
+        },
+        {
+          "name": "headlight",
+          "x": 0.867,
+          "y": 0.332
+        }
+      ],
+      "verbs": [
+        "boost",
+        "drill",
+        "flare"
+      ],
+      "unlocked": [
+        {
+          "verb": "boost",
+          "part": "exhaust flames"
+        },
+        {
+          "verb": "drill",
+          "part": "drill"
+        },
+        {
+          "verb": "flare",
+          "part": "headlight"
+        }
+      ]
+    }
+  },
+  "entity": {
+    "type": "car",
+    "verbs": [
+      "boost",
+      "drill",
+      "flare",
+      "drive",
+      "takeoff"
+    ],
+    "unlocked": [
+      {
+        "verb": "boost",
+        "part": "exhaust flames"
+      },
+      {
+        "verb": "drill",
+        "part": "drill"
+      },
+      {
+        "verb": "flare",
+        "part": "headlight"
+      }
+    ],
+    "parts": [
+      {
+        "name": "truck bed",
+        "x": 0.306,
+        "y": 0.375
+      },
+      {
+        "name": "cab",
+        "x": 0.689,
+        "y": 0.295
+      },
+      {
+        "name": "window",
+        "x": 0.617,
+        "y": 0.225
+      },
+      {
+        "name": "door handle",
+        "x": 0.568,
+        "y": 0.337
+      },
+      {
+        "name": "rear wheel",
+        "x": 0.274,
+        "y": 0.709
+      },
+      {
+        "name": "front wheel",
+        "x": 0.728,
+        "y": 0.709
+      },
+      {
+        "name": "rear suspension",
+        "x": 0.276,
+        "y": 0.474
+      },
+      {
+        "name": "front suspension",
+        "x": 0.725,
+        "y": 0.474
+      },
+      {
+        "name": "exhaust pipe",
+        "x": 0.104,
+        "y": 0.383
+      },
+      {
+        "name": "exhaust flames",
+        "x": 0.046,
+        "y": 0.374
+      },
+      {
+        "name": "drill",
+        "x": 0.938,
+        "y": 0.393
+      },
+      {
+        "name": "headlight",
+        "x": 0.867,
+        "y": 0.332
+      }
+    ],
+    "source": "model",
+    "card": "Your car can: drive, boost (exhaust flames), drill, flare (headlight)",
+    "fallback": false
+  },
+  "typeOk": true,
+  "missing": [],
+  "extra": [
+    "flare"
+  ],
+  "ms": 9025,
+  "usage": {
+    "input": 2939,
+    "output": 1864,
+    "reasoning": 1362
+  },
+  "raw": {
+    "type": "car",
+    "view": "side",
+    "facing": "right",
+    "style": "chunky",
+    "head": {
+      "shape": "none",
+      "size": 0,
+      "gear": "none",
+      "face": "none",
+      "eyes": 0,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0,
+      "thickness": "normal",
+      "hands": "none",
+      "color": "",
+      "handColor": ""
+    },
+    "legs": {
+      "count": 0,
+      "length": 0,
+      "thickness": "normal",
+      "feet": "none",
+      "color": "",
+      "feetColor": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "monster truck",
+      "height": 0.31,
+      "cabin": "closed",
+      "wheels": 4,
+      "wheelSize": 0.47,
+      "color": "#22b14c",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "drill",
+        "where": "front",
+        "size": 0.15,
+        "color": "#9295a2"
+      },
+      {
+        "kind": "lamp",
+        "where": "front",
+        "size": 0.04,
+        "color": "#ffe13b"
+      },
+      {
+        "kind": "flames",
+        "where": "back",
+        "size": 0.16,
+        "color": "#ff9c00"
+      }
+    ],
+    "palette": {
+      "colored": true,
+      "main": "#1d1b26",
+      "second": "#22b14c",
+      "accent": "#80caff",
+      "skin": ""
+    }
+  },
+  "schemaOk": true,
+  "specCall": {
+    "ms": 9025,
+    "status": 200,
+    "usage": {
+      "input": 2939,
+      "output": 1864,
+      "reasoning": 1362
+    },
+    "effort": "high",
+    "detail": "high",
+    "maxTokens": 8000,
+    "tier": "ultrafast",
+    "raw": {
+      "type": "car",
+      "view": "side",
+      "facing": "right",
+      "style": "chunky",
+      "head": {
+        "shape": "none",
+        "size": 0,
+        "gear": "none",
+        "face": "none",
+        "eyes": 0,
+        "snout": 0,
+        "color": "",
+        "gearColor": "",
+        "faceColor": ""
+      },
+      "torso": {
+        "shape": "box",
+        "width": 0,
+        "color": "",
+        "belt": false,
+        "emblem": ""
+      },
+      "arms": {
+        "count": 0,
+        "length": 0,
+        "thickness": "normal",
+        "hands": "none",
+        "color": "",
+        "handColor": ""
+      },
+      "legs": {
+        "count": 0,
+        "length": 0,
+        "thickness": "normal",
+        "feet": "none",
+        "color": "",
+        "feetColor": ""
+      },
+      "neck": 0,
+      "tail": {
+        "kind": "none",
+        "color": ""
+      },
+      "vehicle": {
+        "body": "monster truck",
+        "height": 0.31,
+        "cabin": "closed",
+        "wheels": 4,
+        "wheelSize": 0.47,
+        "color": "#22b14c",
+        "rider": false
+      },
+      "items": [
+        {
+          "kind": "drill",
+          "where": "front",
+          "size": 0.15,
+          "color": "#9295a2"
+        },
+        {
+          "kind": "lamp",
+          "where": "front",
+          "size": 0.04,
+          "color": "#ffe13b"
+        },
+        {
+          "kind": "flames",
+          "where": "back",
+          "size": 0.16,
+          "color": "#ff9c00"
+        }
+      ],
+      "palette": {
+        "colored": true,
+        "main": "#1d1b26",
+        "second": "#22b14c",
+        "accent": "#80caff",
+        "skin": ""
+      }
+    }
+  },
+  "render": {
+    "ok": true,
+    "kit": false,
+    "rig": "car",
+    "triangles": 4407,
+    "drawCalls": 3,
+    "glTriangles": 4407,
+    "ms": 13.6,
+    "size": {
+      "x": 3.672,
+      "y": 3.092,
+      "z": 5.623
+    },
+    "radius": 3.280974374579753,
+    "clips": [
+      "idle",
+      "walk",
+      "run",
+      "jump",
+      "dig"
+    ],
+    "clipsLoaded": true,
+    "poses": [
+      "idle",
+      "run",
+      "dig"
+    ],
+    "wallMs": 166
+  }
+}

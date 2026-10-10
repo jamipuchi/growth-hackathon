@@ -1,0 +1,340 @@
+{
+  "id": "blob",
+  "set": "bodies",
+  "tag": "v18med",
+  "desc": "blob with a face",
+  "drawing": "dev/gen-corpus/entity/E29.png",
+  "source": "draw",
+  "expected": {
+    "type": "blob",
+    "skills": []
+  },
+  "wallMs": 2791,
+  "specWallMs": 3092,
+  "readsFrom": "v18",
+  "read": {
+    "ms": 2791,
+    "status": 200,
+    "usage": {
+      "input": 1426,
+      "output": 268,
+      "reasoning": 172
+    },
+    "effort": "high",
+    "detail": "high",
+    "maxTokens": 6000,
+    "tier": "ultrafast",
+    "raw": {
+      "looksLike": "entity",
+      "type": "blob",
+      "parts": [
+        {
+          "name": "body",
+          "x": 0.5,
+          "y": 0.5
+        },
+        {
+          "name": "left eye",
+          "x": 0.317,
+          "y": 0.435
+        },
+        {
+          "name": "right eye",
+          "x": 0.571,
+          "y": 0.432
+        },
+        {
+          "name": "mouth",
+          "x": 0.447,
+          "y": 0.644
+        }
+      ],
+      "verbs": [],
+      "unlocked": []
+    }
+  },
+  "httpLog": [
+    {
+      "type": "spec",
+      "ms": 3092,
+      "status": 200,
+      "usage": {
+        "input": 2977,
+        "output": 518,
+        "reasoning": 152
+      },
+      "effort": "medium",
+      "detail": "high",
+      "maxTokens": 8000,
+      "tier": "ultrafast"
+    }
+  ],
+  "spec": {
+    "v": 1,
+    "type": "blob",
+    "view": "front",
+    "facing": "viewer",
+    "style": "cute",
+    "seed": 2137145730,
+    "head": {
+      "shape": "none",
+      "size": 0.08,
+      "gear": "none",
+      "face": "eyes",
+      "eyes": 2,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "round",
+      "width": 0.7,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "thin",
+      "hands": "none",
+      "color": "",
+      "handColor": ""
+    },
+    "legs": {
+      "count": 0,
+      "length": 0.15,
+      "thickness": "thin",
+      "feet": "none",
+      "color": "",
+      "feetColor": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0.15,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0.1,
+      "color": "",
+      "rider": false
+    },
+    "items": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    },
+    "source": "model"
+  },
+  "entity": {
+    "type": "blob",
+    "verbs": [
+      "jump",
+      "takeoff"
+    ],
+    "unlocked": [],
+    "parts": [
+      {
+        "name": "body",
+        "x": 0.5,
+        "y": 0.5
+      },
+      {
+        "name": "left eye",
+        "x": 0.317,
+        "y": 0.435
+      },
+      {
+        "name": "right eye",
+        "x": 0.571,
+        "y": 0.432
+      },
+      {
+        "name": "mouth",
+        "x": 0.447,
+        "y": 0.644
+      }
+    ],
+    "source": "model",
+    "card": "Your explorer can: bounce, jump",
+    "fallback": false
+  },
+  "typeOk": true,
+  "missing": [],
+  "extra": [],
+  "ms": 3092,
+  "usage": {
+    "input": 2977,
+    "output": 518,
+    "reasoning": 152
+  },
+  "raw": {
+    "type": "blob",
+    "view": "front",
+    "facing": "viewer",
+    "style": "cute",
+    "head": {
+      "shape": "none",
+      "size": 0,
+      "gear": "none",
+      "face": "eyes",
+      "eyes": 2,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "round",
+      "width": 1.18,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 0,
+      "length": 0,
+      "thickness": "thin",
+      "hands": "none",
+      "color": "",
+      "handColor": ""
+    },
+    "legs": {
+      "count": 0,
+      "length": 0,
+      "thickness": "thin",
+      "feet": "none",
+      "color": "",
+      "feetColor": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0,
+      "color": "",
+      "rider": false
+    },
+    "items": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    }
+  },
+  "schemaOk": true,
+  "specCall": {
+    "ms": 3092,
+    "status": 200,
+    "usage": {
+      "input": 2977,
+      "output": 518,
+      "reasoning": 152
+    },
+    "effort": "medium",
+    "detail": "high",
+    "maxTokens": 8000,
+    "tier": "ultrafast",
+    "raw": {
+      "type": "blob",
+      "view": "front",
+      "facing": "viewer",
+      "style": "cute",
+      "head": {
+        "shape": "none",
+        "size": 0,
+        "gear": "none",
+        "face": "eyes",
+        "eyes": 2,
+        "snout": 0,
+        "color": "",
+        "gearColor": "",
+        "faceColor": ""
+      },
+      "torso": {
+        "shape": "round",
+        "width": 1.18,
+        "color": "",
+        "belt": false,
+        "emblem": ""
+      },
+      "arms": {
+        "count": 0,
+        "length": 0,
+        "thickness": "thin",
+        "hands": "none",
+        "color": "",
+        "handColor": ""
+      },
+      "legs": {
+        "count": 0,
+        "length": 0,
+        "thickness": "thin",
+        "feet": "none",
+        "color": "",
+        "feetColor": ""
+      },
+      "neck": 0,
+      "tail": {
+        "kind": "none",
+        "color": ""
+      },
+      "vehicle": {
+        "body": "none",
+        "height": 0,
+        "cabin": "none",
+        "wheels": 0,
+        "wheelSize": 0,
+        "color": "",
+        "rider": false
+      },
+      "items": [],
+      "palette": {
+        "colored": false,
+        "main": "",
+        "second": "",
+        "accent": "",
+        "skin": ""
+      }
+    }
+  },
+  "render": {
+    "ok": true,
+    "kit": false,
+    "rig": "blob",
+    "triangles": 2194,
+    "drawCalls": 1,
+    "glTriangles": 2194,
+    "ms": 7.9,
+    "size": {
+      "x": 1.379,
+      "y": 1.151,
+      "z": 1.371
+    },
+    "radius": 0.8530601444212478,
+    "clips": [],
+    "clipsLoaded": true,
+    "poses": [
+      "idle",
+      "run",
+      "dig"
+    ],
+    "wallMs": 147
+  }
+}

@@ -41,11 +41,12 @@
 //
 // Env: OPENAI_API_KEY (else a .env next to this file; set but empty means no key, the .env is not read),
 // OPENAI_MODEL (only a gpt-6.1-sol snapshot: the model is pinned), OPENAI_SERVICE_TIER ("" or "none" omits it),
-// OPENAI_REASONING_EFFORT (default "medium", owner 12:41: "a bit more effort for sol"; "" or "none" omits it; also
-// used by the ship / body spec calls), ASTRA_TIMEOUT_MS (9000: the whole reading, retry included; at most 13000 so
-// the phone's 15 s request never gives up first), ASTRA_HEDGE_MS (5000), ASTRA_RETRY_BEFORE_MS (4000),
-// ASTRA_SPEC_TIMEOUT_MS (14000), ASTRA_SPEC_HEDGE_MS (8000) (each a positive number of ms, read at startup),
-// ASTRA_MOCK=1 (no network, deterministic layouts after 300 ms).
+// OPENAI_REASONING_EFFORT (every call when set; "" or "none" omits it), else ASTRA_ENTITY_EFFORT (default "high", v1.8:
+// ship / explorer readings), ASTRA_SPEC_EFFORT (default "medium": their 3D spec calls) and ASTRA_READ_EFFORT (default
+// "medium": controller and button readings), ASTRA_IMAGE_DETAIL (default "high": "low" | "high" | "auto", every vision
+// call), ASTRA_TIMEOUT_MS (11000: the whole reading, retry included; at most 13000 so the phone's 15 s request never gives
+// up first), ASTRA_HEDGE_MS (6500), ASTRA_RETRY_BEFORE_MS (5000), ASTRA_SPEC_TIMEOUT_MS (12000), ASTRA_SPEC_HEDGE_MS
+// (7000) (each a positive number of ms, read at startup), ASTRA_MOCK=1 (no network, deterministic layouts after 300 ms).
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
@@ -85,33 +86,45 @@ const API_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_MODEL = "gpt-6.1-sol";
 const DEFAULT_TIER = "ultrafast";
 const DEFAULT_EFFORT = "medium"; // owner 12:41: "a bit more effort for sol, it's ok if it takes 2-3 seconds more"
-// The timeouts below fit medium effort (low answered in 1-2 s; medium needs the 2-3 s more), each overridable by env.
+// v1.8 (owner 13:04: "generation can take more seconds (up to 10) but it is VERY VERY GOOD"): every call sees the
+// full-resolution drawing; a drawn ship or explorer is read at high effort; its 3D spec stays at medium effort with a far
+// more careful prompt (high effort made the spec p90 11.7 s for ships: dev/v18-genquality/REPORT.md has the numbers).
+const ENTITY_EFFORT = "high";
+const SPEC_EFFORT = "medium";
+const IMAGE_DETAIL = ["low", "high", "auto"].includes(process.env.ASTRA_IMAGE_DETAIL) ? process.env.ASTRA_IMAGE_DETAIL : "high";
+// The reasoning effort of a call: OPENAI_REASONING_EFFORT for every call when set, else the call's own (env or default).
+function effortFor(kind, spec = false) {
+  if (process.env.OPENAI_REASONING_EFFORT !== undefined) return process.env.OPENAI_REASONING_EFFORT;
+  if (spec) return process.env.ASTRA_SPEC_EFFORT ?? SPEC_EFFORT;
+  return ENTITY_KINDS[kind] ? process.env.ASTRA_ENTITY_EFFORT ?? ENTITY_EFFORT : process.env.ASTRA_READ_EFFORT ?? DEFAULT_EFFORT;
+}
+// The timeouts below fit high effort for entities (dev/v18-genquality), each overridable by env.
 const envMs = (name, fallback) => {
   const v = Number(process.env[name]);
   return Number.isFinite(v) && v > 0 ? v : fallback;
 };
 // controller.html gives up on /generate after 15 s (GENERATE_MS): the whole reading, retry included, ends before that.
 const PHONE_BUDGET_MS = 13000;
-const TIMEOUT_MS = Math.min(envMs("ASTRA_TIMEOUT_MS", 9000), PHONE_BUDGET_MS);
+const TIMEOUT_MS = Math.min(envMs("ASTRA_TIMEOUT_MS", 11000), PHONE_BUDGET_MS);
 const MOCK_MS = 300;
 const MAX_BUTTONS = 16;
 const MAX_IMAGE_CHARS = 4 * 1024 * 1024;
 // Reasoning tokens count against max_output_tokens: a 200-token button budget ran out in play ("incomplete"). These
-// leave room for both; measured live (dev/gen-corpus): answers use ≤ 400 tokens, reasoning included.
-const MAX_OUTPUT_TOKENS = { controller: 2000, button: 1200, ship: 1600, explorer: 1600 };
-const RETRY_OUTPUT_TOKENS = 4000;
+// leave room for both; v1.8 high-effort entity readings use more reasoning (measured: ≤ 1045 output tokens).
+const MAX_OUTPUT_TOKENS = { controller: 3000, button: 2000, ship: 6000, explorer: 6000 };
+const RETRY_OUTPUT_TOKENS = 8000;
 // A retry only starts if it can still finish inside the timeout (it never outlives it: the timeout aborts it too).
-const RETRY_BEFORE_MS = Math.min(envMs("ASTRA_RETRY_BEFORE_MS", 4000), TIMEOUT_MS);
+const RETRY_BEFORE_MS = Math.min(envMs("ASTRA_RETRY_BEFORE_MS", 5000), TIMEOUT_MS);
 // Tail latency: a call sometimes hangs (2 of 101 in the low-effort corpus run hung past the old 4 s timeout). If the
 // first request has not answered after HEDGE_MS, an identical second one starts; the first answer wins.
-const HEDGE_MS = envMs("ASTRA_HEDGE_MS", 5000);
+const HEDGE_MS = envMs("ASTRA_HEDGE_MS", 6500);
 const MAX_PARTS = 12;
 // The ship spec call (v1.4): its own budget and timeout; it runs next to the entity call, so the unlock card never waits
-// for it longer than SPEC_GRACE_MS (measured 10 Oct at low effort: p50 3.0 s, p90 3.3 s, 200-600 output tokens on
-// gpt-6.1-sol; medium takes a few seconds more, and a late spec still reaches every screen through onShipSpec).
-const SPEC_OUTPUT_TOKENS = 1800;
-const SPEC_TIMEOUT_MS = envMs("ASTRA_SPEC_TIMEOUT_MS", 14000);
-const SPEC_HEDGE_MS = envMs("ASTRA_SPEC_HEDGE_MS", 8000);
+// for it longer than SPEC_GRACE_MS (a late spec still reaches every screen through onShipSpec). v1.8: medium effort with
+// the careful prompt, full detail, a bigger budget (measured: p50 4.1 s, p90 5.5 s, max 8.0 s, ≤ 1560 output tokens).
+const SPEC_OUTPUT_TOKENS = 8000;
+const SPEC_TIMEOUT_MS = envMs("ASTRA_SPEC_TIMEOUT_MS", 12000);
+const SPEC_HEDGE_MS = envMs("ASTRA_SPEC_HEDGE_MS", 7000);
 const SPEC_GRACE_MS = 100; // owner: the spec must not slow the unlock card (measured 10:08: a 700 ms grace did, 4 of 5)
 const MAX_SPECS = 300;
 const LOOKS = ["controller", "entity", "nothing"];
@@ -331,7 +344,7 @@ function buildRequest(kind, image, region, source, useTier = true, opts = {}) {
     model: modelId(),
     input: [{ role: "user", content: [
       { type: "input_text", text: ENTITY_KINDS[kind] ? entityPrompt(kind, source) : promptFor(kind, source, region, opts) },
-      { type: "input_image", image_url: image, detail: "low" },
+      { type: "input_image", image_url: image, detail: IMAGE_DETAIL },
     ] }],
     text: { format: { type: "json_schema", name: ENTITY_KINDS[kind] ? "entity" : "layout", schema: SCHEMAS[kind], strict: true } },
     max_output_tokens: opts.maxTokens || MAX_OUTPUT_TOKENS[kind],
@@ -339,7 +352,7 @@ function buildRequest(kind, image, region, source, useTier = true, opts = {}) {
   };
   const tier = process.env.OPENAI_SERVICE_TIER ?? DEFAULT_TIER;
   if (useTier && !defaultTierOnly() && tier && tier !== "none") req.service_tier = tier;
-  const effort = process.env.OPENAI_REASONING_EFFORT ?? DEFAULT_EFFORT;
+  const effort = effortFor(kind);
   if (effort && effort !== "none") req.reasoning = { effort };
   return req;
 }
@@ -779,8 +792,8 @@ function onShipSpec(fn) {
 }
 function specRequest(image, source, useTier, kind = "ship") {
   const tier = process.env.OPENAI_SERVICE_TIER ?? DEFAULT_TIER;
-  const effort = process.env.OPENAI_REASONING_EFFORT ?? DEFAULT_EFFORT;
-  return specLibFor(kind).request(image, { source, model: modelId(), tier: useTier && !defaultTierOnly() && tier ? tier : "none", effort: effort || "none", maxTokens: SPEC_OUTPUT_TOKENS });
+  const effort = effortFor(kind, true);
+  return specLibFor(kind).request(image, { source, model: modelId(), tier: useTier && !defaultTierOnly() && tier ? tier : "none", effort: effort || "none", maxTokens: SPEC_OUTPUT_TOKENS, detail: IMAGE_DETAIL });
 }
 // One spec request (the same tier fallback as askOnce).
 async function askSpecOnce(image, source, signal, kind = "ship") {
@@ -1111,7 +1124,7 @@ const _internals = {
   },
   state: () => ({ cache: cache.size, inflight: inflight.size, slots: slots.size, pads: pads.size, defaultTierOnly: defaultTierOnly() }),
   padOf: (player) => (pads.get(Contract.cleanName(player)) || []).map((c) => ({ ...c })),
-  DEFAULT_EFFORT, TIMEOUT_MS, MOCK_MS, HEDGE_MS, RETRY_BEFORE_MS, PHONE_BUDGET_MS, SCHEMAS, ACTIONS, ENTITY_KINDS, MAX_OUTPUT_TOKENS, LOOKS, THINGS, entityFromModel, devKitEntity, plainEntity,
+  DEFAULT_EFFORT, ENTITY_EFFORT, SPEC_EFFORT, IMAGE_DETAIL, effortFor, SPEC_OUTPUT_TOKENS, TIMEOUT_MS, MOCK_MS, HEDGE_MS, RETRY_BEFORE_MS, PHONE_BUDGET_MS, SCHEMAS, ACTIONS, ENTITY_KINDS, MAX_OUTPUT_TOKENS, LOOKS, THINGS, entityFromModel, devKitEntity, plainEntity,
   entityPrompt, buildRequest, promptFor, extractText, parseJson, cleanControl, layoutFromModel, readAnswer, mockLayout,
   cleanRegion, sha1, wrongKindError, hedged, regionsLayout, modelId, REGION_VERBS,
   entityAnswer, cardFor, mockButtonAction, MOCK_BUTTONS,

@@ -1,0 +1,567 @@
+{
+  "at": "2026-10-10T11:22:30.154Z",
+  "hedge": {
+    "H": 6500,
+    "T": 11000,
+    "SH": 7000,
+    "ST": 12000
+  },
+  "rows": [
+    {
+      "tag": "base",
+      "set": "ships",
+      "n": 12,
+      "read": {
+        "n": 11,
+        "p50": 2602,
+        "p90": 2867,
+        "max": 3035
+      },
+      "spec": {
+        "n": 11,
+        "p50": 3748,
+        "p90": 4384,
+        "max": 4674
+      },
+      "readSchemaFail": 0,
+      "cacheHits": 1,
+      "specSchemaFail": 0,
+      "readOut": {
+        "n": 11,
+        "p50": 277,
+        "p90": 377,
+        "max": 390
+      },
+      "specOut": {
+        "n": 11,
+        "p50": 639,
+        "p90": 710,
+        "max": 723
+      },
+      "readIn": {
+        "n": 11,
+        "p50": 1160,
+        "p90": 1219,
+        "max": 1219
+      },
+      "specIn": {
+        "n": 11,
+        "p50": 2138,
+        "p90": 2197,
+        "max": 2197
+      },
+      "typeWrong": [],
+      "missing": [],
+      "extra": [
+        "photo-E16:mine"
+      ],
+      "hedgedRead": {
+        "p90": 2867,
+        "timeouts": 0,
+        "hedgesFired": 0
+      },
+      "hedgedSpec": {
+        "p90": 4384,
+        "timeouts": 0,
+        "hedgesFired": 0
+      }
+    },
+    {
+      "tag": "base",
+      "set": "bodies",
+      "n": 10,
+      "read": {
+        "n": 10,
+        "p50": 2613,
+        "p90": 2950,
+        "max": 2950
+      },
+      "spec": {
+        "n": 10,
+        "p50": 2533,
+        "p90": 3130,
+        "max": 3130
+      },
+      "readSchemaFail": 0,
+      "cacheHits": 0,
+      "specSchemaFail": 0,
+      "readOut": {
+        "n": 10,
+        "p50": 332,
+        "p90": 481,
+        "max": 481
+      },
+      "specOut": {
+        "n": 10,
+        "p50": 537,
+        "p90": 592,
+        "max": 592
+      },
+      "readIn": {
+        "n": 10,
+        "p50": 1407,
+        "p90": 1426,
+        "max": 1426
+      },
+      "specIn": {
+        "n": 10,
+        "p50": 2644,
+        "p90": 2663,
+        "max": 2663
+      },
+      "typeWrong": [],
+      "missing": [],
+      "extra": [
+        "astronaut-drill:shoot",
+        "color-person:jump",
+        "color-robot:dig+emp+jump",
+        "monster-truck:flare"
+      ],
+      "hedgedRead": {
+        "p90": 2950,
+        "timeouts": 0,
+        "hedgesFired": 0
+      },
+      "hedgedSpec": {
+        "p90": 3130,
+        "timeouts": 0,
+        "hedgesFired": 0
+      }
+    },
+    {
+      "tag": "base",
+      "set": "all",
+      "n": 22,
+      "read": {
+        "n": 21,
+        "p50": 2602,
+        "p90": 2892,
+        "max": 3035
+      },
+      "spec": {
+        "n": 21,
+        "p50": 2867,
+        "p90": 4262,
+        "max": 4674
+      },
+      "readSchemaFail": 0,
+      "cacheHits": 1,
+      "specSchemaFail": 0,
+      "readOut": {
+        "n": 21,
+        "p50": 292,
+        "p90": 421,
+        "max": 481
+      },
+      "specOut": {
+        "n": 21,
+        "p50": 550,
+        "p90": 709,
+        "max": 723
+      },
+      "readIn": {
+        "n": 21,
+        "p50": 1219,
+        "p90": 1407,
+        "max": 1426
+      },
+      "specIn": {
+        "n": 21,
+        "p50": 2197,
+        "p90": 2644,
+        "max": 2663
+      },
+      "typeWrong": [],
+      "missing": [],
+      "extra": [
+        "photo-E16:mine",
+        "astronaut-drill:shoot",
+        "color-person:jump",
+        "color-robot:dig+emp+jump",
+        "monster-truck:flare"
+      ],
+      "hedgedRead": {
+        "p90": 2892,
+        "timeouts": 0,
+        "hedgesFired": 0
+      },
+      "hedgedSpec": {
+        "p90": 4262,
+        "timeouts": 0,
+        "hedgesFired": 0
+      }
+    },
+    {
+      "tag": "v18",
+      "set": "ships",
+      "n": 12,
+      "read": {
+        "n": 11,
+        "p50": 3018,
+        "p90": 5045,
+        "max": 5128
+      },
+      "spec": {
+        "n": 11,
+        "p50": 9467,
+        "p90": 11664,
+        "max": 13985
+      },
+      "readSchemaFail": 0,
+      "cacheHits": 1,
+      "specSchemaFail": 0,
+      "readOut": {
+        "n": 11,
+        "p50": 499,
+        "p90": 894,
+        "max": 970
+      },
+      "specOut": {
+        "n": 11,
+        "p50": 2294,
+        "p90": 2793,
+        "max": 3255
+      },
+      "readIn": {
+        "n": 11,
+        "p50": 1160,
+        "p90": 1559,
+        "max": 1559
+      },
+      "specIn": {
+        "n": 11,
+        "p50": 2504,
+        "p90": 2903,
+        "max": 2903
+      },
+      "typeWrong": [],
+      "missing": [],
+      "extra": [
+        "E08-saucer:boost",
+        "photo-E16:mine"
+      ],
+      "hedgedRead": {
+        "p90": 5045,
+        "timeouts": 0,
+        "hedgesFired": 0
+      },
+      "hedgedSpec": {
+        "p90": 11664,
+        "timeouts": 1,
+        "hedgesFired": 8
+      }
+    },
+    {
+      "tag": "v18",
+      "set": "bodies",
+      "n": 10,
+      "read": {
+        "n": 10,
+        "p50": 3177,
+        "p90": 4056,
+        "max": 4056
+      },
+      "spec": {
+        "n": 10,
+        "p50": 6066,
+        "p90": 10213,
+        "max": 10213
+      },
+      "readSchemaFail": 0,
+      "cacheHits": 0,
+      "specSchemaFail": 0,
+      "readOut": {
+        "n": 10,
+        "p50": 527,
+        "p90": 886,
+        "max": 886
+      },
+      "specOut": {
+        "n": 10,
+        "p50": 1264,
+        "p90": 2011,
+        "max": 2011
+      },
+      "readIn": {
+        "n": 10,
+        "p50": 1407,
+        "p90": 1426,
+        "max": 1426
+      },
+      "specIn": {
+        "n": 10,
+        "p50": 2958,
+        "p90": 2977,
+        "max": 2977
+      },
+      "typeWrong": [],
+      "missing": [],
+      "extra": [
+        "astronaut-drill:shoot",
+        "color-person:jump",
+        "color-robot:dig+jump+emp",
+        "monster-truck:flare"
+      ],
+      "hedgedRead": {
+        "p90": 4056,
+        "timeouts": 0,
+        "hedgesFired": 0
+      },
+      "hedgedSpec": {
+        "p90": 10213,
+        "timeouts": 0,
+        "hedgesFired": 4
+      }
+    },
+    {
+      "tag": "v18",
+      "set": "all",
+      "n": 22,
+      "read": {
+        "n": 21,
+        "p50": 3143,
+        "p90": 4543,
+        "max": 5128
+      },
+      "spec": {
+        "n": 21,
+        "p50": 8609,
+        "p90": 11010,
+        "max": 13985
+      },
+      "readSchemaFail": 0,
+      "cacheHits": 1,
+      "specSchemaFail": 0,
+      "readOut": {
+        "n": 21,
+        "p50": 516,
+        "p90": 886,
+        "max": 970
+      },
+      "specOut": {
+        "n": 21,
+        "p50": 1875,
+        "p90": 2616,
+        "max": 3255
+      },
+      "readIn": {
+        "n": 21,
+        "p50": 1330,
+        "p90": 1426,
+        "max": 1559
+      },
+      "specIn": {
+        "n": 21,
+        "p50": 2881,
+        "p90": 2958,
+        "max": 2977
+      },
+      "typeWrong": [],
+      "missing": [],
+      "extra": [
+        "E08-saucer:boost",
+        "photo-E16:mine",
+        "astronaut-drill:shoot",
+        "color-person:jump",
+        "color-robot:dig+jump+emp",
+        "monster-truck:flare"
+      ],
+      "hedgedRead": {
+        "p90": 4543,
+        "timeouts": 0,
+        "hedgesFired": 0
+      },
+      "hedgedSpec": {
+        "p90": 11010,
+        "timeouts": 1,
+        "hedgesFired": 12
+      }
+    },
+    {
+      "tag": "v18med",
+      "set": "ships",
+      "n": 12,
+      "read": {
+        "n": 11,
+        "p50": 3018,
+        "p90": 5045,
+        "max": 5128
+      },
+      "spec": {
+        "n": 11,
+        "p50": 4455,
+        "p90": 6314,
+        "max": 8023
+      },
+      "readSchemaFail": 0,
+      "cacheHits": 1,
+      "specSchemaFail": 0,
+      "readOut": {
+        "n": 11,
+        "p50": 499,
+        "p90": 894,
+        "max": 970
+      },
+      "specOut": {
+        "n": 11,
+        "p50": 884,
+        "p90": 1145,
+        "max": 1560
+      },
+      "readIn": {
+        "n": 11,
+        "p50": 1160,
+        "p90": 1559,
+        "max": 1559
+      },
+      "specIn": {
+        "n": 11,
+        "p50": 2504,
+        "p90": 2903,
+        "max": 2903
+      },
+      "typeWrong": [],
+      "missing": [],
+      "extra": [
+        "E08-saucer:boost",
+        "photo-E16:mine"
+      ],
+      "hedgedRead": {
+        "p90": 5045,
+        "timeouts": 0,
+        "hedgesFired": 0
+      },
+      "hedgedSpec": {
+        "p90": 6314,
+        "timeouts": 0,
+        "hedgesFired": 1
+      }
+    },
+    {
+      "tag": "v18med",
+      "set": "bodies",
+      "n": 10,
+      "read": {
+        "n": 10,
+        "p50": 3177,
+        "p90": 4056,
+        "max": 4056
+      },
+      "spec": {
+        "n": 10,
+        "p50": 3660,
+        "p90": 4464,
+        "max": 4464
+      },
+      "readSchemaFail": 0,
+      "cacheHits": 0,
+      "specSchemaFail": 0,
+      "readOut": {
+        "n": 10,
+        "p50": 527,
+        "p90": 886,
+        "max": 886
+      },
+      "specOut": {
+        "n": 10,
+        "p50": 680,
+        "p90": 878,
+        "max": 878
+      },
+      "readIn": {
+        "n": 10,
+        "p50": 1407,
+        "p90": 1426,
+        "max": 1426
+      },
+      "specIn": {
+        "n": 10,
+        "p50": 2958,
+        "p90": 2977,
+        "max": 2977
+      },
+      "typeWrong": [],
+      "missing": [],
+      "extra": [
+        "astronaut-drill:shoot",
+        "color-person:jump",
+        "color-robot:dig+jump+emp",
+        "monster-truck:flare"
+      ],
+      "hedgedRead": {
+        "p90": 4056,
+        "timeouts": 0,
+        "hedgesFired": 0
+      },
+      "hedgedSpec": {
+        "p90": 4464,
+        "timeouts": 0,
+        "hedgesFired": 0
+      }
+    },
+    {
+      "tag": "v18med",
+      "set": "all",
+      "n": 22,
+      "read": {
+        "n": 21,
+        "p50": 3143,
+        "p90": 4543,
+        "max": 5128
+      },
+      "spec": {
+        "n": 21,
+        "p50": 4146,
+        "p90": 5520,
+        "max": 8023
+      },
+      "readSchemaFail": 0,
+      "cacheHits": 1,
+      "specSchemaFail": 0,
+      "readOut": {
+        "n": 21,
+        "p50": 516,
+        "p90": 886,
+        "max": 970
+      },
+      "specOut": {
+        "n": 21,
+        "p50": 783,
+        "p90": 1119,
+        "max": 1560
+      },
+      "readIn": {
+        "n": 21,
+        "p50": 1330,
+        "p90": 1426,
+        "max": 1559
+      },
+      "specIn": {
+        "n": 21,
+        "p50": 2881,
+        "p90": 2958,
+        "max": 2977
+      },
+      "typeWrong": [],
+      "missing": [],
+      "extra": [
+        "E08-saucer:boost",
+        "photo-E16:mine",
+        "astronaut-drill:shoot",
+        "color-person:jump",
+        "color-robot:dig+jump+emp",
+        "monster-truck:flare"
+      ],
+      "hedgedRead": {
+        "p90": 4543,
+        "timeouts": 0,
+        "hedgesFired": 0
+      },
+      "hedgedSpec": {
+        "p90": 5520,
+        "timeouts": 0,
+        "hedgesFired": 1
+      }
+    }
+  ]
+}

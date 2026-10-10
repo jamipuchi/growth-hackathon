@@ -1,0 +1,427 @@
+{
+  "id": "E09-rocket",
+  "set": "ships",
+  "tag": "v18med",
+  "desc": "rocket (nose up) + flames + legs",
+  "drawing": "dev/gen-corpus/entity/E09.png",
+  "source": "draw",
+  "expected": {
+    "type": "ship",
+    "skills": [
+      "boost",
+      "land"
+    ]
+  },
+  "wallMs": 3018,
+  "specWallMs": 3996,
+  "readsFrom": "v18",
+  "read": {
+    "ms": 3018,
+    "status": 200,
+    "usage": {
+      "input": 1160,
+      "output": 391,
+      "reasoning": 228
+    },
+    "effort": "high",
+    "detail": "high",
+    "maxTokens": 6000,
+    "tier": "ultrafast",
+    "raw": {
+      "looksLike": "entity",
+      "type": "ship",
+      "parts": [
+        {
+          "name": "body",
+          "x": 0.503,
+          "y": 0.411
+        },
+        {
+          "name": "window",
+          "x": 0.503,
+          "y": 0.375
+        },
+        {
+          "name": "left fin",
+          "x": 0.163,
+          "y": 0.675
+        },
+        {
+          "name": "right fin",
+          "x": 0.84,
+          "y": 0.673
+        },
+        {
+          "name": "left landing leg",
+          "x": 0.216,
+          "y": 0.784
+        },
+        {
+          "name": "right landing leg",
+          "x": 0.792,
+          "y": 0.783
+        },
+        {
+          "name": "exhaust flames",
+          "x": 0.5,
+          "y": 0.869
+        }
+      ],
+      "verbs": [
+        "boost"
+      ],
+      "unlocked": [
+        {
+          "verb": "boost",
+          "part": "exhaust flames"
+        }
+      ]
+    }
+  },
+  "httpLog": [
+    {
+      "type": "spec",
+      "ms": 3996,
+      "status": 200,
+      "usage": {
+        "input": 2504,
+        "output": 827,
+        "reasoning": 460
+      },
+      "effort": "medium",
+      "detail": "high",
+      "maxTokens": 8000,
+      "tier": "ultrafast"
+    }
+  ],
+  "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "up",
+    "style": "retro",
+    "seed": 725745989,
+    "hull": {
+      "shape": "rocket",
+      "width": 0.39,
+      "height": 0.39,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "windows",
+      "at": 0.45,
+      "size": 0.17,
+      "color": "",
+      "windows": 1
+    },
+    "wings": {
+      "count": 0,
+      "shape": "delta",
+      "at": 0.15,
+      "span": 0.2,
+      "chord": 0.08,
+      "mount": "low",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "side",
+        "at": 0.85,
+        "size": 0.31,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 3,
+      "size": 0.06,
+      "flame": true,
+      "flameColor": "",
+      "layout": "row",
+      "verb": "boost"
+    },
+    "weapons": [],
+    "extras": [
+      {
+        "kind": "legs",
+        "at": 0.99,
+        "mount": "tail",
+        "size": 0.25,
+        "color": "",
+        "label": "",
+        "verb": null
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "model"
+  },
+  "entity": {
+    "type": "ship",
+    "verbs": [
+      "boost"
+    ],
+    "unlocked": [
+      {
+        "verb": "boost",
+        "part": "exhaust flames"
+      }
+    ],
+    "parts": [
+      {
+        "name": "body",
+        "x": 0.503,
+        "y": 0.411
+      },
+      {
+        "name": "window",
+        "x": 0.503,
+        "y": 0.375
+      },
+      {
+        "name": "left fin",
+        "x": 0.163,
+        "y": 0.675
+      },
+      {
+        "name": "right fin",
+        "x": 0.84,
+        "y": 0.673
+      },
+      {
+        "name": "left landing leg",
+        "x": 0.216,
+        "y": 0.784
+      },
+      {
+        "name": "right landing leg",
+        "x": 0.792,
+        "y": 0.783
+      },
+      {
+        "name": "exhaust flames",
+        "x": 0.5,
+        "y": 0.869
+      }
+    ],
+    "source": "model",
+    "card": "Your ship can: fly, boost (exhaust flames)",
+    "fallback": false
+  },
+  "typeOk": true,
+  "missing": [
+    "land"
+  ],
+  "extra": [],
+  "ms": 3996,
+  "usage": {
+    "input": 2504,
+    "output": 827,
+    "reasoning": 460
+  },
+  "raw": {
+    "view": "side",
+    "noseDir": "up",
+    "style": "retro",
+    "hull": {
+      "shape": "rocket",
+      "width": 0.39,
+      "height": 0.39,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "windows",
+      "at": 0.45,
+      "size": 0.17,
+      "color": "",
+      "windows": 1
+    },
+    "wings": {
+      "count": 0,
+      "shape": "delta",
+      "at": 0,
+      "span": 0,
+      "chord": 0,
+      "mount": "low",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "side",
+        "at": 0.85,
+        "size": 0.31,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 3,
+      "size": 0.05,
+      "flame": true,
+      "flameColor": "",
+      "layout": "row"
+    },
+    "weapons": [],
+    "extras": [
+      {
+        "kind": "legs",
+        "at": 0.99,
+        "mount": "tail",
+        "size": 0.25,
+        "color": "",
+        "label": ""
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    }
+  },
+  "schemaOk": true,
+  "specCall": {
+    "ms": 3996,
+    "status": 200,
+    "usage": {
+      "input": 2504,
+      "output": 827,
+      "reasoning": 460
+    },
+    "effort": "medium",
+    "detail": "high",
+    "maxTokens": 8000,
+    "tier": "ultrafast",
+    "raw": {
+      "view": "side",
+      "noseDir": "up",
+      "style": "retro",
+      "hull": {
+        "shape": "rocket",
+        "width": 0.39,
+        "height": 0.39,
+        "nose": "pointed",
+        "tail": "flat",
+        "color": "",
+        "stripe": ""
+      },
+      "cockpit": {
+        "kind": "windows",
+        "at": 0.45,
+        "size": 0.17,
+        "color": "",
+        "windows": 1
+      },
+      "wings": {
+        "count": 0,
+        "shape": "delta",
+        "at": 0,
+        "span": 0,
+        "chord": 0,
+        "mount": "low",
+        "color": ""
+      },
+      "fins": [
+        {
+          "kind": "side",
+          "at": 0.85,
+          "size": 0.31,
+          "color": ""
+        }
+      ],
+      "engines": {
+        "count": 3,
+        "size": 0.05,
+        "flame": true,
+        "flameColor": "",
+        "layout": "row"
+      },
+      "weapons": [],
+      "extras": [
+        {
+          "kind": "legs",
+          "at": 0.99,
+          "mount": "tail",
+          "size": 0.25,
+          "color": "",
+          "label": ""
+        }
+      ],
+      "palette": {
+        "colored": false,
+        "main": "",
+        "second": "",
+        "accent": ""
+      }
+    }
+  },
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 4668,
+    "drawCalls": 3,
+    "glTriangles": 4668,
+    "ms": 12.4,
+    "size": {
+      "x": 1.7806800603866577,
+      "y": 1.6018619537353516,
+      "z": 3.200000047683716
+    },
+    "radius": 1.8294947072627072,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        0.54,
+        -0.34
+      ],
+      "wing_r": [
+        0.59,
+        0,
+        -0.07
+      ],
+      "wing_l": [
+        -0.59,
+        0,
+        -0.07
+      ],
+      "engine_l": [
+        -0.23,
+        0,
+        1.33
+      ],
+      "engine_r": [
+        0.23,
+        0,
+        1.33
+      ],
+      "nose": [
+        0,
+        0,
+        -1.6
+      ],
+      "back": [
+        0,
+        0.54,
+        0.49
+      ],
+      "belly": [
+        0,
+        -0.54,
+        -0.2
+      ]
+    },
+    "wallMs": 107
+  }
+}

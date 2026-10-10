@@ -25,8 +25,8 @@
 //   { v: 1, type: "person"|"quadruped"|"car"|"bike"|"blob", view, facing, style, seed,
 //     head:  { shape, size, gear, face, eyes, snout, color, gearColor, faceColor },
 //     torso: { shape, width, color, belt, emblem },
-//     arms:  { count: 0|2, length, thickness, hands, color },
-//     legs:  { count: 0|2|4, length, thickness, feet, color },
+//     arms:  { count: 0|2, length, thickness, hands, color, handColor },               // handColor, feetColor: v1.8, the
+//     legs:  { count: 0|2|4, length, thickness, feet, color, feetColor },              // drawn hands' / boots' own colour
 //     neck, tail: { kind, color },
 //     vehicle: { body, height, cabin, wheels, wheelSize, color, rider },
 //     items: [{ kind, where, size, color, verb }],                                   // ≤ 6
@@ -76,8 +76,8 @@ const SCHEMA = obj({
   style: enumOf(STYLES),
   head: obj({ shape: enumOf(HEAD_SHAPES), size: num, gear: enumOf(GEARS), face: enumOf(FACES), eyes: int, snout: num, color: str, gearColor: str, faceColor: str }),
   torso: obj({ shape: enumOf(TORSOS), width: num, color: str, belt: bool, emblem: str }),
-  arms: obj({ count: int, length: num, thickness: enumOf(THICK), hands: enumOf(HANDS), color: str }),
-  legs: obj({ count: int, length: num, thickness: enumOf(THICK), feet: enumOf(FEET), color: str }),
+  arms: obj({ count: int, length: num, thickness: enumOf(THICK), hands: enumOf(HANDS), color: str, handColor: str }),
+  legs: obj({ count: int, length: num, thickness: enumOf(THICK), feet: enumOf(FEET), color: str, feetColor: str }),
   neck: num,
   tail: obj({ kind: enumOf(TAILS), color: str }),
   vehicle: obj({ body: enumOf(VEHICLES), height: num, cabin: enumOf(CABINS), wheels: int, wheelSize: num, color: str, rider: bool }),
@@ -89,26 +89,29 @@ function prompt(source) {
   const input = source === "draw"
     ? "The image is a finger drawing made on a phone screen."
     : "The image is usually a PHOTO of a paper drawing, cropped to the drawing and possibly turned by 90 degrees. Ignore paper lines, grids, shadows and fingers.";
+  // v1.8 (owner 13:04: "VERY VERY GOOD"): read at high effort from the full-resolution drawing, so the prompt asks for a
+  // careful, faithful reading: every drawn part once, measured, with the colour of that part.
   return [
-    "You turn a hand-drawn EXPLORER (what a player walks or drives around a planet with) into a 3D model for a cartoony party game (Fortnite style: chunky, bright). Read the drawing and describe its body plan. A builder makes the 3D model from your answer, so describe what the PLAYER DREW, as faithfully as you can: proportions, parts and colours.",
+    "You turn a hand-drawn EXPLORER (what a player walks or drives around a planet with) into a 3D model for a cartoony party game (Fortnite style: chunky, bright). Read the drawing and describe its body plan. A builder makes the 3D model from your answer, so describe what the PLAYER DREW, as faithfully as you can: proportions, parts and colours. The player must recognise THEIR drawing in the 3D model.",
     input,
+    "Work carefully: first decide what it is and where it faces, then go over every stroke and decide which part it is; every deliberately drawn part appears once in your answer. Measure proportions on the drawing (a big head is big, short legs are short, a long neck is long) instead of using typical values, and give every part the colour it has in the drawing.",
     "type: \"person\" (a person, astronaut, robot, alien or stick figure: anything standing on two legs), \"quadruped\" (any four-legged animal: dog, cat, horse, cow, dinosaur), \"car\" (a car, truck, rover, buggy, tank or any vehicle on wheels or tracks), \"bike\" (a bicycle, motorbike or scooter), \"blob\" (anything else: a blob, slime, snake, worm, ghost, ball).",
     "view: where it was drawn from (\"front\": facing the viewer; \"side\": in profile). facing: \"viewer\" for a front view, else the side its front (face, nose, headlights) points to in the image.",
-    "head (person and quadruped; blob: its face): shape round, square (a box head: robots), oval or none. size: for a person the head's height as a fraction of the whole height (a stick figure with a big round head ~0.3, a realistic person ~0.13); for an animal the head's length as a fraction of the body's length (~0.3). gear: what is on the head: \"astronaut helmet\" (a big round head with a visor = an astronaut), helmet, cap, hat, hair, crown, antenna (a stick with a ball on top), horns, ears (pointy or floppy animal ears), mohawk, or none. face: visor (a band or window across the face), eyes (dots or circles), goggles, mask or none. eyes: how many eyes are drawn (0 if none). snout: an animal's nose or muzzle length as a fraction of its head length (a dog ~0.5, a cat ~0.2; 0 for a person). color, gearColor, faceColor: as drawn.",
-    "torso: the body. shape: box (square or rectangular), round, tall, slim (a stick body), barrel. width: for a person the shoulder width as a fraction of the whole height (a stick figure ~0.12, a chunky astronaut box body ~0.35). color as drawn. belt: true when a belt or waist line is drawn. emblem: a symbol drawn on the chest or body (\"star\", \"heart\", \"X\", a letter or number, \"lightning\"), else \"\".",
-    "arms: count 0 or 2 (a person always has 2 unless none are drawn; animals and vehicles 0). length: arm length as a fraction of the whole height (~0.38). thickness: thin (lines), normal, thick. hands: mitten (round), claw, robot (pincers), none. color.",
-    "legs: count 0 (vehicles, blobs without legs), 2 (a person) or 4 (an animal). length: a person's legs as a fraction of the whole height (~0.45, short stubby legs ~0.3); an animal's legs as a fraction of its body length (~0.5). thickness. feet: boots, shoes, paws, hooves, claws (big claws drawn on the feet or paws), wheels, none. color.",
+    "head (person and quadruped; blob: its face): shape round, square (a box head: robots), oval or none. size: for a person the head's height as a fraction of the whole height (a stick figure with a big round head ~0.3, a realistic person ~0.13); for an animal the head's length as a fraction of the body's length (~0.3). gear: what is on the head: \"astronaut helmet\" (a big round head with a visor = an astronaut), helmet, cap, hat, hair (any hairstyle: hair, buns, ponytails, curls), crown, antenna (a stick with a ball on top), horns, ears (pointy or floppy animal ears), mohawk, or none. face: visor (a band or window across the face), eyes (dots or circles), goggles, mask or none. eyes: how many eyes are drawn (0 if none). snout: an animal's nose or muzzle length as a fraction of its head length (a dog ~0.5, a cat ~0.2; 0 for a person). color: the head's (or helmet's) colour; gearColor: the hair's, hat's or gear's colour; faceColor: the visor's or face's colour; each as drawn.",
+    "torso: the body. shape: box (square or rectangular), round, tall, slim (a stick body), barrel. width: for a person the shoulder width as a fraction of the whole height (a stick figure ~0.12, a chunky astronaut box body ~0.35). color: the body's or suit's colour as drawn. belt: true when a belt or waist line is drawn. emblem: a symbol drawn on the chest or body (\"star\", \"heart\", \"X\", a letter or number, \"lightning\"), else \"\".",
+    "arms: count 0 or 2 (a person always has 2 unless none are drawn; animals and vehicles 0). length: arm length as a fraction of the whole height (~0.38). thickness: thin (lines), normal, thick. hands: mitten (round), claw, robot (pincers), none. color: the arms' or sleeves' colour; handColor: the colour of the hands, gloves or pincers when drawn in their own colour (skin-coloured hands: the skin colour), else \"\".",
+    "legs: count 0 (vehicles, blobs without legs), 2 (a person) or 4 (an animal). length: a person's legs as a fraction of the whole height (~0.45, short stubby legs ~0.3); an animal's legs as a fraction of its body length (~0.5). thickness. feet: boots, shoes, paws, hooves, claws (big claws drawn on the feet or paws), wheels, none. color: the legs' or trousers' colour; feetColor: the colour of the boots, shoes, hooves or paws when drawn in their own colour (blue boots under orange trousers: color orange, feetColor blue), else \"\".",
     "neck: an animal's neck length as a fraction of its body length (a dog ~0.15, a horse or giraffe ~0.45); 0 for a person or vehicle. tail: none, short, long, bushy or curly, and its color.",
-    "vehicle (car and bike only; else body \"none\"): body sedan, truck, buggy, van, tank, \"monster truck\" (huge wheels, lifted body), \"race car\", rover, bicycle, motorbike, scooter. height: the body's height without the wheels as a fraction of its length (a sedan ~0.35, a bicycle ~0.5). cabin: none, open (seats in the open), closed (a roof with windows), bubble (a glass dome). wheels: the total number of wheels it has (a car seen from the side shows 2 and has 4; a bicycle 2). wheelSize: a wheel's diameter as a fraction of the vehicle's length (a sedan ~0.2, a monster truck ~0.4, a bicycle ~0.4). color. rider: true when a rider or driver is drawn on it.",
-    "items: every tool, weapon or attachment deliberately drawn, at most 6, each with where it is: shovel (a handle with a blade or scoop), drill (a cone or point with ridges, zigzag or spiral lines, often with a grip), pickaxe, saw, blaster (a gun with a straight barrel), cannon (a big gun on a vehicle or on the back), lamp (a circle or bulb with straight rays fanning out, or a handle with a round light on top: headlamps, headlights and hand lamps too), torch (a handle with a flame or a light on top), shield, sword, wand (ONLY a thin stick with a star or sparkle on its tip; a handle with a bulb or rays is a lamp), magnet (a U shape), antenna, dish, backpack, jetpack (a backpack with flames), cape, cross (a red or plus-sign cross), bomb, spikes (along the back), lightning (a zigzag bolt), octopus, ink bottle, saddle (a seat on an animal's back), wings, flag, claws (big claws on an animal's paws or a person's hands), springs (under the feet), eye (a big eye), star, flames (fire or exhaust coming out of the back of a vehicle, a jetpack or a rocket: where \"back\"), other. where: \"right hand\" means the hand on the RIGHT side of the IMAGE, \"left hand\" the left side of the image; back, head, chest, front (a vehicle's nose or an animal's mouth), roof, top, side, feet, tail. size: its length as a fraction of the whole height (person) or length (animal, vehicle). color.",
-    "palette: colored = true only if the drawing uses colours other than a single dark pen or pencil; main, second, accent = the drawing's colours, most used first; skin = the colour of a drawn face or hands, else \"\". With a single dark pen every colour stays \"\": the game paints the body in the player's colour. Every colour is \"#rrggbb\" or a simple colour name (\"red\", \"teal\").",
+    "vehicle (car and bike only; else body \"none\"): body sedan, truck, buggy, van, tank, \"monster truck\" (huge wheels, lifted body), \"race car\", rover, bicycle, motorbike, scooter. height: the body's height without the wheels as a fraction of its length (a sedan ~0.35, a bicycle ~0.5). cabin: none, open (seats in the open), closed (a roof with windows), bubble (a glass dome). wheels: the total number of wheels it has (a car seen from the side shows 2 and has 4; a bicycle 2; count the drawn wheels of a truck or rover: 3 visible from the side means 6). wheelSize: a wheel's diameter as a fraction of the vehicle's length, measured (a sedan ~0.2, a monster truck ~0.4, a bicycle ~0.4). color. rider: true when a rider or driver is drawn on it.",
+    "items: every tool, weapon or attachment deliberately drawn, at most 6, each with where it is: shovel (a handle with a blade or scoop), drill (a cone or point with ridges, zigzag or spiral lines, often with a grip), pickaxe, saw, blaster (a gun with a straight barrel), cannon (a big gun on a vehicle or on the back), lamp (a circle or bulb with straight rays fanning out, or a handle with a round light on top: headlamps, headlights and hand lamps too), torch (a handle with a flame or a light on top), shield, sword, wand (ONLY a thin stick with a star or sparkle on its tip; a handle with a bulb or rays is a lamp), magnet (a U shape), antenna, dish, backpack, jetpack (a backpack with flames), cape, cross (a red or plus-sign cross), bomb, spikes (along the back), lightning (a zigzag bolt), octopus, ink bottle, saddle (a seat on an animal's back), wings, flag, claws (big claws on an animal's paws or a person's hands), springs (under the feet), eye (a big eye), star, flames (fire or exhaust coming out of the back of a vehicle, a jetpack or a rocket: where \"back\"), other. where: \"right hand\" means the hand on the RIGHT side of the IMAGE, \"left hand\" the left side of the image; back, head, chest, front (a vehicle's nose or an animal's mouth), roof, top, side, feet, tail. size: its length as a fraction of the whole height (person) or length (animal, vehicle), measured. color: that item's own colour as drawn.",
+    "palette: colored = true only if the drawing uses colours other than a single dark pen or pencil; main, second, accent = the drawing's colours, most used first; skin = the colour of a drawn face or hands, else \"\". With a single dark pen every colour stays \"\": the game paints the body in the player's colour. Every colour is \"#rrggbb\" (the colour as drawn, e.g. a drawn bright orange is \"#ff8000\") or a simple colour name (\"red\", \"teal\"); \"\" for a part drawn only in the dark pen.",
     "style: the drawing's mood: cute, chunky, sleek, menacing, robot (a robot or machine-like figure) or retro.",
     "Each drawn thing appears ONCE: a symbol on the chest goes only in torso.emblem (not in items); head gear (antenna, helmet, horns, ears, hair) only in head.gear; pincer or claw hands only in arms.hands; claws on an animal's feet only in legs.feet; a horse's mane is head.gear \"hair\"; straps, stirrups, buckles and handles belong to their item and are not items. Use \"other\" only for a clearly separate object that fits no kind.",
-    "Be generous: an unclear blob becomes the closest plausible part. Every explorer has a body; never return an empty one. Do not invent tools, weapons or attachments that are not drawn.",
+    "Be generous but faithful: an unclear blob becomes the closest plausible part, and every explorer has a body; never return an empty one. Do not invent tools, weapons or attachments that are not drawn, and do not drop any part that is drawn.",
   ].join("\n");
 }
 
-function request(image, { source = "photo", model = "gpt-6.1-sol", tier = "ultrafast", effort = "medium", maxTokens = 1800, detail = "low" } = {}) {
+function request(image, { source = "photo", model = "gpt-6.1-sol", tier = "ultrafast", effort = "medium", maxTokens = 8000, detail = "high" } = {}) {
   const req = {
     model,
     input: [{ role: "user", content: [{ type: "input_text", text: prompt(source) }, { type: "input_image", image_url: image, detail }] }],
@@ -183,12 +186,12 @@ function normalize(raw, { seed = 0 } = {}) {
   const a = o(raw.arms);
   const armCount = Math.round(clamp(a.count, 0, 4, person ? 2 : 0));
   const arms = { count: person ? (armCount >= 1 ? 2 : 0) : 0, length: r3(clamp(a.length, 0.15, 0.6, 0.38)), thickness: pick(a.thickness, THICK, "normal"),
-    hands: pick(a.hands, HANDS, "mitten"), color: color(a.color) };
+    hands: pick(a.hands, HANDS, "mitten"), color: color(a.color), handColor: color(a.handColor) };
   const l = o(raw.legs);
   const legCount = Math.round(clamp(l.count, 0, 4, person ? 2 : animal ? 4 : 0));
   const legs = { count: person ? 2 : animal ? 4 : type === "blob" ? (legCount >= 2 ? 2 : 0) : 0,
     length: r3(clamp(l.length, animal ? 0.15 : 0.15, animal ? 1.2 : 0.65, animal ? 0.5 : 0.45)), thickness: pick(l.thickness, THICK, "normal"),
-    feet: pick(l.feet, FEET, animal ? "paws" : person ? "boots" : "none"), color: color(l.color) };
+    feet: pick(l.feet, FEET, animal ? "paws" : person ? "boots" : "none"), color: color(l.color), feetColor: color(l.feetColor) };
   const tl = o(raw.tail);
   const tail = { kind: pick(tl.kind, TAILS, animal ? "short" : "none"), color: color(tl.color) };
   const v = o(raw.vehicle);
@@ -292,7 +295,9 @@ function reconcile(spec, entity) {
   if (etype && etype !== s.type) {
     // The reading and the body plan disagree on the type: the reading wins; the plan keeps its colours, head and items.
     const keep = { head: s.head, torso: s.torso, items: s.items, palette: s.palette, style: s.style, seed: s.seed };
-    s = normalize({ type: etype, head: keep.head, torso: keep.torso, items: keep.items, palette: { ...keep.palette, colored: keep.palette.colored }, style: keep.style }, { seed: keep.seed });
+    // v1.8: the drawn limb colours (sleeves, gloves, trousers, boots) carry over too; their shape follows the new type.
+    const arms = { color: s.arms.color, handColor: s.arms.handColor }, legs = { color: s.legs.color, feetColor: s.legs.feetColor };
+    s = normalize({ type: etype, head: keep.head, torso: keep.torso, arms, legs, items: keep.items, palette: { ...keep.palette, colored: keep.palette.colored }, style: keep.style }, { seed: keep.seed });
     s.typeFixed = spec.type;
   }
   const unlocked = new Set((entity && Array.isArray(entity.unlocked) ? entity.unlocked : []).map((u) => u && u.verb).filter(Boolean));

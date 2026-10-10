@@ -1,0 +1,488 @@
+{
+  "id": "photo-E16",
+  "set": "ships",
+  "tag": "v18",
+  "desc": "PHOTO with a thumb: box ship + bomb + shield bubble",
+  "drawing": "dev/gen-corpus/photos/E16.jpg",
+  "source": "photo",
+  "expected": {
+    "type": "ship",
+    "skills": [
+      "blast",
+      "shield"
+    ]
+  },
+  "wallMs": 2479,
+  "specWallMs": 6510,
+  "httpLog": [
+    {
+      "type": "spec",
+      "ms": 6509,
+      "status": 200,
+      "usage": {
+        "input": 2903,
+        "output": 1430,
+        "reasoning": 1013
+      },
+      "effort": "high",
+      "detail": "high",
+      "maxTokens": 8000,
+      "tier": "ultrafast"
+    },
+    {
+      "type": "read",
+      "ms": 2377,
+      "status": 200,
+      "usage": {
+        "input": 1559,
+        "output": 390,
+        "reasoning": 233
+      },
+      "effort": "high",
+      "detail": "high",
+      "maxTokens": 6000,
+      "tier": "ultrafast"
+    }
+  ],
+  "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "seed": 3790429328,
+    "hull": {
+      "shape": "rocket",
+      "width": 0.37,
+      "height": 0.37,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "windows",
+      "at": 0.42,
+      "size": 0.15,
+      "color": "",
+      "windows": 1
+    },
+    "wings": {
+      "count": 0,
+      "shape": "delta",
+      "at": 0.15,
+      "span": 0.2,
+      "chord": 0.08,
+      "mount": "mid",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.77,
+        "size": 0.31,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 0,
+      "size": 0.06,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single",
+      "verb": null
+    },
+    "weapons": [
+      {
+        "kind": "bomb",
+        "count": 1,
+        "at": 0.56,
+        "mount": "belly",
+        "size": 0.14,
+        "color": "",
+        "verb": "blast"
+      }
+    ],
+    "extras": [
+      {
+        "kind": "shield",
+        "at": 0.48,
+        "mount": "around",
+        "size": 1,
+        "color": "",
+        "label": "",
+        "verb": "shield"
+      },
+      {
+        "kind": "spikes",
+        "at": 0.6,
+        "mount": "top",
+        "size": 0.35,
+        "color": "",
+        "label": "",
+        "verb": "mine",
+        "added": true
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "model"
+  },
+  "read": {
+    "ms": 2377,
+    "status": 200,
+    "usage": {
+      "input": 1559,
+      "output": 390,
+      "reasoning": 233
+    },
+    "effort": "high",
+    "detail": "high",
+    "maxTokens": 6000,
+    "tier": "ultrafast",
+    "raw": {
+      "looksLike": "entity",
+      "type": "ship",
+      "parts": [
+        {
+          "name": "body",
+          "x": 0.439,
+          "y": 0.489
+        },
+        {
+          "name": "nose",
+          "x": 0.6,
+          "y": 0.489
+        },
+        {
+          "name": "fin",
+          "x": 0.371,
+          "y": 0.383
+        },
+        {
+          "name": "window",
+          "x": 0.495,
+          "y": 0.455
+        },
+        {
+          "name": "shield",
+          "x": 0.476,
+          "y": 0.518
+        },
+        {
+          "name": "bomb",
+          "x": 0.452,
+          "y": 0.621
+        }
+      ],
+      "verbs": [
+        "shield",
+        "blast",
+        "mine"
+      ],
+      "unlocked": [
+        {
+          "verb": "shield",
+          "part": "shield"
+        },
+        {
+          "verb": "blast",
+          "part": "bomb"
+        },
+        {
+          "verb": "mine",
+          "part": "bomb"
+        }
+      ]
+    }
+  },
+  "entity": {
+    "type": "ship",
+    "verbs": [
+      "shield",
+      "blast",
+      "mine"
+    ],
+    "unlocked": [
+      {
+        "verb": "shield",
+        "part": "shield"
+      },
+      {
+        "verb": "blast",
+        "part": "bomb"
+      },
+      {
+        "verb": "mine",
+        "part": "bomb"
+      }
+    ],
+    "parts": [
+      {
+        "name": "body",
+        "x": 0.439,
+        "y": 0.489
+      },
+      {
+        "name": "nose",
+        "x": 0.6,
+        "y": 0.489
+      },
+      {
+        "name": "fin",
+        "x": 0.371,
+        "y": 0.383
+      },
+      {
+        "name": "window",
+        "x": 0.495,
+        "y": 0.455
+      },
+      {
+        "name": "shield",
+        "x": 0.476,
+        "y": 0.518
+      },
+      {
+        "name": "bomb",
+        "x": 0.452,
+        "y": 0.621
+      }
+    ],
+    "source": "model",
+    "card": "Your ship can: fly, shield, blast (bomb), mine (bomb)",
+    "fallback": false
+  },
+  "typeOk": true,
+  "missing": [],
+  "extra": [
+    "mine"
+  ],
+  "ms": 6509,
+  "usage": {
+    "input": 2903,
+    "output": 1430,
+    "reasoning": 1013
+  },
+  "raw": {
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "hull": {
+      "shape": "rocket",
+      "width": 0.37,
+      "height": 0.37,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "windows",
+      "at": 0.42,
+      "size": 0.15,
+      "color": "",
+      "windows": 1
+    },
+    "wings": {
+      "count": 0,
+      "shape": "delta",
+      "at": 0,
+      "span": 0,
+      "chord": 0,
+      "mount": "mid",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.77,
+        "size": 0.31,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 0,
+      "size": 0,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single"
+    },
+    "weapons": [
+      {
+        "kind": "bomb",
+        "count": 1,
+        "at": 0.56,
+        "mount": "belly",
+        "size": 0.14,
+        "color": ""
+      }
+    ],
+    "extras": [
+      {
+        "kind": "shield",
+        "at": 0.48,
+        "mount": "around",
+        "size": 1.58,
+        "color": "",
+        "label": ""
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    }
+  },
+  "schemaOk": true,
+  "specCall": {
+    "ms": 6509,
+    "status": 200,
+    "usage": {
+      "input": 2903,
+      "output": 1430,
+      "reasoning": 1013
+    },
+    "effort": "high",
+    "detail": "high",
+    "maxTokens": 8000,
+    "tier": "ultrafast",
+    "raw": {
+      "view": "side",
+      "noseDir": "right",
+      "style": "chunky",
+      "hull": {
+        "shape": "rocket",
+        "width": 0.37,
+        "height": 0.37,
+        "nose": "pointed",
+        "tail": "flat",
+        "color": "",
+        "stripe": ""
+      },
+      "cockpit": {
+        "kind": "windows",
+        "at": 0.42,
+        "size": 0.15,
+        "color": "",
+        "windows": 1
+      },
+      "wings": {
+        "count": 0,
+        "shape": "delta",
+        "at": 0,
+        "span": 0,
+        "chord": 0,
+        "mount": "mid",
+        "color": ""
+      },
+      "fins": [
+        {
+          "kind": "tail",
+          "at": 0.77,
+          "size": 0.31,
+          "color": ""
+        }
+      ],
+      "engines": {
+        "count": 0,
+        "size": 0,
+        "flame": false,
+        "flameColor": "",
+        "layout": "single"
+      },
+      "weapons": [
+        {
+          "kind": "bomb",
+          "count": 1,
+          "at": 0.56,
+          "mount": "belly",
+          "size": 0.14,
+          "color": ""
+        }
+      ],
+      "extras": [
+        {
+          "kind": "shield",
+          "at": 0.48,
+          "mount": "around",
+          "size": 1.58,
+          "color": "",
+          "label": ""
+        }
+      ],
+      "palette": {
+        "colored": false,
+        "main": "",
+        "second": "",
+        "accent": ""
+      }
+    }
+  },
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 3966,
+    "drawCalls": 3,
+    "glTriangles": 3966,
+    "ms": 12.5,
+    "size": {
+      "x": 1.226015567779541,
+      "y": 2.3286001682281494,
+      "z": 3.200000047683716
+    },
+    "radius": 1.7478889904620993,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        0.28,
+        -0.3
+      ],
+      "wing_r": [
+        0.62,
+        -0.29,
+        0.1
+      ],
+      "wing_l": [
+        -0.62,
+        -0.29,
+        0.1
+      ],
+      "back": [
+        0,
+        0.69,
+        0.78
+      ],
+      "engine_l": [
+        -0.04,
+        -0.29,
+        1.6
+      ],
+      "engine_r": [
+        0.04,
+        -0.29,
+        1.6
+      ],
+      "nose": [
+        0,
+        -0.29,
+        -1.6
+      ],
+      "belly": [
+        0,
+        -0.87,
+        -0.05
+      ]
+    },
+    "wallMs": 121
+  }
+}

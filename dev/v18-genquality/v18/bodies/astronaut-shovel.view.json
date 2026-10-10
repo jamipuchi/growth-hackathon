@@ -1,0 +1,73 @@
+{
+  "v": 1,
+  "type": "person",
+  "view": "front",
+  "facing": "viewer",
+  "style": "chunky",
+  "seed": 743176552,
+  "head": {
+    "shape": "round",
+    "size": 0.27,
+    "gear": "astronaut helmet",
+    "face": "visor",
+    "eyes": 0,
+    "snout": 0,
+    "color": "",
+    "gearColor": "",
+    "faceColor": ""
+  },
+  "torso": {
+    "shape": "box",
+    "width": 0.27,
+    "color": "",
+    "belt": false,
+    "emblem": ""
+  },
+  "arms": {
+    "count": 2,
+    "length": 0.28,
+    "thickness": "thin",
+    "hands": "none",
+    "color": "",
+    "handColor": ""
+  },
+  "legs": {
+    "count": 2,
+    "length": 0.36,
+    "thickness": "thin",
+    "feet": "shoes",
+    "color": "",
+    "feetColor": ""
+  },
+  "neck": 0,
+  "tail": {
+    "kind": "none",
+    "color": ""
+  },
+  "vehicle": {
+    "body": "none",
+    "height": 0.15,
+    "cabin": "none",
+    "wheels": 0,
+    "wheelSize": 0.1,
+    "color": "",
+    "rider": false
+  },
+  "items": [
+    {
+      "kind": "shovel",
+      "where": "right hand",
+      "size": 0.34,
+      "color": "",
+      "verb": "dig"
+    }
+  ],
+  "palette": {
+    "colored": false,
+    "main": "",
+    "second": "",
+    "accent": "",
+    "skin": ""
+  },
+  "source": "model"
+}

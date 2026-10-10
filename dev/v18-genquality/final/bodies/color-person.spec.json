@@ -1,0 +1,534 @@
+{
+  "id": "color-person",
+  "set": "bodies",
+  "tag": "final",
+  "desc": "generated: coloured girl explorer (peach face, pink hair puffs, orange jumpsuit, blue boots, green backpack, yellow lamp in the image-left hand)",
+  "drawing": "dev/v14-entity3d/drawings/color-person.png",
+  "source": "draw",
+  "expected": {
+    "type": "person",
+    "skills": [
+      "flare"
+    ]
+  },
+  "wallMs": 3994,
+  "specWallMs": 4113,
+  "httpLog": [
+    {
+      "type": "spec",
+      "ms": 4112,
+      "status": 200,
+      "usage": {
+        "input": 2958,
+        "output": 749,
+        "reasoning": 244
+      },
+      "effort": "medium",
+      "detail": "high",
+      "maxTokens": 8000,
+      "tier": "ultrafast"
+    },
+    {
+      "type": "read",
+      "ms": 3893,
+      "status": 200,
+      "usage": {
+        "input": 1407,
+        "output": 656,
+        "reasoning": 407
+      },
+      "effort": "high",
+      "detail": "high",
+      "maxTokens": 6000,
+      "tier": "ultrafast"
+    }
+  ],
+  "spec": {
+    "v": 1,
+    "type": "person",
+    "view": "front",
+    "facing": "viewer",
+    "style": "cute",
+    "seed": 1990674400,
+    "head": {
+      "shape": "round",
+      "size": 0.31,
+      "gear": "hair",
+      "face": "eyes",
+      "eyes": 2,
+      "snout": 0,
+      "color": "#ffcca6",
+      "gearColor": "#ff55a3",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0.3,
+      "color": "#ff8000",
+      "belt": true,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 2,
+      "length": 0.31,
+      "thickness": "normal",
+      "hands": "mitten",
+      "color": "#ff8000",
+      "handColor": "#ffcca6"
+    },
+    "legs": {
+      "count": 2,
+      "length": 0.26,
+      "thickness": "normal",
+      "feet": "shoes",
+      "color": "#ff8000",
+      "feetColor": "#2860e9"
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0.15,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0.1,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "lamp",
+        "where": "left hand",
+        "size": 0.39,
+        "color": "#ffda43",
+        "verb": "flare"
+      },
+      {
+        "kind": "backpack",
+        "where": "back",
+        "size": 0.33,
+        "color": "#29b34a",
+        "verb": null
+      }
+    ],
+    "palette": {
+      "colored": true,
+      "main": "#ff8000",
+      "second": "#ff55a3",
+      "accent": "#29b34a",
+      "skin": "#ffcca6"
+    },
+    "source": "model"
+  },
+  "read": {
+    "ms": 3893,
+    "status": 200,
+    "usage": {
+      "input": 1407,
+      "output": 656,
+      "reasoning": 407
+    },
+    "effort": "high",
+    "detail": "high",
+    "maxTokens": 6000,
+    "tier": "ultrafast",
+    "raw": {
+      "looksLike": "entity",
+      "type": "person",
+      "parts": [
+        {
+          "name": "head",
+          "x": 0.5,
+          "y": 0.258
+        },
+        {
+          "name": "pink hair",
+          "x": 0.5,
+          "y": 0.191
+        },
+        {
+          "name": "eyes",
+          "x": 0.5,
+          "y": 0.238
+        },
+        {
+          "name": "mouth",
+          "x": 0.5,
+          "y": 0.296
+        },
+        {
+          "name": "body",
+          "x": 0.502,
+          "y": 0.527
+        },
+        {
+          "name": "arms",
+          "x": 0.491,
+          "y": 0.489
+        },
+        {
+          "name": "hands",
+          "x": 0.47,
+          "y": 0.57
+        },
+        {
+          "name": "legs",
+          "x": 0.502,
+          "y": 0.773
+        },
+        {
+          "name": "big boots",
+          "x": 0.502,
+          "y": 0.878
+        },
+        {
+          "name": "backpack",
+          "x": 0.68,
+          "y": 0.456
+        },
+        {
+          "name": "backpack strap",
+          "x": 0.593,
+          "y": 0.472
+        },
+        {
+          "name": "torch",
+          "x": 0.215,
+          "y": 0.415
+        }
+      ],
+      "verbs": [
+        "jump",
+        "flare"
+      ],
+      "unlocked": [
+        {
+          "verb": "jump",
+          "part": "big boots"
+        },
+        {
+          "verb": "flare",
+          "part": "torch"
+        }
+      ]
+    }
+  },
+  "entity": {
+    "type": "person",
+    "verbs": [
+      "jump",
+      "flare",
+      "takeoff"
+    ],
+    "unlocked": [
+      {
+        "verb": "jump",
+        "part": "big boots"
+      },
+      {
+        "verb": "flare",
+        "part": "torch"
+      }
+    ],
+    "parts": [
+      {
+        "name": "head",
+        "x": 0.5,
+        "y": 0.258
+      },
+      {
+        "name": "pink hair",
+        "x": 0.5,
+        "y": 0.191
+      },
+      {
+        "name": "eyes",
+        "x": 0.5,
+        "y": 0.238
+      },
+      {
+        "name": "mouth",
+        "x": 0.5,
+        "y": 0.296
+      },
+      {
+        "name": "body",
+        "x": 0.502,
+        "y": 0.527
+      },
+      {
+        "name": "arms",
+        "x": 0.491,
+        "y": 0.489
+      },
+      {
+        "name": "hands",
+        "x": 0.47,
+        "y": 0.57
+      },
+      {
+        "name": "legs",
+        "x": 0.502,
+        "y": 0.773
+      },
+      {
+        "name": "big boots",
+        "x": 0.502,
+        "y": 0.878
+      },
+      {
+        "name": "backpack",
+        "x": 0.68,
+        "y": 0.456
+      },
+      {
+        "name": "backpack strap",
+        "x": 0.593,
+        "y": 0.472
+      },
+      {
+        "name": "torch",
+        "x": 0.215,
+        "y": 0.415
+      }
+    ],
+    "source": "model",
+    "card": "Your explorer can: walk, jump, flare (torch)",
+    "fallback": false
+  },
+  "typeOk": true,
+  "missing": [],
+  "extra": [
+    "jump"
+  ],
+  "ms": 4112,
+  "usage": {
+    "input": 2958,
+    "output": 749,
+    "reasoning": 244
+  },
+  "raw": {
+    "type": "person",
+    "view": "front",
+    "facing": "viewer",
+    "style": "cute",
+    "head": {
+      "shape": "round",
+      "size": 0.31,
+      "gear": "hair",
+      "face": "eyes",
+      "eyes": 2,
+      "snout": 0,
+      "color": "#ffcca6",
+      "gearColor": "#ff55a3",
+      "faceColor": "#1d1c25"
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0.3,
+      "color": "#ff8000",
+      "belt": true,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 2,
+      "length": 0.31,
+      "thickness": "normal",
+      "hands": "mitten",
+      "color": "#ff8000",
+      "handColor": "#ffcca6"
+    },
+    "legs": {
+      "count": 2,
+      "length": 0.26,
+      "thickness": "normal",
+      "feet": "shoes",
+      "color": "#ff8000",
+      "feetColor": "#2860e9"
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "lamp",
+        "where": "left hand",
+        "size": 0.39,
+        "color": "#ffda43"
+      },
+      {
+        "kind": "backpack",
+        "where": "back",
+        "size": 0.33,
+        "color": "#29b34a"
+      }
+    ],
+    "palette": {
+      "colored": true,
+      "main": "#ff8000",
+      "second": "#ff55a3",
+      "accent": "#29b34a",
+      "skin": "#ffcca6"
+    }
+  },
+  "schemaOk": true,
+  "specCall": {
+    "ms": 4112,
+    "status": 200,
+    "usage": {
+      "input": 2958,
+      "output": 749,
+      "reasoning": 244
+    },
+    "effort": "medium",
+    "detail": "high",
+    "maxTokens": 8000,
+    "tier": "ultrafast",
+    "raw": {
+      "type": "person",
+      "view": "front",
+      "facing": "viewer",
+      "style": "cute",
+      "head": {
+        "shape": "round",
+        "size": 0.31,
+        "gear": "hair",
+        "face": "eyes",
+        "eyes": 2,
+        "snout": 0,
+        "color": "#ffcca6",
+        "gearColor": "#ff55a3",
+        "faceColor": "#1d1c25"
+      },
+      "torso": {
+        "shape": "box",
+        "width": 0.3,
+        "color": "#ff8000",
+        "belt": true,
+        "emblem": ""
+      },
+      "arms": {
+        "count": 2,
+        "length": 0.31,
+        "thickness": "normal",
+        "hands": "mitten",
+        "color": "#ff8000",
+        "handColor": "#ffcca6"
+      },
+      "legs": {
+        "count": 2,
+        "length": 0.26,
+        "thickness": "normal",
+        "feet": "shoes",
+        "color": "#ff8000",
+        "feetColor": "#2860e9"
+      },
+      "neck": 0,
+      "tail": {
+        "kind": "none",
+        "color": ""
+      },
+      "vehicle": {
+        "body": "none",
+        "height": 0,
+        "cabin": "none",
+        "wheels": 0,
+        "wheelSize": 0,
+        "color": "",
+        "rider": false
+      },
+      "items": [
+        {
+          "kind": "lamp",
+          "where": "left hand",
+          "size": 0.39,
+          "color": "#ffda43"
+        },
+        {
+          "kind": "backpack",
+          "where": "back",
+          "size": 0.33,
+          "color": "#29b34a"
+        }
+      ],
+      "palette": {
+        "colored": true,
+        "main": "#ff8000",
+        "second": "#ff55a3",
+        "accent": "#29b34a",
+        "skin": "#ffcca6"
+      }
+    }
+  },
+  "render": {
+    "ok": true,
+    "kit": false,
+    "rig": "person",
+    "triangles": 3886,
+    "drawCalls": 3,
+    "glTriangles": 3886,
+    "ms": 20.2,
+    "size": {
+      "x": 1.584,
+      "y": 1.836,
+      "z": 0.826
+    },
+    "radius": 0.9547752720237206,
+    "clips": [
+      "aim",
+      "block",
+      "cast",
+      "celebrate",
+      "climb",
+      "climb_in",
+      "crouch",
+      "die",
+      "dig",
+      "drink",
+      "fall",
+      "flip",
+      "glide",
+      "hit",
+      "idle",
+      "jump",
+      "kneel",
+      "land",
+      "look",
+      "pick_up",
+      "push",
+      "read",
+      "roll",
+      "run",
+      "shoot",
+      "sit",
+      "sprint",
+      "step_out",
+      "swim",
+      "swing",
+      "throw",
+      "walk",
+      "wave"
+    ],
+    "clipsLoaded": true,
+    "poses": [
+      "idle",
+      "run",
+      "dig"
+    ],
+    "wallMs": 1471
+  }
+}

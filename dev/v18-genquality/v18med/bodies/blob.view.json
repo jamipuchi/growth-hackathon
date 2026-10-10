@@ -1,0 +1,65 @@
+{
+  "v": 1,
+  "type": "blob",
+  "view": "front",
+  "facing": "viewer",
+  "style": "cute",
+  "seed": 2137145730,
+  "head": {
+    "shape": "none",
+    "size": 0.08,
+    "gear": "none",
+    "face": "eyes",
+    "eyes": 2,
+    "snout": 0,
+    "color": "",
+    "gearColor": "",
+    "faceColor": ""
+  },
+  "torso": {
+    "shape": "round",
+    "width": 0.7,
+    "color": "",
+    "belt": false,
+    "emblem": ""
+  },
+  "arms": {
+    "count": 0,
+    "length": 0.15,
+    "thickness": "thin",
+    "hands": "none",
+    "color": "",
+    "handColor": ""
+  },
+  "legs": {
+    "count": 0,
+    "length": 0.15,
+    "thickness": "thin",
+    "feet": "none",
+    "color": "",
+    "feetColor": ""
+  },
+  "neck": 0,
+  "tail": {
+    "kind": "none",
+    "color": ""
+  },
+  "vehicle": {
+    "body": "none",
+    "height": 0.15,
+    "cabin": "none",
+    "wheels": 0,
+    "wheelSize": 0.1,
+    "color": "",
+    "rider": false
+  },
+  "items": [],
+  "palette": {
+    "colored": false,
+    "main": "",
+    "second": "",
+    "accent": "",
+    "skin": ""
+  },
+  "source": "model"
+}

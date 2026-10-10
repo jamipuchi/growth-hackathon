@@ -1,0 +1,79 @@
+{
+  "v": 1,
+  "type": "person",
+  "view": "front",
+  "facing": "viewer",
+  "style": "chunky",
+  "seed": 1033052725,
+  "head": {
+    "shape": "round",
+    "size": 0.27,
+    "gear": "astronaut helmet",
+    "face": "visor",
+    "eyes": 0,
+    "snout": 0,
+    "color": "",
+    "gearColor": "",
+    "faceColor": ""
+  },
+  "torso": {
+    "shape": "box",
+    "width": 0.27,
+    "color": "",
+    "belt": false,
+    "emblem": ""
+  },
+  "arms": {
+    "count": 2,
+    "length": 0.27,
+    "thickness": "thin",
+    "hands": "none",
+    "color": ""
+  },
+  "legs": {
+    "count": 2,
+    "length": 0.37,
+    "thickness": "thin",
+    "feet": "none",
+    "color": ""
+  },
+  "neck": 0,
+  "tail": {
+    "kind": "none",
+    "color": ""
+  },
+  "vehicle": {
+    "body": "none",
+    "height": 0.15,
+    "cabin": "none",
+    "wheels": 0,
+    "wheelSize": 0.1,
+    "color": "",
+    "rider": false
+  },
+  "items": [
+    {
+      "kind": "drill",
+      "where": "right hand",
+      "size": 0.21,
+      "color": "",
+      "verb": "drill"
+    },
+    {
+      "kind": "blaster",
+      "where": "left hand",
+      "size": 0.32,
+      "color": "",
+      "verb": "shoot",
+      "added": true
+    }
+  ],
+  "palette": {
+    "colored": false,
+    "main": "",
+    "second": "",
+    "accent": "",
+    "skin": ""
+  },
+  "source": "model"
+}

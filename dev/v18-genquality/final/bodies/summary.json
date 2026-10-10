@@ -1,0 +1,40 @@
+{
+  "tag": "final",
+  "set": "bodies",
+  "at": "2026-10-10T11:26:27.875Z",
+  "n": 2,
+  "schemaFailures": 0,
+  "p50": 4112,
+  "p90": 4112,
+  "max": 4112,
+  "read": {
+    "p50": 3893,
+    "p90": 3893,
+    "max": 3893,
+    "failures": 0
+  },
+  "calls": [
+    {
+      "id": "color-person",
+      "ms": 4112,
+      "schemaOk": true,
+      "usage": {
+        "input": 2958,
+        "output": 749,
+        "reasoning": 244
+      },
+      "readMs": 3893
+    },
+    {
+      "id": "color-robot",
+      "ms": 3585,
+      "schemaOk": true,
+      "usage": {
+        "input": 2958,
+        "output": 699,
+        "reasoning": 226
+      },
+      "readMs": 3137
+    }
+  ]
+}

@@ -256,6 +256,8 @@ function palette(spec, color) {
     face: drawn(spec.head.faceColor) || null,
     skin: drawn(P.skin) || C("#f2c28e"),
     tail: drawn(spec.tail.color) || null,
+    hands: drawn(spec.arms.handColor) || null, // v1.8: hands / gloves / pincers and boots / hooves drawn in their own colour
+    feet: drawn(spec.legs.feetColor) || null,
     white: C("#f3f5f8"), light: C("#dfe5ee"), trim: C("#2a2e3a"), dark: C("#1b1d26"), metal: C("#c9d1dc"), steel: C("#8c96a6"),
     glass: C("#2f6fd6"), gold: C("#ffb627"), red: C("#ef2d2d"), black: C("#121218"), pink: C("#ff8fb1"),
   };
@@ -509,8 +511,8 @@ function sane(spec) {
     head: { shape: h.shape || (type === "blob" ? "none" : "round"), size: num(h.size, type === "quadruped" ? 0.3 : 0.24, 0.05, 0.7), gear: h.gear || "none", face: h.face || "eyes",
       eyes: Math.round(num(h.eyes, 2, 0, 6)), snout: num(h.snout, type === "quadruped" ? 0.45 : 0, 0, 1), color: hex(h.color), gearColor: hex(h.gearColor), faceColor: hex(h.faceColor) },
     torso: { shape: t.shape || "box", width: num(t.width, 0.28, 0.04, 0.8), color: hex(t.color), belt: t.belt === true, emblem: String(t.emblem || "") },
-    arms: { count: type === "person" ? (Number(a.count) === 0 ? 0 : 2) : 0, length: num(a.length, 0.38, 0.1, 0.7), thickness: a.thickness || "normal", hands: a.hands || "mitten", color: hex(a.color) },
-    legs: { count: type === "person" ? 2 : type === "quadruped" ? 4 : Number(l.count) >= 2 ? 2 : 0, length: num(l.length, type === "quadruped" ? 0.5 : 0.45, 0.1, 1.3), thickness: l.thickness || "normal", feet: l.feet || "boots", color: hex(l.color) },
+    arms: { count: type === "person" ? (Number(a.count) === 0 ? 0 : 2) : 0, length: num(a.length, 0.38, 0.1, 0.7), thickness: a.thickness || "normal", hands: a.hands || "mitten", color: hex(a.color), handColor: hex(a.handColor) },
+    legs: { count: type === "person" ? 2 : type === "quadruped" ? 4 : Number(l.count) >= 2 ? 2 : 0, length: num(l.length, type === "quadruped" ? 0.5 : 0.45, 0.1, 1.3), thickness: l.thickness || "normal", feet: l.feet || "boots", color: hex(l.color), feetColor: hex(l.feetColor) },
     neck: num(s.neck, type === "quadruped" ? 0.15 : 0, 0, 0.9),
     tail: { kind: tl.kind || (type === "quadruped" ? "short" : "none"), color: hex(tl.color) },
     vehicle: { body: v.body || (type === "bike" ? "bicycle" : "sedan"), height: num(v.height, type === "bike" ? 0.5 : 0.36, 0.1, 1), cabin: v.cabin || (type === "car" ? "closed" : "none"),
@@ -756,8 +758,8 @@ function buildPerson(s, P, B, F, rig, rnd) {
   };
   for (const [name, parent, q] of PERSON_BONES) rig.bone(name, parent, W[name], q);
   const on = (name) => { B.bone = F.bone = rig.id(name); };
-  const suit = P.main, suit2 = P.legs, glove = P.ink ? P.white : (P.arms === P.main ? shade(P.main, 0.75) : P.arms);
-  const bootCol = P.ink ? P.white : (s.legs.color ? shade(P.legs, 0.7) : shade(P.second, 0.55));
+  const suit = P.main, suit2 = P.legs, glove = P.hands || (P.ink ? P.white : (P.arms === P.main ? shade(P.main, 0.75) : P.arms));
+  const bootCol = P.feet || (P.ink ? P.white : (s.legs.color ? shade(P.legs, 0.7) : shade(P.second, 0.55)));
   const panel = R(robot ? "panels" : "flat"), suitReg = R(robot || astro ? "panels" : "flat");
   const torsoN = s.torso.shape === "box" || robot ? 4 : 2.6, depth = shoulderHalf * (s.torso.shape === "slim" ? 0.6 : 0.72);
   // Torso: pelvis (hips), belly (spine), chest (chest), overlapping rounded blocks.
@@ -796,7 +798,7 @@ function buildPerson(s, P, B, F, rig, rnd) {
     const hc = madd(wr, [sx, 0, 0], rA * 1.1);
     if (s.arms.hands === "claw" || s.arms.hands === "robot") {
       box(B, hc, rA * 1.1, rA * 0.8, rA * 1.0, R("metal"), robot ? P.steel : glove, { n: 4, seg: 8, dir: [sx, 0, 0], hint: [0, 1, 0] });
-      for (const dz of [-1, 1]) capsule(B, add(hc, [sx * rA * 0.6, 0, dz * rA * 0.55]), add(hc, [sx * rA * 2.0, 0, dz * rA * 0.3]), rA * 0.38, rA * 0.22, 8, R("flat"), robot ? (P.ink ? P.red : P.accent) : glove);
+      for (const dz of [-1, 1]) capsule(B, add(hc, [sx * rA * 0.6, 0, dz * rA * 0.55]), add(hc, [sx * rA * 2.0, 0, dz * rA * 0.3]), rA * 0.38, rA * 0.22, 8, R("flat"), robot ? (P.hands || (P.ink ? P.red : P.accent)) : glove);
     } else {
       ell(B, hc, rA * 1.3, rA * 1.15, rA * 1.25, sg(10), R("flat"), glove);
       ell(B, add(hc, [-sx * rA * 0.2, rA * 0.15, -rA * 1.0]), rA * 0.5, rA * 0.45, rA * 0.55, 8, R("flat"), glove); // thumb
@@ -1027,7 +1029,7 @@ function buildQuadruped(s, P, B, F, rig, rnd) {
     on(`${l}_upper`); capsule(B, [x, y0, z], [x, yk, z], lr * 1.35, lr * 1.05, sg(10), furReg, fur);
     on(`${l}_lower`); capsule(B, [x, yk, z], [x, yf, z], lr * 1.0, lr * 0.85, sg(10), furReg, fur);
     on(`${l}_foot`);
-    if (s.legs.feet === "hooves") cyl(B, [x, 0, z - 0.01], [x, yf + lr * 0.4, z - 0.01], lr * 1.15, lr * 0.95, sg(10), R("trim"), P.dark, 0.3);
+    if (s.legs.feet === "hooves") cyl(B, [x, 0, z - 0.01], [x, yf + lr * 0.4, z - 0.01], lr * 1.15, lr * 0.95, sg(10), R("trim"), P.feet || P.dark, 0.3);
     else ell(B, [x, lr * 0.7, z - lr * 0.45], lr * 1.25, lr * 0.7, lr * 1.55, sg(10), furReg, P.ink ? belly : dark);
     if (s.legs.feet === "claws") for (let i = -1; i <= 1; i++) capsule(B, [x + i * lr * 0.5, lr * 0.5, z - lr * 1.5], [x + i * lr * 0.65, lr * 0.08, z - lr * 2.4], lr * 0.26, lr * 0.06, 6, R("flat"), P.light);
   }

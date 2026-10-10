@@ -1,0 +1,128 @@
+{
+  "tag": "base",
+  "set": "bodies",
+  "at": "2026-10-10T11:22:30.146Z",
+  "n": 10,
+  "schemaFailures": 0,
+  "p50": 2533,
+  "p90": 3130,
+  "max": 3130,
+  "read": {
+    "p50": 2613,
+    "p90": 2950,
+    "max": 2950,
+    "failures": 0
+  },
+  "calls": [
+    {
+      "id": "astronaut-shovel",
+      "ms": 2065,
+      "schemaOk": true,
+      "usage": {
+        "input": 2606,
+        "output": 398,
+        "reasoning": 0
+      },
+      "readMs": 1880
+    },
+    {
+      "id": "astronaut-drill",
+      "ms": 2504,
+      "schemaOk": true,
+      "usage": {
+        "input": 2644,
+        "output": 477,
+        "reasoning": 78
+      },
+      "readMs": 2696
+    },
+    {
+      "id": "car-cannon",
+      "ms": 3130,
+      "schemaOk": true,
+      "usage": {
+        "input": 2567,
+        "output": 584,
+        "reasoning": 193
+      },
+      "readMs": 2600
+    },
+    {
+      "id": "bike-lamp",
+      "ms": 2517,
+      "schemaOk": true,
+      "usage": {
+        "input": 2567,
+        "output": 467,
+        "reasoning": 111
+      },
+      "readMs": 2613
+    },
+    {
+      "id": "dog-claws",
+      "ms": 2472,
+      "schemaOk": true,
+      "usage": {
+        "input": 2644,
+        "output": 495,
+        "reasoning": 131
+      },
+      "readMs": 1859
+    },
+    {
+      "id": "blob",
+      "ms": 1873,
+      "schemaOk": true,
+      "usage": {
+        "input": 2663,
+        "output": 198,
+        "reasoning": 0
+      },
+      "readMs": 1555
+    },
+    {
+      "id": "color-person",
+      "ms": 2986,
+      "schemaOk": true,
+      "usage": {
+        "input": 2644,
+        "output": 592,
+        "reasoning": 110
+      },
+      "readMs": 2892
+    },
+    {
+      "id": "color-robot",
+      "ms": 2841,
+      "schemaOk": true,
+      "usage": {
+        "input": 2644,
+        "output": 546,
+        "reasoning": 98
+      },
+      "readMs": 2756
+    },
+    {
+      "id": "horse-saddle",
+      "ms": 2702,
+      "schemaOk": true,
+      "usage": {
+        "input": 2644,
+        "output": 537,
+        "reasoning": 91
+      },
+      "readMs": 2154
+    },
+    {
+      "id": "monster-truck",
+      "ms": 2533,
+      "schemaOk": true,
+      "usage": {
+        "input": 2625,
+        "output": 550,
+        "reasoning": 62
+      },
+      "readMs": 2950
+    }
+  ]
+}

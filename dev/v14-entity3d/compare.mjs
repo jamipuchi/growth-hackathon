@@ -160,7 +160,7 @@ async function portFree(port) {
 }
 
 async function withBrowser(fn) {
-  if (!((PORT >= 8440 && PORT <= 8449) || (PORT >= 8500 && PORT <= 8509))) throw new Error(`--port ${PORT}: this lane uses 8440-8449 (v16: 8500-8509)`);
+  if (!((PORT >= 8440 && PORT <= 8449) || (PORT >= 8500 && PORT <= 8509) || (PORT >= 8600 && PORT <= 8609))) throw new Error(`--port ${PORT}: this lane uses 8440-8449 (v16: 8500-8509, v18-genquality: 8600-8609)`);
   if (!(await portFree(PORT))) throw new Error(`port ${PORT} is busy: pick another one in 8440-8449 with --port`);
   const server = spawn(process.execPath, [path.join(HERE, "serve.mjs"), String(PORT)], { stdio: ["ignore", "pipe", "inherit"] });
   let browser = null;

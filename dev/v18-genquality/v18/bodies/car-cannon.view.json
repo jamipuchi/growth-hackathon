@@ -1,0 +1,73 @@
+{
+  "v": 1,
+  "type": "car",
+  "view": "side",
+  "facing": "right",
+  "style": "chunky",
+  "seed": 1217821705,
+  "head": {
+    "shape": "none",
+    "size": 0.08,
+    "gear": "none",
+    "face": "none",
+    "eyes": 0,
+    "snout": 0,
+    "color": "",
+    "gearColor": "",
+    "faceColor": ""
+  },
+  "torso": {
+    "shape": "box",
+    "width": 0.06,
+    "color": "",
+    "belt": false,
+    "emblem": ""
+  },
+  "arms": {
+    "count": 0,
+    "length": 0.15,
+    "thickness": "normal",
+    "hands": "none",
+    "color": "",
+    "handColor": ""
+  },
+  "legs": {
+    "count": 0,
+    "length": 0.15,
+    "thickness": "normal",
+    "feet": "none",
+    "color": "",
+    "feetColor": ""
+  },
+  "neck": 0,
+  "tail": {
+    "kind": "none",
+    "color": ""
+  },
+  "vehicle": {
+    "body": "sedan",
+    "height": 0.35,
+    "cabin": "closed",
+    "wheels": 4,
+    "wheelSize": 0.21,
+    "color": "",
+    "rider": false
+  },
+  "items": [
+    {
+      "kind": "cannon",
+      "where": "roof",
+      "size": 0.2,
+      "color": "",
+      "verb": "shoot"
+    }
+  ],
+  "palette": {
+    "colored": false,
+    "main": "",
+    "second": "",
+    "accent": "",
+    "skin": ""
+  },
+  "source": "model"
+}

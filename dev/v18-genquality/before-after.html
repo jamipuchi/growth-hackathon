@@ -1,0 +1,37 @@
+<!doctype html>
+<!-- v18-genquality: every drawing's render BEFORE (v1.7 settings) and AFTER (v1.8) one under the other.
+     before-after.html?set=ships|bodies&before=base&after=v18med   (sheet.mjs screenshots it to before-after-<set>.png) -->
+<html><head><meta charset="utf-8"><title>v18 generation quality: before / after</title>
+<style>
+  body { margin: 0; background: #0d0b1f; color: #fff; font: 13px/1.3 "Barlow", system-ui, sans-serif; }
+  h1 { margin: 0; padding: 14px 18px 4px; font: 800 italic 26px "Barlow Condensed", system-ui, sans-serif; }
+  .sub { padding: 0 18px 10px; color: #b9b3e6; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 6px 12px; border-top: 1px solid #2a2560; }
+  .row img { display: block; width: 100%; border-radius: 8px; }
+  .cap { grid-column: 1 / 3; font-weight: 800; font-size: 14px; }
+  .cap span { font-weight: 400; color: #cfc9ff; }
+  .tag { font-size: 12px; color: #9ad; margin-bottom: 2px; }
+</style></head><body>
+<h1 id="title"></h1><div class="sub" id="sub"></div><div id="rows"></div>
+<script type="module">
+const q = new URLSearchParams(location.search);
+const set = q.get("set") || "ships", before = q.get("before") || "base", after = q.get("after") || "v18med";
+const base = (tag) => `/dev/v18-genquality/${tag}/${set}/`;
+const [sb, sa] = await Promise.all([before, after].map(async (t) => (await fetch(base(t) + "summary.json", { cache: "no-store" })).json()));
+document.getElementById("title").textContent = `${set.toUpperCase()} · BEFORE (${before}) vs AFTER (${after})`;
+const line = (s) => `spec p50 ${s.p50} / p90 ${s.p90} / max ${s.max} ms · read p50 ${s.read.p50} / p90 ${s.read.p90} / max ${s.read.max} ms · spec failures ${s.schemaFailures}`;
+document.getElementById("sub").innerHTML = `before: ${line(sb)}<br>after: ${line(sa)}`;
+const rows = document.getElementById("rows"), loads = [];
+for (const c of sa.calls) {
+  const rec = await (await fetch(base(after) + `${c.id}.spec.json`, { cache: "no-store" })).json();
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = `<div class="cap">${c.id} <span>— ${rec.desc || ""}</span></div>
+    <div><div class="tag">BEFORE · spec ${(sb.calls.find((x) => x.id === c.id) || {}).ms ?? "-"} ms</div><img src="${base(before)}${c.id}.png"></div>
+    <div><div class="tag">AFTER · spec ${c.ms ?? "-"} ms · read ${c.readMs ?? "-"} ms</div><img src="${base(after)}${c.id}.png"></div>`;
+  rows.appendChild(row);
+  for (const img of row.querySelectorAll("img")) loads.push(new Promise((ok) => { img.onload = img.onerror = ok; }));
+}
+await Promise.all(loads);
+window.__ready = true;
+</script></body></html>

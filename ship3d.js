@@ -526,6 +526,9 @@ function shade(rgb, l = 1, s = 1, dh = 0) {
 }
 const mix = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 const hex = (v) => (typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v) ? v : "");
+const GLASS_MEAN = [0.036, 0.256, 0.536]; // the procedural glass region's mean colour, linear (A-012's glass is blue too)
+// The hue of the drawn colour, at most 2.2× bright (more would bloom the highlights into a halo).
+const glassTint = (rgb) => { const v = rgb.map((x, i) => x / GLASS_MEAN[i]), k = Math.min(1, 2.2 / Math.max(1e-6, ...v)); return v.map((x) => x * k); };
 function palette(spec, color) {
   const P = spec.palette || {};
   const player = C(color);
@@ -539,7 +542,9 @@ function palette(spec, color) {
   return {
     main, second, accent, player: vivid(player), isPlayer,
     belly: mix(main, [1, 1, 1], 0.55), trim: C("#2a2e3a"), metal: C("#d9dfe7"), white: [1, 1, 1], dark: C("#1d2029"),
-    glass: drawn(spec.cockpit.color) ? mix(C(spec.cockpit.color), [1, 1, 1], 0.35) : [1, 1, 1],
+    // v1.8: a drawn cockpit colour shows through the blue glass texture (a purple dome stays purple): the tint divides out
+    // the texture's mean colour (linear), so the glass averages the drawn colour and keeps its gradient and highlights.
+    glass: drawn(spec.cockpit.color) ? glassTint(C(spec.cockpit.color)) : [1, 1, 1],
     red: C("#ef2d2d"), yellow: C("#ffd21a"), purple: C("#9b5de5"),
     flameTip: drawn(spec.engines.flameColor) || (hex(spec.engines.flameColor) ? C(spec.engines.flameColor) : null),
   };
@@ -555,7 +560,8 @@ function sane(spec) {
   return {
     seed: Number(s.seed) >>> 0, noseDir: ["right", "left", "up", "down"].includes(s.noseDir) ? s.noseDir : "right", style: s.style || "chunky",
     hull: { shape: h.shape, width: h.width, height: h.height, nose: h.nose, tail: h.tail, color: hex(h.color), stripe: hex(h.stripe) },
-    cockpit: { kind: ["none", "bubble", "canopy", "visor", "windows"].includes(c.kind) ? c.kind : "canopy", at: num(c.at, 0.28, 0, 1), size: num(c.size, 0.22, 0.06, 0.6), color: hex(c.color) },
+    cockpit: { kind: ["none", "bubble", "canopy", "visor", "windows"].includes(c.kind) ? c.kind : "canopy", at: num(c.at, 0.28, 0, 1), size: num(c.size, 0.22, 0.06, 0.6), color: hex(c.color),
+      windows: Math.round(num(c.windows, 0, 0, 8)) },
     wings: { count: Math.round(num(w.count, 2, 0, 4)) >= 3 ? 4 : Math.round(num(w.count, 2, 0, 4)) >= 1 ? 2 : 0, shape: ["delta", "swept", "straight", "forward", "round"].includes(w.shape) ? w.shape : "swept",
       at: num(w.at, 0.6, 0.1, 0.95), span: num(w.span, 0.8, 0.2, 1.4), chord: num(w.chord, 0.32, 0.08, 0.8), mount: ["low", "mid", "high"].includes(w.mount) ? w.mount : "mid", color: hex(w.color) },
     fins: arr(s.fins).slice(0, 3).map((f) => ({ kind: ["tail", "side", "belly"].includes(f.kind) ? f.kind : "tail", at: num(f.at, 0.85, 0, 1), size: num(f.size, 0.22, 0.06, 0.6), color: hex(f.color) })),
@@ -846,10 +852,12 @@ function assemble(spec, color, d, sticker, fl = 1) {
       }
     }
   };
-  const winN = spec.extras.filter((x) => x.kind === "window").length;
-  const sidePorts = ck.kind === "windows" || winN > 0;
+  // v1.8: cockpit.windows = the portholes the player drew, counted (0: not counted, older specs: 3-4 as before).
+  const winN = spec.extras.filter((x) => x.kind === "window").length, ports = clamp(ck.windows || 0, 0, 6);
+  const sidePorts = ck.kind === "windows" || winN > 0 || ports > 0;
   let portsDone = false;
-  if (ck.kind === "windows") { portsDone = true; portholes(clamp(Math.max(3, winN), 3, 4), clamp(ck.at, 0.15, 0.8), clamp(ck.size * L, 0.6, 1.2), 0.45); }
+  if (ck.kind === "windows") { portsDone = true; portholes(ports || clamp(Math.max(3, winN), 3, 4), clamp(ck.at, 0.15, 0.8), ports ? clamp(0.3 * (ports - 1), 0, 1.2) : clamp(ck.size * L, 0.6, 1.2), 0.45); }
+  else if (ports) { portsDone = true; portholes(ports, clamp(ck.kind === "none" ? 0.35 : ck.at + ck.size * 0.5 + 0.14, 0.2, 0.75), clamp(0.3 * (ports - 1), 0, 1.2), 0.45); }
 
   // ---- Wings
   const wg = spec.wings, wingInfo = [];

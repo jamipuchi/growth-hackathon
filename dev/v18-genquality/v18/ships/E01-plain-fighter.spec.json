@@ -1,0 +1,363 @@
+{
+  "id": "E01-plain-fighter",
+  "set": "ships",
+  "tag": "v18",
+  "desc": "plain fighter (clean)",
+  "drawing": "dev/gen-corpus/entity/E01.png",
+  "source": "draw",
+  "expected": {
+    "type": "ship",
+    "skills": []
+  },
+  "wallMs": 2613,
+  "specWallMs": 10943,
+  "httpLog": [
+    {
+      "type": "spec",
+      "ms": 10938,
+      "status": 200,
+      "usage": {
+        "input": 2523,
+        "output": 2397,
+        "reasoning": 2070
+      },
+      "effort": "high",
+      "detail": "high",
+      "maxTokens": 8000,
+      "tier": "ultrafast"
+    },
+    {
+      "type": "read",
+      "ms": 2490,
+      "status": 200,
+      "usage": {
+        "input": 1179,
+        "output": 279,
+        "reasoning": 182
+      },
+      "effort": "high",
+      "detail": "high",
+      "maxTokens": 6000,
+      "tier": "ultrafast"
+    }
+  ],
+  "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "sleek",
+    "seed": 3275032141,
+    "hull": {
+      "shape": "dart",
+      "width": 0.2,
+      "height": 0.25,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.27,
+      "size": 0.23,
+      "color": "",
+      "windows": 0
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.61,
+      "span": 0.4,
+      "chord": 0.19,
+      "mount": "low",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.74,
+        "size": 0.33,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 0,
+      "size": 0.06,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single",
+      "verb": null
+    },
+    "weapons": [],
+    "extras": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "model"
+  },
+  "read": {
+    "ms": 2490,
+    "status": 200,
+    "usage": {
+      "input": 1179,
+      "output": 279,
+      "reasoning": 182
+    },
+    "effort": "high",
+    "detail": "high",
+    "maxTokens": 6000,
+    "tier": "ultrafast",
+    "raw": {
+      "looksLike": "entity",
+      "type": "ship",
+      "parts": [
+        {
+          "name": "body",
+          "x": 0.497,
+          "y": 0.522
+        },
+        {
+          "name": "upper wing",
+          "x": 0.276,
+          "y": 0.274
+        },
+        {
+          "name": "lower wing",
+          "x": 0.312,
+          "y": 0.767
+        },
+        {
+          "name": "top fin",
+          "x": 0.709,
+          "y": 0.373
+        }
+      ],
+      "verbs": [],
+      "unlocked": []
+    }
+  },
+  "entity": {
+    "type": "ship",
+    "verbs": [],
+    "unlocked": [],
+    "parts": [
+      {
+        "name": "body",
+        "x": 0.497,
+        "y": 0.522
+      },
+      {
+        "name": "upper wing",
+        "x": 0.276,
+        "y": 0.274
+      },
+      {
+        "name": "lower wing",
+        "x": 0.312,
+        "y": 0.767
+      },
+      {
+        "name": "top fin",
+        "x": 0.709,
+        "y": 0.373
+      }
+    ],
+    "source": "model",
+    "card": "Your ship can: fly",
+    "fallback": false
+  },
+  "typeOk": true,
+  "missing": [],
+  "extra": [],
+  "ms": 10938,
+  "usage": {
+    "input": 2523,
+    "output": 2397,
+    "reasoning": 2070
+  },
+  "raw": {
+    "view": "side",
+    "noseDir": "right",
+    "style": "sleek",
+    "hull": {
+      "shape": "dart",
+      "width": 0.2,
+      "height": 0.25,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.27,
+      "size": 0.23,
+      "color": "",
+      "windows": 0
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.61,
+      "span": 0.4,
+      "chord": 0.19,
+      "mount": "low",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.74,
+        "size": 0.33,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 0,
+      "size": 0,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single"
+    },
+    "weapons": [],
+    "extras": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    }
+  },
+  "schemaOk": true,
+  "specCall": {
+    "ms": 10938,
+    "status": 200,
+    "usage": {
+      "input": 2523,
+      "output": 2397,
+      "reasoning": 2070
+    },
+    "effort": "high",
+    "detail": "high",
+    "maxTokens": 8000,
+    "tier": "ultrafast",
+    "raw": {
+      "view": "side",
+      "noseDir": "right",
+      "style": "sleek",
+      "hull": {
+        "shape": "dart",
+        "width": 0.2,
+        "height": 0.25,
+        "nose": "pointed",
+        "tail": "flat",
+        "color": "",
+        "stripe": ""
+      },
+      "cockpit": {
+        "kind": "canopy",
+        "at": 0.27,
+        "size": 0.23,
+        "color": "",
+        "windows": 0
+      },
+      "wings": {
+        "count": 2,
+        "shape": "swept",
+        "at": 0.61,
+        "span": 0.4,
+        "chord": 0.19,
+        "mount": "low",
+        "color": ""
+      },
+      "fins": [
+        {
+          "kind": "tail",
+          "at": 0.74,
+          "size": 0.33,
+          "color": ""
+        }
+      ],
+      "engines": {
+        "count": 0,
+        "size": 0,
+        "flame": false,
+        "flameColor": "",
+        "layout": "single"
+      },
+      "weapons": [],
+      "extras": [],
+      "palette": {
+        "colored": false,
+        "main": "",
+        "second": "",
+        "accent": ""
+      }
+    }
+  },
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 3896,
+    "drawCalls": 3,
+    "glTriangles": 3896,
+    "ms": 25.2,
+    "size": {
+      "x": 1.5096129179000854,
+      "y": 1.7177538871765137,
+      "z": 3.200000047683716
+    },
+    "radius": 1.6949012832653798,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        -0.1,
+        -0.76
+      ],
+      "wing_r": [
+        0.72,
+        -0.61,
+        0.55
+      ],
+      "wing_l": [
+        -0.72,
+        -0.61,
+        0.55
+      ],
+      "back": [
+        0,
+        0.35,
+        0.69
+      ],
+      "engine_l": [
+        -0.04,
+        -0.47,
+        1.6
+      ],
+      "engine_r": [
+        0.04,
+        -0.47,
+        1.6
+      ],
+      "nose": [
+        0,
+        -0.47,
+        -1.6
+      ],
+      "belly": [
+        0,
+        -0.86,
+        -0.05
+      ]
+    },
+    "wallMs": 264
+  }
+}

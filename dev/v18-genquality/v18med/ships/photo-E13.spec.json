@@ -1,0 +1,425 @@
+{
+  "id": "photo-E13",
+  "set": "ships",
+  "tag": "v18med",
+  "desc": "PHOTO on lined paper: fighter + cannon + flames",
+  "drawing": "dev/gen-corpus/photos/E13.jpg",
+  "source": "photo",
+  "expected": {
+    "type": "ship",
+    "skills": [
+      "shoot",
+      "boost"
+    ]
+  },
+  "wallMs": 2344,
+  "specWallMs": 4409,
+  "readsFrom": "v18",
+  "read": {
+    "ms": 2344,
+    "status": 200,
+    "usage": {
+      "input": 1559,
+      "output": 354,
+      "reasoning": 198
+    },
+    "effort": "high",
+    "detail": "high",
+    "maxTokens": 6000,
+    "tier": "ultrafast",
+    "raw": {
+      "looksLike": "entity",
+      "type": "ship",
+      "parts": [
+        {
+          "name": "body",
+          "x": 0.517,
+          "y": 0.532
+        },
+        {
+          "name": "upper wing",
+          "x": 0.422,
+          "y": 0.437
+        },
+        {
+          "name": "lower wing",
+          "x": 0.445,
+          "y": 0.638
+        },
+        {
+          "name": "cockpit",
+          "x": 0.603,
+          "y": 0.468
+        },
+        {
+          "name": "cannon",
+          "x": 0.528,
+          "y": 0.46
+        },
+        {
+          "name": "exhaust flames",
+          "x": 0.294,
+          "y": 0.548
+        }
+      ],
+      "verbs": [
+        "shoot",
+        "boost"
+      ],
+      "unlocked": [
+        {
+          "verb": "shoot",
+          "part": "cannon"
+        },
+        {
+          "verb": "boost",
+          "part": "exhaust flames"
+        }
+      ]
+    }
+  },
+  "httpLog": [
+    {
+      "type": "spec",
+      "ms": 4408,
+      "status": 200,
+      "usage": {
+        "input": 2903,
+        "output": 884,
+        "reasoning": 504
+      },
+      "effort": "medium",
+      "detail": "high",
+      "maxTokens": 8000,
+      "tier": "ultrafast"
+    }
+  ],
+  "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "sleek",
+    "seed": 1682245659,
+    "hull": {
+      "shape": "dart",
+      "width": 0.23,
+      "height": 0.26,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.27,
+      "size": 0.23,
+      "color": "",
+      "windows": 0
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.62,
+      "span": 0.43,
+      "chord": 0.18,
+      "mount": "low",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.68,
+        "size": 0.32,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 3,
+      "size": 0.06,
+      "flame": true,
+      "flameColor": "",
+      "layout": "stack",
+      "verb": "boost"
+    },
+    "weapons": [
+      {
+        "kind": "cannon",
+        "count": 1,
+        "at": 0.47,
+        "mount": "top",
+        "size": 0.27,
+        "color": "",
+        "verb": "shoot"
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "model"
+  },
+  "entity": {
+    "type": "ship",
+    "verbs": [
+      "shoot",
+      "boost"
+    ],
+    "unlocked": [
+      {
+        "verb": "shoot",
+        "part": "cannon"
+      },
+      {
+        "verb": "boost",
+        "part": "exhaust flames"
+      }
+    ],
+    "parts": [
+      {
+        "name": "body",
+        "x": 0.517,
+        "y": 0.532
+      },
+      {
+        "name": "upper wing",
+        "x": 0.422,
+        "y": 0.437
+      },
+      {
+        "name": "lower wing",
+        "x": 0.445,
+        "y": 0.638
+      },
+      {
+        "name": "cockpit",
+        "x": 0.603,
+        "y": 0.468
+      },
+      {
+        "name": "cannon",
+        "x": 0.528,
+        "y": 0.46
+      },
+      {
+        "name": "exhaust flames",
+        "x": 0.294,
+        "y": 0.548
+      }
+    ],
+    "source": "model",
+    "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames)",
+    "fallback": false
+  },
+  "typeOk": true,
+  "missing": [],
+  "extra": [],
+  "ms": 4408,
+  "usage": {
+    "input": 2903,
+    "output": 884,
+    "reasoning": 504
+  },
+  "raw": {
+    "view": "side",
+    "noseDir": "right",
+    "style": "sleek",
+    "hull": {
+      "shape": "dart",
+      "width": 0.23,
+      "height": 0.26,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.27,
+      "size": 0.23,
+      "color": "",
+      "windows": 0
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.62,
+      "span": 0.43,
+      "chord": 0.18,
+      "mount": "low",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.68,
+        "size": 0.32,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 3,
+      "size": 0.05,
+      "flame": true,
+      "flameColor": "",
+      "layout": "stack"
+    },
+    "weapons": [
+      {
+        "kind": "cannon",
+        "count": 1,
+        "at": 0.47,
+        "mount": "top",
+        "size": 0.27,
+        "color": ""
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    }
+  },
+  "schemaOk": true,
+  "specCall": {
+    "ms": 4408,
+    "status": 200,
+    "usage": {
+      "input": 2903,
+      "output": 884,
+      "reasoning": 504
+    },
+    "effort": "medium",
+    "detail": "high",
+    "maxTokens": 8000,
+    "tier": "ultrafast",
+    "raw": {
+      "view": "side",
+      "noseDir": "right",
+      "style": "sleek",
+      "hull": {
+        "shape": "dart",
+        "width": 0.23,
+        "height": 0.26,
+        "nose": "pointed",
+        "tail": "flat",
+        "color": "",
+        "stripe": ""
+      },
+      "cockpit": {
+        "kind": "canopy",
+        "at": 0.27,
+        "size": 0.23,
+        "color": "",
+        "windows": 0
+      },
+      "wings": {
+        "count": 2,
+        "shape": "swept",
+        "at": 0.62,
+        "span": 0.43,
+        "chord": 0.18,
+        "mount": "low",
+        "color": ""
+      },
+      "fins": [
+        {
+          "kind": "tail",
+          "at": 0.68,
+          "size": 0.32,
+          "color": ""
+        }
+      ],
+      "engines": {
+        "count": 3,
+        "size": 0.05,
+        "flame": true,
+        "flameColor": "",
+        "layout": "stack"
+      },
+      "weapons": [
+        {
+          "kind": "cannon",
+          "count": 1,
+          "at": 0.47,
+          "mount": "top",
+          "size": 0.27,
+          "color": ""
+        }
+      ],
+      "extras": [],
+      "palette": {
+        "colored": false,
+        "main": "",
+        "second": "",
+        "accent": ""
+      }
+    }
+  },
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 4479,
+    "drawCalls": 3,
+    "glTriangles": 4479,
+    "ms": 12.8,
+    "size": {
+      "x": 1.5388481616973877,
+      "y": 1.6910812854766846,
+      "z": 3.200000047683716
+    },
+    "radius": 1.7538796537880885,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        -0.07,
+        -0.78
+      ],
+      "wing_r": [
+        0.73,
+        -0.6,
+        0.55
+      ],
+      "wing_l": [
+        -0.73,
+        -0.6,
+        0.55
+      ],
+      "back": [
+        0,
+        0.36,
+        0.47
+      ],
+      "engine_l": [
+        -0.07,
+        -0.32,
+        1.6
+      ],
+      "engine_r": [
+        0.07,
+        -0.32,
+        1.6
+      ],
+      "nose": [
+        0,
+        0.02,
+        -0.8
+      ],
+      "belly": [
+        0,
+        -0.85,
+        -0.08
+      ]
+    },
+    "wallMs": 114
+  }
+}

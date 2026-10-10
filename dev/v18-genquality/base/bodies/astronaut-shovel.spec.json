@@ -1,0 +1,448 @@
+{
+  "id": "astronaut-shovel",
+  "set": "bodies",
+  "tag": "base",
+  "desc": "astronaut + shovel",
+  "drawing": "dev/gen-corpus/entity/E17.png",
+  "source": "draw",
+  "expected": {
+    "type": "person",
+    "skills": [
+      "dig"
+    ]
+  },
+  "wallMs": 1984,
+  "specWallMs": 2068,
+  "httpLog": [
+    {
+      "type": "spec",
+      "ms": 2065,
+      "status": 200,
+      "usage": {
+        "input": 2606,
+        "output": 398,
+        "reasoning": 0
+      },
+      "effort": "medium",
+      "detail": "low",
+      "maxTokens": 1800,
+      "tier": "ultrafast"
+    },
+    {
+      "type": "read",
+      "ms": 1880,
+      "status": 200,
+      "usage": {
+        "input": 1369,
+        "output": 230,
+        "reasoning": 72
+      },
+      "effort": "medium",
+      "detail": "low",
+      "maxTokens": 1600,
+      "tier": "ultrafast"
+    }
+  ],
+  "spec": {
+    "v": 1,
+    "type": "person",
+    "view": "front",
+    "facing": "viewer",
+    "style": "chunky",
+    "seed": 743176552,
+    "head": {
+      "shape": "round",
+      "size": 0.27,
+      "gear": "astronaut helmet",
+      "face": "visor",
+      "eyes": 0,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0.27,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 2,
+      "length": 0.29,
+      "thickness": "thin",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 2,
+      "length": 0.37,
+      "thickness": "thin",
+      "feet": "shoes",
+      "color": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0.15,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0.1,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "shovel",
+        "where": "right hand",
+        "size": 0.34,
+        "color": "",
+        "verb": "dig"
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    },
+    "source": "model"
+  },
+  "read": {
+    "ms": 1880,
+    "status": 200,
+    "usage": {
+      "input": 1369,
+      "output": 230,
+      "reasoning": 72
+    },
+    "effort": "medium",
+    "detail": "low",
+    "maxTokens": 1600,
+    "tier": "ultrafast",
+    "raw": {
+      "looksLike": "entity",
+      "type": "person",
+      "parts": [
+        {
+          "name": "head",
+          "x": 0.461,
+          "y": 0.16
+        },
+        {
+          "name": "helmet visor",
+          "x": 0.461,
+          "y": 0.177
+        },
+        {
+          "name": "body",
+          "x": 0.458,
+          "y": 0.457
+        },
+        {
+          "name": "left arm",
+          "x": 0.17,
+          "y": 0.435
+        },
+        {
+          "name": "right arm",
+          "x": 0.76,
+          "y": 0.439
+        },
+        {
+          "name": "legs",
+          "x": 0.461,
+          "y": 0.794
+        },
+        {
+          "name": "shovel",
+          "x": 0.884,
+          "y": 0.569
+        }
+      ],
+      "verbs": [
+        "dig"
+      ],
+      "unlocked": [
+        {
+          "verb": "dig",
+          "part": "shovel"
+        }
+      ]
+    }
+  },
+  "entity": {
+    "type": "person",
+    "verbs": [
+      "dig",
+      "jump",
+      "takeoff"
+    ],
+    "unlocked": [
+      {
+        "verb": "dig",
+        "part": "shovel"
+      }
+    ],
+    "parts": [
+      {
+        "name": "head",
+        "x": 0.461,
+        "y": 0.16
+      },
+      {
+        "name": "helmet visor",
+        "x": 0.461,
+        "y": 0.177
+      },
+      {
+        "name": "body",
+        "x": 0.458,
+        "y": 0.457
+      },
+      {
+        "name": "left arm",
+        "x": 0.17,
+        "y": 0.435
+      },
+      {
+        "name": "right arm",
+        "x": 0.76,
+        "y": 0.439
+      },
+      {
+        "name": "legs",
+        "x": 0.461,
+        "y": 0.794
+      },
+      {
+        "name": "shovel",
+        "x": 0.884,
+        "y": 0.569
+      }
+    ],
+    "source": "model",
+    "card": "Your explorer can: walk, jump, dig (shovel)",
+    "fallback": false
+  },
+  "typeOk": true,
+  "missing": [],
+  "extra": [],
+  "ms": 2065,
+  "usage": {
+    "input": 2606,
+    "output": 398,
+    "reasoning": 0
+  },
+  "raw": {
+    "type": "person",
+    "view": "front",
+    "facing": "viewer",
+    "style": "chunky",
+    "head": {
+      "shape": "round",
+      "size": 0.27,
+      "gear": "astronaut helmet",
+      "face": "visor",
+      "eyes": 0,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "box",
+      "width": 0.27,
+      "color": "",
+      "belt": false,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 2,
+      "length": 0.29,
+      "thickness": "thin",
+      "hands": "none",
+      "color": ""
+    },
+    "legs": {
+      "count": 2,
+      "length": 0.37,
+      "thickness": "thin",
+      "feet": "shoes",
+      "color": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "shovel",
+        "where": "right hand",
+        "size": 0.34,
+        "color": ""
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    }
+  },
+  "schemaOk": true,
+  "specCall": {
+    "ms": 2065,
+    "status": 200,
+    "usage": {
+      "input": 2606,
+      "output": 398,
+      "reasoning": 0
+    },
+    "effort": "medium",
+    "detail": "low",
+    "maxTokens": 1800,
+    "tier": "ultrafast",
+    "raw": {
+      "type": "person",
+      "view": "front",
+      "facing": "viewer",
+      "style": "chunky",
+      "head": {
+        "shape": "round",
+        "size": 0.27,
+        "gear": "astronaut helmet",
+        "face": "visor",
+        "eyes": 0,
+        "snout": 0,
+        "color": "",
+        "gearColor": "",
+        "faceColor": ""
+      },
+      "torso": {
+        "shape": "box",
+        "width": 0.27,
+        "color": "",
+        "belt": false,
+        "emblem": ""
+      },
+      "arms": {
+        "count": 2,
+        "length": 0.29,
+        "thickness": "thin",
+        "hands": "none",
+        "color": ""
+      },
+      "legs": {
+        "count": 2,
+        "length": 0.37,
+        "thickness": "thin",
+        "feet": "shoes",
+        "color": ""
+      },
+      "neck": 0,
+      "tail": {
+        "kind": "none",
+        "color": ""
+      },
+      "vehicle": {
+        "body": "none",
+        "height": 0,
+        "cabin": "none",
+        "wheels": 0,
+        "wheelSize": 0,
+        "color": "",
+        "rider": false
+      },
+      "items": [
+        {
+          "kind": "shovel",
+          "where": "right hand",
+          "size": 0.34,
+          "color": ""
+        }
+      ],
+      "palette": {
+        "colored": false,
+        "main": "",
+        "second": "",
+        "accent": "",
+        "skin": ""
+      }
+    }
+  },
+  "render": {
+    "ok": true,
+    "kit": false,
+    "rig": "person",
+    "triangles": 3858,
+    "drawCalls": 3,
+    "glTriangles": 3858,
+    "ms": 27.9,
+    "size": {
+      "x": 1.587,
+      "y": 1.795,
+      "z": 1.031
+    },
+    "radius": 1.0867433901007468,
+    "clips": [
+      "aim",
+      "block",
+      "cast",
+      "celebrate",
+      "climb",
+      "climb_in",
+      "crouch",
+      "die",
+      "dig",
+      "drink",
+      "fall",
+      "flip",
+      "glide",
+      "hit",
+      "idle",
+      "jump",
+      "kneel",
+      "land",
+      "look",
+      "pick_up",
+      "push",
+      "read",
+      "roll",
+      "run",
+      "shoot",
+      "sit",
+      "sprint",
+      "step_out",
+      "swim",
+      "swing",
+      "throw",
+      "walk",
+      "wave"
+    ],
+    "clipsLoaded": true,
+    "poses": [
+      "idle",
+      "run",
+      "dig"
+    ],
+    "wallMs": 1448
+  }
+}

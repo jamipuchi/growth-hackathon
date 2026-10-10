@@ -6,7 +6,7 @@ const assert = require("assert");
 
 process.env.OPENAI_API_KEY = "sk-test-not-a-real-key"; // set first so astra.js never looks for a .env
 const TIMING_ENV = ["ASTRA_TIMEOUT_MS", "ASTRA_HEDGE_MS", "ASTRA_RETRY_BEFORE_MS", "ASTRA_SPEC_TIMEOUT_MS", "ASTRA_SPEC_HEDGE_MS"];
-for (const k of ["OPENAI_MODEL", "OPENAI_SERVICE_TIER", "OPENAI_REASONING_EFFORT", "ASTRA_MOCK", ...TIMING_ENV]) delete process.env[k];
+for (const k of ["OPENAI_MODEL", "OPENAI_SERVICE_TIER", "OPENAI_REASONING_EFFORT", "ASTRA_ENTITY_EFFORT", "ASTRA_SPEC_EFFORT", "ASTRA_READ_EFFORT", "ASTRA_IMAGE_DETAIL", "ASTRA_MOCK", ...TIMING_ENV]) delete process.env[k];
 
 const Contract = require("../../contract.js");
 const Astra = require("../../astra.js");
@@ -97,15 +97,15 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     assert.strictEqual(opts.headers.Authorization, "Bearer sk-test-not-a-real-key");
     assert.strictEqual(req.model, "gpt-6.1-sol");
     assert.strictEqual(req.service_tier, "ultrafast");
-    // Reasoning effort defaults to medium (owner 12:41: "a bit more effort for sol"; it was low), and the budget leaves
-    // room for the reasoning tokens (a 200-token button budget ran out in play: "incomplete: max_output_tokens").
+    // A controller reading's effort defaults to medium (owner 12:41: "a bit more effort for sol"; it was low), and the
+    // budget leaves room for the reasoning tokens (a 200-token button budget ran out in play: "incomplete: max_output_tokens").
     assert.deepStrictEqual(req.reasoning, { effort: "medium" });
     assert.ok(req.max_output_tokens >= 1200 && req.max_output_tokens <= 4000);
     assert.deepStrictEqual(req.text.format.schema.required, ["looksLike", "thing", "buttons"]);
     const [text, img] = req.input[0].content;
     assert.strictEqual(text.type, "input_text");
     assert.ok(/PHOTO of a notebook page/.test(text.text) && /paper lines/.test(text.text) && /fractions/.test(text.text));
-    assert.deepStrictEqual([img.type, img.detail], ["input_image", "low"]);
+    assert.deepStrictEqual([img.type, img.detail], ["input_image", "high"], "v1.8: every call sees the full-resolution drawing");
     assert.ok(img.image_url.startsWith("data:image/png;base64,"));
     assert.deepStrictEqual([req.text.format.type, req.text.format.strict, req.text.format.name], ["json_schema", true, "layout"]);
   });
@@ -215,8 +215,8 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
   let timeoutMs;
   // v1.0 review: a timeout used to answer the default layout as a success (charged, under the wrong ink). Now: the
   // drawing's own ink regions when the phone sent them, the expected button, else an honest timeout (nothing spent).
-  await test("9 s timeout → the ink regions (controller) or the expected verb (button), else a timeout error", async () => {
-    assert.strictEqual(_internals.TIMEOUT_MS, 9000);
+  await test("11 s timeout → the ink regions (controller) or the expected verb (button), else a timeout error", async () => {
+    assert.strictEqual(_internals.TIMEOUT_MS, 11000);
     fakeFetch(() => ({ ...answer({ buttons: [] }), delay: 60000 }));
     const t0 = Date.now();
     const ink = [{ x: 0.05, y: 0.45, w: 0.28, h: 0.5, round: true }, { x: 0.7, y: 0.55, w: 0.12, h: 0.2 }, { x: 0.55, y: 0.6, w: 0.1, h: 0.18 }, { x: 0.9, y: 0.1, w: 0.01, h: 0.01 }];
@@ -227,7 +227,7 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
       Astra.generate({ player: "bea", kind: "button", image: image("slow-exp"), region: { x: 0.5, y: 0.1, w: 0.2, h: 0.2 }, expect: "dig" }),
     ]);
     timeoutMs = Date.now() - t0;
-    assert.ok(timeoutMs >= 8990 && timeoutMs < 9300, `took ${timeoutMs} ms`);
+    assert.ok(timeoutMs >= 10990 && timeoutMs < 11300, `took ${timeoutMs} ms`);
     assert.deepStrictEqual(c, { ok: false, error: "timeout" }, "no default layout passed off as the drawing");
     assert.deepStrictEqual(b, { ok: false, error: "timeout" });
     assert.ok(ci.ok && ci.layout.source === "regions", JSON.stringify(ci));
@@ -332,7 +332,13 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     assert.strictEqual(req.model, "gpt-6.1-sol"); assert.strictEqual(req.service_tier, "ultrafast");
     assert.strictEqual(req.text.format.strict, true); assert.strictEqual(req.text.format.name, "entity");
     assert.deepStrictEqual(req.text.format.schema.required, ["looksLike", "type", "parts", "verbs", "unlocked"]);
-    assert.strictEqual(req.input[0].content[1].detail, "low");
+    assert.strictEqual(req.input[0].content[1].detail, "high");
+    // v1.8 (owner 13:04: "up to 10 s but VERY VERY GOOD"): the entity reading at high effort with room for its reasoning;
+    // its 3D spec at medium effort (high made the ship spec p90 11.7 s), full detail too.
+    assert.deepStrictEqual(req.reasoning, { effort: "high" });
+    assert.ok(req.max_output_tokens >= 6000, `entity budget ${req.max_output_tokens}`);
+    const specReq = calls.find((c) => formatOf(c) === "ship_spec").req;
+    assert.deepStrictEqual([specReq.reasoning, specReq.input[0].content[1].detail, specReq.max_output_tokens], [{ effort: "medium" }, "high", 8000]);
     assert.strictEqual(ship.ok, true);
     assert.strictEqual(ship.entity.type, "ship"); assert.strictEqual(ship.entity.rig, "ship"); assert.strictEqual(ship.entity.source, "model");
     assert.deepStrictEqual(ship.entity.verbs, ["shoot", "boost"], "dig is not a ship skill");
@@ -481,8 +487,8 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     const r = await Astra.generate({ player: "ana", kind: "button", image: image("inc"), region: { x: 0.1, y: 0.1, w: 0.2, h: 0.2 } });
     assert.ok(r.ok, r.error);
     assert.strictEqual(calls.length, 2);
-    assert.strictEqual(calls[0].req.max_output_tokens, 1200);
-    assert.strictEqual(calls[1].req.max_output_tokens, 4000);
+    assert.strictEqual(calls[0].req.max_output_tokens, 2000);
+    assert.strictEqual(calls[1].req.max_output_tokens, 8000);
     fakeFetch((req, i) => answer(i === 1 ? { looksLike: "controller", thing: "none", buttons: [] } : { looksLike: "controller", thing: "none", buttons: [{ type: "stick", label: "", action: "steer", x: 0.05, y: 0.4, w: 0.3, h: 0.5 }] }));
     const c = await Astra.generate({ player: "ana", kind: "controller", image: image("empty") });
     assert.ok(c.ok && c.layout.buttons[0].type === "stick", c.error);
@@ -578,7 +584,7 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
       ? { body: { status: "incomplete", incomplete_details: { reason: "max_output_tokens" }, output: [{ type: "message", content: [{ type: "output_text", text: '{"looksLike":"controller","thing":"none","type":"butt' }] }] } }
       : answer({ looksLike: "controller", thing: "none", type: "button", label: "LAND", action: "land" }));
     const r = await Astra.generate({ player: "Rex", kind: "button", image: image("trunc"), region: { x: 0.1, y: 0.1, w: 0.2, h: 0.2 } });
-    assert.ok(r.ok && calls.length === 2 && calls[1].req.max_output_tokens === 4000, r.error);
+    assert.ok(r.ok && calls.length === 2 && calls[1].req.max_output_tokens === 8000, r.error);
     fakeFetch(() => answer({ looksLike: "controller", thing: "none", type: "button", label: "LAND", action: "land" }));
     const hostile = { toString: 1 };
     for (const extra of [{ expect: hostile }, { pad: [{ action: hostile }] }, { pad: [{ action: "shoot", label: hostile }] }, { pad: "x" }, { pad: [null, 5, [], {}, { action: "__proto__" }] }]) {
@@ -594,17 +600,17 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
   });
 
   await test("hedged request: a hung call gets a twin after HEDGE_MS, the first answer wins; fast failures are not hedged", async () => {
-    assert.strictEqual(_internals.HEDGE_MS, 5000);
+    assert.strictEqual(_internals.HEDGE_MS, 6500);
     fakeFetch((req, i) => ({ ...answer({ looksLike: "controller", thing: "none", buttons: [{ type: "button", label: "FIRE", action: "shoot", x: 0.6, y: 0.5, w: 0.2, h: 0.3 }] }), delay: i === 1 ? 60000 : 300 }));
     const t0 = Date.now();
     const r = await Astra.generate({ player: "ana", kind: "controller", image: image("hung") });
     const ms = Date.now() - t0;
     assert.ok(r.ok && r.layout.source === "model", r.error);
-    assert.ok(ms >= 5250 && ms < 6000, `took ${ms} ms`);
+    assert.ok(ms >= 6750 && ms < 7500, `took ${ms} ms`);
     assert.strictEqual(calls.length, 2);
     assert.strictEqual(calls[0].aborted, true, "the hung call is aborted");
     // A fast failure is not hedged: a 400 is reported at once (one call); a 500 gets one quick transient retry
-    // (250 ms later), never the 5 s twin.
+    // (250 ms later), never the 6.5 s twin.
     fakeFetch(() => ({ status: 400, text: "bad request" }));
     const t1 = Date.now();
     const f = await Astra.generate({ player: "ana", kind: "controller", image: image("fast-fail") });
@@ -617,16 +623,27 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     assert.ok(Date.now() - t2 < 900 && calls.length === 2, `a 5xx: one quick retry, no hedge (${calls.length} calls in ${Date.now() - t2} ms)`);
   });
 
-  await test("timings for medium effort: defaults, env overrides, and the phone budget cap", async () => {
+  await test("timings for v1.8 (high-effort entity readings): defaults, env overrides, and the phone budget cap", async () => {
     const t = _internals;
-    assert.deepStrictEqual([t.DEFAULT_EFFORT, t.TIMEOUT_MS, t.HEDGE_MS, t.RETRY_BEFORE_MS, t.SPEC_TIMEOUT_MS, t.SPEC_HEDGE_MS], ["medium", 9000, 5000, 4000, 14000, 8000]);
+    assert.deepStrictEqual([t.DEFAULT_EFFORT, t.ENTITY_EFFORT, t.SPEC_EFFORT, t.IMAGE_DETAIL], ["medium", "high", "medium", "high"]);
+    assert.deepStrictEqual([t.TIMEOUT_MS, t.HEDGE_MS, t.RETRY_BEFORE_MS, t.SPEC_TIMEOUT_MS, t.SPEC_HEDGE_MS], [11000, 6500, 5000, 12000, 7000]);
+    // Effort per call: controller / button readings medium, ship / explorer readings high, specs medium; env overrides each,
+    // OPENAI_REASONING_EFFORT overrides them all.
+    assert.deepStrictEqual([t.effortFor("controller"), t.effortFor("button"), t.effortFor("ship"), t.effortFor("explorer"), t.effortFor("ship", true), t.effortFor("explorer", true)],
+      ["medium", "medium", "high", "high", "medium", "medium"]);
+    process.env.ASTRA_ENTITY_EFFORT = "xhigh"; process.env.ASTRA_SPEC_EFFORT = "low"; process.env.ASTRA_READ_EFFORT = "minimal";
+    try {
+      assert.deepStrictEqual([t.effortFor("controller"), t.effortFor("ship"), t.effortFor("ship", true)], ["minimal", "xhigh", "low"]);
+      process.env.OPENAI_REASONING_EFFORT = "none";
+      assert.deepStrictEqual([t.effortFor("controller"), t.effortFor("ship"), t.effortFor("explorer", true)], ["none", "none", "none"]);
+    } finally { for (const k of ["ASTRA_ENTITY_EFFORT", "ASTRA_SPEC_EFFORT", "ASTRA_READ_EFFORT", "OPENAI_REASONING_EFFORT"]) delete process.env[k]; }
     assert.ok(t.TIMEOUT_MS <= t.PHONE_BUDGET_MS && t.PHONE_BUDGET_MS < 15000, "the reading, retry included, ends before the phone's 15 s GENERATE_MS");
     assert.ok(t.RETRY_BEFORE_MS < t.TIMEOUT_MS && t.HEDGE_MS < t.TIMEOUT_MS && t.SPEC_HEDGE_MS < t.SPEC_TIMEOUT_MS);
     const read = (env) => JSON.parse(require("child_process").execFileSync(process.execPath, ["-e",
       `const t = require(${JSON.stringify(path.join(__dirname, "../../astra.js"))})._internals; process.stdout.write(JSON.stringify([t.TIMEOUT_MS, t.HEDGE_MS, t.RETRY_BEFORE_MS, t.SPEC_TIMEOUT_MS, t.SPEC_HEDGE_MS]))`],
       { env: { ...process.env, ASTRA_MOCK: "1", ...env }, encoding: "utf8" }));
     assert.deepStrictEqual(read({ ASTRA_TIMEOUT_MS: "7000", ASTRA_HEDGE_MS: "3000", ASTRA_RETRY_BEFORE_MS: "2500", ASTRA_SPEC_TIMEOUT_MS: "12000", ASTRA_SPEC_HEDGE_MS: "6000" }), [7000, 3000, 2500, 12000, 6000]);
-    assert.deepStrictEqual(read({ ASTRA_TIMEOUT_MS: "60000", ASTRA_RETRY_BEFORE_MS: "90000", ASTRA_HEDGE_MS: "abc", ASTRA_SPEC_TIMEOUT_MS: "-5" }), [13000, 5000, 13000, 14000, 8000], "capped to the phone budget; junk falls back");
+    assert.deepStrictEqual(read({ ASTRA_TIMEOUT_MS: "60000", ASTRA_RETRY_BEFORE_MS: "90000", ASTRA_HEDGE_MS: "abc", ASTRA_SPEC_TIMEOUT_MS: "-5" }), [13000, 6500, 13000, 12000, 7000], "capped to the phone budget; junk falls back");
   });
 
   console.log = realLog;

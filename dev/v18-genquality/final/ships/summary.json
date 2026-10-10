@@ -1,0 +1,40 @@
+{
+  "tag": "final",
+  "set": "ships",
+  "at": "2026-10-10T11:26:27.875Z",
+  "n": 2,
+  "schemaFailures": 0,
+  "p50": 5493,
+  "p90": 5493,
+  "max": 5493,
+  "read": {
+    "p50": 5720,
+    "p90": 5720,
+    "max": 5720,
+    "failures": 0
+  },
+  "calls": [
+    {
+      "id": "E10-chunky",
+      "ms": 5493,
+      "schemaOk": true,
+      "usage": {
+        "input": 2484,
+        "output": 1114,
+        "reasoning": 647
+      },
+      "readMs": 5720
+    },
+    {
+      "id": "color-messy",
+      "ms": 4014,
+      "schemaOk": true,
+      "usage": {
+        "input": 2542,
+        "output": 718,
+        "reasoning": 355
+      },
+      "readMs": 2320
+    }
+  ]
+}

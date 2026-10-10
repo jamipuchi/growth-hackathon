@@ -1,0 +1,524 @@
+{
+  "id": "E10-chunky",
+  "set": "ships",
+  "tag": "v18",
+  "desc": "chunky box ship: cannon, drill, flames, legs",
+  "drawing": "dev/gen-corpus/entity/E10.png",
+  "source": "draw",
+  "expected": {
+    "type": "ship",
+    "skills": [
+      "shoot",
+      "boost",
+      "land"
+    ]
+  },
+  "wallMs": 5230,
+  "specWallMs": 8318,
+  "httpLog": [
+    {
+      "type": "spec",
+      "ms": 8317,
+      "status": 200,
+      "usage": {
+        "input": 2484,
+        "output": 1896,
+        "reasoning": 1425
+      },
+      "effort": "high",
+      "detail": "high",
+      "maxTokens": 8000,
+      "tier": "ultrafast"
+    },
+    {
+      "type": "read",
+      "ms": 5128,
+      "status": 200,
+      "usage": {
+        "input": 1140,
+        "output": 970,
+        "reasoning": 763
+      },
+      "effort": "high",
+      "detail": "high",
+      "maxTokens": 6000,
+      "tier": "ultrafast"
+    }
+  ],
+  "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "seed": 2701635634,
+    "hull": {
+      "shape": "box",
+      "width": 0.35,
+      "height": 0.4,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "windows",
+      "at": 0.43,
+      "size": 0.15,
+      "color": "",
+      "windows": 1
+    },
+    "wings": {
+      "count": 0,
+      "shape": "straight",
+      "at": 0.5,
+      "span": 0.2,
+      "chord": 0.08,
+      "mount": "mid",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.81,
+        "size": 0.3,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 3,
+      "size": 0.06,
+      "flame": true,
+      "flameColor": "",
+      "layout": "stack",
+      "verb": "boost"
+    },
+    "weapons": [
+      {
+        "kind": "cannon",
+        "count": 1,
+        "at": 0.42,
+        "mount": "top",
+        "size": 0.26,
+        "color": "",
+        "verb": "shoot"
+      },
+      {
+        "kind": "drill",
+        "count": 1,
+        "at": 0,
+        "mount": "nose",
+        "size": 0.2,
+        "color": "",
+        "verb": "shoot"
+      }
+    ],
+    "extras": [
+      {
+        "kind": "legs",
+        "at": 0.56,
+        "mount": "belly",
+        "size": 0.16,
+        "color": "",
+        "label": "",
+        "verb": null
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "model"
+  },
+  "read": {
+    "ms": 5128,
+    "status": 200,
+    "usage": {
+      "input": 1140,
+      "output": 970,
+      "reasoning": 763
+    },
+    "effort": "high",
+    "detail": "high",
+    "maxTokens": 6000,
+    "tier": "ultrafast",
+    "raw": {
+      "looksLike": "entity",
+      "type": "ship",
+      "parts": [
+        {
+          "name": "body",
+          "x": 0.432,
+          "y": 0.486
+        },
+        {
+          "name": "nose",
+          "x": 0.766,
+          "y": 0.489
+        },
+        {
+          "name": "tail fin",
+          "x": 0.29,
+          "y": 0.152
+        },
+        {
+          "name": "cannon",
+          "x": 0.553,
+          "y": 0.222
+        },
+        {
+          "name": "window",
+          "x": 0.546,
+          "y": 0.387
+        },
+        {
+          "name": "exhaust flames",
+          "x": 0.099,
+          "y": 0.49
+        },
+        {
+          "name": "rear landing leg",
+          "x": 0.382,
+          "y": 0.831
+        },
+        {
+          "name": "front landing leg",
+          "x": 0.552,
+          "y": 0.836
+        },
+        {
+          "name": "projectile",
+          "x": 0.9,
+          "y": 0.489
+        }
+      ],
+      "verbs": [
+        "shoot",
+        "boost"
+      ],
+      "unlocked": [
+        {
+          "verb": "shoot",
+          "part": "cannon"
+        },
+        {
+          "verb": "boost",
+          "part": "exhaust flames"
+        }
+      ]
+    }
+  },
+  "entity": {
+    "type": "ship",
+    "verbs": [
+      "shoot",
+      "boost"
+    ],
+    "unlocked": [
+      {
+        "verb": "shoot",
+        "part": "cannon"
+      },
+      {
+        "verb": "boost",
+        "part": "exhaust flames"
+      }
+    ],
+    "parts": [
+      {
+        "name": "body",
+        "x": 0.432,
+        "y": 0.486
+      },
+      {
+        "name": "nose",
+        "x": 0.766,
+        "y": 0.489
+      },
+      {
+        "name": "tail fin",
+        "x": 0.29,
+        "y": 0.152
+      },
+      {
+        "name": "cannon",
+        "x": 0.553,
+        "y": 0.222
+      },
+      {
+        "name": "window",
+        "x": 0.546,
+        "y": 0.387
+      },
+      {
+        "name": "exhaust flames",
+        "x": 0.099,
+        "y": 0.49
+      },
+      {
+        "name": "rear landing leg",
+        "x": 0.382,
+        "y": 0.831
+      },
+      {
+        "name": "front landing leg",
+        "x": 0.552,
+        "y": 0.836
+      },
+      {
+        "name": "projectile",
+        "x": 0.9,
+        "y": 0.489
+      }
+    ],
+    "source": "model",
+    "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames)",
+    "fallback": false
+  },
+  "typeOk": true,
+  "missing": [
+    "land"
+  ],
+  "extra": [],
+  "ms": 8317,
+  "usage": {
+    "input": 2484,
+    "output": 1896,
+    "reasoning": 1425
+  },
+  "raw": {
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "hull": {
+      "shape": "box",
+      "width": 0.35,
+      "height": 0.4,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "windows",
+      "at": 0.43,
+      "size": 0.15,
+      "color": "",
+      "windows": 1
+    },
+    "wings": {
+      "count": 0,
+      "shape": "straight",
+      "at": 0.5,
+      "span": 0,
+      "chord": 0,
+      "mount": "mid",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.81,
+        "size": 0.3,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 3,
+      "size": 0.05,
+      "flame": true,
+      "flameColor": "",
+      "layout": "stack"
+    },
+    "weapons": [
+      {
+        "kind": "cannon",
+        "count": 1,
+        "at": 0.42,
+        "mount": "top",
+        "size": 0.26,
+        "color": ""
+      },
+      {
+        "kind": "drill",
+        "count": 1,
+        "at": 0,
+        "mount": "nose",
+        "size": 0.2,
+        "color": ""
+      }
+    ],
+    "extras": [
+      {
+        "kind": "legs",
+        "at": 0.56,
+        "mount": "belly",
+        "size": 0.16,
+        "color": "",
+        "label": ""
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    }
+  },
+  "schemaOk": true,
+  "specCall": {
+    "ms": 8317,
+    "status": 200,
+    "usage": {
+      "input": 2484,
+      "output": 1896,
+      "reasoning": 1425
+    },
+    "effort": "high",
+    "detail": "high",
+    "maxTokens": 8000,
+    "tier": "ultrafast",
+    "raw": {
+      "view": "side",
+      "noseDir": "right",
+      "style": "chunky",
+      "hull": {
+        "shape": "box",
+        "width": 0.35,
+        "height": 0.4,
+        "nose": "pointed",
+        "tail": "flat",
+        "color": "",
+        "stripe": ""
+      },
+      "cockpit": {
+        "kind": "windows",
+        "at": 0.43,
+        "size": 0.15,
+        "color": "",
+        "windows": 1
+      },
+      "wings": {
+        "count": 0,
+        "shape": "straight",
+        "at": 0.5,
+        "span": 0,
+        "chord": 0,
+        "mount": "mid",
+        "color": ""
+      },
+      "fins": [
+        {
+          "kind": "tail",
+          "at": 0.81,
+          "size": 0.3,
+          "color": ""
+        }
+      ],
+      "engines": {
+        "count": 3,
+        "size": 0.05,
+        "flame": true,
+        "flameColor": "",
+        "layout": "stack"
+      },
+      "weapons": [
+        {
+          "kind": "cannon",
+          "count": 1,
+          "at": 0.42,
+          "mount": "top",
+          "size": 0.26,
+          "color": ""
+        },
+        {
+          "kind": "drill",
+          "count": 1,
+          "at": 0,
+          "mount": "nose",
+          "size": 0.2,
+          "color": ""
+        }
+      ],
+      "extras": [
+        {
+          "kind": "legs",
+          "at": 0.56,
+          "mount": "belly",
+          "size": 0.16,
+          "color": "",
+          "label": ""
+        }
+      ],
+      "palette": {
+        "colored": false,
+        "main": "",
+        "second": "",
+        "accent": ""
+      }
+    }
+  },
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 4895,
+    "drawCalls": 3,
+    "glTriangles": 4895,
+    "ms": 12,
+    "size": {
+      "x": 1.0247291326522827,
+      "y": 2.1970131397247314,
+      "z": 3.200000047683716
+    },
+    "radius": 1.78123678006959,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        0.4,
+        0.03
+      ],
+      "wing_r": [
+        0.48,
+        -0.11,
+        0.33
+      ],
+      "wing_l": [
+        -0.48,
+        -0.11,
+        0.33
+      ],
+      "back": [
+        0,
+        0.72,
+        0.99
+      ],
+      "engine_l": [
+        -0.06,
+        0,
+        1.6
+      ],
+      "engine_r": [
+        0.06,
+        0,
+        1.6
+      ],
+      "nose": [
+        0,
+        0.46,
+        -0.5
+      ],
+      "belly": [
+        0,
+        -0.61,
+        0.2
+      ]
+    },
+    "wallMs": 103
+  }
+}
