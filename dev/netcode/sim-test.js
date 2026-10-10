@@ -1035,6 +1035,116 @@ test("explorers never step out onto water: every bay on 300 islands leaves them 
   return `${total} landings, 0 in the water`;
 });
 
+// ---- v1.4: the owner's 09:05 decisions on the server ------------------------------------------------------------------
+
+test("v1.4 countdown: START plays a 3-2-1 (tick.countdown 3, 2, 1); nothing moves or fires, bots wait; a joiner counts at GO", () => {
+  const h = harness(61);
+  h.w.join("ana"); h.w.setEntity("ana", "ship", devKit("ship"));
+  for (let i = 1; i <= 4; i++) h.w.addBot(`bot${i}`);
+  const startAt = h.steps;
+  assert.strictEqual(h.w.start({ countdown: true }), true);
+  assert.strictEqual(h.w.phase, "countdown");
+  assert.strictEqual(h.w.countdown, 3);
+  assert.strictEqual(h.w.start({ countdown: true }), false, "START during the countdown is a no-op");
+  const wm = h.w.worldMessage();
+  assert.strictEqual(wm.phase, "countdown"); assert.strictEqual(wm.countdown, 3, "a screen connecting now counts down at once");
+  const startLine = h.msgs.find((x) => x.at >= startAt && x.m.type === "announce");
+  assert(startLine && /starts in 3/.test(startLine.m.text) && !startLine.m.big, "the countdown line is for the feed, not a banner");
+  const before = Object.fromEntries(Object.values(h.w.players).map((p) => [p.name, { ...p.pos }]));
+  h.input("ana", "forward", true); h.input("ana", "shoot", true);
+  const seen = [];
+  const note = () => { const c = h.w.tickMessage().countdown; if (c !== undefined && c !== seen[seen.length - 1]) seen.push(c); };
+  h.wait(1.4, note);
+  for (const p of Object.values(h.w.players)) assert.deepStrictEqual(p.pos, before[p.name], `${p.name} waits for GO`);
+  assert.strictEqual(h.dbg().bullets.length, 0, "no shots before GO");
+  const hp0 = h.dbg().boss.maxHp;
+  h.w.join("bob"); // during the 3-2-1
+  h.until("GO", () => h.w.phase === "playing", 2, note);
+  const goAt = h.dbg().t - h.dbg().phaseT; // sim seconds at GO
+  assert.deepStrictEqual(seen, [3, 2, 1], "whole seconds left");
+  assert.strictEqual(h.w.tickMessage().countdown, undefined, "no countdown field in play");
+  assert.strictEqual(h.dbg().playerCount, 3, "bob, joined during the countdown, counts at GO (2 humans + 4 × 0.25)");
+  assert.strictEqual(h.dbg().boss.maxHp, bossHp(3)); assert.notStrictEqual(hp0, bossHp(3));
+  assert.strictEqual(h.dbg().chests.length, chestCount(3));
+  const goWorld = h.msgs.filter((x) => x.m.type === "world").pop().m;
+  assert.strictEqual(goWorld.phase, "playing"); assert.strictEqual(goWorld.countdown, undefined);
+  const atGo = Object.fromEntries(Object.values(h.w.players).map((p) => [p.name, { ...p.pos }]));
+  h.wait(0.5);
+  assert(dist(h.p("ana").pos, atGo.ana) > 5, "the held FORWARD counts from GO");
+  assert(h.dbg().bullets.length > 0, "the held SHOOT fires from GO");
+  assert(Object.values(h.w.players).filter((p) => p.bot).every((p) => dist(p.pos, atGo[p.name]) > 1), "bots fly from GO");
+  const plain = harness(62); plain.w.join("ana");
+  assert.strictEqual(plain.w.start(), true); assert.strictEqual(plain.w.phase, "playing", "world.start() without the countdown: at once (tests, --autostart)");
+  return `countdown ${seen.join("-")} then GO at ${goAt.toFixed(2)} s; boss ${hp0} → ${bossHp(3)} HP after bob joined mid-countdown`;
+});
+
+test("v1.4 late hints: from 3:00 every human missing a gate skill gets one big DRAW X card (part first, then button); nothing is granted", () => {
+  const h = harness(63);
+  for (const n of ["ana", "bob", "cy", "dee"]) h.w.join(n);
+  h.w.setEntity("ana", "ship", devKit("ship")); h.w.setLayout("ana", LAYOUT); // ready for every gate in space
+  // bob: a plain ship (no gun). cy: a gun but no SHOOT button. dee: a plain ship and no drawing left.
+  h.w.setEntity("cy", "ship", devKit("ship"));
+  h.w.setLayout("cy", { buttons: [{ type: "stick", action: "steer", label: "", x: 0.04, y: 0.4, w: 0.3, h: 0.55 }], source: "model" });
+  h.w.start();
+  for (let i = 0; i < 5; i++) h.w.spendDrawing("dee", "space");
+  // Idle ships cruise into the boss fight and die there (a dead player gets no card until the respawn): keep every ship
+  // where it is, at full health, while the test waits.
+  const names = ["ana", "bob", "cy", "dee"];
+  let home = {};
+  const keep = () => { home = Object.fromEntries(names.map((n) => [n, { ...h.p(n).pos }])); };
+  const pin = () => { for (const n of names) { const p = h.p(n); if (p.mode === "space" && !p.dead) { p.pos = { ...home[n] }; p.hp = T.shipHp; } } };
+  keep();
+  const from = h.steps;
+  h.until("assists", () => h.w.phase === "assists", 181, pin);
+  const assistsAt = h.steps;
+  h.wait(0.5, pin);
+  const late = (name) => h.toasts(name, from).filter((t) => t.late);
+  assert.strictEqual(late("ana").length, 0, "ana has a gun and a SHOOT button");
+  assert.strictEqual(late("dee").length, 0, "dee has no drawing left: no card to draw");
+  const [b] = late("bob");
+  assert(b && b.at - assistsAt <= 1, "bob's card comes at 3:00");
+  assert.deepStrictEqual([b.kind, b.need, b.gate, b.title, b.part, b.on, b.ghost], ["hint", "part", "weapon", "DRAW A GUN", "gun", "ship", null]);
+  const [c] = late("cy");
+  assert.deepStrictEqual([c.need, c.title, c.on, c.ghost && c.ghost.action], ["button", "DRAW A SHOOT BUTTON", "controller", "shoot"]);
+  assert(!h.p("bob").entity.verbs.includes("shoot") && h.p("bob").entity.assisted === undefined, "nothing is granted");
+  h.wait(8, pin);
+  assert.strictEqual(late("bob").length, 1, "one card per gate and need");
+  killBoss(h, "ana");
+  keep();
+  h.wait(7, pin);
+  const bob2 = late("bob");
+  assert.strictEqual(bob2.length, 2); assert.deepStrictEqual([bob2[1].gate, bob2[1].title], ["land", "DRAW LANDING LEGS"], "the boss is down: LAND is the gate ahead");
+  landNow(h, "ana");
+  h.wait(0.5, pin);
+  const ana = late("ana");
+  assert.strictEqual(ana.length, 1, "ana landed with a plain explorer");
+  assert.deepStrictEqual([ana[0].title, ana[0].parts, ana[0].on], ["DRAW A SHOVEL AND A DRILL", ["shovel", "drill"], "explorer"], "both parts in one redraw");
+  h.w.setEntity("ana", "explorer", devKit("explorer"));
+  h.wait(7, pin);
+  assert.strictEqual(late("ana").length, 1, "ana now digs and drills with DIG and DRILL buttons: no more cards");
+  assert.strictEqual(h.toasts("ana", from).filter((t) => t.kind === "hint" && t.step === 3).length, 1, "the ladder does not repeat the card's answer");
+  return `bob: ${late("bob").map((t) => t.title).join(" → ")}; cy: ${c.title}; ana on the island: ${ana[0].title}`;
+});
+
+test("v1.4 seats: humans and bots never exceed 25; a human takes the newest bot's seat; an idle human back in a room of 25 humans is refused", () => {
+  const h = harness(64);
+  for (let i = 1; i <= 25; i++) h.w.addBot(`bot${i}`);
+  assert.strictEqual(h.w.addBot("bot26"), null, "no 26th bot");
+  assert.strictEqual(h.w.join("ana").player, "ana");
+  assert.strictEqual(h.p("bot25"), undefined, "the newest bot left for ana");
+  assert.strictEqual(Object.keys(h.w.players).length, 25);
+  for (let i = 0; i < 30; i++) h.w.join(`h${i}`);
+  const all = Object.values(h.w.players);
+  assert.strictEqual(all.length, 25); assert.strictEqual(all.filter((p) => p.bot).length, 0, "every bot gave its seat to a human");
+  h.p("ana").lastSeen = Date.now() - 11 * 60 * 1000; // idle for 11 minutes: the seat is free
+  assert.strictEqual(h.w.join("zed").player, "zed");
+  assert.strictEqual(h.w.join("ana"), null, "ana is back but 25 humans are playing: the game is full");
+  assert.strictEqual(h.w.seat("ana"), false);
+  assert.strictEqual(h.w.handleInput({ type: "input", player: "ana", action: "boost", down: true }), false, "409 join first, then the full answer");
+  assert.strictEqual(h.w.seat("zed"), true);
+  return `25 bots → 1 human + 24 bots → 25 humans; a 26th refused`;
+});
+
 // ---- Network budget ------------------------------------------------------------------------------------------------
 
 test("tick size with 25 players stays under 8 KB", () => {

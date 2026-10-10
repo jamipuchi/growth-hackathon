@@ -6,26 +6,32 @@ const Contract = require("./contract.js");
 // v1.1 (PLAN.md section 0): a gate needs a SKILL drawn on the entity and a BUTTON on the controller. While the skill
 // is missing the ladder points at the drawing (need "part"); once it is unlocked, at the button (need "button").
 // Riddles never write the button's name; only the last step does.
+// late (v1.4, owner 10 Oct 09:05: no free skills at 3:00): the big "draw X" card (lateHint): thing = what to draw in
+// capitals (the card's headline is "DRAW " + thing), on = the drawing it goes on.
 const GATES = {
   weapon: {
     part: { riddle: "Your ship can't shoot. What would let it?", sketch: "gun", answer: "Draw a gun or a cannon on your ship" },
     button: { riddle: "Your ship has a gun. Where's the trigger?", sketch: "gun", answer: "Draw SHOOT" },
     action: "shoot",
+    late: { thing: "A GUN", on: "ship" },
   },
   land: {
     part: { riddle: "So close you could touch down. What would your ship stand on?", sketch: "landing", answer: "Draw landing legs or a parachute on your ship" },
     button: { riddle: "So close you could touch down.", sketch: "landing", answer: "Draw LAND" },
     action: "land",
+    late: { thing: "LANDING LEGS", on: "ship" },
   },
   dig: {
     part: { riddle: "X marks the spot. Your explorer has nothing to dig with.", sketch: "shovel", answer: "Draw a shovel or claws on your explorer" },
     button: { riddle: "X marks the spot. The treasure isn't on top.", sketch: "shovel", answer: "Draw DIG" },
     action: "dig",
+    late: { thing: "A SHOVEL", on: "explorer" },
   },
   drill: {
     part: { riddle: "The chest is locked inside the rock. What breaks rock?", sketch: "drill", answer: "Draw a drill on your explorer" },
     button: { riddle: "Your drill is ready. What starts it?", sketch: "drill", answer: "Draw DRILL" },
     action: "drill",
+    late: { thing: "A DRILL", on: "explorer" },
   },
 };
 
@@ -109,7 +115,8 @@ function createHints({ now = Date.now } = {}) {
 
     st.sent = step;
     const text = def[need];
-    const base = { type: "toast", player, kind: "hint", need, gate };
+    // step (v1.4): 1 riddle, 2 sketch, 3 the answer ("Draw ..."): the phone's big card is for step 3 only.
+    const base = { type: "toast", player, kind: "hint", need, gate, step };
     if (step === 1) return { ...base, text: text.riddle, sketch: null, ghost: null };
     if (step === 2) return { ...base, text: "", sketch: text.sketch, ghost: null };
     return { ...base, text: text.answer, sketch: null, ghost: need === "button" ? ghostBox(layout, action || def.action) : null };
@@ -120,7 +127,41 @@ function createHints({ now = Date.now } = {}) {
     else states.delete(player);
   }
 
-  return { update, reset };
+  // v1.4 late cards (lateHint): did the ladder already give the answer (step 3) for this gate and need? And answered():
+  // a late card gave it, so the ladder has nothing left to say about that gate and need this round (until the need
+  // changes, e.g. the part is drawn and the button is still missing).
+  function gaveAnswer(player, gate, need) {
+    const st = (states.get(player) || {})[gate];
+    return !!(st && st.need === need && st.sent >= 3);
+  }
+  function answered(player, gate, need) {
+    if (!GATES[gate]) return;
+    const st = stateFor(player, gate);
+    if (st.need !== need) Object.assign(st, { need, stuck: 0, last: null, done: false });
+    st.sent = 3;
+  }
+
+  return { update, reset, gaveAnswer, answered };
+}
+
+// v1.4 late hint (owner, 10 Oct 09:05): from 3:00 nothing is granted; a player still missing what a gate needs gets one
+// big card instead (world.js decides who and when). need "part": "DRAW A SHOVEL" on the explorer (also: more gates
+// whose part is missing too, drawn in the same redraw: "DRAW A SHOVEL AND A DRILL"); need "button": "DRAW A DIG BUTTON"
+// on the controller, with the ghost box to trace (as the ladder's last step). label: the button's word (verbs.js
+// labelOf); action: the ghost box's action when it differs from the gate's (the weapon the player has). The message
+// is a hint toast, so a phone that knows nothing about late: true still shows text and its one-tap redraw.
+function lateHint(player, { gate, need = "part", also = [], layout, action, label } = {}) {
+  const def = GATES[gate];
+  if (!def) return null;
+  const gates = [gate, ...also.filter((g) => GATES[g] && g !== gate)];
+  const base = { type: "toast", player, kind: "hint", need, gate, step: 3, late: true, sketch: null };
+  if (need === "button") {
+    const word = String(label || action || def.action).toUpperCase();
+    return { ...base, title: `DRAW A ${word} BUTTON`, text: `Draw a ${word} button on your controller`, part: def.part.sketch, parts: [def.part.sketch], on: "controller", ghost: ghostBox(layout, action || def.action) };
+  }
+  const things = gates.map((g) => GATES[g].late.thing);
+  const text = gates.length === 1 ? def.part.answer : `Draw ${things.join(" and ").toLowerCase()} on your ${def.late.on}`;
+  return { ...base, title: `DRAW ${things.join(" AND ")}`, text, part: def.part.sketch, parts: gates.map((g) => GATES[g].part.sketch), on: def.late.on, ghost: null };
 }
 
 function createBudget({ perWorld = Contract.TUNING.drawings } = {}) {
@@ -149,4 +190,4 @@ function createBudget({ perWorld = Contract.TUNING.drawings } = {}) {
   };
 }
 
-module.exports = { createHints, createBudget, ghostBox, GATES, STEP_MS };
+module.exports = { createHints, createBudget, ghostBox, lateHint, GATES, STEP_MS };

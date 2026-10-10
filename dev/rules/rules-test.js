@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { createHints, createBudget, ghostBox } = require("../../rules.js");
+const { createHints, createBudget, ghostBox, lateHint } = require("../../rules.js");
 
 let passed = 0;
 const test = (name, fn) => { fn(); passed++; console.log("ok  " + name); };
@@ -221,6 +221,40 @@ test("budget: counts, limits, per-world separation, reset", () => {
 test("budget defaults come from Contract.TUNING.drawings", () => {
   const b = createBudget();
   assert.deepStrictEqual(b.left("x"), { space: 5, planet: 5 });
+});
+
+test("late hint (v1.4, no free skills at 3:00): one big DRAW X card for a missing part or button", () => {
+  const dig = lateHint("ana", { gate: "dig" });
+  assert.deepStrictEqual(
+    { type: dig.type, player: dig.player, kind: dig.kind, need: dig.need, gate: dig.gate, step: dig.step, late: dig.late, title: dig.title, text: dig.text, part: dig.part, parts: dig.parts, on: dig.on, sketch: dig.sketch, ghost: dig.ghost },
+    { type: "toast", player: "ana", kind: "hint", need: "part", gate: "dig", step: 3, late: true, title: "DRAW A SHOVEL", text: "Draw a shovel or claws on your explorer", part: "shovel", parts: ["shovel"], on: "explorer", sketch: null, ghost: null });
+  const both = lateHint("ana", { gate: "dig", also: ["drill", "dig", "nope"] });
+  assert.strictEqual(both.title, "DRAW A SHOVEL AND A DRILL");
+  assert.strictEqual(both.text, "Draw a shovel and a drill on your explorer");
+  assert.deepStrictEqual(both.parts, ["shovel", "drill"]);
+  assert.strictEqual(lateHint("ana", { gate: "weapon" }).title, "DRAW A GUN");
+  assert.strictEqual(lateHint("ana", { gate: "land" }).title, "DRAW LANDING LEGS");
+  assert.strictEqual(lateHint("ana", { gate: "land" }).on, "ship");
+  const btn = lateHint("ana", { gate: "weapon", need: "button", action: "blast", label: "blast", layout });
+  assert.strictEqual(btn.title, "DRAW A BLAST BUTTON");
+  assert.strictEqual(btn.text, "Draw a BLAST button on your controller");
+  assert.strictEqual(btn.on, "controller");
+  assert.strictEqual(btn.ghost.action, "blast");
+  assert(btn.ghost.y >= 0.3 - 1e-9, "the ghost box sits below the HUD band");
+  assert.strictEqual(lateHint("ana", { gate: "nope" }), null);
+});
+
+test("late cards and the ladder never give the same answer twice (v1.4 gaveAnswer / answered)", () => {
+  let t = 0;
+  const hints = createHints({ now: () => t });
+  hints.answered("p", "drill", "part");
+  assert.strictEqual(hints.gaveAnswer("p", "drill", "part"), true);
+  for (t = 0; t <= 40000; t += 500) assert.strictEqual(hints.update("p", { ...A, hasSkill: false }), null, "a card answered drill:part");
+  let got = null; // the drill is drawn, its button is still missing: the button ladder starts from its riddle
+  for (t = 40000; t <= 80000 && !got; t += 500) got = hints.update("p", { ...A, hasSkill: true });
+  assert(got && got.need === "button" && got.step === 1, JSON.stringify(got));
+  assert.strictEqual(hints.gaveAnswer("p", "drill", "button"), false);
+  assert.strictEqual(hints.gaveAnswer("q", "drill", "part"), false);
 });
 
 console.log(`\n${passed} tests passed`);

@@ -28,13 +28,14 @@ const BOT_ENGAGE = 190; // m from the boss's surface: closer than this a bot mak
 const ROCK_WEIGHTS = { stone: 6, iron: 2, volatile: 1, crystal: 1, magnet: 1, splitter: 1 };
 const INACTIVE_MS = 10 * 60 * 1000;
 // Name binding and caps (v1.0 review): a device token from /join keeps a second phone from taking over a name in use;
-// at most MAX_HUMANS active humans (a POST /input with a new name creates a player only below it), MAX_RECORDS ever.
+// at most MAX_PLAYERS active players, humans and bots together (a new human takes the newest bot's seat), MAX_RECORDS
+// ever.
 const TAKEN_MS = 30 * 1000;
-const MAX_HUMANS = 32;  // unused since v1.3 (old readers): MAX_PLAYERS
-const MAX_PLAYERS = 25; // PLAN.md section 0 (owner, 10 Oct 09:05): humans and bots together never exceed 25
+const MAX_PLAYERS = 25; // PLAN.md section 0 (owner, 10 Oct 09:05): humans and bots together never exceed 25 (v1.4: MAX_HUMANS 32 is gone)
 const MAX_RECORDS = 400;
 const MAX_PRESSES = 6; // pressed verbs queued per player per step (a flood of presses in one POST is dropped)
 const LAND_HINT_EXTRA = 50; // the LAND ladder starts this far beyond landing range (approaching the planet counts)
+const LATE_HINT_GAP = 6;    // s between two late "draw X" cards to the same player (v1.4, from 3:00)
 // While the phone's draw sheet is open (input action "drawing", v1.0 playtest: players died photographing a button),
 // the ship hovers and cannot be hurt, shoot or be targeted, for at most DRAWING_SHIELD_SECONDS per press.
 const DRAWING_SHIELD_SECONDS = 30;
@@ -462,7 +463,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   }
 
   const humansActive = () => Object.values(players).filter((q) => !q.bot && Date.now() - q.lastSeen < INACTIVE_MS).length;
-  // create: false only finds an existing player. A new human needs room: at most MAX_HUMANS active ones.
+  // create: false only finds an existing player. A new human needs room: at most MAX_PLAYERS active players.
   function getPlayer(name, bot = false, { create = true } = {}) {
     name = Contract.cleanName(name);
     if (!name) return null;
@@ -487,6 +488,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
         drilling: false, digging: false, boosting: false, shielding: false, botFire: 0, botSeed: random() * 100,
         drawn: { space: null, planet: null }, refusedAt: {}, lastChest: null, hitBy: Object.create(null), run: null, vel: v3(),
         device: null, tractor: null, empFor: 0, inkFor: 0, drawingUntil: 0, bayIndex: null, hitSentAt: -Infinity,
+        late: {}, lateAt: -Infinity, // v1.4 late hints sent this round ("gate:need") and when the last one went out
         lastSeen: Date.now(), // before spawnAt: slotOf only counts active players
       };
       players[name] = p;
@@ -495,11 +497,16 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       // who joins after the bots never sits on top of one.
       if (!bot && (S.phase === "lobby" || S.phase === "countdown")) for (const q of ordered()) if (q !== p) spawnAt(q);
     }
-    // A human back after INACTIVE_MS takes a seat again: the newest bot leaves if the round is full (MAX_PLAYERS).
+    // A human back after INACTIVE_MS takes a seat again: the newest bot leaves if the round is full (MAX_PLAYERS); with
+    // 25 active humans already there is no seat (v1.4: never 26): null, as for a new name (join: "the game is full").
     const back = players[name];
     if (!back.bot && Date.now() - back.lastSeen >= INACTIVE_MS) {
       const live = active();
-      if (live.length >= MAX_PLAYERS) { const filler = [...live].reverse().find((q) => q.bot); if (filler) dropBot(filler); }
+      if (live.length >= MAX_PLAYERS) {
+        const filler = [...live].reverse().find((q) => q.bot);
+        if (!filler) return null;
+        dropBot(filler);
+      }
     }
     back.lastSeen = Date.now();
     return back;
@@ -630,7 +637,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     hints.reset(); budget.reset(); parked = [];
     for (const p of Object.values(players)) {
       spawnAt(p);
-      Object.assign(p, { ready: p.bot, hints: {}, keys: {}, axes: {}, drawingUntil: 0, pressed: [], cd: {}, invisibleFor: 0, shieldEnergy: 1, boostEnergy: 1, boostLocked: false, shieldLocked: false, lastChest: null, refusedAt: {}, tractor: null, empFor: 0, inkFor: 0 });
+      Object.assign(p, { ready: p.bot, hints: {}, keys: {}, axes: {}, drawingUntil: 0, pressed: [], cd: {}, invisibleFor: 0, shieldEnergy: 1, boostEnergy: 1, boostLocked: false, shieldLocked: false, lastChest: null, refusedAt: {}, tractor: null, empFor: 0, inkFor: 0, late: {}, lateAt: -Infinity });
       setMode(p, "space", true); // assists from the last round are gone
     }
     sendWorld();
@@ -638,8 +645,9 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
 
   // START: the boss's HP and the chest count scale with the players in the round now (bots count botWeight each).
   // countdown (owner, 10 Oct 09:05: a real server phase so every phone counts with the big screen): phase "countdown"
-  // for ROUND.countdownSeconds, ships frozen on their spawn slots, tick clock = seconds left, then GO (go()). Without
-  // it (the old START, --autostart, tests) play starts at once.
+  // for ROUND.countdownSeconds (tick.countdown 3, 2, 1), then GO (go()). Meanwhile nothing moves, fires or thinks,
+  // bots included (step() runs no simulate), and presses are dropped; held keys and sticks count from GO. server.js
+  // asks for it on every POST /start (v1.4); without it (world.start() in tests, --autostart) play starts at once.
   function start({ countdown = false } = {}) {
     if (S.phase !== "lobby") return false;
     S.playerCount = scaledCount(active());
@@ -649,19 +657,34 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     const wait = countdown ? Math.max(0, Number(ROUND.countdownSeconds) || 0) : 0;
     S.phase = wait > 0 ? "countdown" : "playing"; S.phaseT = 0; S.playT = 0;
     for (const p of Object.values(players)) { spawnAt(p); Object.assign(p, { pressed: [], score: 0, lastChest: null, hitBy: {}, run: null, botBoost: false, hitAcc: 0 }); }
-    if (wait > 0) announce(`Round ${S.round} starts in ${Math.round(wait)}…`, true);
+    // v1.4: the kill feed only (not big): every screen shows its own big 3-2-1 from the phase, so a banner would cover it.
+    if (wait > 0) announce(`Round ${S.round} starts in ${Math.round(wait)}…`);
     else go();
     sendWorld();
     return true;
   }
   function go() {
+    if (S.phase === "countdown") {
+      // Somebody joined (or a bot left) during the 3-2-1: the round is scaled for who is here at GO. The island keeps
+      // its shape (a new seed would rebuild the terrain on every screen at GO): only the chests are placed again, and
+      // if they do not fit, the START ones stay.
+      const n = scaledCount(active());
+      if (n !== S.playerCount) {
+        S.playerCount = n;
+        const hp = bossHp(n);
+        Object.assign(boss, { hp, maxHp: hp });
+        const count = chestCount(n);
+        if (count !== chests.length) placeChests(landing.x, landing.z, count); // false: chests unchanged
+      }
+    }
     S.phase = "playing"; S.phaseT = 0; S.playT = 0;
     for (const p of Object.values(players)) { p.pressed = []; p.spawnShield = T.spawnShieldSeconds; }
     announce(`Round ${S.round}: ${Contract.OBJECTIVES.boss}`, true);
   }
 
-  // 3:00 (world.assists): the chests glow and every hint jumps to its last step ("Draw a shovel or claws on your
-  // explorer", "Draw DIG"); no skill is ever given (owner, 10 Oct 09:05).
+  // 3:00 (world.assists): the chests glow, every hint jumps to its last step ("Draw a shovel or claws on your
+  // explorer", "Draw DIG") and every human still missing a gate skill gets a big "draw X" card (lateHint); no skill is
+  // ever given (owner, 10 Oct 09:05).
   function startAssists() {
     S.phase = "assists"; S.assists = true;
     announce("3:00! The chests glow. Missing a skill? Draw it now!", true);
@@ -975,7 +998,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     standBeside(p);
     p.keys = {}; p.axes = {}; // buttons held in the ship don't carry over to the explorer
     fx("land", { x: b.x, y: islandFeet(b.x, b.z), z: b.z }, p.color, 6, "planet");
-    announce(`${p.name} landed on the planet. ${Contract.OBJECTIVES.chest}`);
+    announce(`${p.name} landed on the planet. ${Contract.OBJECTIVES.openChests}`); // v1.4: was "DIG UP A CHEST" (the TV parses the prefix)
     sendWorld();
   }
 
@@ -1326,13 +1349,51 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   function updateHints(p) {
     if (p.bot) return;
     const busy = p.dead || p.landingFor > 0 || p.takeoffFor > 0;
+    let sent = false;
     for (const gate of GATES) {
       const open = gateOpen(gate) && p.mode === GATE_MODE[gate];
       if (open && !busy && atGate(p, gate)) p.hints[gate] = true;
       const toast = hints.update(p.name, { gate, active: open && !busy && !!p.hints[gate], ...gateNeeds(p, gate), assists: assists(), layout: p.layout || DEFAULT_LAYOUT });
       if (toast && toast.ghost) for (const k of ["x", "y", "w", "h"]) toast.ghost[k] = Math.round(toast.ghost[k] * 1000) / 1000;
-      if (toast) send(toast);
+      if (toast) { send(toast); sent = true; }
     }
+    // One message per player per step: a ladder toast this step means the late card waits for a later one.
+    if (assists() && !busy && !sent) lateHint(p);
+  }
+
+  // v1.4 late hints (owner, 10 Oct 09:05: no free skills at 3:00). From 3:00 every human still missing what the gate
+  // ahead of them needs gets one big card per gate and need (rules.js lateHint): "DRAW A SHOVEL" (the part, on the
+  // explorer) or "DRAW A DIG BUTTON" (the controller, with the ghost box). The gate ahead is the one open in the
+  // player's world: in space the weapon while the boss lives, then LAND; on the island DIG and DRILL while such a chest
+  // is closed (both parts missing: one card, one redraw). The part comes before the button. Never while the draw sheet
+  // is open, nor with no drawing left for that world (a redraw or an added button costs one); at most one card per
+  // LATE_HINT_GAP seconds; never the answer the hint ladder already gave, and the ladder never repeats a card's
+  // (rules.js gaveAnswer / answered). Nothing is granted.
+  function lateHint(p) {
+    if (p.drawingUntil > S.t || S.t - (p.lateAt ?? -Infinity) < LATE_HINT_GAP) return;
+    if (budget.left(p.name)[p.mode === "planet" ? "planet" : "space"] <= 0) return;
+    const late = p.late || (p.late = {});
+    const ahead = [];
+    for (const gate of GATES) {
+      if (p.mode !== GATE_MODE[gate] || !gateOpen(gate)) continue;
+      const n = gateNeeds(p, gate);
+      const need = !n.hasSkill ? "part" : !n.hasControl ? "button" : null;
+      if (!need || late[`${gate}:${need}`]) continue;
+      // The ladder already gave this answer ("Draw ...", the phone's big card): no second card for it.
+      if (hints.gaveAnswer(p.name, gate, need)) { late[`${gate}:${need}`] = true; continue; }
+      ahead.push({ gate, need, action: n.action });
+    }
+    const parts = ahead.filter((a) => a.need === "part");
+    const first = parts[0] || ahead[0];
+    if (!first) return;
+    const also = first.need === "part" ? parts.slice(1).map((a) => a.gate) : [];
+    // The card is the answer for every gate on it: the ladder says nothing more about them this round.
+    for (const gate of [first.gate, ...also]) { late[`${gate}:${first.need}`] = true; hints.answered(p.name, gate, first.need); }
+    p.lateAt = S.t;
+    const toast = Rules.lateHint(p.name, { gate: first.gate, also, need: first.need, layout: p.layout || DEFAULT_LAYOUT, action: first.action, label: Verbs.labelOf(first.action) });
+    if (!toast) return;
+    if (toast.ghost) for (const k of ["x", "y", "w", "h"]) toast.ghost[k] = Math.round(toast.ghost[k] * 1000) / 1000;
+    send(toast);
   }
 
   // ---- Bots: fillers, not players (PLAN.md section 0) ---------------------------------------------------------------
@@ -1496,6 +1557,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       chests: chests.map((c) => ({ id: c.id, kind: c.kind, x: r2(c.x), z: r2(c.z), buried: c.buried, dug: r2(c.dug), open: c.open, by: c.by })),
       assists: S.assists, playerCount: S.playerCount, result: S.result,
       leaderboard: leaderboard(),
+      phase: S.phase, ...countdownField(), // v1.4: a screen that connects mid-countdown counts down at once
     };
     if (entities) m.entities = Object.fromEntries(ordered().filter((p) => p.entity).map((p) => [p.name, p.entity]));
     return m;
@@ -1506,6 +1568,13 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     // v1.3: humans first (bots are fillers), each group by stars, then points.
     return active().map((p) => ({ name: p.name, bot: !!p.bot, stars: (session[p.name] || {}).stars || 0, total: (session[p.name] || {}).total || 0 }))
       .sort((a, b) => a.bot - b.bot || b.stars - a.stars || b.total - a.total).map(({ bot, ...row }) => row);
+  }
+
+  // v1.4: the 3-2-1 after START as whole seconds left (3, then 2, then 1; GO at 0), only in phase "countdown" (the
+  // field is absent otherwise, keeping ticks small). clock() keeps the exact seconds left.
+  function countdownField() {
+    if (S.phase !== "countdown") return {};
+    return { countdown: Math.max(1, Math.ceil((Number(ROUND.countdownSeconds) || 0) - S.phaseT - 1e-9)) };
   }
 
   function clock() {
@@ -1531,6 +1600,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     return {
       type: "tick", t: Date.now(), round: S.round, phase: S.phase, clock: clock(),
       left: S.phase === "playing" || S.phase === "assists" ? r2(Math.max(0, ROUND.maxSeconds - S.playT)) : 0,
+      ...countdownField(),
       players: ordered().map((p) => { // humans first, then bots
         const out = {
           name: p.name, color: p.color, mode: p.mode, x: r1(p.pos.x), y: r1(p.pos.y), z: r1(p.pos.z),
@@ -1569,8 +1639,12 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   return {
     handleInput, setLayout, layoutOf, setEntity, start, step, safeStep, worldMessage, tickMessage, addBot, join, players,
     budget, drawingWorld, drawingsLeft, spendDrawing, hints,
+    // v1.4: true when that player holds a seat now (an existing human back after INACTIVE_MS takes one, a bot leaving
+    // for them if needed); false when unknown or the round is full of active humans (server.js: "the game is full").
+    seat: (name) => !!getPlayer(name, false, { create: false }),
     get phase() { return S.phase; },
     get round() { return S.round; },
+    get countdown() { return countdownField().countdown; }, // v1.4: whole seconds left in phase "countdown", else undefined
     debug: () => ({ ...S, boss, planet, landing, chests, island, parked, rocks, bullets, bossShots, mines, decoys }),
   };
 }

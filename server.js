@@ -34,13 +34,18 @@ const MAX_DRAWING_BYTES = 1536 * 1024;
 const SPECULATIVE_WINDOW_MS = 10000, SPECULATIVE_MAX = 8; // speculative /generate calls per player (the phone: one per 1.2 s)
 // rules.js, astra.js, astra-html.js, world.js and the server stay private. inflate.js (a drawing becomes a 3D body on
 // the device) is loaded by render.js on demand when a drawn ship or explorer arrives.
+// v1.4: controller.webmanifest and icons/<name>.png make the phone page a home-screen web app (full screen on iPhone).
 const PUBLIC_FILES = new Set([
   "space.html", "controller.html", "render.js", "contract.js", "verbs.js", "terrain.js", "rigs.js",
-  "transition.js", "anim.js", "anims.js", "phone-extras.js", "bigscreen-extras.js", "inflate.js",
-  "ctrl-sandbox.js", "mischief-fx.js", "sfx.js",
+  "transition.js", "anim.js", "anims.js", "phone-extras.js", "bigscreen-extras.js", "inflate.js", "ship3d.js",
+  "ctrl-sandbox.js", "mischief-fx.js", "sfx.js", "controller.webmanifest",
 ]);
+const ICONS = path.join(ROOT, "icons");
+const ICON_PATH = /^icons\/[a-z0-9][a-z0-9_.-]{0,63}\.png$/i;   // one level, no dot files, PNG only
+const TOUCH_ICON = /^apple-touch-icon(-\d{2,3}x\d{2,3})?(-precomposed)?\.png$/; // iOS asks the root for these
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".json": "application/json",
+  ".webmanifest": "application/manifest+json",
   ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp",
   ".glb": "model/gltf-binary", ".gltf": "model/gltf+json", ".bin": "application/octet-stream",
   ".mp3": "audio/mpeg", ".ogg": "audio/ogg", ".wav": "audio/wav",
@@ -98,7 +103,25 @@ function broadcast(m) {
 // Astra is loaded lazily and guarded: another lane may be mid-edit, and wireAnimations may not exist yet.
 let astra = null;
 function loadAstra() {
-  try { return (astra = astra || require("./astra")); } catch (err) { console.log(`astra unavailable: ${err.message}`); return null; }
+  try {
+    astra = astra || require("./astra");
+    if (astra && !lateSpecHooked && typeof astra.onShipSpec === "function") { lateSpecHooked = true; astra.onShipSpec(onLateShipSpec); }
+    return astra;
+  } catch (err) { console.log(`astra unavailable: ${err.message}`); return null; }
+}
+// v1.4: the model's ship spec arrived after the /generate answer (that answer carried a spec made from the entity's
+// parts): keep it and send the player's ship again, so every screen rebuilds it from the model's parts.
+let lateSpecHooked = false;
+function onLateShipSpec({ player, image, spec }) {
+  const m = /^data:image\/png;base64,(.+)$/.exec(String(image || ""));
+  if (!m || !spec) return;
+  const v = sha1(Buffer.from(m[1], "base64")).slice(0, 10);
+  noteShipSpec(v, spec);
+  const url = drawnImages[player] && drawnImages[player].ship;
+  if (!url || vOfUrl(url) !== v) return; // an older drawing of theirs: kept by its hash, nothing to send
+  const p = world.players[player];
+  if (p && p.entity && p.entity.type === "ship") broadcast({ type: "entity", player, entity: p.entity });
+  if (p && p.mode === "planet") broadcast(world.worldMessage({ entities: false }));
 }
 function wireAnimations(type, verbs) {
   const a = loadAstra();
@@ -137,6 +160,17 @@ const kindOfEntity = (entity) => (entity && entity.type === "ship" ? "ship" : "e
 const DRAWING_PATH = /^\/drawings\/([a-z0-9]{1,20})-(ship|explorer)\.png$/;
 const drawingFiles = new Map();          // "<player>-<kind>" → PNG buffer
 const drawnImages = Object.create(null); // player → { [entity type]: "/drawings/<player>-<kind>.png?v=<hash>" }
+// v1.4 (ship3d.js): the ship spec Astra read from each ship drawing (astra-ship.js: hull, wings, engines... as parts), by
+// the drawing's hash (the ?v= of its URL). Every ship entity message and parked ship carries it as `spec`, next to `image`.
+const shipSpecs = new Map(); // hash → spec (newest 200)
+const vOfUrl = (url) => { const m = /[?&]v=([0-9a-f]{6,40})/.exec(String(url || "")); return m ? m[1] : ""; };
+function noteShipSpec(v, spec) {
+  if (!v || !spec || typeof spec !== "object") return;
+  shipSpecs.delete(v);
+  shipSpecs.set(v, spec);
+  if (shipSpecs.size > 200) shipSpecs.delete(shipSpecs.keys().next().value);
+}
+const shipSpecOf = (url) => shipSpecs.get(vOfUrl(url)) || null;
 
 // A real PNG of a sane size: the signature, an IHDR chunk first, 1..MAX_DRAWING_PX on each side.
 function validPng(buf) {
@@ -159,10 +193,11 @@ function keepDrawing(player, kind, dataUrl) {
 // Adds the drawing URL to an entity (mutating the world's own entity, so the next connect's world message has it).
 function drawnEntity(player, entity) {
   const url = entity && drawnImages[player] && drawnImages[player][kindOfEntity(entity)];
-  if (!url || entity.image === url) return entity;
+  const spec = url && entity.type === "ship" ? shipSpecOf(url) : null; // v1.4: the parts ship3d.js builds
+  if (!url || (entity.image === url && (!spec || entity.spec === spec))) return entity;
   const p = world.players[player];
-  if (p && p.entity === entity) { entity.image = url; return entity; }
-  return { ...entity, image: url };
+  if (p && p.entity === entity) { entity.image = url; if (spec) entity.spec = spec; return entity; }
+  return spec ? { ...entity, image: url, spec } : { ...entity, image: url };
 }
 // v1.3: every parked ship on the landing pad carries its owner's ship drawing (island.parked[].image), so a screen
 // that connects after they landed (their current entity is the explorer) still shows the drawn ship. The world's own
@@ -172,9 +207,10 @@ function withParkedImages(island) {
   let changed = false;
   const parked = island.parked.map((c) => {
     const url = c && drawnImages[c.player] && drawnImages[c.player].ship;
-    if (!url || c.image === url) return c;
+    const spec = url ? shipSpecOf(url) : null;
+    if (!url || (c.image === url && (!spec || c.spec === spec))) return c;
     changed = true;
-    return { ...c, image: url };
+    return spec ? { ...c, image: url, spec } : { ...c, image: url };
   });
   return changed ? { ...island, parked } : island;
 }
@@ -298,10 +334,21 @@ function openStream(req, res, url) {
 
 // ---- Static files: an allowlist only -------------------------------------------------------------------------------
 
+// iOS asks for /apple-touch-icon.png when a page names none (or before reading it): the 180 px icon from icons/.
+function touchIcon() {
+  try {
+    const names = fs.readdirSync(ICONS).filter((n) => ICON_PATH.test(`icons/${n}`)).sort();
+    const name = names.find((n) => /apple/i.test(n)) || names.find((n) => /180/.test(n));
+    return name ? path.join(ICONS, name) : null;
+  } catch { return null; }
+}
+
 function staticFile(pathname) {
   let rel;
   try { rel = decodeURIComponent(pathname).replace(/^\/+/, ""); } catch { return null; }
   if (PUBLIC_FILES.has(rel)) return path.join(ROOT, rel);
+  if (ICON_PATH.test(rel)) return path.join(ROOT, rel);
+  if (TOUCH_ICON.test(rel)) return touchIcon();
   if (!rel.startsWith("assets/") || rel.split("/").some((part) => !part || part.startsWith("."))) return null;
   const file = path.normalize(path.join(ROOT, rel));
   if (!file.startsWith(ASSETS + path.sep) || !ASSET_EXTS.has(path.extname(file).toLowerCase())) return null;
@@ -315,7 +362,7 @@ function serveStatic(req, res, url) {
   try { stat = file && fs.statSync(file); } catch {}
   if (!stat || !stat.isFile()) return res.writeHead(404, { "Content-Type": "text/plain" }).end("not found");
   const ext = path.extname(file).toLowerCase();
-  const cache = ext === ".html" || ext === ".js" ? "no-store" : "public, max-age=300";
+  const cache = ext === ".html" || ext === ".js" ? "no-store" : ext === ".webmanifest" ? "no-cache" : "public, max-age=300";
   res.writeHead(200, { "Content-Type": TYPES[ext] || "application/octet-stream", "Content-Length": stat.size, "Cache-Control": cache });
   if (req.method === "HEAD") return res.end();
   // pipeline closes the file when the download is aborted (pipe() leaked a descriptor per aborted big file).
@@ -356,6 +403,9 @@ function readJson(req, limit = BODY_LIMIT) {
       catch { reject(Object.assign(new Error("bad json"), { status: 400 })); }
     });
     req.on("error", reject);
+    // v1.4: a phone that gives up mid-upload (an aborted fetch) closes the request before its end: no promise left
+    // waiting for ever.
+    req.on("close", () => { if (!req.complete) reject(Object.assign(new Error("request aborted"), { status: 400 })); });
   });
 }
 
@@ -389,11 +439,20 @@ function input(msg) {
   return world.handleInput(msg) === false ? "unknown" : "ok";
 }
 
-async function generate(body) {
+// signal (v1.4): aborts when the phone gives up on the request. Waiting stops at once (result null; the caller spends
+// and changes nothing). astra.js gets it as generate(body, { signal }) (its opts.signal): that request lets go of the
+// model call, which astra.js aborts when nobody else waits for that drawing, so tapping Done again reads it afresh.
+async function generate(body, signal = null) {
   try {
     const a = loadAstra();
     if (!a) throw new Error("astra.js did not load");
-    return { status: 200, result: await a.generate(body) };
+    const call = a.generate(body, { signal });
+    if (!signal) return { status: 200, result: await call };
+    const gaveUp = new Promise((resolve) => {
+      if (signal.aborted) resolve(null);
+      else signal.addEventListener("abort", () => resolve(null), { once: true });
+    });
+    return { status: 200, result: await Promise.race([call, gaveUp]) };
   } catch (err) {
     logOnce("generate failed", err);
     return { status: 503, result: { ok: false, error: "generation unavailable" } };
@@ -463,10 +522,13 @@ async function handlePost(req, res, url) {
     return res.writeHead(204).end();
   }
   if (url.pathname === "/start") {
-    // The big screen's START button: lobby → playing. Anything else is a no-op. v1.3: { countdown: true } plays the
-    // server's 3-2-1 (phase "countdown", every phone counts with the TV) before playing.
-    const countdown = body.countdown === true || Number(body.countdown) > 0;
-    return world.start({ countdown }) ? json(res, 200, { ok: true, round: world.round, phase: world.phase }) : json(res, 409, { ok: false, error: "not in the lobby", phase: world.phase });
+    // The big screen's START button: lobby → the 3-2-1 (phase "countdown", v1.4: always, so every phone counts down
+    // with the TV from the tick) → playing. { countdown: false } (or 0, or ?countdown=0) starts at once: tests and
+    // tools that need play now. Anything but the lobby is a no-op (409).
+    const off = (v) => v === false || v === 0 || v === "0" || v === "false";
+    const countdown = !(off(body.countdown) || off(url.searchParams.get("countdown")));
+    if (!world.start({ countdown })) return json(res, 409, { ok: false, error: "not in the lobby", phase: world.phase });
+    return json(res, 200, { ok: true, round: world.round, phase: world.phase, ...(world.countdown ? { countdown: world.countdown } : {}) });
   }
   if (url.pathname === "/join") {
     // device (optional): a token the phone keeps; a name in use by another phone becomes "name2" (renamed: true).
@@ -490,6 +552,10 @@ async function handlePost(req, res, url) {
     if (player && boundElsewhere(player, body)) {
       return json(res, 403, { ok: false, error: "name taken", message: "That name is playing on another phone. Join with a new name.", drawingsLeft: world.drawingsLeft(player) });
     }
+    // v1.4: a player back after a long pause takes a seat again; with 25 active humans there is none (never 26).
+    if (player && world.players[player] && typeof world.seat === "function" && !world.seat(player)) {
+      return json(res, 400, { ok: false, error: "the game is full", message: "The game is full right now.", drawingsLeft: world.drawingsLeft(player) });
+    }
     if (!finished && player && !speculativeOk(player)) return json(res, 200, { ok: false, error: "slow down", message: "", drawingsLeft: world.drawingsLeft(player) });
     const where = world.drawingWorld(player);
     if (finished && player && world.drawingsLeft(player)[where] <= 0) {
@@ -497,7 +563,16 @@ async function handlePost(req, res, url) {
     }
     // where: the player's world now ("space" | "planet"), so Astra (and its mock) reads a button as the one that world
     // needs (no LAND on the planet).
-    let { status, result } = await generate({ ...body, where });
+    // v1.4: the phone gives up after about 15 s (it aborts the fetch, the connection closes before the answer): stop
+    // waiting and spend or change nothing for this request (no drawing, layout, entity or generated message).
+    const gone = new AbortController();
+    res.on("close", () => { if (!res.writableEnded) gone.abort(); });
+    if (res.destroyed || (req.socket && req.socket.destroyed)) gone.abort(); // it closed before we started listening
+    let { status, result } = await generate({ ...body, where }, gone.signal);
+    if (gone.signal.aborted) {
+      logOnce(`generate ${String(body.kind).slice(0, 12)}`, `${player || "-"} gave up waiting: nothing spent`);
+      return;
+    }
     // A finished ship / explorer always comes back as an entity (fallbackEntity), unless it was refused.
     if (finished && player && DRAWING_KINDS[body.kind] && !(result && result.ok) && !ENTITY_NO_FALLBACK.test(String((result && result.error) || ""))) {
       logOnce(`generate ${body.kind} fell back to the dev kit`, (result && result.error) || "no answer");
@@ -523,6 +598,7 @@ async function handlePost(req, res, url) {
       // player drives one, else at the next mode switch (an explorer drawn in space shows up on landing). The drawn
       // look rides along as `image`.
       const image = keepDrawing(player, body.kind, body.image);
+      if (image && body.kind === "ship" && result.entity.spec) noteShipSpec(vOfUrl(image), result.entity.spec);
       if (typeof result.entity.card !== "string" && typeof Verbs.cardOf === "function") result = { ...result, entity: { ...result.entity, card: Verbs.cardOf(result.entity.type, result.entity.unlocked) } };
       const before = world.players[player] && world.players[player].entity;
       const now = world.setEntity(player, body.kind, result.entity);
@@ -567,6 +643,11 @@ async function handler(req, res) {
     if (req.method === "GET" && url.pathname === "/events") openStream(req, res, url);
     else if ((req.method === "GET" || req.method === "HEAD") && url.pathname === "/info") json(res, 200, info());
     else if ((req.method === "GET" || req.method === "HEAD") && url.pathname.startsWith("/drawings/")) serveDrawing(req, res, url);
+    else if ((req.method === "GET" || req.method === "HEAD") && url.pathname === "/ship-spec") {
+      // v1.4: the spec of a ship drawing by its hash (the phone's result card); 404 until Astra has one.
+      const spec = shipSpecs.get(String(url.searchParams.get("v") || "").slice(0, 40));
+      json(res, spec ? 200 : 404, spec ? { ok: true, spec } : { ok: false, error: "no spec" });
+    }
     else if (req.method === "POST") await handlePost(req, res, url);
     else if (req.method === "GET" || req.method === "HEAD") serveStatic(req, res, url);
     else res.writeHead(405).end();

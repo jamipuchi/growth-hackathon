@@ -10,10 +10,12 @@
   // v1.1 (PLAN.md section 0): the lobby lasts until the host presses START on the big screen (POST /start), or
   // autostartSeconds when the server runs with --autostart N (null = never). Playing lasts at most maxSeconds, or ends
   // earlier when every chest is open; most points wins. Assists at assistsAt: the chests glow and every hint jumps to
-  // its last step ("draw X"); v1.3 (owner, 10 Oct 09:05): no skill is ever given. Then a scoreboardSeconds scoreboard
-  // and back to the lobby. v1.3 countdown: POST /start { countdown: true } plays phase "countdown" for
-  // countdownSeconds (ships frozen on their spawn slots, tick clock = seconds left) before "playing", so every phone
-  // counts down with the big screen; a plain POST /start (and --autostart) starts at once, as before.
+  // its last step ("draw X"); v1.3 (owner, 10 Oct 09:05): no skill is ever given, every human still missing a gate
+  // skill gets one big "draw X" hint instead (toast late: true). Then a scoreboardSeconds scoreboard and back to the
+  // lobby. v1.4 countdown (owner, 10 Oct 09:05: a real server phase): POST /start plays phase "countdown" for
+  // countdownSeconds (3-2-1: ships, bots and bullets frozen on their spawn slots, tick.countdown = whole seconds left,
+  // clock = exact seconds left) before "playing", so every phone counts down with the big screen. POST /start
+  // { countdown: false } (tests), world.start() without options and --autostart start at once, as before.
   const ROUND = { autostartSeconds: null, maxSeconds: 240, assistsAt: 180, scoreboardSeconds: 10, countdownSeconds: 3 };
   // 1 unit = 1 m. Distances are the tuning targets from PLAN.md; playtests adjust them here only.
   const TUNING = {
@@ -119,13 +121,14 @@
   // Labels people draw that mean an existing verb. The server normalises before the simulation sees them.
   const ALIASES = { fire: "shoot", win: "blast", light: "flare", cloak: "invisible", warp: "teleport" };
 
+  // Objective titles (render.js game.hud() objectiveText, the phone's fallback HUD, the round's first announce). v1.4:
+  // the old design's crackBoss ("CRACK THE BOSS": no armour gate since v1.1) and chest ("DIG UP A CHEST": chests are
+  // buried or locked in rocks since v1.1) are gone; the planet's objective is openChests.
   const OBJECTIVES = {
     boss: "REACH THE BOSS",
-    crackBoss: "CRACK THE BOSS",
     destroyBoss: "DESTROY THE BOSS",
     planet: "LAND ON THE PLANET",
     explorer: "DRAW YOUR EXPLORER",
-    chest: "DIG UP A CHEST",
     weapon: "DRAW A WEAPON",
     openChests: "OPEN THE CHESTS",
   };
@@ -141,7 +144,7 @@
    *              revealedTo: [playerName],                               // who has used SCAN (radar extras); everyone in "assists"
    *              planet: null | { x, y, z, radius, landRange },          // appears when the boss dies
    *              island: { seed, size, landing: { x, z },
-                        parked: [{ player, x, z, hp, maxHp, wrecked, image? }] },   // v1.1: parked ships can be
+                        parked: [{ player, x, z, hp, maxHp, wrecked, image?, spec? }] },   // v1.1: parked ships can be
                                                                       // shot; a wrecked one needs a new ship drawing
                                                                       // before take-off. image (v1.3, added by server.js
                                                                       // to every world message): the owner's ship
@@ -162,8 +165,11 @@
    *              result: null | { round, winner, scores: [[name, score]] },   // the scoreboard (phase "scoreboard").
    *                                                                  // v1.3: humans first (by points), then bots;
    *                                                                  // winner = scores[0] when it has points
-   *              leaderboard: [{ name, stars, total }] }             // session: stars = rounds won, total = points;
+   *              leaderboard: [{ name, stars, total }],              // session: stars = rounds won, total = points;
    *                                                                  // v1.3: humans first, then bots
+   *              phase,                                              // v1.4: as tick.phase (a world message goes out
+   *                                                                  // on every phase change: START, GO, 3:00, the end)
+   *              countdown? }                                        // v1.4: only in phase "countdown", as tick.countdown
    *            Sent on connect and whenever any of it changes.
    *
    * tick       { type, t, round, phase, clock, left,                     // clock: lobby = seconds to autostart (0 with no
@@ -171,6 +177,10 @@
    *                                                                      // seconds left; playing/assists = seconds since
    *                                                                      // the start. left = seconds until the 4:00 cap.
    *                                                                      // v1.3 countdown = seconds left before GO
+   *              countdown?,                                             // v1.4, only in phase "countdown" (the 3-2-1
+   *                                                                      // after START): whole seconds left, 3 then 2
+   *                                                                      // then 1; then phase "playing" (GO!). Nothing
+   *                                                                      // moves or fires meanwhile, bots included
    *              players: [{ name, color, mode: "space"|"planet", x, y, z, yaw, pitch, roll, hp, score,   // v1.3:
    *                                                                      // humans first, then bots; score never < 0
    *                          shieldEnergy, boostEnergy,                  // 0..1, drive the HUD meters
@@ -215,6 +225,23 @@
    *                                                                      // sketch: null | "drill"|"landing"|"shovel"|"gun", drawn faintly
    *                                                                      // on the pad; ghost: null | { action, x, y, w, h }, only in
    *                                                                      // the last step (PLAN.md section 4, Hints)
+   *                                                                      // step (v1.4, hints): 1 riddle | 2 sketch | 3 the
+   *                                                                      // answer ("Draw ...", the phone's big card).
+   *                                                                      // v1.4 late hint (owner, 10 Oct 09:05: no free
+   *                                                                      // skills at 3:00): from 3:00 a human still
+   *                                                                      // missing what the gate ahead needs gets ONE
+   *                                                                      // per gate and need: kind "hint", late: true,
+   *                                                                      // title ("DRAW A SHOVEL": the big card's
+   *                                                                      // headline), text (one short line, all an older
+   *                                                                      // phone shows), part (the example sketch: gun |
+   *                                                                      // landing | shovel | drill), parts (every part
+   *                                                                      // to draw in that one redraw, usually one), on
+   *                                                                      // ("ship" | "explorer": the drawing one tap
+   *                                                                      // opens; "controller" for need "button", with
+   *                                                                      // the ghost box), need, gate, step: 3, sketch:
+   *                                                                      // null.
+   *                                                                      // Nothing is ever granted
+   *                                                                      // (entity.assisted is never set any more)
    * mischief   { type, kind, player, from, seconds, points?, dir?, victim? }   // v1.3, one player only: play it on that
    *                                                                      // phone. kind: emp (the buttons swap places for
    *                                                                      // seconds, 5) | inkbomb (ink over the screen,
@@ -254,16 +281,24 @@
    *                                                                      // Only the player's own screens get html.
    * entity     { type, player, entity }                                  // on join, every mode switch, redraw, unlock
    *              entity: { type: "ship"|"person"|"car"|"bike"|"quadruped"|"blob", rig,   // rig: the rigs.js template
-   *                        verbs,                                        // EVERYTHING it can do now (innate + drawn
-   *                                                                      // + assists); world.js refuses the rest
+   *                        verbs,                                        // EVERYTHING it can do now (innate + drawn;
+   *                                                                      // v1.3: nothing is ever granted); world.js
+   *                                                                      // refuses the rest
    *                        unlocked: [{ verb, part }],                   // the card: what the drawing unlocked and why
    *                        parts: [{ name, x, y }],                      // drawn parts, x, y fractions of the drawing
    *                        source: "plain"|"model"|"devkit"|"bot", anims, image?,
+   *                        spec?,                                        // v1.4, ships only: the drawing as 3D parts
+   *                                                                      // (astra-ship.js: hull, cockpit, wings, fins,
+   *                                                                      // engines, weapons, extras, palette; source
+   *                                                                      // "model" | "entity"), built by ship3d.js on
+   *                                                                      // every screen; also on island.parked[]. A
+   *                                                                      // model spec that lands after the /generate
+   *                                                                      // answer re-sends the entity
    *                        card,                                         // v1.3: the unlock card in plain words, ≤ 200
    *                                                                      // chars ("Your ship can: fly, shoot (cannon)"):
-   *                                                                      // Astra's for a drawing, else Verbs.cardOf.
-   *                                                                      // Assist-granted skills are not on it
-   *                        assisted? }                                   // skills the assists added (not drawn)
+   *                                                                      // Astra's for a drawing, else Verbs.cardOf
+   *                        assisted? }                                   // old readers only: never set since v1.3 (no
+   *                                                                      // free skills at 3:00, owner 10 Oct 09:05)
    *              Every redraw sends a fresh entity message, even with the same skills (a new look or card).
    *              verbs may include the v1.3 mischief skills: mine, tractor, emp, inkbomb, decoy (verbs.js MISCHIEF).
    *
@@ -271,19 +306,25 @@
    * GET  /events?player=<name> | ?screen=big          // SSE. A phone names itself (it alone gets its toast, mischief
    *                                                  // and controller html); the TV says screen=big (no toasts).
    *                                                  // A stream with neither gets everything, as before
+   * GET  /ship-spec?v=<hash>                          → { ok, spec } | 404   // v1.4: the spec of a ship drawing by the
+   *                                                  // ?v= of its /drawings URL (sha1 of the PNG, 10 hex): the phone's
+   *                                                  // result card (its first ship comes before its event stream)
    * GET  /info                                        → { lanUrl, httpsUrl, controllerUrl, bigScreenUrl }   // v1.2: the
    *                                                  // join QR opens controllerUrl (HTTPS when it is up, else HTTP);
    *                                                  // httpsUrl is null when HTTPS is off
+   * GET  /controller.webmanifest, /icons/<name>.png  // v1.4: the phone as a home-screen web app (manifest served as
+   *                                                  // application/manifest+json); /apple-touch-icon[-WxH][-precomposed].png
    * POST /join      { player, device? }              → { player, color, renamed? }  (player = the cleaned name;
    *                                                  // device: a random token the phone keeps; a name in use by
    *                                                  // another device gets "name2" and renamed: true; 400 when the
    *                                                  // name is empty or the game is full: v1.3, 25 players, humans
    *                                                  // and bots together; a new human takes the newest bot's place)
-   * POST /start     { countdown? }                   → { ok, round } | 409 { ok: false, error: "not in the lobby" }
-   *                                                  // v1.3: countdown: true → phase "countdown" for
-   *                                                  // ROUND.countdownSeconds (3-2-1, clock = seconds left), then
-   *                                                  // "playing" (the TV can drop its own 3-2-1); without it: at once
-   *                                                  // the big screen's START button
+   * POST /start     { countdown? }                   → { ok, round, phase, countdown? } | 409 { ok: false, error: "not in
+   *                                                  // the lobby", phase }. The big screen's START button. v1.4: the
+   *                                                  // world plays phase "countdown" for ROUND.countdownSeconds (3 s:
+   *                                                  // tick.countdown 3, 2, 1), then "playing"; countdown: false (or 0)
+   *                                                  // starts at once (tests). The TV posts at once and shows the 3-2-1
+   *                                                  // from the phase (no local countdown before the POST)
    * POST /input     { type: "input", player, action, down }    // v1.3: only a joined player (else 409 "join first";
    *                                                  // world.handleInput returns false for an unknown name; a
    *                                                  // never-joined name whose own /events?player= stream is open
@@ -314,7 +355,10 @@
    *                 // phone's ink components, used when the model cannot answer. Refusals (looksLike = the other
    *                 // kind; thing: ship|person|car|bike|animal|creature|object) and errors spend no drawing. Errors:
    *                 // "no drawings left", "slow down" (more than 8 speculative calls in 10 s), "timeout",
-   *                 // "generation unavailable", refusal texts ("looks like a ship"...)
+   *                 // "generation unavailable", refusal texts ("looks like a ship"...). v1.4: a request the phone
+   *                 // gives up on (it aborts the fetch: the connection closes before the answer) spends no drawing and
+   *                 // changes nothing (no layout, entity or generated message); Astra drops its model call when
+   *                 // nobody else waits for that drawing, so tapping Done again reads it afresh
    * POST /controller-html { player, wait? }          → { ok, html, controls, htmlSource, padLayout, pending }  // v1.2:
    *                                                  // the player's controller document now (a reloaded phone);
    *                                                  // wait: true waits for a Sol call still running
@@ -365,6 +409,7 @@
     check(errors, PHASES.includes(m.phase), "tick: phase");
     check(errors, isNum(m.clock), "tick: clock");
     check(errors, isNum(m.left), "tick: left");
+    check(errors, m.countdown === undefined || (m.phase === "countdown" && Number.isInteger(m.countdown) && m.countdown >= 1), "tick: countdown is a whole number of seconds, only in phase countdown");
     check(errors, Array.isArray(m.players), "tick: players");
     (m.players || []).forEach((p, i) => {
       check(errors, isStr(p.name), `tick: players[${i}].name`);

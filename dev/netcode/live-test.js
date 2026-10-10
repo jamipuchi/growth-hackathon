@@ -97,10 +97,21 @@ async function main() {
   const shipPng = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
   const ship = JSON.parse((await request("POST", "/generate", { player: "livetest", kind: "ship", image: shipPng })).body);
   assert(ship.ok && ship.entity.verbs.includes("shoot") && ship.entity.source === "devkit" && ship.entity.unlocked.length > 0, `ship → ${JSON.stringify(ship).slice(0, 160)}`);
+  // v1.4: START plays the server's 3-2-1 (phase "countdown", tick.countdown 3, 2, 1) before play.
   const started = await request("POST", "/start", {});
   assert.strictEqual(started.status, 200, "START from the lobby");
+  const startBody = JSON.parse(started.body);
+  assert.strictEqual(startBody.phase, "countdown", "START → the 3-2-1 first");
+  assert.strictEqual(startBody.countdown, 3);
   const again = await request("POST", "/start", {});
-  assert.strictEqual(again.status, 409, "START during play → 409");
+  assert.strictEqual(again.status, 409, "START during the countdown → 409");
+  const counting = (await readEvents(1200)).filter((x) => x.m.type === "tick");
+  assert(counting.length > 0 && counting.every((t) => t.m.phase === "countdown" && [3, 2, 1].includes(t.m.countdown)), "ticks count down");
+  for (const t of counting) assert.deepStrictEqual(Contract.CHECKS.tick(t.m), []);
+  for (let i = 0; i < 40; i++) { // GO: the first tick in play (a loaded machine runs the 30 Hz clock a little late)
+    const t = (await readEvents(250)).filter((x) => x.m.type === "tick").pop();
+    if (t && t.m.phase === "playing") break;
+  }
   const msgs = await readEvents(3000, async () => {
     await request("POST", "/input", { type: "input", player: "livetest", action: "FIRE", down: true });
     await request("POST", "/input", { type: "axis", player: "livetest", axis: "steer", x: 0.5, y: 0 });
@@ -151,6 +162,18 @@ async function main() {
     assert.strictEqual(r.status, 200, `${url} → ${r.status}`);
     assert(r.headers["content-type"].startsWith(type), `${url} type ${r.headers["content-type"]}`);
     if (/\.(html|js)$/.test(url)) assert.strictEqual(r.headers["cache-control"], "no-store", `${url} no-store`);
+  }
+  // v1.4: the phone's home-screen web app files (v14-fix-client writes them): 200 with their types when present.
+  const manifest = await request("GET", "/controller.webmanifest");
+  assert.strictEqual(manifest.status, fs.existsSync(path.join(ROOT, "controller.webmanifest")) ? 200 : 404, `/controller.webmanifest → ${manifest.status}`);
+  if (manifest.status === 200) assert(manifest.headers["content-type"].startsWith("application/manifest+json"), `manifest type ${manifest.headers["content-type"]}`);
+  const iconNames = fs.existsSync(path.join(ROOT, "icons")) ? fs.readdirSync(path.join(ROOT, "icons")).filter((n) => /^[a-z0-9][a-z0-9_.-]*\.png$/i.test(n)) : [];
+  for (const n of iconNames) {
+    const r = await request("GET", `/icons/${n}`);
+    assert(r.status === 200 && r.headers["content-type"] === "image/png", `/icons/${n} → ${r.status}`);
+  }
+  for (const url of ["/icons/../server.js", "/icons/%2e%2e/server.js", "/icons/.hidden.png", "/icons/x.js", "/icons/a/b.png"]) {
+    assert.strictEqual((await request("GET", url)).status, 404, `${url} stays private`);
   }
   const root = await request("GET", "/");
   assert(root.status === 302 && root.headers.location === "/space.html", "/ redirects to /space.html");
