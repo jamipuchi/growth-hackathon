@@ -185,8 +185,9 @@ function place(p, at, target) {
 
 // The boss's last hit, as in play: a ship with a weapon fires at a boss left with 1 HP. The helper re-aims from 25 m off
 // the boss's surface every 100 ms (ships keep flying forward).
+const KIT_HELPER = "kithelper";
 async function killBoss(timeoutMs) {
-  const HELPER = "kithelper";
+  const HELPER = KIT_HELPER;
   if (!world.players[HELPER]) world.join(HELPER, "kit-helper-device");
   if (!world.players[HELPER]) return { ok: false, error: "the helper could not join (game full?)" };
   world.setEntity(HELPER, "ship", devKitShip());
@@ -212,13 +213,29 @@ async function toPlanet(body) {
   const t0 = Date.now();
   const timeoutMs = Number.isFinite(Number(body.timeoutMs)) ? Number(body.timeoutMs) : 9000;
   const names = (Array.isArray(body.players) ? body.players : [body.player]).map((n) => Contract.cleanName(n)).filter(Boolean);
+  const granted = [];
+  // v1.7 readyGate (owner 12:26): START needs a READY player and only the ready ones enter the round (the rest wait, off
+  // the ticks and world.entities). READY = a ship drawing and a controller accepted. In the lobby: the helper (the boss's
+  // last hit, killBoss) joins now with the dev-kit ship; every human with a drawn ship, and every named player (granted the
+  // dev-kit ship, as below for LAND), gets the default pad (world.setLayout: the kit tests entities, not controllers).
+  if (world.phase === "lobby") {
+    if (!world.players[KIT_HELPER]) world.join(KIT_HELPER, "kit-helper-device");
+    if (world.players[KIT_HELPER]) world.setEntity(KIT_HELPER, "ship", devKitShip());
+    for (const [name, p] of Object.entries(world.players)) {
+      if (!p || p.bot) continue;
+      if (!(p.drawn && p.drawn.space)) {
+        if (!names.includes(name)) continue;
+        world.setEntity(name, "ship", devKitShip()); granted.push(name);
+      }
+      if (!p.layout) world.setLayout(name, require(path.join(ROOT, "astra.js")).defaultLayout(), "controller");
+    }
+  }
   if (world.phase === "lobby" && !world.start()) return { ok: false, error: "START refused" };
   if (world.phase !== "playing" && world.phase !== "assists") return { ok: false, error: `phase is ${world.phase}` };
   let started = { ok: true };
   if (!world.debug().planet) started = await killBoss(Math.min(6000, timeoutMs));
   if (!started.ok) return { ...started, ms: Date.now() - t0 };
   const pl = world.debug().planet;
-  const granted = [];
   const players = {};
   const press = (name, down) => world.handleInput({ type: "input", player: name, action: "land", down });
   const approach = (p, i) => {
@@ -230,7 +247,7 @@ async function toPlanet(body) {
     const p = world.players[name];
     if (!p) { players[name] = { ok: false, error: "no such player" }; return; }
     if (p.mode === "planet") return;
-    if (!(p.entity && Array.isArray(p.entity.verbs) && p.entity.verbs.includes("land"))) { world.setEntity(name, "ship", devKitShip()); granted.push(name); }
+    if (!(p.entity && Array.isArray(p.entity.verbs) && p.entity.verbs.includes("land"))) { world.setEntity(name, "ship", devKitShip()); if (!granted.includes(name)) granted.push(name); }
     approach(p, i);
     press(name, true);
   });

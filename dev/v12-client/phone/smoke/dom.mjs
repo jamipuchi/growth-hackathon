@@ -49,7 +49,9 @@ export class Element {
   get textContent() { return this.childNodes.map((n) => n.textContent).join("") + (this.childNodes.length ? "" : this._inner.replace(/<[^>]*>/g, "")); }
   set textContent(v) { this.childNodes.forEach((n) => (n.parentNode = null)); this.childNodes = []; this._inner = ""; if (v !== "" && v != null) this.append(String(v)); }
   get innerHTML() { return this._inner || this.childNodes.map((n) => (n.nodeType === 3 ? n.data : n.outerHTML)).join(""); }
-  set innerHTML(v) { this.childNodes.forEach((n) => (n.parentNode = null)); this.childNodes = []; this._inner = String(v); }
+  // v1.8 tests: markup set through innerHTML becomes real child elements too (controller.html's v1.6 cooldown ring builds
+  // its <svg><circle class="fg"> + <span> that way and then queries them); the getter still returns the string as set.
+  set innerHTML(v) { this.childNodes.forEach((n) => (n.parentNode = null)); this.childNodes = []; const html = String(v); if (/<[a-z]/i.test(html)) parseInto(this.ownerDocument, html, this, true); this._inner = html; }
   get outerHTML() { return `<${this.localName}>${this.innerHTML}</${this.localName}>`; }
   get offsetWidth() { return this.getBoundingClientRect().width; } get offsetHeight() { return this.getBoundingClientRect().height; }
   get clientWidth() { return this.getBoundingClientRect().width; } get clientHeight() { return this.getBoundingClientRect().height; }
@@ -136,8 +138,8 @@ export class Document {
 }
 
 // Parse the HTML of <body> (well formed, as in controller.html) into the document.
-export function parseInto(doc, html) {
-  const root = doc.body;
+// root / topText (v1.8 tests): parse into another element (innerHTML), keeping text at its top level.
+export function parseInto(doc, html, root = doc.body, topText = false) {
   const stack = [root];
   const re = /<!--[\s\S]*?-->|<\/([\w-]+)\s*>|<([\w-]+)((?:\s+[\w:-]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?)*)\s*(\/?)>|([^<]+)/g;
   let m;
@@ -152,7 +154,7 @@ export function parseInto(doc, html) {
       stack[stack.length - 1].append(el);
       if (!m[4] && !VOID.has(el.localName)) stack.push(el);
     } else if (m[5]) {
-      if (stack.length > 1 && (m[5].trim() || (!m[5].includes("\n") && m[5].length))) stack[stack.length - 1].append(new TextNode(m[5].includes("\n") ? m[5].trim() : m[5]));
+      if ((stack.length > 1 || topText) && (m[5].trim() || (!m[5].includes("\n") && m[5].length))) stack[stack.length - 1].append(new TextNode(m[5].includes("\n") ? m[5].trim() : m[5]));
     }
   }
 }

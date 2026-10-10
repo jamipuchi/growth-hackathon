@@ -19,9 +19,21 @@ const EXPECT = {
   tractor: [0.5, 1.0], mine: [0.5, 0.9], "ui-tap": [0.03, 0.06], hint: [0.45, 0.8], countdown: [0.09, 0.16], win: [1.6, 2.0],
   "explosion-small": [0.3, 0.4], "explosion-medium": [0.7, 0.9], "explosion-large": [1.4, 1.8], "countdown-go": [0.3, 0.42],
   hit: [0.1, 0.2], crack: [0.35, 0.65], scan: [0.6, 1.0], flare: [0.4, 0.7], death: [0.6, 1.0], respawn: [0.55, 0.9],
+  // v1.3: the steal sting and MY hit-confirm tick; v1.5 (TV only, built on first play): lobby hangar card pop, podium
+  // block, results fanfare, star, and the lobby ambience (an 8 s pad, faded in and out)
+  steal: [0.5, 0.75], hitmark: [0.09, 0.15], "card-pop": [0.3, 0.45], podium: [0.5, 0.7], fanfare: [1.7, 2.1], star: [1.3, 1.6],
+  ambience: [7.5, 8.5],
 };
+// Sounds whose designed attack is shorter than the 2 ms quiet-onset window: check a shorter window (still no step at 0).
+// hitmark is "a crisp, dry confirm on a tiny click" with a 2 ms attack (sfx.js hitmark: finish({ attack: 0.002 })).
+const ONSET = { hitmark: 0.001 };
+// Loop lengths: the held actions loop in 0.6-2.2 s; the TV lobby's ambience is a slow 8 s pad (sfx.js ambienceLoop).
+const LOOP_LEN = { ambience: [7.5, 8.5] };
+// Not pre-rendered at idle (sfx.js ORDER): "explosion" (an alias of explosion-medium) and the v1.5 TV-only sounds,
+// built on first play so phones never render them.
+const TV_ONLY = ["card-pop", "podium", "fanfare", "star", "ambience"];
 
-function stats(x) {
+function stats(x, onset = 0.002) {
   let pk = 0, ss = 0, bad = 0;
   for (let i = 0; i < x.length; i++) {
     const v = x[i];
@@ -30,9 +42,9 @@ function stats(x) {
     if (a > pk) pk = a;
     ss += v * v;
   }
-  const e = Math.round(0.002 * SR);
+  const e = Math.round(0.002 * SR), eOn = Math.round(onset * SR);
   let first = 0, last = 0;
-  for (let i = 0; i < e; i++) { first = Math.max(first, Math.abs(x[i])); last = Math.max(last, Math.abs(x[x.length - 1 - i])); }
+  for (let i = 0; i < e; i++) { if (i < eOn) first = Math.max(first, Math.abs(x[i])); last = Math.max(last, Math.abs(x[x.length - 1 - i])); }
   return { dur: x.length / SR, pk, rms: Math.sqrt(ss / x.length), bad, first, last };
 }
 const equal = (a, b) => { if (a.length !== b.length) return false; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false; return true; };
@@ -56,7 +68,7 @@ for (const base of ["laser", "explosion", "boost", "shield", "drill", "dig", "la
 }
 
 for (const name of SOUNDS) {
-  const x = rendered[name], s = stats(x), want = EXPECT[name];
+  const x = rendered[name], s = stats(x, ONSET[name]), want = EXPECT[name];
   const before = failures;
   check(Float32Array.prototype.isPrototypeOf(x) || x instanceof Float32Array, name + ": not a Float32Array");
   check(!!want, name + ": no expected duration in the test");
@@ -64,7 +76,7 @@ for (const name of SOUNDS) {
   check(s.bad === 0, name + ": " + s.bad + " NaN / Infinity samples");
   check(s.pk >= 0.5 && s.pk <= 1.0, name + ": peak " + s.pk.toFixed(3) + " outside 0.5-1.0");
   check(s.rms > 0.02, name + ": rms " + s.rms.toFixed(3) + " too low");
-  check(s.first < 0.05, name + ": first 2 ms reach " + s.first.toFixed(3));
+  check(s.first < 0.05, name + ": first " + ((ONSET[name] || 0.002) * 1000) + " ms reach " + s.first.toFixed(3));
   check(s.last < 0.05, name + ": last 2 ms reach " + s.last.toFixed(3));
   check(equal(x, renderSound(name, SR)), name + ": two renders differ (not deterministic)");
   console.log(
@@ -95,7 +107,8 @@ for (const name of LOOPS) {
   const seam = Math.max(Math.abs(d2[0]), Math.abs(d2[N - 1]));
   const before = failures;
   check(s.bad === 0, "loop " + name + ": NaN");
-  check(s.dur >= 0.6 && s.dur <= 2.2, "loop " + name + ": length " + s.dur.toFixed(2) + " s");
+  const len = LOOP_LEN[name] || [0.6, 2.2];
+  check(s.dur >= len[0] && s.dur <= len[1], "loop " + name + ": length " + s.dur.toFixed(2) + " s outside " + len.join("-"));
   check(s.pk >= 0.5 && s.pk <= 1.0, "loop " + name + ": peak " + s.pk.toFixed(2));
   check(s.rms > 0.05, "loop " + name + ": rms " + s.rms.toFixed(3));
   check(seam <= 1.5 * p99 + 1e-6, "loop " + name + ": seam jump " + seam.toFixed(3) + " vs p99 " + p99.toFixed(3));
@@ -196,7 +209,8 @@ async function engine() {
   await sfx.ready;
   const renderWall = performance.now() - tRender;
   const nBuf = ctx.buffers.length;
-  check(nBuf === SOUNDS.length - 1 + LOOPS.length, "pre-rendered buffers: expected " + (SOUNDS.length - 1 + LOOPS.length) + ", got " + nBuf);
+  const wantBuf = SOUNDS.filter((n) => n !== "explosion" && !TV_ONLY.includes(n)).length + LOOPS.filter((n) => !TV_ONLY.includes(n)).length;
+  check(nBuf === wantBuf, "pre-rendered buffers: expected " + wantBuf + " (no TV-only sounds), got " + nBuf);
   check(ctx.buffers.every((b) => b.sampleRate === 24000 && b.numberOfChannels === 1 && b.length > 0), "buffers are mono 24 kHz and not empty");
   check(ctx.buffers.every((b) => b.data.every((v) => Number.isFinite(v))), "buffer data finite");
   check(ctx.buffers.some((b) => b.data.some((v) => v !== 0)), "buffer data copied");

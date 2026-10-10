@@ -90,6 +90,9 @@ async function main() {
     check("seeded explorers follow their name (carla car, bikeboy bike, doggo quadruped, blobby blob)", seeded.entities.carla.explorer.type === "car" && seeded.entities.bikeboy.explorer.type === "bike" && seeded.entities.doggo.explorer.type === "quadruped" && seeded.entities.blobby.explorer.type === "blob");
     await post(base, "/join", { player: "carol" });
     await gen("carol", "ship");
+    // v1.7 readyGate: READY = ship + controller accepted (START needs one ready human; only the ready ones play)
+    const carolPad = await gen("carol", "controller");
+    check("carol draws a controller (ship + controller = READY)", carolPad.ok && carolPad.layout && carolPad.layout.buttons.length > 0, JSON.stringify(carolPad).slice(0, 120));
     const carolExplorer = await gen("carol", "explorer");
     check("carol (the phone's player) draws a car", carolExplorer.ok && carolExplorer.entity.type === "car");
 
@@ -126,6 +129,11 @@ async function main() {
     check("round hook: reset restores the defaults", reset.round.assistsAt === 180 && reset.round.maxSeconds === 240 && reset.round.scoreboardSeconds === 10, JSON.stringify(reset.round));
 
     // ---- v1.4: the big screen's START plays the server's 3-2-1 (phase "countdown") before "playing"
+    // v1.5: every round starts from scratch (carol's drawings are gone), v1.7: START needs a ready human again
+    const noOne = await post(base, "/start", {});
+    check("v1.7: START with nobody ready → 409 nobody is ready", noOne.status === 409 && noOne.json && noOne.json.error === "nobody is ready", `${noOne.status} ${JSON.stringify(noOne.json)}`);
+    await gen("carol", "ship");
+    await gen("carol", "controller");
     const ticks = [];
     const ev = openEvents(base, (m) => { if (m.type === "tick") ticks.push({ at: Date.now(), phase: m.phase, countdown: m.countdown }); });
     await sleep(400);

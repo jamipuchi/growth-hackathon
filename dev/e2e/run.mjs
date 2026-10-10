@@ -5,10 +5,12 @@
 // shoot the boss → planet → LAND → island → draw the explorer → DIG buried chests and DRILL rock chests → the round
 // ends (every chest open, or the 4:00 cap) → scoreboard; most points wins.
 // The route driver lives in driver.mjs (shared with the fast-forward balance sim, dev/netcode/balance-sim.mjs).
-//   expert: draws the ship and explorer in the lobby and every button as the route needs it. Passes when it WINS the
-//           round, opens a chest and the boss is down by --boss-by seconds (default 150, "well before 3:00").
-//   regular: draws nothing up front; waits at each gate for the hint (part first, then button), then DRAW_S drawing.
-//           Passes when the round ends with a chest opened before the 4:00 cap.
+//   expert: draws the ship, controller and explorer in the lobby and every button as the route needs it. Passes when it
+//           WINS the round, opens a chest and the boss is down by --boss-by seconds (default 150, "well before 3:00").
+//   regular: draws only the ship and controller up front (v1.7: what START needs); waits at each later gate for the hint
+//           (part first, then button), then DRAW_S drawing. Passes when the round ends with a chest opened before 4:00.
+//   v1.7 readyGate (owner 12:26): START needs a READY player (ship + controller accepted by the server) and only the ready
+//   players play; there are no bots unless --bots N is passed (this harness passes --bots, default 24, to server.js).
 //   Both: valid messages, a skill unlocked by drawing, no console errors, the phone perf gate.
 //   v1.4: the big screen's START plays the server's 3-2-1 (phase "countdown", tick.countdown 3, 2, 1) before "playing": the run
 //   waits for GO, and gates "countdown" (the server counted 3, 2, 1 and went to playing ~3 s later) and "phoneCountdown" (the
@@ -377,8 +379,9 @@ async function runRound(pages) {
   await sleep(500);
   shoot(pages, "lobby");
   D.readyVia = await phoneReady(pages.phone);
-  // expert: draws the ship and the explorer in the lobby (two of the space five), then the host presses START.
+  // v1.7: both routes draw the ship and controller in the lobby (READY), expert also the explorer; then the host presses START.
   await lobbyDraws();
+  if (!D.readyDrawn) D.issues.push("the lobby drawings did not make the player READY (ship + controller)");
   await sleep(1500);
   await Promise.all([watchDigits(pages.phone, "phone"), watchDigits(pages.big, "big")]);
   D.startVia = await hostStart(pages.big);
@@ -477,6 +480,7 @@ async function main() {
     report.announces = D.announces;
     report.issues = D.issues;
     report.readyVia = D.readyVia;
+    report.readyDrawn = !!D.readyDrawn; // v1.7: ship + controller accepted in the lobby
     report.toasts = D.toasts;
   }
   report.perf = perf;

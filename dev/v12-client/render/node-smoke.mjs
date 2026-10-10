@@ -155,7 +155,9 @@ console.log("hud copy, lod");
 {
   const copy = Object.values(T.HUD_COPY).filter((v) => typeof v === "string").join(" | ");
   ok(!/\bPRESS\b|\bTAP\b|\bHIT\b/.test(copy.replace("PRESS START", "")), "HUD_COPY has no PRESS / TAP / HIT instructions", copy);
-  ok(!/\b(LAND|DIG IT|DRILL IT|SHOOT IT|FIRE)\b/.test(copy), "HUD_COPY names no button (LAND, DIG, DRILL, SHOOT, FIRE)", copy);
+  // v1.6 (owner 12:07): landing is automatic (fly into the planet), so "FLY INTO THE PLANET TO LAND" names the move, not a
+  // LAND button: "TO LAND" is allowed, a bare LAND (the old button) is not.
+  ok(!/(?<!\bTO )\b(LAND|DIG IT|DRILL IT|SHOOT IT|FIRE)\b/.test(copy), "HUD_COPY names no button (LAND, DIG, DRILL, SHOOT, FIRE)", copy);
   const items = Array.from({ length: 25 }, (_, i) => ({ lodDist: 10 + i * 10, forced: i < 2, wantMesh: false, hadMesh: false, keepUntil: 0, dwell: 0 }));
   T.entPlanLod(items, false, 16, 450, 520, [], 0);
   ok(items.filter((s) => s.wantMesh).length === 16, "TV LOD: 16 meshes (the 2 forced + the 14 nearest)", `${items.filter((s) => s.wantMesh).length}`);

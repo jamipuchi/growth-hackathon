@@ -1,9 +1,12 @@
 // The e2e route driver (PLAN.md section 0, v1.1): reads the server's messages and plays one player along the route
 // with POST /input and POST /generate. Shared by dev/e2e/run.mjs (real server, real time) and
 // dev/netcode/balance-sim.mjs (world.js fast-forward, simulated time), so both play exactly the same way.
-//   expert:  draws the ship and explorer in the lobby (lobbyDraws) and every button as the route needs it; boosts.
-//   regular: draws nothing up front; waits at each gate for the hint (part first, then button), then drawSeconds
-//            drawing. v1.6 (owner 12:07): nothing to draw for landing: every ship flies into the planet and lands.
+//   expert:  draws the ship, controller and explorer in the lobby (lobbyDraws) and every button as the route needs it; boosts.
+//   regular: draws only what START needs up front (v1.7: the ship and the controller); waits at each later gate for the
+//            hint (part first, then button), then drawSeconds drawing. v1.6 (owner 12:07): nothing to draw for landing:
+//            every ship flies into the planet and lands.
+//   v1.7 readyGate (owner 12:26): START needs a READY player (a ship drawing and a controller accepted) and only the ready
+//   players enter the round, so both routes draw those two in the lobby (2 of the 5 space drawings).
 // createDriver({ route, me, drawSeconds, now, post, onStage, log, Contract }) → { D, onMessage, lobbyDraws }
 //   now() → ms; post(pathname, body) → Promise<{ status, json }>; onStage(name) e.g. takes screenshots.
 import zlib from "zlib";
@@ -311,16 +314,20 @@ export function createDriver({ route = "expert", me = "e2e", drawSeconds = 3, no
     }
   }
 
-  // expert: draws the ship and the explorer in the lobby (two of the space five) before the host presses START.
+  // v1.7 readyGate: both routes draw the ship and the controller in the lobby (READY: START needs one ready player and only
+  // the ready ones play); expert also draws the explorer there (three of the space five) before the host presses START.
   async function lobbyDraws() {
-    if (!expert) return;
-    for (const k of ["ship", "explorer"]) {
-      D.gates[k] = { state: "requested" };
+    for (const k of expert ? ["ship", "controller", "explorer"] : ["ship", "controller"]) {
+      if (ENTITY_OF[k]) D.gates[k] = { state: "requested" };
       const r = await post("/generate", { player: me, kind: k, image: pngDataUrl(`${k}-lobby`, 128, 96), source: "draw", speculative: false, requestId: `e2e-${k}-lobby` });
-      D.generates.push({ gate: k, ok: !!(r.json && r.json.ok), ms: 0, status: r.status, actions: (r.json && r.json.entity && r.json.entity.verbs) || [], source: r.json && r.json.entity && r.json.entity.source });
-      D.gates[k].state = "done";
+      const ok = !!(r.json && r.json.ok);
+      const actions = (r.json && r.json.entity && r.json.entity.verbs) || (r.json && r.json.layout && r.json.layout.buttons.map((b) => b.action)) || [];
+      D.generates.push({ gate: k, ok, ms: 0, status: r.status, actions, source: r.json && r.json.entity && r.json.entity.source, drawingsLeft: r.json && r.json.drawingsLeft });
+      if (!ok) D.issues.push(`lobby POST /generate ${k} failed: ${r.status} ${r.json && r.json.error}`);
+      if (ENTITY_OF[k]) D.gates[k].state = "done";
     }
-    log(`lobby: drew ship and explorer → ${D.generates.map((g) => `${g.gate} [${g.actions.join(" ")}]`).join(", ")}`);
+    D.readyDrawn = D.generates.filter((g) => (g.gate === "ship" || g.gate === "controller") && g.ok).length === 2;
+    log(`lobby: drew ${D.generates.map((g) => `${g.gate} [${g.actions.join(" ")}]`).join(", ")}${D.readyDrawn ? " → READY" : " → NOT ready"}`);
   }
 
   return { D, onMessage, lobbyDraws };

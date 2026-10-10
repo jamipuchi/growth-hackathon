@@ -353,9 +353,12 @@ export const SEED_NAMES = [
 ];
 export const explorerSampleFor = (name) => (name.startsWith("car") ? "car" : name.startsWith("bike") ? "bike" : name.startsWith("dog") ? "dog" : "astronaut");
 
-// Joins the players and gives each a drawn ship (a different rocket per player), optionally an explorer drawing and ready.
-// names: explicit names, else SEED_NAMES[startAt .. startAt + n). Returns { names, ok, failed, entities }.
-export async function seedPlayers(base, n, { names = null, startAt = 0, explorers = false, ready = false, log = () => {}, concurrency = 4 } = {}) {
+// Joins the players and gives each a drawn ship (a different rocket per player) and a drawn controller, optionally an explorer
+// drawing and ready. v1.7 readyGate (owner 12:26): READY = a ship AND a controller accepted; START needs one ready human and
+// only the ready players enter the round, so the controller is drawn by default (controller: false = ship only: that player
+// waits out the round). Both are space drawings (2 of the 5). names: explicit names, else SEED_NAMES[startAt .. startAt + n).
+// Returns { names, ok, failed, entities }.
+export async function seedPlayers(base, n, { names = null, startAt = 0, explorers = false, ready = false, controller = true, log = () => {}, concurrency = 4 } = {}) {
   const list = names || SEED_NAMES.slice(startAt, startAt + n);
   const result = { names: list, ok: [], failed: [], entities: {}, variants: {} };
   let next = 0;
@@ -370,6 +373,10 @@ export async function seedPlayers(base, n, { names = null, startAt = 0, explorer
       const g = await post(base, "/generate", { player: name, kind: "ship", image: Samples.dataUrl("ship", result.variants[name]), source: "draw", speculative: false, requestId: `seed-ship-${name}` });
       if (!g.json || !g.json.ok) throw new Error(`generate ship: ${(g.json && g.json.error) || g.status}`);
       result.entities[name] = { ship: { type: g.json.entity.type, verbs: g.json.entity.verbs, image: g.json.entity.image } };
+      if (controller) {
+        const c = await post(base, "/generate", { player: name, kind: "controller", image: Samples.dataUrl("controller", result.variants[name]), source: "draw", speculative: false, requestId: `seed-controller-${name}` });
+        if (!c.json || !c.json.ok) throw new Error(`generate controller: ${(c.json && c.json.error) || c.status}`);
+      }
       if (explorers) {
         const e = await post(base, "/generate", { player: name, kind: "explorer", image: Samples.dataUrl(explorerSampleFor(name), result.variants[name]), source: "draw", speculative: false, requestId: `seed-explorer-${name}` });
         if (!e.json || !e.json.ok) throw new Error(`generate explorer: ${(e.json && e.json.error) || e.status}`);
@@ -383,6 +390,14 @@ export async function seedPlayers(base, n, { names = null, startAt = 0, explorer
   await Promise.all(workers);
   log(`seeded ${result.ok.length}/${list.length} players${result.failed.length ? `, ${result.failed.length} failed: ${result.failed.map((f) => `${f.name} (${f.error})`).join("; ")}` : ""}`);
   return result;
+}
+
+// v1.7 readyGate (owner 12:26): makes an already joined player READY (START needs one; only the ready players enter the round):
+// a drawn ship and a drawn controller, both accepted by the server (2 of the 5 space drawings). Returns { ok, ship, controller }.
+export async function drawReady(base, player, { variant = 1 } = {}) {
+  const ship = await post(base, "/generate", { player, kind: "ship", image: Samples.dataUrl("ship", variant), source: "draw", speculative: false, requestId: `ready-ship-${player}-${Date.now()}` });
+  const controller = await post(base, "/generate", { player, kind: "controller", image: Samples.dataUrl("controller", variant), source: "draw", speculative: false, requestId: `ready-controller-${player}-${Date.now()}` });
+  return { ok: !!(ship.json && ship.json.ok && controller.json && controller.json.ok), ship: ship.json, controller: controller.json };
 }
 
 // Keeps seeded players "active" (world.js drops a human after 10 minutes without input) with a harmless input.

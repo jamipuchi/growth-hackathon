@@ -155,6 +155,12 @@ await event("scoreboard → scoreboard: nothing", () => tickWith({ phase: "score
 await event("v1.4 lobby → countdown: nothing yet (the pages beep the 3-2-1)", () => { worldSound.phase = "lobby"; tickWith({ phase: "countdown" }); }, [], 0);
 await event("v1.4 countdown → playing (GO!): one start", () => tickWith({ phase: "playing" }), ["start"]);
 tickWith({ phase: "playing" });
+// v1.6: the TV page plays its own podium fanfare (space.html startGame({ winJingle: false })): render.js plays no "win" there
+game.winJingle = false;
+await event("v1.6 winJingle false (the TV): playing → scoreboard plays no win", () => tickWith({ phase: "scoreboard" }), [], 0);
+delete game.winJingle;
+worldSound.phase = "lobby";
+tickWith({ phase: "playing" });
 await sleep(40);
 await event("boost on: one boost", () => tickWith({}, { boost: true }), ["boost"]);
 await event("boost held: nothing", () => tickWith({}, { boost: true }), [], 0);

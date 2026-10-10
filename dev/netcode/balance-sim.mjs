@@ -13,6 +13,7 @@ const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const Contract = require(path.join(ROOT, "contract.js"));
 const Verbs = require(path.join(ROOT, "verbs.js"));
+const { defaultLayout } = require(path.join(ROOT, "astra.js")); // the pad a drawn controller gets in mock mode
 const { createWorld } = require(path.join(ROOT, "world.js"));
 
 const argv = process.argv.slice(2);
@@ -70,10 +71,11 @@ async function run(route, seed) {
           w.setEntity(player, body.kind, e);
           json = { ok: true, entity: e };
         } else {
-          // As ASTRA_MOCK=1 does: the button the player was asked for (expect, the gate verb), else LAND.
+          // As ASTRA_MOCK=1 does: a drawn controller (v1.7: the driver draws one in the lobby) → the default pad; a button →
+          // the one the player was asked for (expect, the gate verb), else LAND.
           const asked = body.expect ? Contract.normaliseAction(body.expect) : "";
           const action = Verbs.VERBS[asked] ? asked : "land";
-          const layout = { buttons: [{ type: "button", action, label: action.toUpperCase(), ...body.region }], source: "model" };
+          const layout = body.kind === "controller" ? { ...defaultLayout(), source: "model" } : { buttons: [{ type: "button", action, label: action.toUpperCase(), ...body.region }], source: "model" };
           w.setLayout(player, layout, body.kind);
           json = { ok: true, layout };
         }
@@ -93,7 +95,10 @@ async function run(route, seed) {
   onMessage(w.worldMessage());
   post("/input", { type: "input", player: ME, action: "ready", down: true });
   const lobby = lobbyDraws();
-  for (let i = 0; i < 10; i++) await flushLater();
+  // v1.7: the lobby drawings include the controller (a MOCK_BUTTON_MS answer): the lobby clock runs until they are in
+  let lobbyDone = false;
+  lobby.then(() => (lobbyDone = true));
+  for (let i = 0; i < 400 && !lobbyDone; i++) { await flushLater(); if (!lobbyDone) simMs += 50; }
   await lobby;
   simMs += 1500;
   w.start();

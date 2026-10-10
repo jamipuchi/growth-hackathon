@@ -1,5 +1,8 @@
 // astra.js kinds "ship" and "explorer" (v1-ship-drawing): answered at once with the world's default rig, verbs and
 // wired animations; no network; the finished drawing is kept as controllers/<player>-<kind>.png.
+// v1.8 tests: since v1.5 (QA M1) only development (ASTRA_MOCK=1 or no key) gets the generous dev kit; with a key, a
+// failed call reads nothing, so it gets the plain entity (only its type's innate skills, source "fallback", free) and
+// the drawing is not kept. The dev-kit cases below run with ASTRA_MOCK=1; the last case checks the plain fallback.
 // Run: node dev/inflate/astra-entity-test.js
 const fs = require("fs");
 const os = require("os");
@@ -25,7 +28,10 @@ async function test(name, fn) {
   catch (err) { results.push({ name, ok: false, err, ms: performance.now() - t0 }); }
 }
 
+const mock = (on) => { if (on) process.env.ASTRA_MOCK = "1"; else delete process.env.ASTRA_MOCK; };
+
 (async () => {
+  mock(true); // development: the dev kit (astra.js devMode), still no network
   await test("ship → ok at once: type ship, space verbs, anims for those verbs, no network", async () => {
     const t0 = performance.now();
     const r = await Astra.generate({ player: "Ana", kind: "ship", image: png("ship") });
@@ -64,6 +70,30 @@ async function test(name, fn) {
     assert.strictEqual(fs.readFileSync(path.join(tmp, "bo-ship.png")).toString(), "fake-png-bo-ship");
     assert.strictEqual(JSON.parse(fs.readFileSync(path.join(tmp, "bo-ship.json"), "utf8")).type, "ship");
     assert.ok(!fs.existsSync(path.join(tmp, "cy-ship.png")));
+  });
+
+  // v1.5 (QA M1): with a key and a call that fails (no network here), nothing was read, so nothing is unlocked: the
+  // plain entity of that type (innate skills only), free, never kept as a drawing.
+  mock(false);
+  await test("key + failed call → plain entity (innate skills only), fallback + free, drawing not kept", async () => {
+    const s = await Astra.generate({ player: "Di", kind: "ship", image: png("di-ship") });
+    assert.strictEqual(s.ok, true);
+    assert.strictEqual(s.fallback, true, "fallback: true");
+    assert.strictEqual(s.free, true, "free: true (server.js spends no drawing)");
+    assert.ok(["error", "timeout"].includes(s.failed), `failed ${s.failed}`);
+    assert.strictEqual(s.entity.type, "ship");
+    assert.strictEqual(s.entity.source, "fallback");
+    assert.deepStrictEqual(s.entity.verbs, Verbs.entityVerbs("ship", []), "a plain ship only flies");
+    assert.deepStrictEqual(s.entity.anims, Astra.wireAnimations("ship", s.entity.verbs));
+    const e = await Astra.generate({ player: "Di", kind: "explorer", image: png("di-exp") });
+    assert.strictEqual(e.ok, true);
+    assert.strictEqual(e.fallback, true);
+    assert.strictEqual(e.entity.type, "person");
+    assert.strictEqual(e.entity.source, "fallback");
+    assert.deepStrictEqual(e.entity.verbs, Verbs.entityVerbs("person", []), "innate skills only (jump, takeoff)");
+    for (const v of Verbs.GATE_SKILLS.planet) assert.ok(!e.entity.verbs.includes(v), `plain explorer has no ${v}`);
+    await new Promise((res) => setTimeout(res, 50));
+    assert.ok(!fs.existsSync(path.join(tmp, "di-ship.png")) && !fs.existsSync(path.join(tmp, "di-explorer.png")), "a fallback is not kept");
   });
 
   await test("bad input refused cleanly: no player, no image, not a data URL, unknown kind", async () => {

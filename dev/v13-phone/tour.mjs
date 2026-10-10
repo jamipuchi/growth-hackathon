@@ -12,7 +12,7 @@ import fs from "fs";
 import path from "path";
 import {
   args, makeLogger, installSignalHandlers, runCleanups, startServer, launchPhoneBrowser, watchPage, shootPage, sp, sleep, withTimeout, summariseConsole,
-  post, waitFor,
+  post, waitFor, drawReady,
 } from "../v11-client/lib.mjs";
 
 const A = args();
@@ -287,6 +287,11 @@ async function main() {
         if (t && a[a.length - 1] !== t) a.push(t);
       }, 40);
     });
+    // v1.7 readyGate: START needs a READY human (ship + controller accepted by the server); the tour skipped its drawings
+    const name = await ev(page, () => window.__sp && window.__sp.player);
+    const rd = await drawReady(server.base, typeof name === "string" && name ? name : "tourist");
+    check("the tour's player draws a ship and a controller (READY)", rd.ok, { ship: rd.ship && (rd.ship.error || rd.ship.ok), controller: rd.controller && (rd.controller.error || rd.controller.ok) });
+    await sleep(400);
     const res = await post(server.base, "/start", {});
     check("POST /start {} answers phase countdown", res.status === 200 && res.json && res.json.phase === "countdown", { status: res.status, json: res.json });
     await sleep(1100); await shot(page, "server-countdown");

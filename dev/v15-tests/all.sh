@@ -19,6 +19,9 @@
 #           phone: ship3d.js / entity3d.js from the spec), ASTRA_MOCK=1, port base+6, about 25 s
 #   tour    dev/v13-phone/tour.mjs --bots 2: the phone tour (every screen, guide card, paper share, full screen, late hints,
 #           the 3-2-1), WebKit iPhone, port base+5, about 90 s
+# v1.7 (readyGate, owner 12:26): START needs a READY player (a ship and a controller accepted by the server) and only the
+# ready players play; server.js starts no bots unless told. The harnesses draw both before START (e2e driver lobbyDraws,
+# live-test, selftest, seedPlayers / drawReady in dev/v11-client/lib.mjs) and pass --bots explicitly where they need bots.
 # Every harness runs with ASTRA_MOCK=1 where it starts a game server (no real OpenAI call). The ports of the chosen groups
 # (base..base+9) must be free: the script refuses to start otherwise (it never kills anything it did not start). Before
 # each browser group it waits while the orchestrator's HOLD flag is up (.orch/status/HOLD; --no-wait skips the wait).
@@ -120,7 +123,7 @@ detail_for() {
         if (!r) { console.log("no report"); process.exit(0); }
         const g = r.gates || {}, bad = Object.keys(g).filter((k) => !g[k]);
         const ph = r.perf && r.perf.phone, cd = r.countdown;
-        console.log(`round ${r.roundSeconds ?? "-"} s (${r.result && r.result.reason || "-"}), winner ${r.winner || "-"}, chests ${r.chestsOpened}, boss ${r.bossDownClock ?? "-"} s, 3-2-1 ${cd ? (cd.values || []).join("") || "-" : "?"}, phone ${ph ? ph.fps + "/" + ph.low1 : "-"} fps; ${bad.length ? "FAILED " + bad.join(",") : "all " + Object.keys(g).length + " gates"}`.slice(0, 160));
+        console.log(`${r.readyDrawn === false ? "NOT READY · " : ""}round ${r.roundSeconds ?? "-"} s (${r.result && r.result.reason || "-"}), winner ${r.winner || "-"}, chests ${r.chestsOpened}, boss ${r.bossDownClock ?? "-"} s, 3-2-1 ${cd ? (cd.values || []).join("") || "-" : "?"}, phone ${ph ? ph.fps + "/" + ph.low1 : "-"} fps; ${bad.length ? "FAILED " + bad.join(",") : "all " + Object.keys(g).length + " gates"}`.slice(0, 160));
       ' "$ROOT/dev/e2e/report-${name#e2e-}.json" "$ROOT/dev/e2e/report.json" "${name#e2e-}" 2>/dev/null ;;
     *)
       # a tally line first (N/M passed, N checks, ALL OK, "PASS <suite> (N ms)"), else the last pass/fail-looking line

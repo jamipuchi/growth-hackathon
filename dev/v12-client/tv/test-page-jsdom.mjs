@@ -12,7 +12,8 @@ const { JSDOM } = require("/Users/jaumepuig/Documents/linkedin/node_modules/jsdo
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../..");
 const html = fs.readFileSync(path.join(ROOT, "space.html"), "utf8");
 const body = html.replace(/<script[\s\S]*?<\/script>/g, "").replace(/<link[^>]*>/g, "").replace(/<style[\s\S]*?<\/style>/g, "");
-const dom = new JSDOM(body, { pretendToBeVisual: true, url: "http://127.0.0.1:8266/space.html" });
+// ?noceremony: the results show their end at once (v1.5 ceremony: the title is the reason first, the winner ~3 s later)
+const dom = new JSDOM(body, { pretendToBeVisual: true, url: "http://127.0.0.1:8266/space.html?noceremony" });
 const w = dom.window;
 w.HTMLCanvasElement.prototype.getContext = () => new Proxy({}, { get: (t, k) => (k === "measureText" ? (s) => ({ width: String(s).length * 45 }) : () => {}), set: () => true });
 for (const k of ["document", "location", "addEventListener", "removeEventListener", "getComputedStyle", "requestAnimationFrame", "performance"]) if (k !== "performance") globalThis[k] = typeof w[k] === "function" ? w[k].bind(w) : w[k];
@@ -22,7 +23,8 @@ globalThis.fetch = async (url) => (String(url).includes("/info") ? infoReply : {
 
 const handlers = {};
 const game = { on(ev, cb) { (handlers[ev] ||= []).push(cb); return () => {}; }, emit(ev, d) { (handlers[ev] || []).forEach((cb) => cb(d)); }, projectPlayers: () => [], followed: null, setPlayer() {}, setView() {} };
-globalThis.__R = { startGame: () => game, sfx: null };
+let startOpts = null;
+globalThis.__R = { startGame: (o) => ((startOpts = o), game), sfx: null };
 let code = /<script type="module">([\s\S]*?)<\/script>/.exec(html)[1];
 code = code.replace('import * as R from "./render.js";', "const R = globalThis.__R;").replace('await import("./bigscreen-extras.js")', `await import(${JSON.stringify(pathToFileURL(path.join(ROOT, "bigscreen-extras.js")).href)})`);
 const file = path.join(os.tmpdir(), `tv-page-${process.pid}.mjs`);
@@ -41,6 +43,9 @@ const hud = (o) => ({ phase: "playing", clock: 30, left: 200, leftText: "3:20", 
   chests: { total: 5, open: 1 }, leaderboard: [{ name: "ana", stars: 1, total: 900 }, { name: "bob", stars: 0, total: 700 }], result: null, radar: [], tier: 0,
   scores: players.map((p) => ({ name: p.name, color: p.color, score: p.score, mode: "space", bot: !!p.flags.bot, dead: !!p.flags.dead, ready: true, stars: 0 })).sort((a, b) => b.score - a.score),
   me: { name: "bob", color: 0xf472b6, mode: "space", hp: 80, maxHp: 100, shieldEnergy: 1, boostEnergy: 1, flags: {}, respawnIn: null }, followed: "bob", ...o });
+
+// v1.6: the results' ONE jingle is this page's fanfare: the TV asks render.js for no "win" (render.js:3919 skips it)
+ok(startOpts && startOpts.screen === "big" && startOpts.winJingle === false, `startGame({ screen: "big", winJingle: false }) (${JSON.stringify(startOpts && { screen: startOpts.screen, winJingle: startOpts.winJingle })})`);
 
 // ---- lobby: the join code from /info (the TV is on 127.0.0.1) ----
 game.emit("world", { type: "world", round: 2, result: null, chests: [], leaderboard: [] });
@@ -81,9 +86,13 @@ ok(!$("bannerBox").classList.contains("show"), "no banner for those");
 game.emit("announce", { type: "announce", text: "💰 ana stole 750 points from bob!", big: false });
 await sleep(250);
 ok($("bannerBox").classList.contains("show") && /stole/i.test($("bannerText").textContent) && !/💰/.test($("bannerText").textContent), "a steal still shows the gold banner (text without emoji)");
+// v1.4+: no free skills at 3:00, the chests glow (world.js announce); an old server's "Assists on: ..." reads the same
+game.emit("announce", { type: "announce", text: "3:00! The chests glow. Missing a skill? Draw it now!", big: true });
+await sleep(250);
+ok(/CHESTS GLOW/.test($("bannerText").textContent) && !/BONUS TIME|UNLOCKED/.test($("bannerText").textContent), `3:00 line rewritten in plain words (${$("bannerText").textContent})`);
 game.emit("announce", { type: "announce", text: "Assists on: every gate skill is unlocked and the chests glow!", big: true });
 await sleep(250);
-ok(/BONUS TIME/.test($("bannerText").textContent), "assists line rewritten in plain words");
+ok(/CHESTS GLOW/.test($("bannerText").textContent) && !/UNLOCKED/.test($("bannerText").textContent), `old server's assists line: same plain words (${$("bannerText").textContent})`);
 game.emit("toast", { type: "toast", player: "bob", kind: "hint", text: "Draw LAND" });
 ok(!w.document.body.textContent.includes("Draw LAND"), "private hints are not shown on the TV");
 w.__bigscreen.feed("🎭 ana shot bob's decoy");

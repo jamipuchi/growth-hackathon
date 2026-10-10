@@ -20,7 +20,9 @@ if (run("main")) {
   T.go("play");
   await sleep(150);
   ok("play screen, DOM controls built from the layout", S.screen === "play" && $("hits").children.length === 6, [S.screen, $("hits").children.length]);
-  ok("no pad yet: asked the server (POST /controller-html {player})", state.htmlCalls === 1 && state.calls.some((c) => c.url === "/controller-html" && c.body.player === "tester"), state.htmlCalls);
+  // v1.5 (QA M4): a template pad on the play screen is checked once more for Sol's own version (refreshPad, force); this
+  // fake server answers pending: false, so that pad is settled and never asked again: 1 fetch + 1 check.
+  ok("no pad yet: asked the server (POST /controller-html {player}), + the one QA M4 check", state.htmlCalls === 2 && state.calls.some((c) => c.url === "/controller-html" && c.body.player === "tester"), state.htmlCalls);
   ok("one sandbox mounted in #ctl", SB.mounts.length === 1 && SB.last.container === $("ctl"), SB.mounts.length);
   const o = SB.last.opts;
   ok("allowedActions = requiredActions = the pad's actions", JSON.stringify([...o.allowedActions].sort()) === JSON.stringify(["boost", "emp", "heal", "land", "shoot", "steer"]) && JSON.stringify(o.requiredActions) === JSON.stringify(o.allowedActions), o.allowedActions);
@@ -126,7 +128,7 @@ if (run("fail")) {
     SB.last.becomeReady(KIT_CONTROLS.filter((c) => c.action !== "shoot")); await sleep(10);
     ok("missing control: sandbox dropped, DOM controls back, pad marked bad", S.ctl === null && !$("area").classList.contains("sb") && S.pad.bad === true && SB.mounts[0].destroyed, [S.ctl, S.pad.bad]);
     T.go("play"); await sleep(120);
-    ok("a bad pad is not mounted again and again", SB.mounts.length === 1 && state.htmlCalls === 1, [SB.mounts.length, state.htmlCalls]);
+    ok("a bad pad is not mounted again and again (1 fetch + the one QA M4 check, no more)", SB.mounts.length === 1 && state.htmlCalls === 2, [SB.mounts.length, state.htmlCalls]);
   }
   { // frame removed by the kit (hostile): ready resolves with no controls
     const t = await boot(); const { $, S, T, SB } = t;
@@ -159,7 +161,7 @@ if (run("flow")) { // the real drawing flow: the controller answer carries the p
   ok("nothing mounted while on the result sheet", SB.mounts.length === 0);
   ok("legend pending", S.legendPending === true);
   $("resultNext").onclick(); await sleep(150);
-  ok("PLAY: sandbox mounted with the answer's pad, no extra request", SB.mounts.length === 1 && state.htmlCalls === 0 && S.screen === "play", [SB.mounts.length, state.htmlCalls]);
+  ok("PLAY: sandbox mounted with the answer's pad, no fetch (only the one QA M4 check for Sol's version)", SB.mounts.length === 1 && state.htmlCalls === 1 && S.screen === "play", [SB.mounts.length, state.htmlCalls]);
   ok("legend waits for the frame", !$("legend").classList.contains("on") && S.legendPending === true);
   SB.last.becomeReady([{ action: "steer", kind: "stick", label: "STEER", x: 0.04, y: 0.4, w: 0.3, h: 0.55 }, { action: "shoot", kind: "button", label: "FIRE", x: 0.6, y: 0.3, w: 0.2, h: 0.3 }, { action: "boost", kind: "button", label: "BOOST", x: 0.55, y: 0.65, w: 0.2, h: 0.3 }, { action: "land", kind: "button", label: "LAND", x: 0.8, y: 0.65, w: 0.15, h: 0.3 }]);
   await sleep(20);

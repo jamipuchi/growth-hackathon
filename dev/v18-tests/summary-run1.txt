@@ -1,0 +1,30 @@
+Space Party tests · 0622fdf v1.7 island size: the planet's island is 840 m acros · 2026-10-10T11:18:57.988Z · 748 s
+group   suite           result  time   numbers
+------------------------------------------------------------------------------------------------------------------------
+unit    astra-test      PASS    19s    30/30 passed. cache hit 0.08 ms, mock 301 ms, timeout 9002 ms
+unit    gen-regression  PASS    1s     103 cases replayed from 3 run(s), 103 recorded calls (+45 spec calls answered 599), 0 failure(s), 142 ms
+unit    vocab           PASS    0s     vocab: 415 checks passed
+unit    anim-wire       PASS    0s     9 passed
+unit    sim             PASS    21s    33/33 passed at 2026-10-10T11:07:11.526Z
+unit    live            PASS    17s    PASS live test (16679 ms) at 2026-10-10T11:07:28.276Z
+unit    rules           PASS    0s     17 tests passed
+unit    astra-entity    PASS    0s     5/5 passed
+unit    https           PASS    0s     ALL PASS in 183 ms
+client  render-unit     PASS    9s     PASS: 88/88 checks
+client  render-smoke    PASS    0s     PASS: 65/65 checks
+client  render-game     PASS    1s     PASS: 72/72 checks
+client  tv-feed         PASS    0s     all OK
+client  tv-parse        PASS    0s     
+client  tv-extras       PASS    0s     ALL OK
+client  tv-page         PASS    3s     ALL OK
+client  ship-spec       PASS    0s     all 7 passed
+client  phone-join      PASS    2s     13 checks, 0 failed
+client  phone-sandbox   PASS    12s    53 checks, 0 failed
+client  phone-mischief  PASS    35s    78 checks, 0 failed
+client  harness-self    PASS    24s    all 43 checks passed
+e2e     e2e-expert      PASS    209s   round 196.5 s (chests), winner e2e, chests 16, boss 20.23 s, 3-2-1 321, phone 60/54.5 fps; all 10 gates
+e2e     e2e-regular     PASS    254s   round 242.8 s (time), winner e2e, chests 13, boss 24 s, 3-2-1 321, phone 60/53 fps; all 8 gates
+kit     entity-kit      FAIL    51s    FAIL: 622/699 checks passed, 58 hard failed, 0 soft, 19 n/a · 6/14 drawings · mock · 50.4 s
+tour    phone-tour      PASS    89s    [v13-phone   89.7s] 81/81 checks passed, 0 step(s) failed, 90 s; report: dev/v13-phone/tour-report.json
+------------------------------------------------------------------------------------------------------------------------
+24 pass, 1 fail, 0 timeout, 0 skipped · logs /private/tmp/claude-501/-Users-jaumepuig-Documents-growth-hackathon/0e6923fa-e535-4430-96aa-a3a872beceb3/scratchpad/full

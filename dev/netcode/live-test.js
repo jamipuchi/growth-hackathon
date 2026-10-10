@@ -97,10 +97,17 @@ async function main() {
   const shipPng = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
   const ship = JSON.parse((await request("POST", "/generate", { player: "livetest", kind: "ship", image: shipPng })).body);
   assert(ship.ok && ship.entity.verbs.includes("shoot") && ship.entity.source === "devkit" && ship.entity.unlocked.length > 0, `ship → ${JSON.stringify(ship).slice(0, 160)}`);
+  // v1.7 readyGate (owner 12:26): START needs a READY human (a ship drawing AND a controller accepted); bots do not count.
+  const early = await request("POST", "/start", {});
+  assert.strictEqual(early.status, 409, "START with nobody ready → 409");
+  assert.strictEqual(JSON.parse(early.body).error, "nobody is ready");
+  const pad0 = JSON.parse((await request("POST", "/generate", { player: "livetest", kind: "controller", image: shipPng })).body);
+  assert(pad0.ok && pad0.layout && pad0.layout.buttons.length > 0, `controller → ${JSON.stringify(pad0).slice(0, 160)}`);
   // v1.4: START plays the server's 3-2-1 (phase "countdown", tick.countdown 3, 2, 1) before play.
   const started = await request("POST", "/start", {});
   assert.strictEqual(started.status, 200, "START from the lobby");
   const startBody = JSON.parse(started.body);
+  assert.strictEqual(startBody.ready, 1, "START answers how many humans were ready");
   assert.strictEqual(startBody.phase, "countdown", "START → the 3-2-1 first");
   assert.strictEqual(startBody.countdown, 3);
   const again = await request("POST", "/start", {});
@@ -133,7 +140,7 @@ async function main() {
   assert.deepStrictEqual(posted, { player: "livetest", color: Contract.COLORS[24 % Contract.COLORS.length] }, "join cleans the name");
   const me = players.find((p) => p.name === "livetest");
   assert(me && me.action === "shoot" && me.slot === "primary", "input normalised FIRE → shoot");
-  assert.deepStrictEqual(me.drawingsLeft, { space: 4, planet: 5 }, "tick drawingsLeft: the lobby ship counts toward space");
+  assert.deepStrictEqual(me.drawingsLeft, { space: 3, planet: 5 }, "tick drawingsLeft: the lobby ship and controller count toward space");
   assert(players.filter((p) => p.flags.bot).every((p) => p.drawingsLeft === undefined), "bots carry no drawingsLeft");
   const ents = worlds[0].m.entities;
   assert(ents && ents.livetest && ents.livetest.type === "ship" && Array.isArray(ents.livetest.verbs) && Object.keys(ents).length === 25, "world.entities for every player");
@@ -197,18 +204,18 @@ async function main() {
   ]);
   const g = JSON.parse(gen.body);
   assert(gen.status === 200 && g.ok && g.layout.buttons[0].action === "land", `generate → ${gen.body.slice(0, 120)}`);
-  assert.deepStrictEqual(g.drawingsLeft, { space: 3, planet: 5 }, "a finished drawing spends one (the ship was the first)");
+  assert.deepStrictEqual(g.drawingsLeft, { space: 2, planet: 5 }, "a finished drawing spends one (the ship and the controller were the first two)");
   assert(genMsgs.some((x) => x.m.type === "generated" && x.m.player === "livetest" && x.m.kind === "button"), "generated broadcast");
 
-  // Budget: speculative calls are free and never broadcast; 3 more finished drawings, then "no drawings left"
+  // Budget: speculative calls are free and never broadcast; 2 more finished drawings, then "no drawings left"
   // before Astra is called.
   const img = (i) => "data:image/png;base64," + Buffer.from(`drawing ${i}`).toString("base64");
   const genBody = (i, speculative) => ({ player: "livetest", kind: "button", image: img(i), region: { x: 0.1, y: 0.05, w: 0.2, h: 0.2 }, speculative, requestId: `r${i}` });
   const spec = JSON.parse((await request("POST", "/generate", genBody(100, true))).body);
-  assert(spec.ok && spec.drawingsLeft.space === 3, "speculative not counted");
-  for (let i = 1; i <= 3; i++) {
+  assert(spec.ok && spec.drawingsLeft.space === 2, "speculative not counted");
+  for (let i = 1; i <= 2; i++) {
     const r = JSON.parse((await request("POST", "/generate", genBody(i, false))).body);
-    assert(r.ok && r.drawingsLeft.space === 3 - i, `drawing ${i + 1}: ${JSON.stringify(r).slice(0, 120)}`);
+    assert(r.ok && r.drawingsLeft.space === 2 - i, `drawing ${i + 3}: ${JSON.stringify(r).slice(0, 120)}`);
   }
   const astraLines = () => (serverOut.match(/^astra button livetest/gm) || []).length;
   const linesBefore = astraLines();
