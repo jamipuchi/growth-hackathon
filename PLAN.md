@@ -58,6 +58,8 @@ The owner answered a long round of questions after the first playtest. Where an 
 - **Big-screen scoreboard during play:** 7 rows plus the followed player.
 - **Player cap:** 25 (humans and bots together never exceed it).
 
+**Owner decision, 10 October 11:31:** every round starts from scratch. Drawings, entities, controllers, unlocked skills, drawing budgets and anything generated from them are cleared when a round ends; a drawing can never be reused in a later round. Only the joined name, colour and session stars carry over.
+
 ## 1. Components
 
 One Node server, `node server.js`, runs everything: HTTP on port 8000 and HTTPS on port 8443 (a self-signed certificate, so phones get tilt and the camera). Phones join over the LAN by scanning the QR code on the big screen.
