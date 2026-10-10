@@ -64,6 +64,8 @@ The owner answered a long round of questions after the first playtest. Where an 
 
 **Owner decision, 10 October 12:07:** landing is automatic. A ship that flies into the open planet touches down by itself; no landing legs, no LAND button and no LAND gate. Take-off stays as it is.
 
+**Owner decision, 10 October 12:26:** no bots; the host can start whenever, and only READY players (ship and controller accepted) get into the round. The others keep drawing and join the next round with their drawings kept (in ENDLESS they join as soon as they are ready).
+
 ## 1. Components
 
 One Node server, `node server.js`, runs everything: HTTP on port 8000 and HTTPS on port 8443 (a self-signed certificate, so phones get tilt and the camera). Phones join over the LAN by scanning the QR code on the big screen.
