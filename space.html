@@ -433,6 +433,22 @@
   #hallBtn:focus-visible { outline: .3rem solid #fff; outline-offset: .4rem; }
   #hud:not([data-view=lobby]):not([data-view=results]) #hallBtn { display: none; }
 
+  /* v1.6.1 RESTART (owner, 10 Oct 12:31): the host's small RESTART, bottom left on the lobby, the play and the results (under the
+     kill feed, away from START / ENDLESS / HALL OF FAME). Tap, then tap again within 4 s (or R twice within 3 s): everyone rejoins.
+     v1.8: armed and busy it is a heading plus a small line, at most 21rem wide and about 5rem tall, so it stays left of the v1.7
+     START note ("A PLAYER IS READY ONCE…", centred under START) and under the join card, and only briefly covers the kill feed. */
+  #restartBtn { position: absolute; left: .7rem; bottom: .35rem; z-index: 40; pointer-events: auto; cursor: pointer; border: 0; background: none; font: inherit;
+                padding: .15rem .75rem .22rem; font-size: .9rem; white-space: nowrap; opacity: .5; transform-origin: 0 100%; text-align: left;
+                --bg: linear-gradient(180deg, rgb(46 34 150 / .9), rgb(22 14 78 / .9)); transition: opacity .12s, filter .12s; }
+  #restartBtn:hover, #restartBtn:focus-visible { opacity: 1; }
+  #restartBtn:focus-visible { outline: .2rem solid #fff; outline-offset: .3rem; }
+  #restartBtn.armed, #restartBtn.busy { opacity: 1; white-space: normal; max-width: 21rem; font-size: 1.25rem; line-height: 1.2; padding: .45rem 1rem .55rem;
+                                        --bg: linear-gradient(180deg, #ff7b92, #ff3b5c); }
+  #restartBtn.armed { animation: throb .8s ease-in-out infinite; }
+  #restartBtn.busy { cursor: progress; }
+  #restartBtn small { display: block; margin-top: .2rem; font-size: .72em; line-height: 1.15; }
+  #hud:not([data-view=lobby]):not([data-view=play]):not([data-view=results]) #restartBtn { display: none; }
+
   /* keyboard help (H) */
   #keys { position: absolute; left: 50%; bottom: .8rem; transform: translateX(-50%); display: none; max-width: 92vw; padding: .5rem 1.4rem; font-size: 1.05rem; line-height: 1.35; text-align: center; text-transform: none; letter-spacing: .02em;
           background: rgb(10 6 30 / .82); border-radius: .5rem; z-index: 50; }
@@ -543,6 +559,7 @@
   <div id="pops"></div>
   <div id="tvWait" class="sk navy h hidden"></div>
   <button id="hallBtn" class="sk gold" type="button"><span class="h hh dk" data-copy="hall"></span></button>
+  <button id="restartBtn" class="sk" type="button"><span id="restartLabel" class="h" data-copy="restart.idle"></span></button>
   <div id="keys" class="tx" data-copy="help"></div>
 </div>
 
@@ -648,7 +665,11 @@ const COPY = {
   // The 3:00 line (old server: "Assists on: every gate skill is unlocked…"; now "3:00! The chests glow. Missing a skill? Draw it now!"):
   // nothing is ever unlocked for free (PLAN.md section 0), so the TV says what the phones' big "DRAW A SHOVEL" cards say.
   rewrite: [[/^(assists on\b|3:00! the chests glow\b)/i, "3:00! THE CHESTS GLOW · MISSING A SKILL? DRAW IT NOW!"]],
-  help: "HOST KEYS · ENTER start (or skip the podium) · E endless on / off · ENTER twice ends an endless game · M sound · H hide this",
+  help: "HOST KEYS · ENTER start (or skip the podium) · E endless on / off · ENTER twice ends an endless game · R twice restarts everything (everyone rejoins) · M sound · H hide this",
+  // v1.6.1 RESTART: the host's small button, bottom left (lobby, play, results); the confirm says what is lost. v1.8: armed and busy
+  // show a heading (confirm, busy) over a small line (confirmSub, busySub); {key} is R (SHIFT+R with ?kb, where R drills).
+  restart: { idle: "↻ RESTART", confirm: "RESTART EVERYTHING?", confirmSub: "EVERYONE REJOINS · CLEARS PLAYERS AND THE HALL OF FAME · TAP AGAIN (OR {key})",
+             busy: "RESTARTING…", busySub: "EVERYONE JOINS AGAIN", toast: "RESTARTING · EVERYONE JOINS AGAIN", failed: "RESTART FAILED · TRY AGAIN" },
   // Only with ?kb (a test player that joins as "keyboard"; a stray key on the party laptop never adds a player).
   helpKb: " · TEST PLAYER: arrows steer · W/S thrust · A/D strafe · Q/E rise / sink · SPACE shoot · SHIFT shield · B boost · F flare · C scan · R drill · L land · T take off · G dig · J jump · V view",
 };
@@ -1676,7 +1697,7 @@ game.on("announce", onAnnounce);
 // START: Enter in the lobby; H help; M sound. The debug keyboard player (it joins the game as "keyboard" on its first key) only with
 // ?kb: on the party laptop a stray key must never add a player.
 const KB = params.has("kb");
-if (KB) $("keys").textContent = COPY.help + COPY.helpKb;
+if (KB) $("keys").textContent = COPY.help.replace("R twice", "SHIFT+R twice") + COPY.helpKb; // v1.8: R drills for the test player
 const KEYMAP = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down", w: "forward", s: "back", a: "strafeleft", d: "straferight", q: "rise", e: "sink", " ": "shoot", Shift: "shield", b: "boost", f: "flare", c: "scan", r: "drill", l: "land", t: "takeoff", g: "dig", j: "jump", Enter: "ready" };
 let joined = false;
 const post = (url, body) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).catch(() => {});
@@ -1693,6 +1714,8 @@ addEventListener("keydown", (e) => {
   if (view === "results" && key === "Enter") { e.preventDefault(); if (!e.repeat) cerFinish(); return; } // the host skips the podium
   if (view === "lobby" && key === "e") { e.preventDefault(); if (!e.repeat) toggleEndless(); return; } // v1.6 ENDLESS switch
   if (view === "play" && key === "Enter" && isEndless()) { e.preventDefault(); if (!e.repeat) endGame(); return; } // v1.6: ENTER twice ends it
+  // v1.6.1 RESTART: R twice within 3 s (with ?kb, where R drills, SHIFT+R)
+  if (key === "r" && (!KB || e.shiftKey) && (view === "lobby" || view === "play" || view === "results")) { e.preventDefault(); if (!e.repeat) restartAll(3000); return; }
   if (key === "h") { if (!e.repeat) document.body.classList.toggle("help"); return; }
   if (key === "m") {
     if (e.repeat) return;
@@ -1865,6 +1888,75 @@ $("hallBtn").addEventListener("click", () => {
   if (!w) location.href = url;
 });
 $("hallBtn").addEventListener("keyup", (e) => { if (e.key === " ") e.preventDefault(); });
+
+// ================= RESTART (v1.6.1, owner 10 Oct 12:31: "a button to restart it from space.html") =================
+// The host's small RESTART, bottom left on the lobby, the play and the results (or R twice within 3 s). The first tap arms it
+// ("RESTART EVERYTHING? EVERYONE REJOINS · CLEARS PLAYERS AND THE HALL OF FAME", 4 s; never window.confirm), the second posts
+// /restart { confirm: true }. The server tells every screen {type:"restart"} and hands over to a fresh server (a new session
+// id, an empty world and hall of fame): phones forget their player and show JOIN, and this page reloads as soon as the new
+// server answers /info. A world message with another session id (the server restarted some other way) reloads it too.
+let restartArmedUntil = 0, restartBusy = false, restartTimer = 0, tvSession = null, reloading = false;
+function syncRestart() {
+  const armed = !restartBusy && performance.now() < restartArmedUntil;
+  flag($("restartBtn"), "armed", armed);
+  flag($("restartBtn"), "busy", restartBusy);
+  const R = COPY.restart; // v1.8: a heading over a small line (armed, busy)
+  setHtml($("restartLabel"), restartBusy ? `${esc(R.busy)}<small>${esc(R.busySub)}</small>`
+    : armed ? `${esc(R.confirm)}<small>${esc(fmt(R.confirmSub, { key: KB ? "SHIFT+R" : "R" }))}</small>` : esc(R.idle));
+}
+async function restartAll(windowMs = 4000) {
+  sfxUnlock();
+  $("restartBtn").blur();
+  if (restartBusy || reloading) return;
+  const now = performance.now();
+  if (now >= restartArmedUntil) {
+    restartArmedUntil = now + windowMs;
+    sfxPlay("click");
+    syncRestart();
+    clearTimeout(restartTimer);
+    restartTimer = setTimeout(syncRestart, windowMs + 100);
+    return;
+  }
+  restartArmedUntil = 0;
+  restartBusy = true;
+  syncRestart();
+  let status = 0;
+  try {
+    const res = await fetch("/restart", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ confirm: true }) });
+    status = res.status;
+  } catch (e) { status = 0; }
+  if (status !== 200 && status !== 409) { restartBusy = false; syncRestart(); ptoast(esc(COPY.restart.failed), 2400); return; } // 409: already restarting
+  ptoast(esc(COPY.restart.toast), 5000);
+  reloadWhenBack(tvSession);
+}
+// Reload once the NEW server answers (reloading while the ports change hands would show the browser's error page). Without a
+// known session id: after the old one went away, or 3 s. Past 60 s it reloads anyway.
+function reloadWhenBack(old) {
+  if (reloading) return;
+  reloading = true;
+  restartBusy = true;
+  syncRestart();
+  const t0 = performance.now();
+  let sawDown = false;
+  const poll = async () => {
+    let j = null;
+    try { const r = await fetch("/info", { cache: "no-store" }); j = r.ok ? await r.json() : null; } catch (e) { j = null; }
+    if (!j) sawDown = true;
+    const fresh = !!j && (old ? !!j.session && j.session !== old : sawDown || performance.now() - t0 > 3000);
+    if (fresh || performance.now() - t0 > 60000) { location.reload(); return; }
+    setTimeout(poll, 600);
+  };
+  setTimeout(poll, 700);
+}
+game.on("restart", (m) => { if (!mocked) reloadWhenBack((m && m.session) || tvSession); });
+game.on("world", (m) => {
+  if (!m || typeof m.session !== "string" || mocked) return;
+  if (tvSession && m.session !== tvSession && !reloading) { reloading = true; location.reload(); return; } // a new server: start clean
+  tvSession = m.session;
+});
+$("restartBtn").addEventListener("click", () => restartAll(4000));
+$("restartBtn").addEventListener("keyup", (e) => { if (e.key === " ") e.preventDefault(); });
+syncRestart();
 </script>
 </body>
 </html>

@@ -7,6 +7,13 @@
 //   --endless (or ENDLESS=1), v1.6: the ENDLESS free-for-all (endless.js; off by default, the demo round flow is
 //   unchanged): no clock, join any time, the boss and chests come back, drawings recharge, the host ends it (POST /end).
 //   The big screen's lobby switches it on and off too (POST /mode).
+// v1.6.1 RESTART (owner, 10 Oct 12:31; on the main line since v1.8): the big screen's RESTART (POST /restart { confirm:
+//   true }) is a server restart: every screen hears {type:"restart"}, every stream closes, and a fresh server (new
+//   SESSION_ID, empty world, empty hall of fame) takes the ports. Under a supervisor that restarts `node server.js` when it
+//   exits (KEEPALIVE=1, or a parent process named like keepalive / pm2 / nodemon / forever / supervisor) the process just
+//   exits 0; otherwise (the default) it first spawns a detached copy of itself with the same argv and env (one that cannot
+//   start is a 500 and nothing happens), then releases the ports and exits; the copy waits for this process to be gone and
+//   retries listen until the ports are free. KEEPALIVE=0 forces the self-respawn.
 // Robustness (v1.0 review): no request can throw out of the handler (a malformed target like `GET //` is a 400 or a
 // 404), a world step or tick that throws is logged and skipped, static files stream with pipeline (an aborted download
 // frees its file), a screen that stops reading is dropped, bodies are capped per endpoint, drawings must be real PNGs
@@ -30,6 +37,10 @@ const PERF_LOG_MAX_BYTES = 50 * 1024 * 1024;   // perf.log stops growing past th
 const BODY_LIMIT = 2 * 1024 * 1024;            // POST /generate (a 512 px drawing); the other endpoints are far smaller
 const SMALL_BODY = { "/input": 64 * 1024, "/perf": 16 * 1024, "/join": 4096, "/start": 4096, "/controller-html": 4096, "/mode": 4096, "/end": 4096 };
 Object.assign(SMALL_BODY, { "/hall/judge": 4096, "/hall/reset": 4096 }); // v1.6 hall of fame
+SMALL_BODY["/restart"] = 4096; // v1.6.1 RESTART
+// v1.6.1: this server process's id, in every world message and in GET /info. A screen that sees it change knows the server
+// restarted (a phone then forgets its player and joins again, the TV reloads).
+const SESSION_ID = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString("hex")}`;
 const KEEPALIVE_MS = 15000;
 const MAX_STREAMS = 150;                       // screens connected to /events at once
 const MAX_BUFFERED = 1024 * 1024;              // a screen this far behind (about 150 ticks) has stopped reading: dropped
@@ -237,6 +248,7 @@ function withDrawings(m) {
     return entity === m.entity ? m : { ...m, entity };
   }
   if (m && m.type === "world") {
+    m = { ...m, session: SESSION_ID }; // v1.6.1 RESTART: screens notice a new server by this id
     if (m.entities) for (const name of Object.keys(m.entities)) m.entities[name] = drawnEntity(name, m.entities[name]);
     const island = withParkedImages(m.island);
     if (island !== m.island) m = { ...m, island };
@@ -485,7 +497,7 @@ function info() {
   const ip = lanAddress();
   const lanUrl = `http://${ip}:${PORT}`;
   const httpsUrl = httpsUp ? `https://${ip}:${HTTPS_PORT}` : null;
-  return { lanUrl, httpsUrl, controllerUrl: `${httpsUrl || lanUrl}/controller.html`, bigScreenUrl: `${lanUrl}/space.html` };
+  return { lanUrl, httpsUrl, controllerUrl: `${httpsUrl || lanUrl}/controller.html`, bigScreenUrl: `${lanUrl}/space.html`, session: SESSION_ID };
 }
 
 // ---- POST handlers -------------------------------------------------------------------------------------------------
@@ -809,6 +821,20 @@ async function handlePost(req, res, url) {
     if (body.confirm !== true) return json(res, 400, { ok: false, error: "confirm: true required" });
     return json(res, 200, H.newSession());
   }
+  if (url.pathname === "/restart") {
+    // v1.6.1 RESTART: the big screen's two-step RESTART. { confirm: true } required (the TV page sends it only after the
+    // second tap / R twice). Answers first, then restartServer() tells every screen and hands over to a fresh server.
+    // v1.8: without a supervisor the fresh copy is started (and has loaded) before anything else, so a copy that cannot
+    // start (a broken file, say) is a 500 and nothing is lost: the TV says RESTART FAILED, no screen heard anything.
+    if (body.confirm !== true) return json(res, 400, { ok: false, error: "confirm: true required" });
+    if (restarting) return json(res, 409, { ok: false, error: "already restarting" });
+    const how = supervised() ? "supervisor" : "respawn";
+    restarting = true; // a second tap meanwhile is a 409
+    if (how === "respawn" && !(await spawnCopy())) { restarting = false; return json(res, 500, { ok: false, error: "restart failed" }); }
+    json(res, 200, { ok: true, restarting: true, how, session: SESSION_ID });
+    restartServer(how);
+    return;
+  }
   if (url.pathname === "/perf") {
     if (Contract.CHECKS.perf(body).length) return json(res, 400, { error: Contract.CHECKS.perf(body).join("; ") });
     perf(body);
@@ -861,21 +887,113 @@ const server = http.createServer((req, res) => { handler(req, res); });
 server.on("clientError", (err, socket) => {
   try { if (socket.writable && err.code !== "ECONNRESET") socket.end("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n"); else socket.destroy(); } catch {}
 });
-server.on("error", (err) => { console.log(`HTTP server failed: ${err.message}`); process.exit(1); });
-server.listen(PORT, "0.0.0.0", () => {
+// v1.6.1 RESTART: a copy started by restartServer() (SPACE_RESPAWN_OF = the old pid) waits for the old process to be gone,
+// then retries listen while the ports are still taken (up to RESPAWN_RETRY_MS). A normal start fails at once, as before.
+const RESPAWN_OF = Number(process.env.SPACE_RESPAWN_OF) || 0;
+const RESPAWN_RETRY_MS = 30000, startedAt = Date.now();
+const retryListen = (err) => RESPAWN_OF && err && err.code === "EADDRINUSE" && Date.now() - startedAt < RESPAWN_RETRY_MS;
+const alive = (pid) => { try { process.kill(pid, 0); return true; } catch (err) { return err.code === "EPERM"; } };
+let secure = null;
+server.on("error", (err) => {
+  if (retryListen(err)) return setTimeout(() => server.listen(PORT, "0.0.0.0"), 250);
+  console.log(`HTTP server failed: ${err.message}`); process.exit(1);
+});
+server.on("listening", () => {
   const ip = lanAddress();
-  console.log(`Space Party on http://localhost:${PORT}${BOTS ? ` with ${BOTS} bots` : ""}`);
+  console.log(`Space Party on http://localhost:${PORT}${BOTS ? ` with ${BOTS} bots` : ""}${RESPAWN_OF ? ` (restarted, session ${SESSION_ID})` : ""}`);
   console.log(`  big screen: http://${ip}:${PORT}/space.html`);
   console.log(`  phones:     http://${ip}:${PORT}/controller.html`);
   if (canEndless() && world.endless) console.log("  mode:       ENDLESS free-for-all (the host ends it from the big screen)");
 });
 
-if (httpsLib && HTTPS_PORT > 0) {
+function startHttps() {
+  if (!httpsLib || !(HTTPS_PORT > 0)) return;
   try {
-    const secure = httpsLib.startHttps((req, res) => { handler(req, res); }, { port: HTTPS_PORT });
+    secure = httpsLib.startHttps((req, res) => { handler(req, res); }, { port: HTTPS_PORT });
     secure.on("listening", () => (httpsUp = true));
-    secure.on("error", (err) => { httpsUp = false; console.log(`HTTPS off: ${err.message}`); });
+    secure.on("error", (err) => {
+      httpsUp = false;
+      if (retryListen(err)) return setTimeout(() => secure.listen(HTTPS_PORT, "0.0.0.0"), 250);
+      console.log(`HTTPS off: ${err.message}`);
+    });
   } catch (err) {
     console.log(`HTTPS off: ${err.message}`);
   }
+}
+function startListening() {
+  server.listen(PORT, "0.0.0.0");
+  startHttps();
+}
+if (RESPAWN_OF) {
+  // v1.8: everything above loaded: tell the old server (spawnCopy waits for this before it lets go of the ports)
+  if (typeof process.send === "function") { try { process.send({ restart: "loaded" }); } catch {} }
+  const waitFrom = Date.now();
+  (function waitOld() {
+    if (alive(RESPAWN_OF) && Date.now() - waitFrom < 10000) return setTimeout(waitOld, 100);
+    startListening();
+  })();
+} else startListening();
+
+// ---- v1.6.1 RESTART: POST /restart { confirm: true } (the big screen) -----------------------------------------------
+// supervised(): something restarts `node server.js` when it exits. KEEPALIVE=1 (or true / yes) says so; KEEPALIVE=0 says
+// not; unset, the parent process's command line is checked for a known supervisor (our scratchpad keepalive.sh, pm2,
+// nodemon, forever, supervisord, runit, systemd). Anything else takes the self-respawn path (the default).
+let restarting = false;
+function supervised() {
+  const env = String(process.env.KEEPALIVE || "").trim().toLowerCase();
+  if (env) return !["0", "false", "no", "off"].includes(env);
+  if (RESPAWN_OF || process.ppid <= 1) return false; // a respawned copy is detached: nobody restarts it
+  try {
+    const cmd = require("child_process").execFileSync("ps", ["-o", "command=", "-p", String(process.ppid)], { encoding: "utf8", timeout: 1000 });
+    return /keep-?alive|supervis|pm2|nodemon|forever|runsv|systemd/i.test(cmd);
+  } catch { return false; }
+}
+// The self-respawn: a detached copy of this server (same argv, env and cwd; its output goes where ours goes, stdin is not
+// held), told our pid (SPACE_RESPAWN_OF) so it waits for us to be gone before it listens. Resolves true once the copy has
+// loaded (every module and its world: it says so over IPC, below), false when it cannot start, exits first or says nothing
+// within 10 s (then it is stopped and this server keeps running). Ctrl-C does not reach the copy (it is detached): stop it
+// with `kill <pid>` (logged here) or by its port.
+function spawnCopy() {
+  return new Promise((resolve) => {
+    let child = null, done = false, timer = 0;
+    const finish = (ok, why) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      if (ok) console.log(`RESTART: new server pid ${child.pid} (it takes the ports once this one exits)`);
+      else {
+        console.log(`RESTART: the new server${child && child.pid ? ` (pid ${child.pid})` : ""} did not start (${why}); this one keeps running`);
+        if (child && child.pid && child.exitCode === null) { try { child.kill(); } catch {} }
+      }
+      if (child) { try { child.disconnect(); } catch {} try { child.unref(); } catch {} }
+      resolve(ok);
+    };
+    timer = setTimeout(() => finish(false, "no answer in 10 s"), 10000);
+    try {
+      const { spawn } = require("child_process");
+      child = spawn(process.execPath, [...process.execArgv, ...process.argv.slice(1)], {
+        cwd: process.cwd(), detached: true, stdio: ["ignore", "inherit", "inherit", "ipc"], env: { ...process.env, SPACE_RESPAWN_OF: String(process.pid) },
+      });
+    } catch (err) { return finish(false, err.message); }
+    child.on("error", (err) => finish(false, err.message));
+    child.on("exit", (code, signal) => finish(false, `it exited (${signal || code})`));
+    child.on("message", (m) => { if (m && m.restart === "loaded") finish(true); });
+  });
+}
+// Every screen hears {type:"restart"}, then (a moment later, so it is delivered) every stream and connection closes, the
+// ports are released and this process exits 0: the supervisor starts a fresh server, or the copy spawnCopy() started does.
+function restartServer(how) {
+  restarting = true;
+  console.log(`RESTART from the big screen (${how}): every screen rejoins; the world and the hall of fame start empty`);
+  writeAll(sse({ type: "restart", session: SESSION_ID }));
+  setTimeout(() => {
+    for (const res of streams.keys()) { try { res.end(); } catch {} }
+    streams.clear();
+    for (const s of [server, secure]) {
+      if (!s) continue;
+      try { s.close(); } catch {}
+      try { s.closeAllConnections(); } catch {}
+    }
+    setTimeout(() => process.exit(0), 150);
+  }, 300);
 }

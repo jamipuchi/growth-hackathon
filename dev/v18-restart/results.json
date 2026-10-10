@@ -1,0 +1,260 @@
+{
+  "at": "2026-10-10T11:07:35.574Z",
+  "port": 8561,
+  "node": "v24.14.0",
+  "passed": 46,
+  "failed": 0,
+  "timings": {
+    "A6.answerMs": 41,
+    "A6.restartMsgMs": 42,
+    "A6.streamsClosedMs": 341,
+    "A6.oldExitMs": 494,
+    "A.newSessionMs": 582,
+    "A.downtimeMs": 251,
+    "A13.answerMs": 42,
+    "A13.restartMsgMs": 43,
+    "A13.streamsClosedMs": 343,
+    "A13.newSessionMs": 583,
+    "A13.downtimeMs": 253,
+    "B2.answerMs": 1,
+    "B2.restartMsgMs": 1,
+    "B2.streamsClosedMs": 303,
+    "B2.oldExitMs": 457,
+    "B.answerMs": 1,
+    "B.freshServerUpMs": 45,
+    "C.failMs": 26,
+    "D.failMs": 10004
+  },
+  "results": [
+    {
+      "name": "A1 GET /info answers with a session id",
+      "ok": true,
+      "detail": "mv2aij57-2e03e4e5, up in 114 ms"
+    },
+    {
+      "name": "A2 our server holds the port",
+      "ok": true,
+      "detail": "pid 64600, listeners 64600"
+    },
+    {
+      "name": "A3 ana joins",
+      "ok": true,
+      "detail": "status 200"
+    },
+    {
+      "name": "A4 POST /restart without confirm:true → 400, nothing happens",
+      "ok": true,
+      "detail": "400/400"
+    },
+    {
+      "name": "A5 the tick lists ana before the restart",
+      "ok": true,
+      "detail": "1 player(s)"
+    },
+    {
+      "name": "A6 world messages carry the session (big screen and phone)",
+      "ok": true,
+      "detail": "mv2aij57-2e03e4e5 / mv2aij57-2e03e4e5"
+    },
+    {
+      "name": "A6 POST /restart {confirm:true} → 200 how:\"respawn\" with the old session",
+      "ok": true,
+      "detail": "statuses 200/409, how respawn"
+    },
+    {
+      "name": "A6 a second POST while restarting → 409 \"already restarting\"",
+      "ok": true,
+      "detail": "status 409"
+    },
+    {
+      "name": "A6 both streams hear {type:\"restart\", session} before they close",
+      "ok": true,
+      "detail": "big 42 ms → closed end 341 ms; phone 42 ms → end 341 ms"
+    },
+    {
+      "name": "A6 the old process exits with code 0",
+      "ok": true,
+      "detail": "code 0 after 494 ms"
+    },
+    {
+      "name": "A7 a new server answers /info with another session id",
+      "ok": true,
+      "detail": "mv2aij57-2e03e4e5 → mv2aijey-fa922b60"
+    },
+    {
+      "name": "A8 the port is held by the respawned copy (another pid, the one the old server logged)",
+      "ok": true,
+      "detail": "old 64600, now 64676, logged 64676"
+    },
+    {
+      "name": "A9 the new world has the new session and nobody in it",
+      "ok": true,
+      "detail": "world.session mv2aijey-fa922b60, tick players 0"
+    },
+    {
+      "name": "A10 ana is gone: her input is a 409 \"join first\"",
+      "ok": true,
+      "detail": "status 409"
+    },
+    {
+      "name": "A11 the Hall of Fame is a new, empty session",
+      "ok": true,
+      "detail": "status 200, 0 entries"
+    },
+    {
+      "name": "A12 the copy logged its start on the same output",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A13 world messages carry the session (big screen and phone)",
+      "ok": true,
+      "detail": "mv2aijey-fa922b60 / mv2aijey-fa922b60"
+    },
+    {
+      "name": "A13 POST /restart {confirm:true} → 200 how:\"respawn\" with the old session",
+      "ok": true,
+      "detail": "statuses 200/409, how respawn"
+    },
+    {
+      "name": "A13 a second POST while restarting → 409 \"already restarting\"",
+      "ok": true,
+      "detail": "status 409"
+    },
+    {
+      "name": "A13 both streams hear {type:\"restart\", session} before they close",
+      "ok": true,
+      "detail": "big 43 ms → closed end 343 ms; phone 43 ms → end 343 ms"
+    },
+    {
+      "name": "A14 a second restart from the respawned copy: another session and pid",
+      "ok": true,
+      "detail": "mv2aijey-fa922b60 → mv2aijzr-c6230f41, pid 64676 → 64769"
+    },
+    {
+      "name": "A15 the first respawned copy exited",
+      "ok": true,
+      "detail": "pid 64676"
+    },
+    {
+      "name": "A16 the port is free after stopping it by PID",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "B1 up",
+      "ok": true,
+      "detail": "mv2aikok-39d02b10"
+    },
+    {
+      "name": "B2 world messages carry the session (big screen and phone)",
+      "ok": true,
+      "detail": "mv2aikok-39d02b10 / mv2aikok-39d02b10"
+    },
+    {
+      "name": "B2 POST /restart {confirm:true} → 200 how:\"supervisor\" with the old session",
+      "ok": true,
+      "detail": "statuses 200/409, how supervisor"
+    },
+    {
+      "name": "B2 a second POST while restarting → 409 \"already restarting\"",
+      "ok": true,
+      "detail": "status 409"
+    },
+    {
+      "name": "B2 both streams hear {type:\"restart\", session} before they close",
+      "ok": true,
+      "detail": "big 1 ms → closed end 303 ms; phone 1 ms → end 303 ms"
+    },
+    {
+      "name": "B2 the old process exits with code 0",
+      "ok": true,
+      "detail": "code 0 after 457 ms"
+    },
+    {
+      "name": "B3 nothing took the port after the exit (the supervisor does)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "B4 the supervisor's fresh server has another session id",
+      "ok": true,
+      "detail": "mv2aikok-39d02b10 → mv2ail90-b1950859 (45 ms after the loop started it)"
+    },
+    {
+      "name": "B5 the port is free after stopping it by PID",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "C1 up (the preload leaves the first server alone)",
+      "ok": true,
+      "detail": "mv2ailh4-0c5490af"
+    },
+    {
+      "name": "C2 POST /restart → 500 \"restart failed\"",
+      "ok": true,
+      "detail": "status 500 after 26 ms"
+    },
+    {
+      "name": "C3 the old server goes on: same session, same pid, the stream still open, no restart message",
+      "ok": true,
+      "detail": "session mv2ailh4-0c5490af, stream open"
+    },
+    {
+      "name": "C4 the server logged why",
+      "ok": true,
+      "detail": "pid 65206: it exited (1"
+    },
+    {
+      "name": "C5 no copy left behind (not listening, not running)",
+      "ok": true,
+      "detail": "strays none, copy 65206 gone"
+    },
+    {
+      "name": "C6 the server takes the next request (not stuck \"restarting\")",
+      "ok": true,
+      "detail": "status 400"
+    },
+    {
+      "name": "C7 the port is free after stopping it by PID",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "D1 up (the preload leaves the first server alone)",
+      "ok": true,
+      "detail": "mv2aimb3-90898be3"
+    },
+    {
+      "name": "D2 POST /restart → 500 \"restart failed\"",
+      "ok": true,
+      "detail": "status 500 after 10004 ms"
+    },
+    {
+      "name": "D3 the old server goes on: same session, same pid, the stream still open, no restart message",
+      "ok": true,
+      "detail": "session mv2aimb3-90898be3, stream open"
+    },
+    {
+      "name": "D4 the server logged why",
+      "ok": true,
+      "detail": "pid 65384: no answer in 10 s"
+    },
+    {
+      "name": "D5 no copy left behind (not listening, not running)",
+      "ok": true,
+      "detail": "strays none, copy 65384 gone"
+    },
+    {
+      "name": "D6 the server takes the next request (not stuck \"restarting\")",
+      "ok": true,
+      "detail": "status 400"
+    },
+    {
+      "name": "D7 the port is free after stopping it by PID",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

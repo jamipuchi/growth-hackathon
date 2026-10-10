@@ -1009,6 +1009,8 @@ const COPY = {
     badName: "Type a name with letters or numbers",
     full: "The game is full. Ask the host to make room",
     renamed: "{old} WAS TAKEN · YOU ARE {name}",   // the name was in use on another phone: the server gave us "name2"
+    restarted: "The host restarted the game. Join again.",   // v1.6.1 RESTART (the big screen's RESTART: everyone joins from scratch)
+    rejoining: "Reconnecting… you join in a moment",        // v1.6.1: JOIN tapped while the new server is starting
   },
   mode: { photo: "PHOTO", draw: "DRAW" },
   rotate: "Turn your phone sideways",
@@ -1529,6 +1531,9 @@ $("joinForm").onsubmit = async (e) => {
   e.preventDefault();
   const name = C.cleanName($("name").value);
   if (!name) return setText($("joinErr"), COPY.join.badName);
+  // v1.6.1 RESTART: the new server is still starting: the name is kept and joins right after the reload (onRestart).
+  if (restartPending) { sess.set("rejoinName", name); sess.set("rejoinAuto", "1"); return setText($("joinErr"), COPY.join.rejoining); }
+  if (!netSession) store.set("session", null);   // a fresh join: the first world message says which server this phone is on
   setText($("joinErr"), "");
   if (!fsAsked && fsAuto() && !FS.active()) { fsAsked = true; FS.request(); }   // the first JOIN tap goes full screen (before any await)
   if (installHint) installHint.hide();
@@ -3199,10 +3204,79 @@ function openEarlyStream() {
     let m; try { m = JSON.parse(ev.data); } catch { return; }       // the ticks, and (v1.5, QA M4) my pad: Sol's own HTML often lands here
     if (m && m.type === "tick") onNetTick(m);
     else if (m && m.type === "generated") onGenerated(m);        // while I read the result card; kept in S.pad, mounted at PLAY
+    else if (m && m.type === "world") noteSession(m.session);    // v1.6.1 RESTART: a new server id means the host restarted
+    else if (m && m.type === "restart") onRestart(m);
   };
   es.onopen = () => { if (earlyEs === es && !gameWired) refreshPad(); };   // a (re)connect: anything sent while it was down
 }
 function closeEarlyStream() { gameWired = true; if (earlyEs) { try { earlyEs.close(); } catch {} earlyEs = null; } }
+// ---- v1.6.1 RESTART (owner, 10 Oct 12:31: "a button to restart it from space.html"; restart = everyone connects from scratch) ----
+// The big screen's RESTART is a server restart. On {type:"restart"}, or a world message from a server whose session id is not the one this
+// phone joined (localStorage sp.session; also checked against GET /info before a saved name rejoins at page load), the phone forgets its
+// player: the saved name, colour, device token, round and drawings (layout, ink, ship done) go; its settings (sound, haptics, tips and
+// coach seen, draw mode, HUD) stay. It shows JOIN at once with "The host restarted the game. Join again." and reloads (a clean page: no
+// old stream, no old 3D) as soon as the new server answers /info. A name typed meanwhile is kept; a JOIN tapped meanwhile joins after it.
+const PLAYER_KEYS = ["player", "color", "round", "waitedIn", "layout", "inkBase", "inkButtons", "shipDone", "device", "session"];   // v1.8: + v1.7's waitedIn
+const sess = {   // sessionStorage (this tab only): the restart note and the name typed while the server restarted
+  get(k) { try { return sessionStorage.getItem("sp." + k); } catch { return null; } },
+  set(k, v) { try { if (v === null) sessionStorage.removeItem("sp." + k); else sessionStorage.setItem("sp." + k, v); } catch {} },
+};
+let netSession = null, restartPending = false;
+function noteSession(id) {
+  if (typeof id !== "string" || !id || restartPending) return;
+  const known = netSession || store.get("session");
+  if (known && id !== known && S.player) return onRestart({ session: known });
+  netSession = id; store.set("session", id);
+}
+function forgetPlayer() {
+  for (const k of PLAYER_KEYS) { try { localStorage.removeItem("sp." + k); } catch {} }
+  sess.set("device", null);
+  sess.set("restarted", "1");
+}
+function onRestart(m) {
+  if (restartPending) return;
+  restartPending = true;
+  const old = (m && m.session) || netSession || store.get("session");
+  forgetPlayer();
+  S.player = "";                                   // nothing more goes out under the old name (inputs, rejoins, drawings)
+  if (earlyEs) { try { earlyEs.close(); } catch {} earlyEs = null; }
+  // v1.8: nothing of the old game stays over JOIN: the sheets (z 8, above every screen), the v1.7 ROUND IN PROGRESS strip, the 3-2-1, a notice
+  closeAdd(); closeSheets();
+  S.waiting = false; $("waitStrip").classList.add("hidden"); document.body.classList.remove("waiting");
+  cdLast = null; if (countdownFx) { try { countdownFx.hide(); } catch {} }
+  $("notice").classList.add("off");
+  $("name").value = "";
+  show("join"); setStep("join");                   // show() also pauses the 3D view (not the play screen)
+  setText($("joinErr"), COPY.join.restarted);
+  const t0 = performance.now();
+  let sawDown = false;
+  const poll = async () => {
+    let j = null;
+    try { const r = await fetch("/info", { cache: "no-store" }); j = r.ok ? await r.json() : null; } catch { j = null; }
+    if (!j) sawDown = true;
+    const fresh = !!j && (old ? !!j.session && j.session !== old : sawDown || performance.now() - t0 > 3000);
+    if (fresh || performance.now() - t0 > 60000) {
+      const typed = $("name").value;
+      if (typed && !sess.get("rejoinName")) sess.set("rejoinName", typed.slice(0, 20));
+      location.reload();
+      return;
+    }
+    setTimeout(poll, 600);
+  };
+  setTimeout(poll, 700);
+}
+// At page load, before a saved name rejoins: is this still the server it joined? (No answer in 2.5 s, or an older server: yes.)
+async function sameServer() {
+  const known = store.get("session");
+  if (!known) return true;
+  const ac = typeof AbortController === "function" ? new AbortController() : null;
+  const timer = setTimeout(() => { if (ac) ac.abort(); }, 2500);
+  try {
+    const r = await fetch("/info", { cache: "no-store", signal: ac ? ac.signal : undefined });
+    const j = r.ok ? await r.json() : null;
+    return !j || !j.session || j.session === known;
+  } catch { return true; } finally { clearTimeout(timer); }
+}
 let gameWired = false;
 // Without render.js the controller still works: a plain background and the HUD fed straight from /events.
 function fallbackGame({ player }) {
@@ -3267,6 +3341,8 @@ function wireGame(game) {
     S.wrecked = !!(parked && parked.wrecked);       // my ship on the pad was wrecked: it needs a new ship drawing to take off
   });
   if (typeof game.entityOf === "function") { const e = game.entityOf(S.player); if (e) setEntity(e); }
+  game.on("world", (m) => noteSession(m && m.session));   // v1.6.1 RESTART: another server id: the host restarted
+  game.on("restart", onRestart);
 }
 
 // ---------- HUD ----------
@@ -4363,7 +4439,19 @@ const saved = store.get("player");
 const savedLayout = store.get("layout");
 if (savedLayout && !C.CHECKS.layout(savedLayout).length) { S.layout = savedLayout; S.inkBase = store.get("inkBase"); S.inkButtons = store.get("inkButtons") || {}; }
 setStep("join");
-if (saved) { $("name").value = saved; join(saved); } else show("join");
+// v1.6.1 RESTART: after the restart reload JOIN says why (a name typed meanwhile is back; a JOIN tapped meanwhile joins now). A saved name
+// rejoins only on the server it joined: another session id at /info means the host restarted while this page was closed.
+const afterRestart = sess.get("restarted") === "1", rejoinName = sess.get("rejoinName"), rejoinAuto = sess.get("rejoinAuto") === "1";
+sess.set("restarted", null); sess.set("rejoinName", null); sess.set("rejoinAuto", null);
+if (afterRestart) {
+  show("join");
+  if (rejoinName) $("name").value = rejoinName;
+  if (rejoinAuto && C.cleanName(rejoinName)) join(C.cleanName(rejoinName));
+  else setText($("joinErr"), COPY.join.restarted);
+} else if (saved) {
+  $("name").value = saved;
+  sameServer().then((same) => { if (same) join(saved); else { forgetPlayer(); location.reload(); } });
+} else show("join");
 </script>
 </body>
 </html>
