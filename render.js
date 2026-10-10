@@ -36,7 +36,7 @@ const HUD_COPY = {
   roundOver: "ROUND OVER",
   timeUp: "TIME'S UP",
   allChests: "EVERY CHEST IS OPEN",
-  assists: "ALL POWERS ON",
+  assists: "THE CHESTS GLOW · DRAW WHAT YOU NEED", // v1.6: no free skills at 3:00 (PLAN.md section 0), the chests glow
   noWeapon: "YOUR SHIP HAS NO WEAPON YET",
   bossAway: "BOSS {m} M AWAY · FLY TO IT",
   bossHp: "BOSS HEALTH {pct} · TAKE IT DOWN",
@@ -823,6 +823,13 @@ function entReset(map) {
   entities.clear();
   for (const [k, v] of Object.entries(map)) if (v) entNote(k, v);
 }
+// v1.6 (owner 10 Oct 11:31, every round starts from scratch): a world message with a new round forgets every drawn ship, explorer
+// and spec of the last round, so no old model flashes. The families are rebuilt from each player's CURRENT entity only: the new
+// lobby's plain ships (world.js newRound sends them just before its world message; a connect message's map follows in entReset).
+function entFreshRound() {
+  entShips.clear(); entPlanet.clear(); entSpecByV.clear();
+  for (const [k, v] of entities) if (v) entNote(k, v);
+}
 const entRig = { person: "person", car: "car", bike: "car", quadruped: "quadruped", blob: "blob" };
 // Longest side in metres, the same as inflate.js KIND[type].size (a drawn car is ~4 m like a real one, a person 1.8 m tall).
 const entSize = { person: 1.8, car: 4.0, bike: 2.0, quadruped: 2.0, blob: 1.4 };
@@ -1373,14 +1380,17 @@ class ExplorerView {
     g.visible = !(ctx.cockpit && p.name === ctx.me) && !flick;
     const ground = isl.groundAt(p.x, p.z);
     const person = this.modelType === "person";
+    // v1.6: digging a buried chest and drilling a rock chest both play the "dig" clip (a vehicle dips, shudders and spins its bit)
+    const working = !!(p.flags.digging || p.flags.drilling);
     // World hint: standing still on an X, the explorer kneels and pats the ground.
-    const onX = person && !p.flags.digging && speed < 0.8 && p.y <= ground + 0.4 ? isl.buriedChestNear(p.x, p.z, TUNING.island.pickupRange || 3) : null;
+    const onX = person && !working && speed < 0.8 && p.y <= ground + 0.4 ? isl.buriedChestNear(p.x, p.z, TUNING.island.pickupRange || 3) : null;
     const model = this.model;
     if (model && model.play && this.clipSet) {
       const stepping = this.stepOutUntil > t;
-      let clip = p.flags.digging ? "dig" : p.y > ground + 0.4 ? "jump" : speed > TUNING.island.walkSpeed * 1.3 ? "run" : speed > 0.6 ? "walk" : onX ? "kneel" : "idle";
+      let clip = working ? "dig" : p.y > ground + 0.4 ? "jump" : speed > TUNING.island.walkSpeed * 1.3 ? "run" : speed > 0.6 ? "walk" : onX ? "kneel" : "idle";
       if (stepping && clip === "idle") clip = "step_out";
       if (clip === "kneel" && !this.hasClip("kneel")) clip = "idle";
+      if (clip === "dig" && !this.hasClip("dig")) clip = "idle";
       if (clip === "step_out" && !this.hasClip("step_out")) clip = "idle";
       if (clip !== this.clip) { this.clip = clip; try { model.play(clip, clip === "step_out" ? { loop: false, restart: true } : undefined); } catch { /* clip missing in the placeholder */ } }
     }
@@ -1414,7 +1424,10 @@ class ExplorerView {
     const shS = this.shield.scale;
     this.shield.visible = !!model && !!(p.flags.spawnShield || p.flags.shield) && !(ctx.cockpit && p.name === ctx.me) && !(p.flags.invisible && p.name !== ctx.me) &&
       !isl.efx.shield(this, g.position.x, g.position.y + this.shield.position.y * g.scale.y, g.position.z, 0.5 * Math.max(shS.x, shS.y, shS.z) * g.scale.x);
-    if (p.flags.digging && Math.random() < dt * 14) {
+    // The dig dirt: one source only (v1.6): a model with its own dig dust (entity3d vehicles: bone "dust", shown by the "dig" clip)
+    // gets none from here; a rock chest being drilled throws its own sparks (IslandWorld chests), so no dirt for drilling either.
+    const ownDust = this.clip === "dig" && !!(model && model.bones && typeof model.bones.has === "function" && model.bones.has("dust"));
+    if (p.flags.digging && !ownDust && Math.random() < dt * 14) {
       const f = forwardOf(p.yaw, 0, isl.tmp);
       isl.particles.emit(p.x + f.x * 0.8, ground + 0.2, p.z + f.z * 0.8, (Math.random() - 0.5) * 3, 3 + Math.random() * 3, (Math.random() - 0.5) * 3, 0.8, 0.35, 0.15, DIRT, 1.0, 0.5, 12);
     }
@@ -2039,24 +2052,31 @@ class ShipView extends ShipModel {
     // A ship3d.js model has its own nozzle glow and flames: a smaller coloured glow and no white core here, so the chase camera
     // right behind it still sees the ship.
     const own = !!(this.model && this.model.ship3d);
+    // v1.6: seen from right behind and close (the phone's chase camera), the nozzle glow and the trail's bright head sit on the
+    // hull: dimmed to about a third there (and the trail narrower), so the ship stays readable; from the side, from ahead or
+    // further than 45 m they are unchanged (TV shots, rivals). seen = 1 (full) .. 0.35.
+    const cp = this.space.camPos;
+    const cdx = g.position.x - cp.x, cdy = g.position.y - cp.y, cdz = g.position.z - cp.z;
+    const cd = Math.sqrt(cdx * cdx + cdy * cdy + cdz * cdz);
+    const seen = cd > 1e-3 && cd < 45 ? 1 - 0.65 * smooth01(((cdx * fwd.x + cdy * fwd.y + cdz * fwd.z) / cd - 0.55) / 0.37) * (1 - smooth01((cd - 25) / 20)) : 1;
+    const cr = this.color.r * 1.8 * seen, cg = this.color.g * 1.8 * seen, cb = this.color.b * 1.8 * seen;
     for (const e of this.engines) {
       const w = this.space.tmp2.copy(e).applyMatrix4(g.matrixWorld);
-      glow.addColor(w, (1.2 + boost * 1.0) * (own ? 0.6 : 1), this.color, 1, 2.5);
-      if (!own) glow.add(w.x, w.y, w.z, 0.45 + boost * 0.3, 2.5, 2.5, 2.5, 1);
+      glow.addColor(w, (1.2 + boost * 1.0) * (own ? 0.6 : 1) * (0.5 + 0.5 * seen), this.color, 1, 2.5 * seen);
+      if (!own) glow.add(w.x, w.y, w.z, (0.45 + boost * 0.3) * (0.5 + 0.5 * seen), 2.5 * seen, 2.5 * seen, 2.5 * seen, 1);
       if (ctx.lobby) continue; // spinning on the spot: the glow is enough, no trail
       // World look: a long, bright ribbon in the player's colour behind each engine (one tapering streak, so it is smooth at any
       // speed) plus a few sparks; far ships get a thicker, sparser one and none beyond 500 m (the pool is shared by all 25).
-      const cd = this.space.camPos.distanceTo(g.position);
       if (cd > 500) continue;
       const sp = this.vel.length(), lod = cd < 90 ? 1 : cd < 220 ? 2 : 4;
-      this.space.streaks.add(w.x, w.y, w.z, fwd.x, fwd.y, fwd.z, Math.min(36, Math.max(3, sp * (0.9 + boost * 0.5))), Math.max(1.5 + boost * 0.6, cd * 0.008),
-        this.color.r * 1.8, this.color.g * 1.8, this.color.b * 1.8, 1, 2);
+      this.space.streaks.add(w.x, w.y, w.z, fwd.x, fwd.y, fwd.z, Math.min(36, Math.max(3, sp * (0.9 + boost * 0.5))), Math.max(1.5 + boost * 0.6, cd * 0.008) * (0.55 + 0.45 * seen),
+        cr, cg, cb, 1, 2);
       const n = Math.min(3, Math.max((dt * 12) / lod, (sp * dt) / (1.2 * lod)) + (this.trailAcc % 1));
       this.trailAcc = n;
       for (let k = 0; k < Math.floor(n); k++) {
         const j = ((k + Math.random()) / Math.max(1, Math.floor(n))) * dt;
         parts.emit(w.x - this.vel.x * j, w.y - this.vel.y * j, w.z - this.vel.z * j, -fwd.x * 2.5, -fwd.y * 2.5, -fwd.z * 2.5,
-          0.7 + boost * 0.4, 0.5 + boost * 0.3, 0.04, this.color, 1.8, 0.6);
+          0.7 + boost * 0.4, (0.5 + boost * 0.3) * (0.5 + 0.5 * seen), 0.04, this.color, 1.8 * seen, 0.6);
       }
     }
   }
@@ -3877,19 +3897,21 @@ class WorldSound {
     this.cam = camera.position;
     const me = camera.matrixWorld.elements;
     this.right[0] = me[0]; this.right[1] = me[1]; this.right[2] = me[2];
-    // Phases: lobby -> playing is the start fanfare; the scoreboard is the win jingle.
+    // Phases: the GO (start fanfare) when play begins, after the 3-2-1 (v1.4: lobby -> countdown -> playing) or straight from the
+    // lobby (no countdown): once per round, the countdown -> playing edge only exists once. The scoreboard is the win jingle.
     const phase = snap.phase;
     if (phase && phase !== this.phase) {
       const was = this.phase;
       this.phase = phase;
-      if (was === "lobby" && phase === "playing") sfx.play("start", { volume: 0.85 });
+      if ((was === "lobby" || was === "countdown") && phase === "playing") sfx.play("start", { volume: 0.85 });
       else if (was && was !== "scoreboard" && phase === "scoreboard") {
         // The winner's phone gets the full fanfare; every other phone a softer one (the TV: the room's). One sound either way.
         let top = null;
         for (const p of snap.players) if (!top || (p.score || 0) > (top.score || 0)) top = p;
         const phoneMe = this.game && this.game.screen === "phone" ? this.game.player : null;
         const iWon = !!phoneMe && !!top && top.name === phoneMe;
-        sfx.play("win", { volume: iWon ? 1 : phoneMe ? 0.6 : 0.9 });
+        // v1.6: a page with its own results jingle (the TV's podium fanfare: startGame({ winJingle: false })) gets none from here
+        if (!this.game || this.game.winJingle !== false) sfx.play("win", { volume: iWon ? 1 : phoneMe ? 0.6 : 0.9 });
       }
     }
     // The last 10 s of the round: one beep per second, higher for the last three.
@@ -5760,25 +5782,28 @@ class CameraRig {
     if (!n) { desired.set(0, 9, 24); look.set(0, 0, 0); return; }
     const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, cz = (z0 + z1) / 2;
     // The box of the ships (plus a ship's own size, spin, bob and showcase scale) as the camera sees it: back far enough
-    // for it to fill ~92 % of the free region, whatever the shape of the group (a 5 x 5 wall, a row, one ship).
+    // for it to fill ~92 % of the region, whatever the shape of the group (a 5 x 5 wall, a row, one ship).
+    // v1.6 TV: the hangar cards (space.html, v1.5) cover the middle of the lobby, where the fleet used to be framed: the fleet is
+    // now a WIDE BACKDROP across the whole screen (edge to edge, centred, a lower and wider drifting angle), seen around and
+    // between the cards; the drawings read on the cards themselves.
     const m = bigScreen ? 6 : 3.2; // the TV shows 2.9x showcase ships (ShipView), the phone 1.7x
     const hx = (x1 - x0) / 2 + m, hy = (y1 - y0) / 2 + m, hz = (z1 - z0) / 2 + m;
-    // ~35 degrees down on the phone; ~50 on the TV, where 5 rows must not hide each other and the drawings on top read
-    const el = (bigScreen ? 0.86 : 0.62) + Math.sin(t * 0.11) * 0.05, az = Math.sin(t * 0.07) * 0.35; // a slow drift
+    // ~35 degrees down on the phone; ~27 on the TV (a backdrop: the fleet as a band across the screen)
+    const el = (bigScreen ? 0.48 : 0.62) + Math.sin(t * 0.11) * 0.05, az = Math.sin(t * 0.07) * (bigScreen ? 0.5 : 0.35); // a slow drift
     const d = this.lobD || (this.lobD = v3()), f = this.lobF || (this.lobF = v3()), r = this.lobR || (this.lobR = v3()), u = this.lobU || (this.lobU = v3());
     d.set(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)); // from the centre to the camera
     f.copy(d).negate();
     r.set(-f.z, 0, f.x).normalize(); // forward x up
     u.crossVectors(r, f);
     const cam = this.camera, tv = Math.tan((cam.fov * Math.PI) / 360), th = tv * (cam.aspect || 1.6);
-    const halfW = (bigScreen ? 0.48 : 0.86) * 0.92, halfH = (bigScreen ? 0.55 : 0.86) * 0.92; // of the NDC half extents
-    const lift = bigScreen ? 0.15 : 0; // the free region's centre sits 15 % of the half height above the screen centre
+    const halfW = (bigScreen ? 1 : 0.86) * 0.92, halfH = (bigScreen ? 0.8 : 0.86) * 0.92; // of the NDC half extents
+    const lift = 0; // centred (v1.6: the TV's backdrop too; it was 15 % up into the free region the hangar now covers)
     const Rx = Math.abs(r.x) * hx + Math.abs(r.y) * hy + Math.abs(r.z) * hz;
     const Ry = Math.abs(u.x) * hx + Math.abs(u.y) * hy + Math.abs(u.z) * hz;
     const Rz = Math.abs(f.x) * hx + Math.abs(f.y) * hy + Math.abs(f.z) * hz;
     const dist = Math.max(10, Math.max(Rx / (th * halfW), Ry / (tv * halfH)) + Rz);
     desired.set(cx + d.x * dist, cy + d.y * dist, cz + d.z * dist);
-    // Aim a little below the group so that it appears in the upper middle of the screen.
+    // Aim at the group (lift > 0 would aim below it, to show it higher on the screen).
     look.set(cx - u.x * lift * tv * dist, cy - u.y * lift * tv * dist, cz - u.z * lift * tv * dist);
   }
   update(dt, t, game, snap) {
@@ -5858,8 +5883,10 @@ class CameraRig {
       }
       const Q = mode === "chase" || outro || phase === "lobby" ? null : this.otherOf(players, subject);
       if (mode === "chase") {
-        desired.copy(P).addScaledVector(F, -9).addScaledVector(U, 3.2);
-        look.copy(P).addScaledVector(F, 14);
+        // v1.6: higher and further back (27.5 deg above the ship, looking about 13 deg down, was 19.6 / 8): the hull sits above
+        // its own exhaust glow and trail instead of behind them.
+        desired.copy(P).addScaledVector(F, -10).addScaledVector(U, 5.2);
+        look.copy(P).addScaledVector(F, 14).addScaledVector(U, -0.5);
         lamPos = 7; lamLook = 12;
         if (this.cine === "glance" && t >= this.cineT0) this.glance(game, t, P, F, look);
       } else if (phase === "lobby") {
@@ -6218,7 +6245,8 @@ function computeHud(game) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-export function startGame({ canvas, screen = "big", view, player = null } = {}) {
+// winJingle: false = render.js never plays "win" when the results open (v1.6: the TV page plays its own podium fanfare, one jingle).
+export function startGame({ canvas, screen = "big", view, player = null, winJingle = true } = {}) {
   if (!canvas) throw new TypeError("startGame needs a canvas");
   const phone = screen === "phone";
   const big = !phone;
@@ -6239,6 +6267,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
   const game = {
     screen, player: player ? Contract.cleanName(player) || player : null, view: view || (phone ? "chase" : "spectator"),
     world: null, snaps: new Snapshots(), perf: new Perf(), followed: null, sceneName: "space", lastSnap: null,
+    winJingle: winJingle !== false,
   };
   game.space = new SpaceWorld(renderer, { phone, big });
   game.island = new IslandWorld(renderer, { phone, big });
@@ -6418,7 +6447,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
   function handle(m) {
     switch (m.type) {
       case "world":
-        if (game.world && game.world.round !== m.round) { game.space.clearForRound(); game.island.clearForRound(); }
+        if (game.world && game.world.round !== m.round) { game.space.clearForRound(); game.island.clearForRound(); entFreshRound(); }
         // world.entities is only in the message a screen gets on connect: keep the map when the key is absent.
         if (m.entities) entReset(m.entities);
         game.world = m;

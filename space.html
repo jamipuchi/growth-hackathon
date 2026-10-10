@@ -141,12 +141,14 @@
   #side { position: absolute; right: 1.6rem; top: 2.3rem; width: 16.6rem; display: flex; flex-direction: column; gap: 1.5rem; z-index: 20; animation: inRight .55s var(--pop) .1s both; }
   #mapSlot .bse-map { gap: 1.6rem; }
   #mapSlot .bse-map-panel.planet .bse-map-cv { aspect-ratio: 16 / 10; }
-  #chests { position: relative; width: 100%; padding: .55rem 1.2rem .75rem 1rem; display: grid; grid-template-columns: auto 1fr; column-gap: .8rem; align-items: center;
+  /* v1.6 (QA N5): one line at any size up to "32 / 32": the value never wraps or shrinks (its width is reserved), the label gives way */
+  #chests { position: relative; width: 100%; padding: .55rem 1.1rem .75rem .9rem; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: .6rem; align-items: center;
             --bg: linear-gradient(180deg, rgb(58 38 160 / .96), rgb(30 19 96 / .96)); --bd: var(--gold); }
-  #chests svg { grid-row: 1; grid-column: 1; width: 3rem; height: 3rem; display: block; }
-  #chests .ct { grid-row: 1; grid-column: 2; display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; }
-  #chests .lbl { font-size: 1.5rem; color: #ffe9a3; letter-spacing: .06em; }
-  #chestVal { font-size: 2.4rem; font-variant-numeric: tabular-nums; display: inline-block; transform-origin: 100% 60%; }
+  #chests svg { grid-row: 1; grid-column: 1; width: 2.6rem; height: 2.6rem; display: block; }
+  #chests .ct { grid-row: 1; grid-column: 2; min-width: 0; display: flex; flex-wrap: nowrap; align-items: baseline; justify-content: space-between; gap: .5rem; }
+  #chests .lbl { flex: 0 1 auto; min-width: 0; font-size: 1.3rem; color: #ffe9a3; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+                 padding: .1rem .25rem .3rem .1rem; } /* room for the italic overhang, the outline and the drop shadow inside the clip */
+  #chestVal { flex: none; min-width: 5.6ch; text-align: right; white-space: nowrap; font-size: 2.1rem; font-variant-numeric: tabular-nums; display: inline-block; transform-origin: 100% 60%; }
   #pips { grid-row: 2; grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .4rem; }
   #pips:empty { display: none; }
   .pip { width: .9rem; height: .9rem; border-radius: .2rem; transform: skewX(-10deg); background: rgb(255 255 255 / .16); border: .1rem solid rgb(255 255 255 / .5); }
@@ -657,7 +659,7 @@ COPY.lobby.steps.forEach((t, i) => {
   $("steps").appendChild(li);
 });
 
-const game = R.startGame({ canvas: $("c"), screen: "big", view: "spectator" });
+const game = R.startGame({ canvas: $("c"), screen: "big", view: "spectator", winJingle: false }); // v1.6: one results jingle, this page's fanfare (cerJingle)
 window.__game = game; // for dev tests
 
 // ---- sound: render.js plays the game sounds itself (start, win, the last-10-seconds countdown, world effects); this page only
@@ -670,9 +672,10 @@ const unlockOnce = () => { sfxUnlock(); removeEventListener("pointerdown", unloc
 addEventListener("pointerdown", unlockOnce, true);
 addEventListener("keydown", unlockOnce, true);
 let muted = false;
-// v1.5 sounds, sfx.js names render.js does not map (so they reach the engine as they are). render.js plays "win" when the results
-// open and every game sound; the page's own are only these, never one of render.js's: "card-pop" when a hangar card pops in (higher
-// when a drawing arrives), "podium" as 3rd and 2nd rise, "fanfare" for the winner, "star" for the star's flight, and the lobby's
+// v1.5 sounds, sfx.js names render.js does not map (so they reach the engine as they are). render.js plays every game sound but
+// "win" (v1.6: startGame({ winJingle: false }), the results' one jingle is this page's "fanfare", see cerJingle); the page's own
+// are only these, never one of render.js's: "card-pop" when a hangar card pops in (higher when a drawing arrives), "podium" as
+// 3rd and 2nd rise, "fanfare" for the winner (the results' jingle), "star" for the star's flight, and the lobby's
 // soft "ambience" loop (fades in once audio is unlocked, fades out at START). sfx.js builds these TV-only sounds on first use:
 // warm() builds them silently a moment before they are needed.
 let popAt = 0;
@@ -1175,7 +1178,9 @@ function drawMap() {
 // 3rd, then 2nd (a "podium" thump each), then the winner (the fanfare, "X WINS!", confetti). The winner's star then flies into the
 // session leaderboard (their row shows one star fewer until it lands) and the full list cascades in: about 6.3 s of the 10 s
 // scoreboard. Enter (the host) skips to the end. A page opened during the results, ?noceremony, reduced motion and the mock show the end at
-// once (mock("results", { ceremony: true }) or __bigscreen.ceremony() plays it). render.js plays "win" as the screen opens.
+// once (mock("results", { ceremony: true }) or __bigscreen.ceremony() plays it). v1.6: the results' ONE jingle is this page's "fanfare"
+// (render.js's "win" is off on the TV): at the winner's step, at once when the end shows at once or the host skips first, and
+// softer for a round nobody won; never for a page opened late or a mock without its ceremony (cerJingle, once per results).
 const NO_CEREMONY = params.has("noceremony");
 let resSig = "", cer = null; // cer: { key (result round, -1 = none yet), plan { step: seconds }, done { step: true }, timers, winner, final, reason, lb, flash }
 let resultsLate = false; // this page opened during the results: no ceremony, the end at once
@@ -1258,15 +1263,23 @@ function cerBegin(r, h, force) {
   if (places >= 3) { plan.third = t; t += 0.9; }
   if (places >= 2) { plan.second = t; t += 1.0; }
   if (winner) { plan.first = t; plan.star = t + 1.35; plan.land = t + 2.5; plan.list = t + 2.6; } else plan.list = 0.3; // 3 places: list at 5.25 s, all in by ~6.4 s
-  cer = { key: r ? r.round : -1, plan, done: {}, timers: [], winner, final: "", reason: "", lb: null, flash: false };
   const late = !mocked && resultsLate; // opened mid-scoreboard
+  // jingle: may this results screen play its one fanfare (a real result, seen from its start; a mock only with its ceremony)
+  cer = { key: r ? r.round : -1, plan, done: {}, timers: [], winner, final: "", reason: "", lb: null, flash: false, jingle: !!r && !late && (!mocked || !!mocked.ceremony || !!force) };
   if (!force && (!r || NO_CEREMONY || reduceMotion || late || (mocked && !mocked.ceremony))) { // the end at once (confetti for a winner, no star flash)
     for (const k of Object.keys(plan)) cer.done[k] = true;
     if (winner) confetti();
+    cerJingle();
     return;
   }
   warm("podium", "fanfare", "star"); // built now, silently: no hitch when they play
   for (const [k, at] of Object.entries(plan)) cer.timers.push(setTimeout(() => cerStep(k), at * 1000));
+}
+// The results' one jingle (v1.6): the fanfare for a winner, softer for a round nobody won; at most once per results screen.
+function cerJingle() {
+  if (!cer || !cer.jingle) return;
+  cer.jingle = false;
+  sfxPlay("fanfare", { volume: cer.winner ? 1 : 0.6 });
 }
 function cerStop() {
   if (cer) { cer.timers.forEach(clearTimeout); cer.timers.length = 0; }
@@ -1293,22 +1306,21 @@ function cerStep(step) {
     void t.offsetWidth; // replay the title's pop for the winner's name
     t.classList.add("reveal");
     confetti();
-    // render.js (WorldSound) also plays "win" when the scoreboard opens: two jingles ~2.6 s apart on the TV. Owner default
-    // (v16): the TV keeps only this fanfare; render.js should skip its "win" on screen "big" via a startGame option (see the v16-tvfix
-    // report), and the instant-end path in cerBegin then plays this fanfare itself (winner, not opened late).
-    sfxPlay("fanfare", { volume: 1 });
+    cerJingle(); // the one results jingle (render.js's "win" is off on the TV since v1.6)
   } else if (step === "star") flyStar();
   else if (step === "land") landStar();
   else if (step === "list") {
+    if (!cer.winner) cerJingle(); // a round nobody won: its (softer) jingle with the list
     flag($("resRest"), "now", false);
     flag($("resRest"), "hold", false);
     for (const el of $("podium").querySelectorAll(".pc:not(.up):not(.shown)")) el.classList.add("shown"); // a place with no step of its own
   }
 }
-// Enter: everything at once (no sound), the star already in the leaderboard.
+// Enter: everything at once, the star already in the leaderboard; the jingle only if it has not played yet (v1.6).
 function cerFinish() {
   if (!cer) return;
   const hadFirst = !!cer.done.first;
+  cerJingle();
   cerStop();
   for (const k of Object.keys(cer.plan)) cer.done[k] = true;
   for (const el of $("podium").querySelectorAll(".pc")) { el.classList.remove("up"); el.classList.add("shown"); }

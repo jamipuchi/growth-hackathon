@@ -652,8 +652,18 @@
   .hudbtn[data-at="br"] { right: calc(var(--sr) + 8px); bottom: calc(var(--sb) + 8px); }
   body[data-hudbtn="tl"] #hud { padding-left: calc(var(--sl) + 66px); }
   body[data-hudbtn="tr"] #hud { padding-right: calc(var(--sr) + 66px); }
-  body.hudoff #hud, body.hudoff #legend, body.hudoff #chip, body.hudoff #toast, body.hudoff #tip, body.hudoff #redrawMenu, body.hudoff #hurt,
+  /* v1.6 (owner 11:59): the HINTS stay when the HUD is hidden: a hint or refused toast (riddles, "Draw a shovel", what a locked button
+     needs), the locked tip over a control, the sketch / ghost box (in #area), the late DRAW-X card and #hintLine (the objective's next
+     step as one line). placeHints() puts the toast and #hintLine where no drawn control is. */
+  body.hudoff #hud, body.hudoff #legend, body.hudoff #chip, body.hudoff #toast:not([data-kind="hint"]):not([data-kind="refused"]), body.hudoff #tip:not(.lock), body.hudoff #redrawMenu, body.hudoff #hurt,
     body.hudoff .bse-tags, body.hudoff .pe-coach, body.hudoff .mfx-toasts, body.hudoff [data-mfx="hit"], body.hudoff [data-mfx="toast"] { visibility: hidden !important; }
+  #hintLine { position: fixed; left: 50%; top: calc(var(--st) + 8px); z-index: 6; display: none; width: max-content; max-width: min(560px, 84vw); padding: 6px 18px 9px; text-align: center;
+    pointer-events: none; transform: translateX(-50%); isolation: isolate; }
+  body.hudoff #hintLine.on { display: block; }
+  body.adding #hintLine { display: none !important; }
+  #hintLine::before { content: ""; position: absolute; inset: 0 0 4px 0; z-index: -1; transform: skewX(-6deg); border: 3px solid var(--ink); border-radius: 8px; box-shadow: 0 4px 0 var(--hard);
+    background: linear-gradient(135deg, #ffe58a, var(--gold2)); }
+  #hintLineText { display: block; font: 900 italic 16px/1.1 var(--f-head); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* v1.5 no overlaps (HUD shown): a HUD piece over the control a finger is on fades to 25 % until the finger lifts (overlapFade) */
   .ovf:not(.off) { opacity: 0.25 !important; transition: opacity 0.12s !important; }
   #addRegion { position: fixed; z-index: 1; display: flex; align-items: center; justify-content: center; pointer-events: none; border: 3.5px dashed var(--gold); border-radius: 14px; background: rgb(255 203 61 / 0.08);
@@ -848,6 +858,7 @@
   </div>
   <div id="chip" class="off" data-tone="gold" role="status"><span id="chipTitle"></span><span id="chipSub"></span></div>
   <div id="toast" class="off"><span id="toastText"></span><button id="toastAct" class="btn blue sm hidden" type="button"></button></div>
+  <div id="hintLine" role="status"><span id="hintLineText"></span></div>
   <div id="redrawMenu" class="hidden"></div>
   <div id="go"><b data-copy="go"></b></div>
   <div id="dead" aria-live="assertive">
@@ -3229,6 +3240,7 @@ function updateHud() {
   const low = playing && left < 30;
   if (hudCache.low !== low) { hudCache.low = low; hudEls.timer.classList.toggle("low", low); }
   if (h.phase === "assists" && !h.status) setCached("status", hudEls.status, COPY.hud.assists);
+  updateHintLine(h);
   setScale("bar", hudEls.objBar, typeof h.bar === "number" ? h.bar : 0);
   if (vitals) {
     const dead = !!(me && me.flags && me.flags.dead);
@@ -3394,6 +3406,7 @@ function showToast(m) {
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => $("toast").classList.add("off"), act ? TOAST_ACTION_MS : TOAST_MS);
     if (m.kind === "hint") sfxPlay("pop");
+    if (hudOff) placeHints();      // v1.6: a hint with the HUD hidden goes where no drawn control is
   }
   if (m.sketch) showSketch(m.sketch, m.need);
   if (m.ghost && m.ghost.action) { clearSketch(); S.ghost = { ...m.ghost, action: C.normaliseAction(m.ghost.action) }; placeGhost(); }
@@ -3532,7 +3545,7 @@ function onAnnounce(m) {
   else if ((g = /^\S+\s+(\w+)'s ship was wrecked/.exec(t))) { if (g[1] === me) moment(M.wreckedMe, { sub: M.wreckedMeSub, tone: "red", prio: 4, ms: 4500 }); }
   else if ((g = /^(?:\S+\s+)?(\w+) rebuilt their ship/.exec(t))) { if (g[1] === me) moment(M.rebuilt, { sub: M.rebuiltSub, tone: "cyan", prio: 3 }); }   // "🔧 ana rebuilt their ship"
   else if (/brought the boss down/.test(t)) moment(M.bossDown, { sub: M.bossSwarm, prio: 4 });
-  else if (/^Assists on/.test(t)) moment(M.powers, { sub: M.powersSub, tone: "violet", prio: 3 });
+  else if (/^(?:\S+\s+)?(?:Assists on|3:00! The chests glow)/.test(t)) moment(M.powers, { sub: M.powersSub, tone: "violet", prio: 3 });
   else if ((g = /^\S+\s+(\w+) opened a chest \(\+(\d+)\)/.exec(t))) {
     if (g[1] === me) { moment(M.chestMe, { sub: tpl(M.chestMeSub, { n: g[2] }), prio: 2 }); buzz("chest"); }
     else moment(tpl(M.chest, { name: short(g[1]) }), { sub: tpl(M.chestSub, { n: g[2] }), tone: "cyan", prio: 1 });
@@ -3763,7 +3776,61 @@ function placeHudBtn() {
     if (cost === 0) break;
   }
   if (btn.dataset.at !== best) { btn.dataset.at = best; document.body.dataset.hudbtn = best; }
+  placeHints();                  // v1.6: the hints kept with the HUD hidden follow the controls too (rotate, a new controller, every second)
   return best;
+}
+// ---- v1.6 (owner 11:59): with the HUD hidden the HINTS still show (CSS above): hint / refused toasts, the locked tip, the sketch and
+// ghost box, the late card, and #hintLine: the objective as one line when it says what to do next (a part to draw, a chest to find or
+// finish, touch down now, the 3:00 glow); plain progress (FLY TO IT, TAKE IT DOWN, the timer, the score) stays hidden with the HUD.
+const HINT_LINE_RE = /\bDRAW\b|AGAIN TO FINISH|TOUCH DOWN|FIND THE X|GET IT OPEN|CHESTS GLOW/;
+function hintLineOf(h) {
+  if (S.screen !== "play" || (h.phase !== "playing" && h.phase !== "assists")) return "";
+  if (h.me && h.me.flags && h.me.flags.dead) return "";          // the death card says it
+  const obj = String(h.objectiveText || "").toUpperCase(), st = String(h.status || (h.phase === "assists" ? COPY.hud.assists : "")).toUpperCase();
+  if (h.objective === "weapon") return obj || st;                 // "DRAW A WEAPON"
+  return HINT_LINE_RE.test(st) ? st : HINT_LINE_RE.test(obj) ? obj : "";
+}
+let hintLineText = "";
+function updateHintLine(h) {
+  const t = hintLineOf(h);
+  if (t === hintLineText) return;
+  hintLineText = t;
+  $("hintLineText").textContent = t;
+  $("hintLine").classList.toggle("on", !!t);
+  if (hudOff) placeHints();
+}
+// The centred box `el` at the first of the `tops` (CSS px) where it covers no drawn control (controlRects, the HUD switch's logic) and none
+// of `avoid`, else where it covers the least.
+function placeFree(el, tops, avoid = []) {
+  const rects = controlRects().concat(avoid), w = el.offsetWidth, hgt = el.offsetHeight, cx = window.innerWidth / 2;
+  if (!w || !hgt) return;
+  let best = tops[0], bestCost = Infinity;
+  for (const y of tops) {
+    const r = { left: cx - w / 2, right: cx + w / 2, top: y, bottom: y + hgt };
+    let cost = 0;
+    for (const c of rects) cost += overlapArea(r, c, 6);
+    if (cost < bestCost - 0.5) { best = y; bestCost = cost; }
+    if (cost === 0) break;
+  }
+  el.style.top = Math.round(best) + "px";
+}
+function placeHints() {
+  const line = $("hintLine"), toast = $("toast");
+  const adding = document.body.classList.contains("adding");
+  if (!hudOff || S.screen !== "play" || adding) { line.style.top = ""; toast.style.top = ""; return; }   // back to their CSS places
+  const a = areaRect(), top = a.top + 8, mid = a.top + a.height * 0.5, low = a.bottom - 8;
+  let avoid = [];
+  if (line.classList.contains("on")) {
+    const lh = line.offsetHeight;
+    placeFree(line, [top, top + 48, a.top + a.height * 0.28, mid - lh / 2, low - lh]);
+    const r = line.getBoundingClientRect();
+    avoid = [{ left: r.left, top: r.top, right: r.right, bottom: r.bottom }];
+  }
+  const kind = toast.dataset.kind;
+  if ((kind === "hint" || kind === "refused") && !toast.classList.contains("off")) {
+    const th = toast.offsetHeight, under = avoid.length ? avoid[0].bottom + 10 : top;
+    placeFree(toast, [under, top + 60, a.top + a.height * 0.3, mid - th / 2, low - th], avoid);
+  }
 }
 function setHudOff(off, { say = false } = {}) {
   hudOff = !!off;
@@ -3775,6 +3842,7 @@ function setHudOff(off, { say = false } = {}) {
   $("hudBtnIcon").setAttribute("href", hudOff ? "#i-eyeoff" : "#i-eye");
   if (hudOff) { hideTip(); ovfClear(); $("redrawMenu").classList.add("hidden"); if (coach && coach.isOpen()) { coachState.idx = coach.index(); coach.hide(); } }
   if (say) notice(hudOff ? COPY.hudBtn.hidden : COPY.hudBtn.shown, 2200);
+  placeHints();
   return hudOff;
 }
 $("hudBtn").addEventListener("click", (e) => {

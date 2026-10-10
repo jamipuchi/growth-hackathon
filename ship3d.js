@@ -759,13 +759,15 @@ function disc(F, c, dir, r, col, seg, type = 4) {
 
 // ---- Assembly ------------------------------------------------------------------------------------------------------
 
-function assemble(spec, color, d, sticker) {
+// fl (v1.6, 0.5..1): how far the parts' minimum segment counts may give way (1 = not at all; buildShip lowers it only when the
+// detail d alone cannot bring a busy ship inside its budget). A minimum of 3 or less never changes.
+function assemble(spec, color, d, sticker, fl = 1) {
   const L = SHIP_LENGTH;
   const Bd = new Buf(), Dc = new Buf(), F = new Buf(true);
   const col = palette(spec, color);
   const hull = makeHull(spec, L);
   const R = rng(spec.seed || 1);
-  const sg = (n, min = 6) => Math.max(min, Math.round(n * d));
+  const sg = (n, min = 6) => Math.max(min <= 3 || fl >= 1 ? min : Math.max(3, Math.round(min * fl)), Math.round(n * d));
   const S = {}; // sockets
   const flat = REG.flat, metal = REG.metal, trim = REG.trim, glass = REG.glass;
   hull.build(Bd, d, col);
@@ -1311,13 +1313,20 @@ export function buildShip(specIn, { drawingImage = null, color = 0x22d3ee, quali
   const T = shipTextures();
   const label = (spec.extras.find((x) => x.kind === "text") || {}).label || "";
   const sticker = makeSticker(drawingImage, color, spec.noseDir, label ? label.toUpperCase() : "", q === "lite" ? 256 : 512);
-  let d = Q[q].d, A0 = null;
-  for (let k = 0; k < 5; k++) {
-    A0 = assemble(spec, color, d, sticker);
+  let d = Q[q].d, fl = 1, A0 = null;
+  for (let k = 0; k < 6; k++) {
+    A0 = assemble(spec, color, d, sticker, fl);
     if (A0.tris <= Q[q].tris) break;
     // v1.5 (iPhone hitches): triangles grow about with d², so the next pass jumps to the detail that fits (a little under, at most
     // 0.82 and at least 0.5 of this one) instead of five 0.82 steps: a busy drawing builds in two passes, not up to five.
-    d *= Math.max(0.5, Math.min(0.82, Math.sqrt(Q[q].tris / A0.tris) * 0.96));
+    const r = Q[q].tris / A0.tris;
+    // v1.6 (every ship inside its budget): still over after the second pass means the small parts sit at their minimum segment
+    // counts, which d cannot go under (a "lite" landing-legs ship stayed at 3020 > 2600 after five passes, plain ships at 2660):
+    // from then on the minimums give way too (fl, down to 0.5: 8-sided rings become 6-, then 4-sided). A "phone" or "big" ship
+    // that fitted in two passes before is built exactly as before; "lite" (d 0.62) has most parts at their minimums from the
+    // first pass, so there the minimums give way at once (two passes, not three).
+    if (k >= 1 || q === "lite") fl = Math.max(0.5, fl * Math.max(0.55, Math.min(0.8, r * 0.85)));
+    d *= Math.max(0.5, Math.min(0.82, Math.sqrt(r) * 0.96));
   }
   const { Bd, Dc, F, S } = A0;
   // Centre on the origin and scale the longest horizontal side to SHIP_LENGTH (flames are not counted).
