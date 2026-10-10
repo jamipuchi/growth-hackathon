@@ -744,13 +744,31 @@ function lanIp() {
   return "localhost";
 }
 const lanAddress = () => (httpsLib && httpsLib.lanIps && httpsLib.lanIps()[0]) || lanIp();
+// v1.9.2 magic domain (owner 15:05): { domain, expires } while https.js serves the trusted *.<domain> cert (MAGIC_DOMAIN or
+// --magic-domain D, files in .magic-certs/<domain>/); then httpsUrl is https://<ip-with-dashes>.<domain>:HTTPS_PORT.
+let httpsMagic = null;
+// v1.9.2 public link (owner 15:08, a Cloudflare quick tunnel): PUBLIC_URL_FILE (a file holding one https URL, re-read on
+// every call) or PUBLIC_URL wins for the phones' link. Missing, empty or not https:// = ignored. "" when none.
+function publicUrl() {
+  const clean = (s) => {
+    const u = String(s || "").trim().split(/\s+/)[0].replace(/\/+$/, "");
+    try { return /^https:\/\//i.test(u) && new URL(u).protocol === "https:" ? u : ""; } catch { return ""; }
+  };
+  if (process.env.PUBLIC_URL_FILE) { try { const u = clean(fs.readFileSync(process.env.PUBLIC_URL_FILE, "utf8")); if (u) return u; } catch {} }
+  return clean(process.env.PUBLIC_URL);
+}
 // lanUrl: this server over HTTP on the LAN; httpsUrl: the same over HTTPS (null when it is off or failed);
-// controllerUrl: what the QR should open (HTTPS when up: tilt and camera need it); bigScreenUrl: the TV page.
+// controllerUrl: what the QR should open (the public link when set, else HTTPS when up: tilt and camera need it);
+// bigScreenUrl: the TV page; publicUrl: only when PUBLIC_URL_FILE / PUBLIC_URL gives one. The IP is read on every call.
 function info() {
   const ip = lanAddress();
   const lanUrl = `http://${ip}:${PORT}`;
-  const httpsUrl = httpsUp ? `https://${ip}:${HTTPS_PORT}` : null;
-  return { lanUrl, httpsUrl, controllerUrl: `${httpsUrl || lanUrl}/controller.html`, bigScreenUrl: `${lanUrl}/space.html`, session: SESSION_ID };
+  const host = httpsMagic && httpsLib && httpsLib.magicHost ? httpsLib.magicHost(ip, httpsMagic.domain) : ip;
+  const httpsUrl = httpsUp ? `https://${host}:${HTTPS_PORT}` : null;
+  const pub = publicUrl();
+  const out = { lanUrl, httpsUrl, controllerUrl: `${pub || httpsUrl || lanUrl}/controller.html`, bigScreenUrl: `${lanUrl}/space.html`, session: SESSION_ID };
+  if (pub) out.publicUrl = pub;
+  return out;
 }
 
 // ---- POST handlers -------------------------------------------------------------------------------------------------
@@ -1222,12 +1240,19 @@ server.on("listening", () => {
   console.log(`  phones:     http://${ip}:${PORT}/controller.html`);
   if (canEndless() && world.endless) console.log("  mode:       ENDLESS free-for-all (the host ends it from the big screen)");
   console.log(`  kick-idle:  ${KICK_AFTER_MS > 0 ? `a phone unreachable for ${KICK_AFTER_MS / 1000} s leaves` : "off"}`);
+  if (process.env.PUBLIC_URL_FILE || process.env.PUBLIC_URL) {
+    const pub = publicUrl();
+    console.log(`  public:     ${pub ? `${pub}/controller.html (the QR)` : "none yet"} (${process.env.PUBLIC_URL_FILE ? `PUBLIC_URL_FILE ${process.env.PUBLIC_URL_FILE}, re-read on every /info` : "PUBLIC_URL"})`);
+  }
 });
 
 function startHttps() {
   if (!httpsLib || !(HTTPS_PORT > 0)) return;
   try {
-    secure = httpsLib.startHttps((req, res) => { handler(req, res); }, { port: HTTPS_PORT });
+    // v1.9.2: MAGIC_DOMAIN or --magic-domain D (https.js validates it; "" = the self-signed cert, as before)
+    const magicDomain = httpsLib.magicDomainFrom ? httpsLib.magicDomainFrom(process.argv, process.env) : "";
+    secure = httpsLib.startHttps((req, res) => { handler(req, res); }, { port: HTTPS_PORT, magicDomain });
+    httpsMagic = secure.magic || null;
     secure.on("listening", () => (httpsUp = true));
     secure.on("error", (err) => {
       httpsUp = false;

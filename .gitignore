@@ -21,3 +21,6 @@ dev/v14-test/shots/
 
 # asset model scratch
 assets/**/__pycache__/
+
+# v1.9.2 magic-domain wildcard certs (downloaded; hold private keys, never commit)
+.magic-certs/
