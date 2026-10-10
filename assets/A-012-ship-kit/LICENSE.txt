@@ -1,0 +1,9 @@
+CC0 1.0 Universal
+
+The original texture artwork, authored numerals, source generator, loader and preview
+in this directory are dedicated to the public domain under CC0 1.0.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+No third-party images or fonts are included in the texture kit.
+The optional HTML preview loads three.js (MIT) from its CDN; three.js is not part of
+this dedication and retains its own licence.

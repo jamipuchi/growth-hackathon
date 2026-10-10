@@ -1,0 +1,86 @@
+{
+  "v": 1,
+  "view": "side",
+  "noseDir": "right",
+  "style": "chunky",
+  "seed": 2500093171,
+  "hull": {
+    "shape": "saucer",
+    "width": 1,
+    "height": 0.41,
+    "nose": "round",
+    "tail": "round",
+    "color": "#2a9d8f",
+    "stripe": ""
+  },
+  "cockpit": {
+    "kind": "canopy",
+    "at": 0.51,
+    "size": 0.35,
+    "color": "#8338ec"
+  },
+  "wings": {
+    "count": 0,
+    "shape": "round",
+    "at": 0.5,
+    "span": 0.2,
+    "chord": 0.08,
+    "mount": "mid",
+    "color": ""
+  },
+  "fins": [],
+  "engines": {
+    "count": 1,
+    "size": 0.13,
+    "flame": true,
+    "flameColor": "#ff7b00",
+    "layout": "single",
+    "verb": "boost"
+  },
+  "weapons": [],
+  "extras": [
+    {
+      "kind": "antenna",
+      "at": 0.37,
+      "mount": "top",
+      "size": 0.3,
+      "color": "",
+      "label": "",
+      "verb": "scan"
+    },
+    {
+      "kind": "window",
+      "at": 0.27,
+      "mount": "sides",
+      "size": 0.08,
+      "color": "",
+      "label": "",
+      "verb": null
+    },
+    {
+      "kind": "window",
+      "at": 0.52,
+      "mount": "sides",
+      "size": 0.08,
+      "color": "",
+      "label": "",
+      "verb": null
+    },
+    {
+      "kind": "window",
+      "at": 0.78,
+      "mount": "sides",
+      "size": 0.08,
+      "color": "",
+      "label": "",
+      "verb": null
+    }
+  ],
+  "palette": {
+    "colored": true,
+    "main": "#2a9d8f",
+    "second": "#8338ec",
+    "accent": "#ff7b00"
+  },
+  "source": "model"
+}

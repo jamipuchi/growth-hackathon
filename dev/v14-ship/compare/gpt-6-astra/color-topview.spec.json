@@ -1,0 +1,215 @@
+{
+  "id": "color-topview",
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "generated: coloured top view (red hull, yellow wings, blue canopy, orange flames, wing guns)",
+  "view": "top",
+  "drawing": "dev/v14-ship/drawings/color-topview.png",
+  "http": 1,
+  "wallMs": 2989,
+  "ms": 2987,
+  "status": 200,
+  "usage": {
+    "input": 2079,
+    "output": 392,
+    "reasoning": 0
+  },
+  "raw": {
+    "view": "top",
+    "noseDir": "right",
+    "style": "sleek",
+    "hull": {
+      "shape": "dart",
+      "width": 0.13,
+      "height": 0.12,
+      "nose": "pointed",
+      "tail": "tapered",
+      "color": "red",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.27,
+      "size": 0.18,
+      "color": "cyan"
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.56,
+      "span": 0.84,
+      "chord": 0.37,
+      "mount": "mid",
+      "color": "yellow"
+    },
+    "fins": [
+      {
+        "kind": "side",
+        "at": 0.93,
+        "size": 0.15,
+        "color": "red"
+      }
+    ],
+    "engines": {
+      "count": 1,
+      "size": 0.09,
+      "flame": true,
+      "flameColor": "orange",
+      "layout": "single"
+    },
+    "weapons": [
+      {
+        "kind": "cannon",
+        "count": 2,
+        "at": 0.5,
+        "mount": "wings",
+        "size": 0.18,
+        "color": "gray"
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": true,
+      "main": "red",
+      "second": "yellow",
+      "accent": "cyan"
+    }
+  },
+  "spec": {
+    "v": 1,
+    "view": "top",
+    "noseDir": "right",
+    "style": "sleek",
+    "seed": 2287909975,
+    "hull": {
+      "shape": "dart",
+      "width": 0.13,
+      "height": 0.12,
+      "nose": "pointed",
+      "tail": "tapered",
+      "color": "#e63946",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.27,
+      "size": 0.18,
+      "color": "#22d3ee"
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.56,
+      "span": 0.84,
+      "chord": 0.37,
+      "mount": "mid",
+      "color": "#ffd23f"
+    },
+    "fins": [
+      {
+        "kind": "side",
+        "at": 0.93,
+        "size": 0.15,
+        "color": "#e63946"
+      },
+      {
+        "kind": "tail",
+        "at": 0.86,
+        "size": 0.24,
+        "color": "#ffd23f",
+        "implied": true
+      }
+    ],
+    "engines": {
+      "count": 1,
+      "size": 0.09,
+      "flame": true,
+      "flameColor": "#ff7b00",
+      "layout": "single",
+      "verb": "boost"
+    },
+    "weapons": [
+      {
+        "kind": "cannon",
+        "count": 2,
+        "at": 0.5,
+        "mount": "wings",
+        "size": 0.18,
+        "color": "",
+        "verb": "shoot"
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": true,
+      "main": "#e63946",
+      "second": "#ffd23f",
+      "accent": "#22d3ee"
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 4462,
+    "drawCalls": 3,
+    "glTriangles": 4462,
+    "ms": 10,
+    "size": {
+      "x": 2.619615316390991,
+      "y": 1.0287977457046509,
+      "z": 3.200000047683716
+    },
+    "radius": 1.6693761312683422,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        -0.13,
+        -0.78
+      ],
+      "wing_r": [
+        1.27,
+        -0.22,
+        0.47
+      ],
+      "wing_l": [
+        -1.27,
+        -0.22,
+        0.47
+      ],
+      "back": [
+        0,
+        0.15,
+        1.02
+      ],
+      "engine_l": [
+        -0.07,
+        -0.33,
+        1.6
+      ],
+      "engine_r": [
+        0.07,
+        -0.33,
+        1.6
+      ],
+      "nose": [
+        0.68,
+        -0.42,
+        -0.36
+      ],
+      "belly": [
+        0,
+        -0.51,
+        -0.08
+      ]
+    },
+    "wallMs": 112
+  }
+}

@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- v14-ship3d: the phone's result card as controller.html shows it (render.js createEntityPreview), for a WebKit 844x390
+     screenshot. preview.html?img=<drawing URL>: the drawing is turned into a PNG data URL first, as the phone has it, so the
+     preview finds the ship spec by the drawing's hash (entity messages / GET /ship-spec), exactly like the real card. -->
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ship card</title>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+<script src="/contract.js"></script>
+<script src="/terrain.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; background: radial-gradient(circle at 30% 40%, #3b2a8f, #120c33 70%); color: #fff; font-family: "Barlow", system-ui, sans-serif; overflow: hidden; }
+  #wrap { display: flex; height: 100%; }
+  canvas { width: 55%; height: 100%; display: block; }
+  #card { flex: 1; padding: 34px 26px; }
+  h1 { margin: 0 0 10px; font: 800 italic 40px "Barlow Condensed", system-ui, sans-serif; text-shadow: 0 3px 0 #0008; }
+  .line { font-size: 19px; margin: 6px 0; } .tag { display: inline-block; padding: 4px 10px; background: #f5b70033; border: 2px solid #f5b700; border-radius: 6px; font-weight: 800; }
+</style></head><body>
+<div id="wrap"><canvas id="c"></canvas><div id="card"><h1>YOUR SHIP</h1><div class="line" id="what">building…</div><div class="line"><span class="tag" id="tag"></span></div></div></div>
+<script type="module">
+import { createEntityPreview } from "/render.js";
+const src = new URLSearchParams(location.search).get("img");
+const blob = await (await fetch(src)).blob();
+const dataUrl = await new Promise((ok) => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(blob); });
+const pv = createEntityPreview({ canvas: document.getElementById("c"), quality: "phone" });
+const t0 = performance.now();
+const first = await pv.show({ image: dataUrl, kind: "ship", color: 0x22d3ee });
+document.getElementById("what").textContent = first.ship3d ? `built from its parts in ${first.ms} ms · ${first.triangles} triangles` : `inflated (no spec yet) · ${first.triangles} triangles`;
+document.getElementById("tag").textContent = first.ship3d ? "3D SHIP" : "DRAWING";
+// The card swaps to the built ship when the model's spec lands: give it a moment, then report what is on show.
+await new Promise((r) => setTimeout(r, 2500));
+window.__ready = { first, ms: Math.round(performance.now() - t0) };
+</script></body></html>

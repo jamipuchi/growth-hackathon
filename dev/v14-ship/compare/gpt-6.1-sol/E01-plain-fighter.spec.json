@@ -1,0 +1,189 @@
+{
+  "id": "E01-plain-fighter",
+  "model": "gpt-6.1-sol",
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "plain fighter (clean)",
+  "view": "side",
+  "drawing": "dev/gen-corpus/entity/E01.png",
+  "http": 1,
+  "wallMs": 2808,
+  "ms": 2801,
+  "status": 200,
+  "usage": {
+    "input": 2041,
+    "output": 416,
+    "reasoning": 96
+  },
+  "raw": {
+    "view": "side",
+    "noseDir": "right",
+    "style": "sleek",
+    "hull": {
+      "shape": "dart",
+      "width": 0.28,
+      "height": 0.25,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.28,
+      "size": 0.23,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.66,
+      "span": 0.76,
+      "chord": 0.36,
+      "mount": "low",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.74,
+        "size": 0.33,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 0,
+      "size": 0,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single"
+    },
+    "weapons": [],
+    "extras": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    }
+  },
+  "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "sleek",
+    "seed": 2738746739,
+    "hull": {
+      "shape": "dart",
+      "width": 0.28,
+      "height": 0.25,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.28,
+      "size": 0.23,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.66,
+      "span": 0.76,
+      "chord": 0.36,
+      "mount": "low",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.74,
+        "size": 0.33,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 0,
+      "size": 0.06,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single",
+      "verb": null
+    },
+    "weapons": [],
+    "extras": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 3896,
+    "drawCalls": 3,
+    "glTriangles": 3896,
+    "ms": 22.5,
+    "size": {
+      "x": 2.421072006225586,
+      "y": 1.7177538871765137,
+      "z": 3.200000047683716
+    },
+    "radius": 1.7228206522671794,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        -0.09,
+        -0.73
+      ],
+      "wing_r": [
+        1.17,
+        -0.57,
+        0.81
+      ],
+      "wing_l": [
+        -1.17,
+        -0.57,
+        0.81
+      ],
+      "back": [
+        0,
+        0.35,
+        0.69
+      ],
+      "engine_l": [
+        -0.04,
+        -0.47,
+        1.6
+      ],
+      "engine_r": [
+        0.04,
+        -0.47,
+        1.6
+      ],
+      "nose": [
+        0,
+        -0.47,
+        -1.6
+      ],
+      "belly": [
+        0,
+        -0.86,
+        -0.05
+      ]
+    },
+    "wallMs": 318
+  }
+}

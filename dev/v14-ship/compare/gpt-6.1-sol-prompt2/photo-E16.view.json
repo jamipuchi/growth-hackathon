@@ -1,0 +1,68 @@
+{
+  "v": 1,
+  "view": "side",
+  "noseDir": "right",
+  "style": "chunky",
+  "seed": 496452931,
+  "hull": {
+    "shape": "box",
+    "width": 0.35,
+    "height": 0.37,
+    "nose": "pointed",
+    "tail": "flat",
+    "color": "",
+    "stripe": ""
+  },
+  "cockpit": {
+    "kind": "windows",
+    "at": 0.42,
+    "size": 0.15,
+    "color": ""
+  },
+  "wings": {
+    "count": 2,
+    "shape": "swept",
+    "at": 0.79,
+    "span": 0.55,
+    "chord": 0.3,
+    "mount": "high",
+    "color": ""
+  },
+  "fins": [],
+  "engines": {
+    "count": 0,
+    "size": 0.06,
+    "flame": false,
+    "flameColor": "",
+    "layout": "single",
+    "verb": null
+  },
+  "weapons": [],
+  "extras": [
+    {
+      "kind": "shield",
+      "at": 0.49,
+      "mount": "around",
+      "size": 1,
+      "color": "",
+      "label": "",
+      "verb": "shield"
+    },
+    {
+      "kind": "bomb",
+      "at": 0.55,
+      "mount": "belly",
+      "size": 0.13,
+      "color": "",
+      "label": "",
+      "verb": "blast"
+    }
+  ],
+  "palette": {
+    "colored": false,
+    "main": "",
+    "second": "",
+    "accent": ""
+  },
+  "source": "model"
+}

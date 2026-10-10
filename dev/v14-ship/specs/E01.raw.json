@@ -1,0 +1,52 @@
+{
+ "view": "top",
+ "noseDir": "right",
+ "style": "sleek",
+ "hull": {
+  "shape": "dart",
+  "width": 0.24,
+  "height": 0.18,
+  "nose": "pointed",
+  "tail": "flat",
+  "color": "",
+  "stripe": ""
+ },
+ "cockpit": {
+  "kind": "canopy",
+  "at": 0.25,
+  "size": 0.2,
+  "color": ""
+ },
+ "wings": {
+  "count": 2,
+  "shape": "swept",
+  "at": 0.62,
+  "span": 1,
+  "chord": 0.36,
+  "mount": "mid",
+  "color": ""
+ },
+ "fins": [
+  {
+   "kind": "tail",
+   "at": 0.86,
+   "size": 0.2,
+   "color": ""
+  }
+ ],
+ "engines": {
+  "count": 0,
+  "size": 0.16,
+  "flame": false,
+  "flameColor": "",
+  "layout": "single"
+ },
+ "weapons": [],
+ "extras": [],
+ "palette": {
+  "colored": false,
+  "main": "",
+  "second": "",
+  "accent": ""
+ }
+}

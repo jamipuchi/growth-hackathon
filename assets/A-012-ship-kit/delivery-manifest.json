@@ -1,0 +1,30 @@
+{
+  "runtimeFiles": {
+    "ship-kit.js": {
+      "bytes": 14105,
+      "sha256": "86802e70ce9b193e2ca5e1fcb054ae860e1038b7a66bfcc15840213b75640797"
+    },
+    "panels.png": {
+      "bytes": 6763,
+      "sha256": "0206c8bbbac6fb067980abf7f0191ef7be672411a63e62381d09748be5bf641e"
+    },
+    "panels-normal.png": {
+      "bytes": 8459,
+      "sha256": "99ac202e1c43852454b712400cbfd2575f17b373aa1b568280e1800b77b5b147"
+    },
+    "surfaces.png": {
+      "bytes": 33530,
+      "sha256": "62c7e861afdf316ff7691c93ad8388b2febaea9b0bfdeb17cdd41a8a5cc85812"
+    },
+    "decals.png": {
+      "bytes": 139126,
+      "sha256": "b046e06332508b248d5b8a0495d87624288b5908206b9db7d86ebf0963911bb6"
+    }
+  },
+  "totalRuntimeBytes": 201983,
+  "uniqueGpuTextures": 4,
+  "estimatedRgba8Bytes": 12582908,
+  "staticChecksPassed": 73,
+  "chromeChecksPassed": 34,
+  "webkitChecksPassed": 34
+}

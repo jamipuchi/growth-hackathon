@@ -1,0 +1,273 @@
+{
+  "id": "photo-E16",
+  "model": "gpt-6.1-sol",
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "PHOTO with a thumb: box ship + bomb + shield bubble",
+  "view": "side",
+  "drawing": "dev/gen-corpus/photos/E16.jpg",
+  "http": 1,
+  "wallMs": 1745,
+  "ms": 1743,
+  "status": 200,
+  "usage": {
+    "input": 2197,
+    "output": 224,
+    "reasoning": 0
+  },
+  "raw": {
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "hull": {
+      "shape": "box",
+      "width": 0.35,
+      "height": 0.37,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "windows",
+      "at": 0.42,
+      "size": 0.15,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.79,
+      "span": 0.55,
+      "chord": 0.3,
+      "mount": "high",
+      "color": ""
+    },
+    "fins": [],
+    "engines": {
+      "count": 0,
+      "size": 0,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single"
+    },
+    "weapons": [],
+    "extras": [
+      {
+        "kind": "shield",
+        "at": 0.49,
+        "mount": "around",
+        "size": 1.56,
+        "color": "",
+        "label": ""
+      },
+      {
+        "kind": "bomb",
+        "at": 0.55,
+        "mount": "belly",
+        "size": 0.13,
+        "color": "",
+        "label": ""
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    }
+  },
+  "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "seed": 496452931,
+    "hull": {
+      "shape": "box",
+      "width": 0.35,
+      "height": 0.37,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "windows",
+      "at": 0.42,
+      "size": 0.15,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.79,
+      "span": 0.55,
+      "chord": 0.3,
+      "mount": "high",
+      "color": ""
+    },
+    "fins": [],
+    "engines": {
+      "count": 0,
+      "size": 0.06,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single",
+      "verb": null
+    },
+    "weapons": [],
+    "extras": [
+      {
+        "kind": "shield",
+        "at": 0.49,
+        "mount": "around",
+        "size": 1,
+        "color": "",
+        "label": "",
+        "verb": "shield"
+      },
+      {
+        "kind": "bomb",
+        "at": 0.55,
+        "mount": "belly",
+        "size": 0.13,
+        "color": "",
+        "label": "",
+        "verb": "blast"
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 4406,
+    "drawCalls": 3,
+    "glTriangles": 4406,
+    "ms": 12,
+    "size": {
+      "x": 1.8910493850708008,
+      "y": 1.6078747510910034,
+      "z": 3.200000047683716
+    },
+    "radius": 1.7241067424189167,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        0.64,
+        -0.3
+      ],
+      "wing_r": [
+        0.91,
+        0.41,
+        1.15
+      ],
+      "wing_l": [
+        -0.91,
+        0.41,
+        1.15
+      ],
+      "engine_l": [
+        -0.04,
+        0.07,
+        1.6
+      ],
+      "engine_r": [
+        0.04,
+        0.07,
+        1.6
+      ],
+      "nose": [
+        0,
+        0.07,
+        -1.6
+      ],
+      "back": [
+        0,
+        0.64,
+        0.72
+      ],
+      "belly": [
+        0,
+        -0.5,
+        -0.05
+      ]
+    },
+    "wallMs": 135
+  },
+  "renderKit": {
+    "ok": true,
+    "kit": true,
+    "triangles": 4406,
+    "drawCalls": 3,
+    "glTriangles": 4406,
+    "ms": 5.5,
+    "size": {
+      "x": 1.8910493850708008,
+      "y": 1.6078747510910034,
+      "z": 3.200000047683716
+    },
+    "radius": 1.7241067424189167,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        0.64,
+        -0.3
+      ],
+      "wing_r": [
+        0.91,
+        0.41,
+        1.15
+      ],
+      "wing_l": [
+        -0.91,
+        0.41,
+        1.15
+      ],
+      "engine_l": [
+        -0.04,
+        0.07,
+        1.6
+      ],
+      "engine_r": [
+        0.04,
+        0.07,
+        1.6
+      ],
+      "nose": [
+        0,
+        0.07,
+        -1.6
+      ],
+      "back": [
+        0,
+        0.64,
+        0.72
+      ],
+      "belly": [
+        0,
+        -0.5,
+        -0.05
+      ]
+    },
+    "wallMs": 141
+  }
+}

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="icon" href="data:,">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2046cd">
+  <title>Ship workshop · Space Party</title>
+  <style>
+    :root { color-scheme: light; --ink:#102957; --blue:#2046cd; --paper:#eff9fc; --line:#b8d5e1; --yellow:#ffcf49; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.4 "Trebuchet MS",Arial,sans-serif; }
+    button,input { font:inherit; }
+    button { cursor:pointer; }
+    button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid #ec5d6e; outline-offset:4px; }
+    header { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:24px 4vw 20px; border-bottom:2px solid var(--ink); }
+    .brand { margin:0 0 5px; font-weight:800; letter-spacing:.16em; font-size:12px; }
+    h1 { margin:0; font:italic 900 clamp(30px,4vw,54px)/.94 "Arial Black",Arial,sans-serif; letter-spacing:-.05em; }
+    .edition { flex-shrink:0; padding:9px 13px; background:var(--yellow); border:2px solid var(--ink); transform:rotate(3deg); font-weight:900; box-shadow:3px 3px 0 var(--ink); }
+    main { max-width:1800px; margin:auto; }
+    nav { display:flex; gap:5px; padding:18px 4vw 0; flex-wrap:wrap; }
+    nav button { border:0; border-bottom:4px solid transparent; padding:10px 16px; color:var(--ink); background:transparent; font-weight:800; }
+    nav button[aria-pressed="true"] { color:var(--blue); border-color:var(--blue); }
+    .workspace { display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:0; padding:16px 4vw 20px; }
+    .stage-wrap { position:relative; min-width:0; background:#d9eff5; border:2px solid var(--ink); }
+    #stage { width:100%; height:min(64vh,660px); min-height:380px; }
+    #stage canvas { display:block; width:100%; height:100%; touch-action:none; }
+    .stage-note { pointer-events:none; position:absolute; left:20px; top:18px; max-width:70%; }
+    .stage-note strong { display:block; font-size:23px; line-height:1.12; letter-spacing:-.03em; }
+    .stage-note span { display:block; font-size:13px; margin-top:6px; }
+    #loading { position:absolute; inset:0; display:grid; place-content:center; padding:28px; background:#d9eff5; font-weight:800; text-align:center; }
+    #loading[hidden] { display:none; }
+    .view-tools { position:absolute; bottom:17px; left:17px; display:flex; gap:8px; }
+    .tool { min-height:42px; border:1px solid var(--ink); padding:7px 13px; border-radius:3px; color:var(--ink); background:#f8fdffed; font-weight:700; }
+    .tool[aria-pressed="true"] { color:white; background:var(--blue); }
+    .tool:disabled { cursor:default; opacity:.45; }
+    aside { padding:7px 0 0 28px; }
+    aside h2 { margin:0 0 8px; font-size:23px; letter-spacing:-.04em; }
+    .muted { color:#466181; font-size:14px; }
+    aside p { margin:0 0 20px; }
+    .paints { display:flex; flex-wrap:wrap; gap:10px; margin:18px 0 25px; }
+    .paint { width:45px; height:45px; border:3px solid var(--paper); border-radius:50%; box-shadow:0 0 0 1px var(--line); }
+    .paint[aria-pressed="true"] { box-shadow:0 0 0 3px var(--ink); }
+    .paint-label { font-size:14px; font-weight:800; }
+    .slider { display:block; margin:24px 0; }
+    .slider span { display:flex; justify-content:space-between; font-size:14px; font-weight:800; }
+    input[type="range"] { width:100%; margin:12px 0 0; accent-color:var(--blue); }
+    .specs { margin-top:25px; border-top:1px solid var(--line); padding-top:17px; font-size:13px; }
+    .specs p { margin:0 0 9px; }
+    #stats { font-variant-numeric:tabular-nums; }
+    #lab-labels { display:none; position:absolute; inset:0; pointer-events:none; }
+    #lab-labels span { position:absolute; padding:3px 7px; background:#eff9fce8; font-size:12px; font-weight:800; transform:translate(-50%,0); white-space:nowrap; }
+    #sheets { display:none; padding:20px 4vw 30px; grid-template-columns:repeat(4,minmax(0,1fr)); gap:24px; }
+    #sheets figure { margin:0; }
+    #sheets img { display:block; width:100%; aspect-ratio:1; object-fit:contain; border:2px solid var(--ink); background:repeating-conic-gradient(#d5e2eb 0 25%,#f6fbff 0 50%) 0/20px 20px; }
+    #sheets figcaption { margin-top:10px; font-size:14px; }
+    #sheets strong { display:block; font-size:18px; }
+    footer { padding:14px 4vw 24px; display:flex; gap:12px; justify-content:space-between; color:#466181; font-size:12px; }
+    footer p { margin:0; }
+    .error { color:#922435; }
+    @media(max-width:850px) {
+      .workspace { grid-template-columns:minmax(0,1fr); }
+      aside { padding:22px 0 0; display:grid; grid-template-columns:1fr 1fr; gap:0 24px; }
+      aside h2,aside > p { grid-column:1/-1; }
+      .paints { margin:12px 0; }
+      .slider { margin:10px 0; }
+      .specs { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:4px 20px; margin-top:12px; }
+      #stage { height:53vh; min-height:340px; }
+      #sheets { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+    @media(max-width:480px) {
+      header { padding:20px 5vw; gap:10px; }
+      .edition { font-size:12px; padding:7px; }
+      nav { padding:12px 3vw 0; gap:0; }
+      nav button { padding:10px 11px; font-size:14px; }
+      .workspace { padding:14px 4vw; }
+      .stage-note { left:13px; top:14px; max-width:90%; }
+      .stage-note strong { font-size:19px; }
+      .stage-note span { font-size:11px; }
+      aside { gap:0 16px; }
+      .paint { width:35px; height:35px; }
+      .paints { gap:8px; }
+      #sheets { gap:16px; }
+      footer { display:block; }
+      footer p + p { margin-top:6px; }
+    }
+    @media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto; } }
+  </style>
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+  <header><div><p class="brand">SPACE PARTY / ASSET WORKSHOP</p><h1>Your colour. More character.</h1></div><div class="edition">KIT 012</div></header>
+  <main>
+    <nav aria-label="Preview views">
+      <button data-view="ship" aria-pressed="true">Sample ship</button>
+      <button data-view="fleet" aria-pressed="false">25 ships</button>
+      <button data-view="lab" aria-pressed="false">Surface lab</button>
+      <button data-view="sheets" aria-pressed="false">Texture sheets</button>
+    </nav>
+    <div class="workspace" id="workspace">
+      <div class="stage-wrap">
+        <div id="stage" aria-label="Interactive textured ship preview"></div>
+        <div class="stage-note"><strong id="view-title">Meet the little bruiser.</strong><span id="view-note">Original 3 m sample · drag to orbit · scroll or pinch to zoom</span></div>
+        <div id="lab-labels" aria-hidden="true"></div>
+        <div class="view-tools"><button class="tool" id="reset">Reset view</button><button class="tool" id="spin" aria-pressed="false">Spin</button></div>
+        <div id="loading" role="status">Unpacking the paint rack…</div>
+      </div>
+      <aside>
+        <h2>Make it yours.</h2><p class="muted">Painted panels keep your colour. Glass, stripes and stickers add the personality.</p>
+        <div><span class="paint-label" id="paint-name">Electric blue</span><div class="paints" aria-label="Hull colour">
+          <button class="paint" style="background:#338ee8" data-color="#338ee8" data-name="Electric blue" aria-label="Electric blue" aria-pressed="true"></button>
+          <button class="paint" style="background:#ed536c" data-color="#ed536c" data-name="Punch pink" aria-label="Punch pink" aria-pressed="false"></button>
+          <button class="paint" style="background:#ffd04d" data-color="#ffd04d" data-name="Sunshine" aria-label="Sunshine" aria-pressed="false"></button>
+          <button class="paint" style="background:#7ed552" data-color="#7ed552" data-name="Acid green" aria-label="Acid green" aria-pressed="false"></button>
+          <button class="paint" style="background:#a576e9" data-color="#a576e9" data-name="Grape soda" aria-label="Grape soda" aria-pressed="false"></button>
+        </div></div>
+        <label class="slider"><span>Panel relief <output id="normal-value">0.35</output></span><input id="normal" type="range" min="0" max="1" step="0.05" value="0.35" aria-label="Panel normal strength"></label>
+        <div class="specs"><p><strong id="stats">Loading geometry…</strong></p><p id="resource-stats">Four shared image sources</p><p id="mode-cost">Sample geometry is a preview fixture.</p></div>
+      </aside>
+    </div>
+    <section id="sheets" aria-label="Source texture sheets">
+      <figure><a href="panels.png"><img src="panels.png" alt="Tintable greyscale painted metal panel texture" loading="lazy"></a><figcaption><strong>Painted panels</strong>512 × 512 · colour-multiplied · tileable</figcaption></figure>
+      <figure><a href="panels-normal.png"><img src="panels-normal.png" alt="Normal map matching the panel lines and rivets" loading="lazy"></a><figcaption><strong>Panel relief</strong>512 × 512 · matching tangent-space normal</figcaption></figure>
+      <figure><a href="surfaces.png"><img src="surfaces.png" alt="Surface atlas with hazard and racing stripes, blue glass, nozzle and dark trim" loading="lazy"></a><figcaption><strong>Surface atlas</strong>1024 × 1024 · five finishes in one image</figcaption></figure>
+      <figure><a href="decals.png"><img src="decals.png" alt="Transparent decal atlas with numbers 0 to 9, star, chevrons, flame, shield, bolt and wing" loading="lazy"></a><figcaption><strong>Stickers</strong>1024 × 1024 · sixteen transparent decals</figcaption></figure>
+    </section>
+  </main>
+  <footer><p>A-012 · Three.js r160 · no post-processing · no shadow pass</p><p id="verification">Chrome + WebKit checked · physical iPhone timing unmeasured.</p></footer>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+    import { loadShipKit, applyShipSurface, getShipSurfaceRect, getShipDecalRect } from './ship-kit.js';
+
+    const $ = (id) => document.getElementById(id);
+    const stage = $('stage');
+    const scene = new THREE.Scene(); scene.background = new THREE.Color('#d9eff5');
+    const camera = new THREE.PerspectiveCamera(42, 1, .05, 200);
+    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.25;
+    stage.append(renderer.domElement);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = false; controls.minDistance = 1.3; controls.maxDistance = 80;
+    scene.add(new THREE.HemisphereLight(0xeaf8ff, 0x3c567e, 2.2));
+    const key = new THREE.DirectionalLight(0xfff1d4, 3); key.position.set(-4, 8, -5); scene.add(key);
+    const rim = new THREE.DirectionalLight(0x84bdff, 1.2); rim.position.set(4, 2, 4); scene.add(rim);
+    let kit, ship, fleet, lab, panelMaterial, labPanelMaterial;
+    let view = 'ship', spinning = false, frame = 0, lastTime = 0;
+    const labelEntries = [];
+    const materialGroups = { panels:[], surfaces:[], decals:[] };
+    const rotation = new THREE.Euler();
+    const position = new THREE.Vector3();
+    const scale = new THREE.Vector3(1,1,1);
+    const matrix = new THREE.Matrix4();
+
+    // Geometry is authored in metres. Only panel UVs tile; atlas pieces use a single inset cell.
+    function clean(geometry) {
+      const g = geometry.index ? geometry.toNonIndexed() : geometry;
+      if (g !== geometry) geometry.dispose();
+      if (!g.getAttribute('normal')) g.computeVertexNormals();
+      for (const name of Object.keys(g.attributes)) if (!['position','normal','uv'].includes(name)) g.deleteAttribute(name);
+      return g;
+    }
+    function place(g, xyz = [0,0,0], angles = [0,0,0]) {
+      rotation.set(...angles); position.set(...xyz);
+      matrix.compose(position, new THREE.Quaternion().setFromEuler(rotation), scale);
+      return g.applyMatrix4(matrix);
+    }
+    function panel(g) {
+      g = clean(g);
+      const p=g.getAttribute('position'), n=g.getAttribute('normal'), uv=new Float32Array(p.count*2);
+      for(let i=0;i<p.count;i++) {
+        const a=Math.abs(n.getX(i)), b=Math.abs(n.getY(i)), c=Math.abs(n.getZ(i));
+        if(b>=a && b>=c) { uv[i*2]=p.getX(i); uv[i*2+1]=p.getZ(i); }
+        else if(a>=c) { uv[i*2]=p.getZ(i); uv[i*2+1]=p.getY(i); }
+        else { uv[i*2]=p.getX(i); uv[i*2+1]=p.getY(i); }
+      }
+      g.setAttribute('uv',new THREE.BufferAttribute(uv,2)); materialGroups.panels.push(g);
+    }
+    function atlas(g, name, decal=false) {
+      g=clean(g);
+      const rect=(decal ? getShipDecalRect(name) : getShipSurfaceRect(name)).texelCenters;
+      const uv=g.getAttribute('uv');
+      for(let i=0;i<uv.count;i++) uv.setXY(i,rect.offset[0]+uv.getX(i)*rect.repeat[0],rect.offset[1]+uv.getY(i)*rect.repeat[1]);
+      materialGroups[decal?'decals':'surfaces'].push(g);
+    }
+    function body(rings) {
+      const points=[];
+      for(const [z,w,h,y=0] of rings) points.push([[-.72*w,h],[.72*w,h],[w,.58*h],[w,-.58*h],[.72*w,-h],[-.72*w,-h],[-w,-.58*h],[-w,.58*h]].map(([x,dy])=>[x,y+dy,z]));
+      const vertices=[], uvs=[];
+      function tri(a,b,c,ua=[0,0],ub=[1,0],uc=[1,1]) { vertices.push(...a,...b,...c); uvs.push(...ua,...ub,...uc); }
+      for(let r=0;r<points.length-1;r++) for(let i=0;i<8;i++) {
+        const j=(i+1)%8; tri(points[r][i],points[r+1][i],points[r+1][j]); tri(points[r][i],points[r+1][j],points[r][j],[0,0],[1,1],[0,1]);
+      }
+      for(let i=1;i<7;i++) { tri(points[0][0],points[0][i],points[0][i+1]); const end=points.at(-1); tri(end[0],end[i+1],end[i]); }
+      const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));g.computeVertexNormals();return g;
+    }
+    function wing(side) {
+      const points=[[.28,-.53],[.71,-.22],[1.32,.84],[1.22,1.10],[.39,.73]].map(([x,z])=>[side*x,-z]);
+      const shape=new THREE.Shape();shape.moveTo(...points[0]);for(const p of points.slice(1))shape.lineTo(...p);shape.closePath();
+      const g=new THREE.ExtrudeGeometry(shape,{depth:.11,bevelEnabled:true,bevelSegments:1,steps:1,bevelSize:.035,bevelThickness:.035,curveSegments:1});
+      return g.rotateX(-Math.PI/2).translate(0,-.065,0);
+    }
+    function topPlane(width,height,x,y,z,name,decal=false,angle=0) {
+      const g=new THREE.PlaneGeometry(width,height);g.rotateZ(angle);g.rotateX(-Math.PI/2);g.translate(x,y,z);atlas(g,name,decal);
+    }
+    function makeShip() {
+      panel(body([[-1.5,.09,.065],[-1.03,.36,.23],[.66,.46,.23],[1.04,.31,.16]]));
+      for(const side of [-1,1]) {
+        panel(wing(side));
+        panel(place(new THREE.CylinderGeometry(.19,.22,.62,8),[side*.58,-.02,1.15],[Math.PI/2,0,0]));
+        panel(place(new THREE.BoxGeometry(.10,.36,.47),[side*.53,.31,.79],[0,0,side*-.22]));
+        atlas(place(new THREE.CircleGeometry(.18,12),[side*.58,-.02,1.467]),'nozzle');
+        atlas(place(new THREE.CylinderGeometry(.065,.065,.56,8),[side*.83,.02,-.35],[Math.PI/2,0,0]),'trim');
+        topPlane(.25,.24,side*.58,.205,1.04,'hazard');
+        topPlane(.23,.41,side*.90,.086,.62,'racing');
+      }
+      atlas(body([[-.42,.22,.12,.29],[-.14,.29,.20,.33],[.36,.25,.18,.33],[.57,.12,.10,.30]]),'glass');
+      topPlane(.25,.30,0,.234,-.76,'7',true);
+      topPlane(.27,.27,-.75,.088,.33,'star',true);
+      topPlane(.25,.30,.70,.088,.27,'chevrons',true);
+      topPlane(.24,.20,0,.234,.64,'flame',true);
+      panelMaterial=new THREE.MeshStandardMaterial({color:'#338ee8',roughness:.67,metalness:.12});
+      applyShipSurface(panelMaterial,kit,'panels',{normalScale:.35});
+      const surfaceMaterial=new THREE.MeshStandardMaterial({map:kit.surfaces,roughness:.43,metalness:.20});
+      const decalMaterial=new THREE.MeshStandardMaterial({map:kit.decals,roughness:.75,metalness:0,alphaTest:.4,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
+      const result=new THREE.Group();result.name='original_sample_ship_3m';
+      for(const [key,material] of [['panels',panelMaterial],['surfaces',surfaceMaterial],['decals',decalMaterial]]) {
+        const g=mergeGeometries(materialGroups[key],false);
+        if(!g)throw new Error(`Could not merge ${key} geometry`);
+        g.computeBoundingBox();g.computeBoundingSphere();
+        const mesh=new THREE.Mesh(g,material);mesh.name=key;result.add(mesh);
+        materialGroups[key].forEach(part=>part.dispose());
+      }
+      return result;
+    }
+    function makeFleet() {
+      const group=new THREE.Group();group.name='shared_texture_fleet';
+      const transform=new THREE.Matrix4();
+      for(const source of ship.children) {
+        const mesh=new THREE.InstancedMesh(source.geometry,source.material,25);mesh.name=source.name;
+        for(let i=0;i<25;i++) { transform.makeTranslation(((i%5)-2)*3.6,0,(Math.floor(i/5)-2)*3.8);mesh.setMatrixAt(i,transform); }
+        mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();group.add(mesh);
+      }
+      return group;
+    }
+    function makeLab() {
+      const group=new THREE.Group();group.name='metre_uv_tiling_lab';
+      const names=['panels','hazard','racing','glass','nozzle','trim'];
+      names.forEach((name,i)=>{
+        const g=new THREE.PlaneGeometry(1.8,1.35,1,1),uv=g.getAttribute('uv');
+        for(let j=0;j<uv.count;j++)uv.setXY(j,uv.getX(j)*1.8,uv.getY(j)*1.35);
+        const material=new THREE.MeshStandardMaterial({color:name==='panels'?'#338ee8':'#ffffff',roughness:.55,metalness:.1});
+        applyShipSurface(material,kit,name,{normalScale:.35});if(name==='panels')labPanelMaterial=material;
+        const mesh=new THREE.Mesh(g,material);mesh.position.set((i%3-1)*2.05,i<3?.94:-.94,0);group.add(mesh);
+        const label=document.createElement('span');label.textContent=`${name[0].toUpperCase()+name.slice(1)} · 1 m tile`;$('lab-labels').append(label);
+        labelEntries.push({element:label,point:new THREE.Vector3(mesh.position.x,mesh.position.y-.75,0)});
+      });return group;
+    }
+    function resetView() {
+      controls.target.set(0,view==='ship'?.06:0,0);
+      const portrait=camera.aspect<.9;
+      if(view==='ship')camera.position.set(3.7,2.8,-4.7).multiplyScalar(portrait?1.1:.75);
+      if(view==='fleet')camera.position.set(18,20,-24).multiplyScalar(portrait?1.25:1);
+      if(view==='lab')camera.position.set(0,0,portrait?13:7.5);
+      controls.update();render();
+    }
+    function render() {
+      if(!ship || view==='sheets')return;
+      renderer.render(scene,camera);
+      const {triangles,calls}=renderer.info.render;
+      $('stats').textContent=`${triangles.toLocaleString()} triangles · ${calls} draws`;
+      $('resource-stats').textContent=`${renderer.info.memory.textures} uploaded textures · shared kit`;
+      if(view==='lab')for(const {element,point} of labelEntries) {
+        const projected=point.clone().project(camera);
+        element.style.left=`${(projected.x*.5+.5)*stage.clientWidth}px`;
+        element.style.top=`${(-projected.y*.5+.5)*stage.clientHeight}px`;
+        element.hidden=projected.z>1||projected.z< -1;
+      }
+    }
+    function show(next) {
+      if(!['ship','fleet','lab','sheets'].includes(next))throw new Error('Unknown preview view');
+      view=next;
+      if(ship)ship.visible=next==='ship';if(fleet)fleet.visible=next==='fleet';if(lab)lab.visible=next==='lab';
+      $('workspace').style.display=next==='sheets'?'none':'grid';$('sheets').style.display=next==='sheets'?'grid':'none';
+      $('lab-labels').style.display=next==='lab'?'block':'none';
+      for(const button of document.querySelectorAll('[data-view]'))button.setAttribute('aria-pressed',String(button.dataset.view===next));
+      const text={ship:['Meet the little bruiser.','Original 3 m sample · drag to orbit · scroll or pinch to zoom'],fleet:['One kit. Twenty-five pilots.','Three instanced meshes share the same geometry, materials and textures.'],lab:['Built to repeat.','Each swatch is 1.8 × 1.35 m · UVs are measured in metres.']};
+      if(text[next]){ $('view-title').textContent=text[next][0];$('view-note').textContent=text[next][1]; }
+      $('mode-cost').textContent=next==='lab'?'Six separate material swatches; extra draws are this comparison.':next==='fleet'?'25 instances of each of the three sample meshes.':'Sample geometry is a preview fixture.';
+      spinning=false;$('spin').setAttribute('aria-pressed','false');$('spin').disabled=next==='lab';cancelAnimationFrame(frame);
+      controls.enableRotate=next!=='lab';resize();resetView();
+      return next;
+    }
+    function setColor(value) {
+      panelMaterial.color.set(value);labPanelMaterial.color.set(value);
+      for(const button of document.querySelectorAll('[data-color]'))button.setAttribute('aria-pressed',String(button.dataset.color===value));
+      const button=[...document.querySelectorAll('[data-color]')].find(item=>item.dataset.color===value);
+      $('paint-name').textContent=button?button.dataset.name:value;render();
+    }
+    function setNormal(value) {
+      value=THREE.MathUtils.clamp(Number(value),0,1);panelMaterial.normalScale.setScalar(value);labPanelMaterial.normalScale.setScalar(value);
+      $('normal').value=String(value);$('normal-value').value=value.toFixed(2);render();
+    }
+    function resize() {
+      if(!stage.clientWidth||!stage.clientHeight)return;
+      camera.aspect=stage.clientWidth/stage.clientHeight;camera.updateProjectionMatrix();renderer.setSize(stage.clientWidth,stage.clientHeight,false);render();
+    }
+    function tick(time) {
+      if(!spinning)return;
+      const dt=Math.min((time-lastTime)/1000,.05);lastTime=time;
+      const offset=camera.position.clone().sub(controls.target);offset.applyAxisAngle(new THREE.Vector3(0,1,0),dt*.22);camera.position.copy(controls.target).add(offset);controls.update();render();frame=requestAnimationFrame(tick);
+    }
+    controls.addEventListener('change',render);
+    new ResizeObserver(resize).observe(stage);
+    try {
+      kit=await loadShipKit();ship=makeShip();fleet=makeFleet();lab=makeLab();scene.add(ship,fleet,lab);
+      for(const button of document.querySelectorAll('[data-view]'))button.addEventListener('click',()=>show(button.dataset.view));
+      for(const button of document.querySelectorAll('[data-color]'))button.addEventListener('click',()=>setColor(button.dataset.color));
+      $('normal').addEventListener('input',event=>setNormal(event.target.value));
+      $('reset').addEventListener('click',resetView);
+      $('spin').addEventListener('click',()=>{ if(view==='lab')return;spinning=!spinning;$('spin').setAttribute('aria-pressed',String(spinning));cancelAnimationFrame(frame);if(spinning){lastTime=performance.now();frame=requestAnimationFrame(tick);} });
+      document.addEventListener('visibilitychange',()=>{if(document.hidden){spinning=false;cancelAnimationFrame(frame);$('spin').setAttribute('aria-pressed','false');}});
+      window.reviewShipKit={THREE,renderer,scene,camera,controls,kit,ship,fleet,lab,show,color:setColor,normal:setNormal,render,reset:resetView,get view(){return view;}};
+      window.assetReport={verification:'standalone asset checked in Chrome and emulated iPhone WebKit; game and physical iPhone not tested',sampleMeshCount:ship.children.length,imageSources:new Set(Object.values(kit).filter(v=>v?.isTexture).map(t=>t.source)).size};
+      show('ship');$('loading').hidden=true;window.previewReady=true;
+    } catch(error) {
+      window.previewError=String(error?.stack||error);$('loading').classList.add('error');$('loading').textContent=`Preview could not load: ${error.message}. Serve this folder over HTTP with ship-kit.js and its PNGs available.`;console.error(error);
+    }
+  </script>
+</body>
+</html>

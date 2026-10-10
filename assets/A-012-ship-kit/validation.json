@@ -1,0 +1,389 @@
+{
+  "checks": [
+    {
+      "name": "panels.png PNG decodes",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "panels.png power of two <=1024",
+      "pass": true,
+      "detail": [
+        512,
+        512
+      ]
+    },
+    {
+      "name": "panels.png recorded SHA256",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "panels.png embedded image only",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "panels-normal.png PNG decodes",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "panels-normal.png power of two <=1024",
+      "pass": true,
+      "detail": [
+        512,
+        512
+      ]
+    },
+    {
+      "name": "panels-normal.png recorded SHA256",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "panels-normal.png embedded image only",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "surfaces.png PNG decodes",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "surfaces.png power of two <=1024",
+      "pass": true,
+      "detail": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "surfaces.png recorded SHA256",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "surfaces.png embedded image only",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decals.png PNG decodes",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decals.png power of two <=1024",
+      "pass": true,
+      "detail": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "name": "decals.png recorded SHA256",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decals.png embedded image only",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "panel neutral grayscale",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "panels exact horizontal repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "panels exact vertical repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "normal exact horizontal repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "normal exact vertical repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "normal unit length within RGB8 quantization",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "normal faces out of surface",
+      "pass": true,
+      "detail": 0.9058823529411764
+    },
+    {
+      "name": "hazard exact X repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "hazard exact Y repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "hazard 16px periodic gutters",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "racing exact X repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "racing exact Y repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "racing 16px periodic gutters",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "glass exact X repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "glass exact Y repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "glass 16px periodic gutters",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "nozzle exact X repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "nozzle exact Y repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "nozzle 16px periodic gutters",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "trim exact X repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "trim exact Y repeat seam",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "trim 16px periodic gutters",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal atlas RGBA",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "all 16 requested decals",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 0 opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 0 nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 1 opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 1 nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 2 opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 2 nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 3 opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 3 nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 4 opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 4 nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 5 opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 5 nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 6 opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 6 nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 7 opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 7 nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 8 opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 8 nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 9 opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal 9 nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal star opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal star nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal chevrons opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal chevrons nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal flame opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal flame nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal shield opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal shield nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal bolt opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal bolt nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal wing opaque art inside advertised rect",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "decal wing nonempty and genuinely transparent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "four runtime PNG sources",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "passed": 73,
+  "total": 73,
+  "downloadBytes": 187878,
+  "allPass": true,
+  "limitations": [
+    "Static PNG checks only. Browser evidence recorded separately.",
+    "No physical iPhone GPU timing, game integration or ship geometry budget claim."
+  ]
+}

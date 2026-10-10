@@ -1,0 +1,245 @@
+{
+  "id": "color-messy",
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "generated: messy coloured scribble (green blob, purple dome, orange flames, antenna)",
+  "view": "side",
+  "drawing": "dev/v14-ship/drawings/color-messy.png",
+  "http": 1,
+  "wallMs": 3388,
+  "ms": 3385,
+  "status": 200,
+  "usage": {
+    "input": 2060,
+    "output": 586,
+    "reasoning": 94
+  },
+  "raw": {
+    "view": "side",
+    "noseDir": "right",
+    "style": "cute",
+    "hull": {
+      "shape": "saucer",
+      "width": 1,
+      "height": 0.41,
+      "nose": "round",
+      "tail": "round",
+      "color": "teal",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.51,
+      "size": 0.35,
+      "color": "purple"
+    },
+    "wings": {
+      "count": 0,
+      "shape": "round",
+      "at": 0.5,
+      "span": 1,
+      "chord": 0.4,
+      "mount": "mid",
+      "color": ""
+    },
+    "fins": [],
+    "engines": {
+      "count": 1,
+      "size": 0.15,
+      "flame": true,
+      "flameColor": "orange",
+      "layout": "single"
+    },
+    "weapons": [],
+    "extras": [
+      {
+        "kind": "antenna",
+        "at": 0.38,
+        "mount": "top",
+        "size": 0.3,
+        "color": "black",
+        "label": ""
+      },
+      {
+        "kind": "window",
+        "at": 0.26,
+        "mount": "sides",
+        "size": 0.08,
+        "color": "black",
+        "label": ""
+      },
+      {
+        "kind": "window",
+        "at": 0.52,
+        "mount": "sides",
+        "size": 0.08,
+        "color": "black",
+        "label": ""
+      },
+      {
+        "kind": "window",
+        "at": 0.77,
+        "mount": "sides",
+        "size": 0.08,
+        "color": "black",
+        "label": ""
+      }
+    ],
+    "palette": {
+      "colored": true,
+      "main": "teal",
+      "second": "purple",
+      "accent": "orange"
+    }
+  },
+  "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "cute",
+    "seed": 2500093171,
+    "hull": {
+      "shape": "saucer",
+      "width": 1,
+      "height": 0.41,
+      "nose": "round",
+      "tail": "round",
+      "color": "#2a9d8f",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.51,
+      "size": 0.35,
+      "color": "#8338ec"
+    },
+    "wings": {
+      "count": 0,
+      "shape": "round",
+      "at": 0.5,
+      "span": 1,
+      "chord": 0.4,
+      "mount": "mid",
+      "color": ""
+    },
+    "fins": [],
+    "engines": {
+      "count": 1,
+      "size": 0.15,
+      "flame": true,
+      "flameColor": "#ff7b00",
+      "layout": "single",
+      "verb": "boost"
+    },
+    "weapons": [],
+    "extras": [
+      {
+        "kind": "antenna",
+        "at": 0.38,
+        "mount": "top",
+        "size": 0.3,
+        "color": "",
+        "label": "",
+        "verb": "scan"
+      },
+      {
+        "kind": "window",
+        "at": 0.26,
+        "mount": "sides",
+        "size": 0.08,
+        "color": "",
+        "label": "",
+        "verb": null
+      },
+      {
+        "kind": "window",
+        "at": 0.52,
+        "mount": "sides",
+        "size": 0.08,
+        "color": "",
+        "label": "",
+        "verb": null
+      },
+      {
+        "kind": "window",
+        "at": 0.77,
+        "mount": "sides",
+        "size": 0.08,
+        "color": "",
+        "label": "",
+        "verb": null
+      }
+    ],
+    "palette": {
+      "colored": true,
+      "main": "#2a9d8f",
+      "second": "#8338ec",
+      "accent": "#ff7b00"
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 3223,
+    "drawCalls": 3,
+    "glTriangles": 3223,
+    "ms": 12.4,
+    "size": {
+      "x": 3.16843843460083,
+      "y": 1.8722189664840698,
+      "z": 3.200000047683716
+    },
+    "radius": 1.7871994533816395,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        0.28,
+        -0.07
+      ],
+      "wing_r": [
+        1.58,
+        -0.46,
+        0.09
+      ],
+      "wing_l": [
+        -1.58,
+        -0.46,
+        0.09
+      ],
+      "engine_l": [
+        -0.14,
+        -0.51,
+        1.6
+      ],
+      "engine_r": [
+        0.14,
+        -0.51,
+        1.6
+      ],
+      "nose": [
+        0,
+        -0.51,
+        -1.61
+      ],
+      "back": [
+        0,
+        -0.02,
+        0.7
+      ],
+      "belly": [
+        0,
+        -0.94,
+        -0.07
+      ]
+    },
+    "wallMs": 146
+  }
+}

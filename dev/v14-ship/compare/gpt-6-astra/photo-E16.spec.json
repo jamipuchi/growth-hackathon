@@ -1,0 +1,213 @@
+{
+  "id": "photo-E16",
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "PHOTO with a thumb: box ship + bomb + shield bubble",
+  "view": "side",
+  "drawing": "dev/gen-corpus/photos/E16.jpg",
+  "http": 1,
+  "wallMs": 3349,
+  "ms": 3347,
+  "status": 200,
+  "usage": {
+    "input": 2081,
+    "output": 497,
+    "reasoning": 117
+  },
+  "raw": {
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "hull": {
+      "shape": "box",
+      "width": 0.38,
+      "height": 0.37,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "windows",
+      "at": 0.42,
+      "size": 0.15,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "delta",
+      "at": 0.79,
+      "span": 0.62,
+      "chord": 0.3,
+      "mount": "high",
+      "color": ""
+    },
+    "fins": [],
+    "engines": {
+      "count": 0,
+      "size": 0,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single"
+    },
+    "weapons": [
+      {
+        "kind": "bomb",
+        "count": 1,
+        "at": 0.55,
+        "mount": "belly",
+        "size": 0.12,
+        "color": ""
+      }
+    ],
+    "extras": [
+      {
+        "kind": "shield",
+        "at": 0.48,
+        "mount": "around",
+        "size": 1.56,
+        "color": "",
+        "label": ""
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    }
+  },
+  "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "seed": 496452931,
+    "hull": {
+      "shape": "box",
+      "width": 0.38,
+      "height": 0.37,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "windows",
+      "at": 0.42,
+      "size": 0.15,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "delta",
+      "at": 0.79,
+      "span": 0.62,
+      "chord": 0.3,
+      "mount": "high",
+      "color": ""
+    },
+    "fins": [],
+    "engines": {
+      "count": 0,
+      "size": 0.06,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single",
+      "verb": null
+    },
+    "weapons": [
+      {
+        "kind": "bomb",
+        "count": 1,
+        "at": 0.55,
+        "mount": "belly",
+        "size": 0.12,
+        "color": "",
+        "verb": "blast"
+      }
+    ],
+    "extras": [
+      {
+        "kind": "shield",
+        "at": 0.48,
+        "mount": "around",
+        "size": 1,
+        "color": "",
+        "label": "",
+        "verb": "shield"
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 4406,
+    "drawCalls": 3,
+    "glTriangles": 4406,
+    "ms": 12,
+    "size": {
+      "x": 1.996534824371338,
+      "y": 1.5606186389923096,
+      "z": 3.200000047683716
+    },
+    "radius": 1.7108201492255408,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        0.62,
+        -0.3
+      ],
+      "wing_r": [
+        0.96,
+        0.39,
+        1.23
+      ],
+      "wing_l": [
+        -0.96,
+        0.39,
+        1.23
+      ],
+      "engine_l": [
+        -0.04,
+        0.05,
+        1.6
+      ],
+      "engine_r": [
+        0.04,
+        0.05,
+        1.6
+      ],
+      "nose": [
+        0,
+        0.05,
+        -1.6
+      ],
+      "back": [
+        0,
+        0.62,
+        0.72
+      ],
+      "belly": [
+        0,
+        -0.52,
+        -0.05
+      ]
+    },
+    "wallMs": 136
+  }
+}

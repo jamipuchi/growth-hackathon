@@ -1,0 +1,155 @@
+{
+  "checks": [
+    {
+      "name": "concurrent cached kit identity",
+      "pass": true
+    },
+    {
+      "name": "panels is a loaded Texture",
+      "pass": true
+    },
+    {
+      "name": "panelsNormal is a loaded Texture",
+      "pass": true
+    },
+    {
+      "name": "stripes is a loaded Texture",
+      "pass": true
+    },
+    {
+      "name": "racing is a loaded Texture",
+      "pass": true
+    },
+    {
+      "name": "glass is a loaded Texture",
+      "pass": true
+    },
+    {
+      "name": "nozzle is a loaded Texture",
+      "pass": true
+    },
+    {
+      "name": "trim is a loaded Texture",
+      "pass": true
+    },
+    {
+      "name": "decals is a loaded Texture",
+      "pass": true
+    },
+    {
+      "name": "four distinct THREE.Source objects",
+      "pass": true
+    },
+    {
+      "name": "normal uses linear data",
+      "pass": true
+    },
+    {
+      "name": "panels sRGB",
+      "pass": true
+    },
+    {
+      "name": "stripes sRGB",
+      "pass": true
+    },
+    {
+      "name": "racing sRGB",
+      "pass": true
+    },
+    {
+      "name": "glass sRGB",
+      "pass": true
+    },
+    {
+      "name": "nozzle sRGB",
+      "pass": true
+    },
+    {
+      "name": "trim sRGB",
+      "pass": true
+    },
+    {
+      "name": "decals sRGB",
+      "pass": true
+    },
+    {
+      "name": "surface aliases share wrapS",
+      "pass": true
+    },
+    {
+      "name": "surface aliases share wrapT",
+      "pass": true
+    },
+    {
+      "name": "surface aliases share minFilter",
+      "pass": true
+    },
+    {
+      "name": "surface aliases share magFilter",
+      "pass": true
+    },
+    {
+      "name": "surface aliases share generateMipmaps",
+      "pass": true
+    },
+    {
+      "name": "surface aliases share anisotropy",
+      "pass": true
+    },
+    {
+      "name": "surface aliases share flipY",
+      "pass": true
+    },
+    {
+      "name": "surface aliases share colorSpace",
+      "pass": true
+    },
+    {
+      "name": "actual renderer texture allocation is four",
+      "pass": true,
+      "detail": 4
+    },
+    {
+      "name": "all programs linked",
+      "pass": true
+    },
+    {
+      "name": "25 material groups do not duplicate sources",
+      "pass": true,
+      "detail": 4
+    },
+    {
+      "name": "normal repeat and panel repeat agree",
+      "pass": true
+    },
+    {
+      "name": "integer UV shifts preserve tiled pixels",
+      "pass": true,
+      "detail": {
+        "maxDifference": 2,
+        "channelsOverTwo": 0,
+        "channelCount": 2534400
+      }
+    },
+    {
+      "name": "distinct prior shader callbacks keep distinct program keys",
+      "pass": true
+    },
+    {
+      "name": "both pre-existing shader callbacks actually compile",
+      "pass": true
+    },
+    {
+      "name": "clear restores prior hook and maps",
+      "pass": true
+    }
+  ],
+  "passed": 34,
+  "total": 34,
+  "allPass": true,
+  "textureCount": 4,
+  "gl": "WebGL2",
+  "limitations": [
+    "Standalone asset upload and shader checks; no game integration or physical iPhone performance test."
+  ]
+}

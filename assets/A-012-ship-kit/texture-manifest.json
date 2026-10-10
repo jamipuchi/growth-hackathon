@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "seed": 12012,
+  "uniqueResidentImages": 4,
+  "rgba8ResidentBytes": 12582908,
+  "mipPolicy": "Panels, normal and decals: full chain. Surface atlas: no mips to avoid cell bleeding.",
+  "metersPerPanelTile": 1,
+  "normalConvention": "OpenGL tangent +Y",
+  "surfaceRectsPixelsTopLeft": {
+    "hazard": {
+      "x": 16,
+      "y": 16,
+      "width": 480,
+      "height": 224
+    },
+    "racing": {
+      "x": 16,
+      "y": 272,
+      "width": 480,
+      "height": 224
+    },
+    "glass": {
+      "x": 528,
+      "y": 16,
+      "width": 480,
+      "height": 480
+    },
+    "nozzle": {
+      "x": 16,
+      "y": 528,
+      "width": 480,
+      "height": 480
+    },
+    "trim": {
+      "x": 528,
+      "y": 528,
+      "width": 480,
+      "height": 480
+    }
+  },
+  "decalNames": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "star",
+    "chevrons",
+    "flame",
+    "shield",
+    "bolt",
+    "wing"
+  ],
+  "files": {
+    "panels.png": {
+      "width": 512,
+      "height": 512,
+      "bytes": 6763,
+      "sha256": "0206c8bbbac6fb067980abf7f0191ef7be672411a63e62381d09748be5bf641e"
+    },
+    "panels-normal.png": {
+      "width": 512,
+      "height": 512,
+      "bytes": 8459,
+      "sha256": "99ac202e1c43852454b712400cbfd2575f17b373aa1b568280e1800b77b5b147"
+    },
+    "surfaces.png": {
+      "width": 1024,
+      "height": 1024,
+      "bytes": 33530,
+      "sha256": "62c7e861afdf316ff7691c93ad8388b2febaea9b0bfdeb17cdd41a8a5cc85812"
+    },
+    "decals.png": {
+      "width": 1024,
+      "height": 1024,
+      "bytes": 139126,
+      "sha256": "b046e06332508b248d5b8a0495d87624288b5908206b9db7d86ebf0963911bb6"
+    }
+  },
+  "source": "Original deterministic vector-like artwork; no external image/font sources."
+}

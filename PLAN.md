@@ -49,7 +49,11 @@ The owner answered a long round of questions after the first playtest. Where an 
 - **No free skills at 3:00:** a player still missing a gate skill gets a big "draw X" hint (for example DRAW A SHOVEL) and the chests glow; the skill itself is never granted.
 - **Ink bomb** stays until the player wipes it with a finger, with a 10 s automatic fade as a safety net.
 - **Adding one button** to the controller stays (it costs one drawing); adding a part to an entity stays ruled out.
-- **Time to the boss:** about 60 s cruising, about 40 s holding BOOST (boost should feel rewarding).
+- ~~Time to the boss: about 60 s cruising~~ superseded at 10:00 (below).
+
+**Owner decisions, 10 October 10:00:** "make sure you are not that far away from the boss + it has less life so it can be completed faster"; "we want most of the time to be spent on the planet".
+- **Space is a short opening act:** the boss is close (about 20 s cruising, about 15 s with BOOST) and falls in about 10-15 s of shared fire; the planet is close behind it. An expert lands about 45 s into the round, a regular player about 80 s.
+- **Most of the round happens on the planet:** more chests, spread wider, with a little more digging and drilling, so the planet takes about 2:00-3:00; the 4:00 cap and "every chest open" still end the round.
 - **The 3-2-1 countdown** after START is a real server phase, so the phones count down together with the big screen.
 - **Big-screen scoreboard during play:** 7 rows plus the followed player.
 - **Player cap:** 25 (humans and bots together never exceed it).

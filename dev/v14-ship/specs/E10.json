@@ -1,0 +1,84 @@
+{
+ "v": 1,
+ "view": "side",
+ "noseDir": "right",
+ "style": "chunky",
+ "seed": 1005,
+ "hull": {
+  "shape": "box",
+  "width": 0.42,
+  "height": 0.4,
+  "nose": "pointed",
+  "tail": "flat",
+  "color": "",
+  "stripe": ""
+ },
+ "cockpit": {
+  "kind": "windows",
+  "at": 0.45,
+  "size": 0.12,
+  "color": ""
+ },
+ "wings": {
+  "count": 2,
+  "shape": "straight",
+  "at": 0.6,
+  "span": 0.7,
+  "chord": 0.3,
+  "mount": "low",
+  "color": ""
+ },
+ "fins": [
+  {
+   "kind": "tail",
+   "at": 0.78,
+   "size": 0.25,
+   "color": ""
+  }
+ ],
+ "engines": {
+  "count": 1,
+  "size": 0.2,
+  "flame": true,
+  "flameColor": "",
+  "layout": "single",
+  "verb": "boost"
+ },
+ "weapons": [
+  {
+   "kind": "cannon",
+   "count": 1,
+   "at": 0.5,
+   "mount": "top",
+   "size": 0.32,
+   "color": "",
+   "verb": "shoot"
+  },
+  {
+   "kind": "drill",
+   "count": 1,
+   "at": 0.02,
+   "mount": "nose",
+   "size": 0.2,
+   "color": "",
+   "verb": "shoot"
+  }
+ ],
+ "extras": [
+  {
+   "kind": "legs",
+   "at": 0.55,
+   "mount": "belly",
+   "size": 0.15,
+   "color": "",
+   "label": "",
+   "verb": "land"
+  }
+ ],
+ "palette": {
+  "colored": false,
+  "main": "",
+  "second": "",
+  "accent": ""
+ }
+}

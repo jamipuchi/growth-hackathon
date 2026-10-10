@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>ship3d view</title>
+<style>html,body{margin:0;background:#0b0820;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+</head>
+<body>
+<script type="module">
+// view.html?spec=<url>&img=<url or empty>&color=<hex>&quality=big&w=1500&h=500[&kit=1 (A-012 textures)]
+// Four panels: the drawing on a white card, the ship 3/4 front-left, pure side from +X, the chase view.
+import * as THREE from "three";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { buildShip, shipTextures, useShipKit } from "../../ship3d.js";
+
+const q = new URLSearchParams(location.search);
+const W = Number(q.get("w") || 1500), H = Number(q.get("h") || 500);
+const color = parseInt(q.get("color") || "22d3ee", 16);
+const quality = q.get("quality") || "big";
+const power = Number(q.get("power") ?? 1);
+try {
+  const spec = await (await fetch(q.get("spec"))).json();
+  let img = null;
+  if (q.get("img")) { img = new Image(); img.src = q.get("img"); await img.decode(); }
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1);
+  const pw = Math.floor(W / 4);
+  renderer.setSize(pw, H);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.autoClear = false;
+  document.body.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x140c35);
+  scene.add(new THREE.HemisphereLight(0xb8c8ff, 0x7a46dc, 1.25));
+  const key = new THREE.DirectionalLight(0xffeccf, 2.8); key.position.set(-4, 8, -3); scene.add(key);
+  const rim = new THREE.DirectionalLight(0xff48d2, 1.4); rim.position.set(5, 2, 6); scene.add(rim);
+  // &kit=1: skin with the A-012 hand-made kit first (as render.js does when it loads), else the procedural set.
+  let kitUsed = false;
+  if (q.get("kit") === "1") {
+    const km = await import("../../assets/A-012-ship-kit/ship-kit.js");
+    kitUsed = useShipKit(await km.loadShipKit());
+  }
+  const ship = buildShip(spec, { drawingImage: img, color, quality });
+  ship.setEnginePower(power);
+  scene.add(ship.object3d);
+  // draw calls for the ship alone
+  const cam0 = new THREE.PerspectiveCamera(40, 1, 0.1, 100); cam0.position.set(0, 3, 9); cam0.lookAt(0, 0, 0);
+  const solo = new THREE.Scene(); solo.add(ship.object3d);
+  renderer.info.reset(); renderer.info.autoReset = false;
+  renderer.render(solo, cam0);
+  const calls = renderer.info.render.calls, tris = renderer.info.render.triangles;
+  renderer.info.autoReset = true;
+  scene.add(ship.object3d);
+  const rt = new THREE.WebGLRenderTarget(pw, H, { type: THREE.HalfFloatType });
+  const composer = new EffectComposer(renderer, rt);
+  composer.setPixelRatio(1);
+  composer.setSize(pw, H);
+  const cam = new THREE.PerspectiveCamera(34, pw / H, 0.1, 200);
+  composer.addPass(new RenderPass(scene, cam));
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(pw, H), 0.85, 0.55, 0.72));
+  composer.addPass(new OutputPass());
+  const r = Math.max(ship.radius, 1.6);
+  const views = [
+    [new THREE.Vector3(-1.0, 0.6, -1.15).normalize().multiplyScalar(r * 4.6), new THREE.Vector3(0, 0, 0)],
+    [new THREE.Vector3(1, 0.02, 0).multiplyScalar(r * 4.7), new THREE.Vector3(0, 0, 0.15)],
+    [new THREE.Vector3(0, 0.5, 1).normalize().multiplyScalar(r * 4.4), new THREE.Vector3(0, 0, -0.3)],
+  ];
+  // panel 1: the drawing on a white card
+  const out = document.createElement("canvas"); out.width = W; out.height = H;
+  const g = out.getContext("2d");
+  g.fillStyle = "#140c35"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#ffffff"; g.fillRect(16, 16, pw - 32, H - 32);
+  if (img) { const k = Math.min((pw - 64) / img.naturalWidth, (H - 64) / img.naturalHeight); g.drawImage(img, pw / 2 - img.naturalWidth * k / 2, H / 2 - img.naturalHeight * k / 2, img.naturalWidth * k, img.naturalHeight * k); }
+  else { g.fillStyle = "#666"; g.font = "24px sans-serif"; g.textAlign = "center"; g.fillText("(no drawing)", pw / 2, H / 2); }
+  g.fillStyle = "#333"; g.font = "16px sans-serif"; g.textAlign = "left";
+  g.fillText(`${spec.hull?.shape} · ${quality} · ${ship.triangles} tris · ${calls} calls · ${ship.ms} ms`, 26, H - 28);
+  for (let i = 0; i < 3; i++) {
+    cam.position.copy(views[i][0]); cam.lookAt(views[i][1]);
+    composer.render();
+    // copy the composer output from the default framebuffer into the sheet
+    g.drawImage(renderer.domElement, 0, 0, pw, H, pw * (i + 1), 0, pw, H);
+  }
+  document.body.removeChild(renderer.domElement);
+  out.id = "sheet";
+  document.body.appendChild(out);
+  const T = shipTextures();
+  window.__ready = { ok: true, kit: kitUsed, triangles: ship.triangles, drawCalls: calls, glTriangles: tris, ms: ship.ms, size: ship.size, radius: ship.radius,
+    textures: { atlas: T.size, rough: 256, sticker: ship.sticker ? 512 : 0 }, sockets: Object.fromEntries(Object.entries(ship.sockets).map(([k, v]) => [k, v.position.toArray().map((n) => +n.toFixed(2))])) };
+} catch (e) {
+  console.error(e);
+  window.__ready = { ok: false, error: String(e && e.stack || e) };
+}
+</script>
+</body>
+</html>

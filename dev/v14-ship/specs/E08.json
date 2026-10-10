@@ -1,0 +1,76 @@
+{
+ "v": 1,
+ "view": "side",
+ "noseDir": "right",
+ "style": "cute",
+ "seed": 1003,
+ "hull": {
+  "shape": "saucer",
+  "width": 1,
+  "height": 0.3,
+  "nose": "round",
+  "tail": "round",
+  "color": "",
+  "stripe": ""
+ },
+ "cockpit": {
+  "kind": "bubble",
+  "at": 0.5,
+  "size": 0.4,
+  "color": ""
+ },
+ "wings": {
+  "count": 0,
+  "shape": "round",
+  "at": 0.5,
+  "span": 0.3,
+  "chord": 0.2,
+  "mount": "mid",
+  "color": ""
+ },
+ "fins": [],
+ "engines": {
+  "count": 0,
+  "size": 0.12,
+  "flame": false,
+  "flameColor": "",
+  "layout": "single",
+  "verb": null
+ },
+ "weapons": [],
+ "extras": [
+  {
+   "kind": "window",
+   "at": 0.5,
+   "mount": "sides",
+   "size": 0.5,
+   "color": "",
+   "label": "",
+   "verb": null
+  },
+  {
+   "kind": "legs",
+   "at": 0.5,
+   "mount": "belly",
+   "size": 0.2,
+   "color": "",
+   "label": "",
+   "verb": "land"
+  },
+  {
+   "kind": "lamp",
+   "at": 0.02,
+   "mount": "nose",
+   "size": 0.08,
+   "color": "",
+   "label": "",
+   "verb": "flare"
+  }
+ ],
+ "palette": {
+  "colored": false,
+  "main": "",
+  "second": "",
+  "accent": ""
+ }
+}

@@ -1,0 +1,155 @@
+{
+  "model": "gpt-6.1-sol",
+  "at": "2026-10-10T07:45:01.218Z",
+  "n": 12,
+  "schemaFailures": 0,
+  "p50": 3008,
+  "p90": 3301,
+  "max": 4358,
+  "calls": [
+    {
+      "id": "E04-cannon-flames",
+      "ms": 3267,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2022,
+        "output": 605,
+        "reasoning": 232
+      }
+    },
+    {
+      "id": "E01-plain-fighter",
+      "ms": 2801,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2041,
+        "output": 416,
+        "reasoning": 96
+      }
+    },
+    {
+      "id": "E06-nose-drill",
+      "ms": 3150,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2022,
+        "output": 568,
+        "reasoning": 197
+      }
+    },
+    {
+      "id": "E08-saucer",
+      "ms": 3008,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2022,
+        "output": 552,
+        "reasoning": 85
+      }
+    },
+    {
+      "id": "E09-rocket",
+      "ms": 2422,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2022,
+        "output": 198,
+        "reasoning": 0
+      }
+    },
+    {
+      "id": "E10-chunky",
+      "ms": 4358,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2002,
+        "output": 598,
+        "reasoning": 136
+      }
+    },
+    {
+      "id": "genqa-topview",
+      "ms": 2729,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2022,
+        "output": 562,
+        "reasoning": 188
+      }
+    },
+    {
+      "id": "jaume-jet",
+      "ms": 3301,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2002,
+        "output": 540,
+        "reasoning": 166
+      }
+    },
+    {
+      "id": "photo-E13",
+      "ms": 3105,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2081,
+        "output": 358,
+        "reasoning": 135
+      }
+    },
+    {
+      "id": "photo-E16",
+      "ms": 1848,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2081,
+        "output": 224,
+        "reasoning": 0
+      }
+    },
+    {
+      "id": "color-topview",
+      "ms": 1856,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2079,
+        "output": 233,
+        "reasoning": 0
+      }
+    },
+    {
+      "id": "color-messy",
+      "ms": 2788,
+      "http": 1,
+      "status": 200,
+      "schemaOk": true,
+      "usage": {
+        "input": 2060,
+        "output": 590,
+        "reasoning": 99
+      }
+    }
+  ]
+}

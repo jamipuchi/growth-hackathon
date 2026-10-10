@@ -1,0 +1,86 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>A-012 asset verification</title><link rel="icon" href="data:,">
+<style>body{margin:0;background:#172132;color:white;font:16px system-ui}canvas{display:block}pre{margin:12px;white-space:pre-wrap}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<pre id="status">Checking the standalone texture kit…</pre>
+<script type="module">
+import * as THREE from 'three';
+import {loadShipKit, applyShipSurface, clearShipSurface, disposeShipKit} from './ship-kit.js';
+const checks=[]; function check(name,pass,detail){checks.push({name,pass:!!pass,detail});}
+try {
+ const [kit,second]=await Promise.all([loadShipKit(),loadShipKit()]);
+ const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+ renderer.setPixelRatio(1); renderer.setSize(960,660); renderer.setClearColor(0x172132);
+ renderer.outputColorSpace=THREE.SRGBColorSpace; document.body.prepend(renderer.domElement);
+ const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(42,960/660,.01,100);
+ camera.position.set(0,0,9.7); scene.add(new THREE.HemisphereLight(0xffffff,0x778899,2.4));
+ const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(-2,5,7);scene.add(sun);
+ check('concurrent cached kit identity',kit===second);
+ const names=['panels','panelsNormal','stripes','racing','glass','nozzle','trim','decals'];
+ for(const name of names) check(name+' is a loaded Texture',kit[name]?.isTexture && kit[name].image?.width>0);
+ check('four distinct THREE.Source objects',new Set(names.map(n=>kit[n].source)).size===4);
+ check('normal uses linear data',kit.panelsNormal.colorSpace===THREE.NoColorSpace);
+ for(const name of names.filter(n=>n!=='panelsNormal')) check(name+' sRGB',kit[name].colorSpace===THREE.SRGBColorSpace);
+ const aliases=['stripes','racing','glass','nozzle','trim'];
+ for(const key of ['wrapS','wrapT','minFilter','magFilter','generateMipmaps','anisotropy','flipY','colorSpace'])
+   check('surface aliases share '+key,new Set(aliases.map(n=>kit[n][key])).size===1);
+ const meshes=[];
+ for(const [i,name] of ['panels','stripes','racing','glass','nozzle','trim'].entries()){
+   const geometry=new THREE.PlaneGeometry(2.1,2.1); const uv=geometry.attributes.uv;
+   for(let j=0;j<uv.count;j++) uv.setXY(j,uv.getX(j)*2.25-.25,uv.getY(j)*2.25-.25);
+   const material=new THREE.MeshStandardMaterial({color:name==='panels'?0x41c9ed:0xffffff,roughness:.62,metalness:.08});
+   applyShipSurface(material,kit,name);
+   const mesh=new THREE.Mesh(geometry,material); mesh.position.set((i%3-1)*2.25,(i<3?1:-1)*1.2,0); scene.add(mesh); meshes.push(mesh);
+ }
+ const decalMaterial=new THREE.MeshStandardMaterial({map:kit.decals,transparent:true,roughness:1});
+ const decal=new THREE.Mesh(new THREE.PlaneGeometry(.8,.8),decalMaterial);decal.position.set(3.7,0,0);scene.add(decal);
+ renderer.render(scene,camera);
+ check('actual renderer texture allocation is four',renderer.info.memory.textures===4,renderer.info.memory.textures);
+ check('all programs linked',renderer.info.programs.every(p=>renderer.getContext().getProgramParameter(p.program,renderer.getContext().LINK_STATUS)));
+ const before=renderer.info.memory.textures;
+ const copies=[];
+ for(let i=0;i<25;i++){
+   const group=new THREE.Group();
+   for(const m of meshes){const copy=m.clone();copy.material=m.material.clone(); copy.material.onBeforeCompile=m.material.onBeforeCompile; copy.material.customProgramCacheKey=m.material.customProgramCacheKey; copy.frustumCulled=false; group.add(copy);}
+   group.position.set(40+i*4,0,0);scene.add(group);copies.push(group);
+ }
+ // Force shared maps through25 additional material instances, without requiring visible geometry.
+ for(const name of names) renderer.initTexture(kit[name]);
+ renderer.render(scene,camera);
+ check('25 material groups do not duplicate sources',renderer.info.memory.textures===before,renderer.info.memory.textures);
+ check('normal repeat and panel repeat agree',kit.panels.repeat.equals(kit.panelsNormal.repeat));
+ const gl=renderer.getContext();
+ const read=()=>{const data=new Uint8Array(960*660*4);gl.readPixels(0,0,960,660,gl.RGBA,gl.UNSIGNED_BYTE,data);return data;};
+ const baseline=read();
+ for(const [i,name] of ['panels','stripes','racing','glass','nozzle','trim'].entries())applyShipSurface(meshes[i].material,kit,name,{offset:[7,-3]});
+ renderer.render(scene,camera);const shifted=read();let maxDifference=0,changed=0;
+ for(let i=0;i<baseline.length;i++){const difference=Math.abs(baseline[i]-shifted[i]);maxDifference=Math.max(maxDifference,difference);if(difference>2)changed++;}
+ check('integer UV shifts preserve tiled pixels',changed/baseline.length<.001,{maxDifference,channelsOverTwo:changed,channelCount:baseline.length});
+ for(const [i,name] of ['panels','stripes','racing','glass','nozzle','trim'].entries())applyShipSurface(meshes[i].material,kit,name);
+ renderer.render(scene,camera);
+ const customA=new THREE.MeshStandardMaterial(),customB=new THREE.MeshStandardMaterial();
+ let ranA=false,ranB=false;
+ customA.onBeforeCompile=shader=>{ranA=true;shader.fragmentShader=shader.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\ngl_FragColor.r *= 0.9;');};
+ customB.onBeforeCompile=shader=>{ranB=true;shader.fragmentShader=shader.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\ngl_FragColor.g *= 0.9;');};
+ const originalA=customA.onBeforeCompile;
+ applyShipSurface(customA,kit,'panels');applyShipSurface(customB,kit,'panels');
+ check('distinct prior shader callbacks keep distinct program keys',customA.customProgramCacheKey()!==customB.customProgramCacheKey());
+ const customMeshes=[customA,customB].map((m,i)=>{const mesh=new THREE.Mesh(new THREE.PlaneGeometry(.1,.1),m);mesh.position.set(40+i,0,0);mesh.frustumCulled=false;scene.add(mesh);return mesh;});
+ renderer.render(scene,camera);
+ check('both pre-existing shader callbacks actually compile',ranA&&ranB);
+ check('clear restores prior hook and maps',clearShipSurface(customA)&&customA.onBeforeCompile===originalA&&customA.map===null&&customA.normalMap===null);
+ for(const mesh of customMeshes){scene.remove(mesh);mesh.geometry.dispose();mesh.material.dispose();}
+ renderer.render(scene,camera);
+ const report={checks,passed:checks.filter(c=>c.pass).length,total:checks.length,allPass:checks.every(c=>c.pass),
+  textureCount:renderer.info.memory.textures,gl:renderer.capabilities.isWebGL2?'WebGL2':'WebGL1',
+  limitations:['Standalone asset upload and shader checks; no game integration or physical iPhone performance test.']};
+ window.assetVerification={report,renderer,scene,camera,kit,meshes,async lifecycle(){
+   for(const m of meshes){m.geometry.dispose();m.material.dispose();}decal.geometry.dispose();decalMaterial.dispose();
+   for(const group of copies)group.traverse(o=>o.material?.dispose());
+   disposeShipKit(); const released=renderer.info.memory.textures;
+   const fresh=await loadShipKit();for(const name of names)renderer.initTexture(fresh[name]);
+   const result={released,freshKit:fresh!==kit,reloadedTextures:renderer.info.memory.textures};
+   disposeShipKit();renderer.dispose();return result;
+ }};
+ document.querySelector('#status').textContent=JSON.stringify(report,null,2);
+} catch(error){window.assetVerification={error:String(error),stack:error.stack};document.querySelector('#status').textContent=error.stack;throw error;}
+</script></html>

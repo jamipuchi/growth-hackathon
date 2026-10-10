@@ -1,0 +1,215 @@
+{
+  "id": "color-topview",
+  "model": "gpt-6.1-sol",
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "generated: coloured top view (red hull, yellow wings, blue canopy, orange flames, wing guns)",
+  "view": "top",
+  "drawing": "dev/v14-ship/drawings/color-topview.png",
+  "http": 1,
+  "wallMs": 1856,
+  "ms": 1856,
+  "status": 200,
+  "usage": {
+    "input": 2079,
+    "output": 233,
+    "reasoning": 0
+  },
+  "raw": {
+    "view": "top",
+    "noseDir": "right",
+    "style": "sleek",
+    "hull": {
+      "shape": "dart",
+      "width": 0.14,
+      "height": 0.12,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "red",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.27,
+      "size": 0.18,
+      "color": "cyan"
+    },
+    "wings": {
+      "count": 2,
+      "shape": "delta",
+      "at": 0.55,
+      "span": 0.84,
+      "chord": 0.36,
+      "mount": "mid",
+      "color": "yellow"
+    },
+    "fins": [
+      {
+        "kind": "side",
+        "at": 0.94,
+        "size": 0.17,
+        "color": "red"
+      }
+    ],
+    "engines": {
+      "count": 1,
+      "size": 0.1,
+      "flame": true,
+      "flameColor": "orange",
+      "layout": "single"
+    },
+    "weapons": [
+      {
+        "kind": "cannon",
+        "count": 2,
+        "at": 0.49,
+        "mount": "wings",
+        "size": 0.18,
+        "color": "gray"
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": true,
+      "main": "red",
+      "second": "yellow",
+      "accent": "cyan"
+    }
+  },
+  "spec": {
+    "v": 1,
+    "view": "top",
+    "noseDir": "right",
+    "style": "sleek",
+    "seed": 2287909975,
+    "hull": {
+      "shape": "dart",
+      "width": 0.14,
+      "height": 0.12,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "#e63946",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.27,
+      "size": 0.18,
+      "color": "#22d3ee"
+    },
+    "wings": {
+      "count": 2,
+      "shape": "delta",
+      "at": 0.55,
+      "span": 0.84,
+      "chord": 0.36,
+      "mount": "mid",
+      "color": "#ffd23f"
+    },
+    "fins": [
+      {
+        "kind": "side",
+        "at": 0.94,
+        "size": 0.17,
+        "color": "#e63946"
+      },
+      {
+        "kind": "tail",
+        "at": 0.86,
+        "size": 0.24,
+        "color": "#ffd23f",
+        "implied": true
+      }
+    ],
+    "engines": {
+      "count": 1,
+      "size": 0.1,
+      "flame": true,
+      "flameColor": "#ff7b00",
+      "layout": "single",
+      "verb": "boost"
+    },
+    "weapons": [
+      {
+        "kind": "cannon",
+        "count": 2,
+        "at": 0.49,
+        "mount": "wings",
+        "size": 0.18,
+        "color": "",
+        "verb": "shoot"
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": true,
+      "main": "#e63946",
+      "second": "#ffd23f",
+      "accent": "#22d3ee"
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 4462,
+    "drawCalls": 3,
+    "glTriangles": 4462,
+    "ms": 11.8,
+    "size": {
+      "x": 2.5882046222686768,
+      "y": 1.0270977020263672,
+      "z": 3.200000047683716
+    },
+    "radius": 1.6804687847231912,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        -0.13,
+        -0.79
+      ],
+      "wing_r": [
+        1.26,
+        -0.21,
+        0.5
+      ],
+      "wing_l": [
+        -1.26,
+        -0.21,
+        0.5
+      ],
+      "back": [
+        0,
+        0.15,
+        0.98
+      ],
+      "engine_l": [
+        -0.09,
+        -0.33,
+        1.6
+      ],
+      "engine_r": [
+        0.09,
+        -0.33,
+        1.6
+      ],
+      "nose": [
+        0.69,
+        -0.41,
+        -0.41
+      ],
+      "belly": [
+        0,
+        -0.51,
+        -0.1
+      ]
+    },
+    "wallMs": 119
+  }
+}

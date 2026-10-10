@@ -1,0 +1,51 @@
+<!doctype html>
+<!-- v14 ship-spec comparison: one model's renders on one page (compare.mjs sheet → compare/<model>/contact.png).
+     sheet.html?model=gpt-6.1-sol  Each tile: drawing + three angles (view.html), the spec's latency and parts. -->
+<html><head><meta charset="utf-8"><title>ship spec contact sheet</title>
+<style>
+  body { margin: 0; background: #0d0b1f; color: #fff; font: 13px/1.3 "Barlow", system-ui, sans-serif; }
+  h1 { margin: 0; padding: 14px 18px 6px; font: 800 italic 26px "Barlow Condensed", system-ui, sans-serif; letter-spacing: .5px; }
+  .sub { padding: 0 18px 10px; color: #b9b3e6; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 12px 14px; }
+  .tile { background: #1b1740; border-radius: 10px; overflow: hidden; }
+  .tile img { display: block; width: 100%; }
+  .cap { padding: 6px 10px 8px; }
+  .id { font-weight: 800; font-size: 14px; }
+  .ok { color: #7ef0a8; } .bad { color: #ff7b7b; }
+  .parts { color: #cfc9ff; font-size: 12px; }
+</style></head><body>
+<h1 id="title">SHIP SPEC</h1><div class="sub" id="sub"></div>
+<div class="grid" id="grid"></div>
+<script type="module">
+const model = new URLSearchParams(location.search).get("model") || "gpt-6.1-sol";
+const base = `/dev/v14-ship/compare/${model}/`;
+const sum = await (await fetch(base + "summary.json", { cache: "no-store" })).json();
+document.getElementById("title").textContent = `SHIP SPEC · ${model}`;
+document.getElementById("sub").textContent = `${sum.n} drawings · schema failures ${sum.schemaFailures} · latency p50 ${sum.p50} ms · p90 ${sum.p90} ms · max ${sum.max} ms`;
+const grid = document.getElementById("grid");
+const loads = [];
+for (const c of sum.calls) {
+  const rec = await (await fetch(base + `${c.id}.spec.json`, { cache: "no-store" })).json();
+  const s = rec.spec || {};
+  const parts = s.hull ? [
+    `${s.view} view · ${s.hull.shape}${s.palette && s.palette.colored ? " · coloured" : ""}`,
+    s.cockpit && s.cockpit.kind !== "none" ? s.cockpit.kind : null,
+    s.wings && s.wings.count ? `${s.wings.count} ${s.wings.shape} wings` : "no wings",
+    s.fins && s.fins.length ? `${s.fins.length} fin(s)` : null,
+    s.engines && s.engines.count ? `${s.engines.count} engine(s)${s.engines.flame ? " + flames" : ""}` : null,
+    ...(s.weapons || []).map((w) => `${w.count > 1 ? "2× " : ""}${w.kind}${w.added ? "*" : ""}`),
+    ...(s.extras || []).map((x) => `${x.kind}${x.added ? "*" : ""}`),
+  ].filter(Boolean).join(" · ") : "";
+  const r = rec.render || {};
+  const tile = document.createElement("div");
+  tile.className = "tile";
+  tile.innerHTML = `<img src="${base}${c.id}.png?${Date.now()}"><div class="cap"><span class="id">${c.id}</span> — ${rec.desc || ""}<br>
+    <span class="${c.schemaOk ? "ok" : "bad"}">${c.schemaOk ? "spec ok" : "SPEC FAILED: " + (c.error || "")}</span> · ${c.ms ?? "-"} ms · ${c.usage ? c.usage.output + " out tok" : ""}
+    ${r.ok ? ` · ${r.triangles} tris · ${r.drawCalls} calls · build ${r.ms} ms` : ""}<br><span class="parts">${parts}</span></div>`;
+  grid.appendChild(tile);
+  const img = tile.querySelector("img");
+  loads.push(new Promise((ok) => { img.onload = img.onerror = ok; }));
+}
+await Promise.all(loads);
+window.__ready = true;
+</script></body></html>

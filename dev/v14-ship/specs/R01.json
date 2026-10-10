@@ -1,0 +1,93 @@
+{
+ "v": 1,
+ "view": "side",
+ "noseDir": "right",
+ "style": "chunky",
+ "seed": 1007,
+ "hull": {
+  "shape": "wedge",
+  "width": 0.4,
+  "height": 0.24,
+  "nose": "pointed",
+  "tail": "flat",
+  "color": "#e63946",
+  "stripe": "#ffd166"
+ },
+ "cockpit": {
+  "kind": "bubble",
+  "at": 0.35,
+  "size": 0.22,
+  "color": "#4cc9f0"
+ },
+ "wings": {
+  "count": 2,
+  "shape": "delta",
+  "at": 0.66,
+  "span": 1,
+  "chord": 0.4,
+  "mount": "low",
+  "color": "#ffd166"
+ },
+ "fins": [
+  {
+   "kind": "tail",
+   "at": 0.86,
+   "size": 0.22,
+   "color": "#ffd166"
+  }
+ ],
+ "engines": {
+  "count": 2,
+  "size": 0.15,
+  "flame": true,
+  "flameColor": "#7b2ff7",
+  "layout": "pair",
+  "verb": "boost"
+ },
+ "weapons": [
+  {
+   "kind": "laser",
+   "count": 2,
+   "at": 0.5,
+   "mount": "wings",
+   "size": 0.3,
+   "color": "#ff006e",
+   "verb": "shoot"
+  }
+ ],
+ "extras": [
+  {
+   "kind": "number",
+   "at": 0.6,
+   "mount": "sides",
+   "size": 0.2,
+   "color": "",
+   "label": "7",
+   "verb": null
+  },
+  {
+   "kind": "antenna",
+   "at": 0.5,
+   "mount": "top",
+   "size": 0.15,
+   "color": "",
+   "label": "",
+   "verb": "scan"
+  },
+  {
+   "kind": "star",
+   "at": 0.3,
+   "mount": "sides",
+   "size": 0.12,
+   "color": "#ffffff",
+   "label": "",
+   "verb": null
+  }
+ ],
+ "palette": {
+  "colored": true,
+  "main": "#e63946",
+  "second": "#ffd166",
+  "accent": "#118ab2"
+ }
+}

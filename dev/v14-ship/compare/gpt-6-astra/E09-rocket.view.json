@@ -1,0 +1,59 @@
+{
+  "v": 1,
+  "view": "side",
+  "noseDir": "up",
+  "style": "retro",
+  "seed": 758038877,
+  "hull": {
+    "shape": "rocket",
+    "width": 0.39,
+    "height": 0.39,
+    "nose": "pointed",
+    "tail": "flat",
+    "color": "",
+    "stripe": ""
+  },
+  "cockpit": {
+    "kind": "windows",
+    "at": 0.45,
+    "size": 0.17,
+    "color": ""
+  },
+  "wings": {
+    "count": 2,
+    "shape": "delta",
+    "at": 0.85,
+    "span": 0.68,
+    "chord": 0.3,
+    "mount": "low",
+    "color": ""
+  },
+  "fins": [],
+  "engines": {
+    "count": 1,
+    "size": 0.16,
+    "flame": true,
+    "flameColor": "",
+    "layout": "single",
+    "verb": "boost"
+  },
+  "weapons": [],
+  "extras": [
+    {
+      "kind": "legs",
+      "at": 0.97,
+      "mount": "tail",
+      "size": 0.21,
+      "color": "",
+      "label": "",
+      "verb": "land"
+    }
+  ],
+  "palette": {
+    "colored": false,
+    "main": "",
+    "second": "",
+    "accent": ""
+  },
+  "source": "model"
+}

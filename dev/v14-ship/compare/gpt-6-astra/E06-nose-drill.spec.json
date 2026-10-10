@@ -1,0 +1,208 @@
+{
+  "id": "E06-nose-drill",
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "tier": "ultrafast",
+  "desc": "fighter + drill on the nose",
+  "view": "side",
+  "drawing": "dev/gen-corpus/entity/E06.png",
+  "http": 1,
+  "wallMs": 3822,
+  "ms": 3820,
+  "status": 200,
+  "usage": {
+    "input": 2022,
+    "output": 489,
+    "reasoning": 266
+  },
+  "raw": {
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "hull": {
+      "shape": "wedge",
+      "width": 0.3,
+      "height": 0.26,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.27,
+      "size": 0.24,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.61,
+      "span": 0.68,
+      "chord": 0.37,
+      "mount": "low",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.75,
+        "size": 0.33,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 0,
+      "size": 0,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single"
+    },
+    "weapons": [
+      {
+        "kind": "drill",
+        "count": 1,
+        "at": 0,
+        "mount": "nose",
+        "size": 0.22,
+        "color": ""
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    }
+  },
+  "spec": {
+    "v": 1,
+    "view": "side",
+    "noseDir": "right",
+    "style": "chunky",
+    "seed": 1571671767,
+    "hull": {
+      "shape": "wedge",
+      "width": 0.3,
+      "height": 0.26,
+      "nose": "pointed",
+      "tail": "flat",
+      "color": "",
+      "stripe": ""
+    },
+    "cockpit": {
+      "kind": "canopy",
+      "at": 0.27,
+      "size": 0.24,
+      "color": ""
+    },
+    "wings": {
+      "count": 2,
+      "shape": "swept",
+      "at": 0.61,
+      "span": 0.68,
+      "chord": 0.37,
+      "mount": "low",
+      "color": ""
+    },
+    "fins": [
+      {
+        "kind": "tail",
+        "at": 0.75,
+        "size": 0.33,
+        "color": ""
+      }
+    ],
+    "engines": {
+      "count": 0,
+      "size": 0.06,
+      "flame": false,
+      "flameColor": "",
+      "layout": "single",
+      "verb": null
+    },
+    "weapons": [
+      {
+        "kind": "drill",
+        "count": 1,
+        "at": 0,
+        "mount": "nose",
+        "size": 0.22,
+        "color": "",
+        "verb": "shoot"
+      }
+    ],
+    "extras": [],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": ""
+    },
+    "source": "model"
+  },
+  "schemaOk": true,
+  "render": {
+    "ok": true,
+    "kit": false,
+    "triangles": 4304,
+    "drawCalls": 3,
+    "glTriangles": 4304,
+    "ms": 9.9,
+    "size": {
+      "x": 1.7764655351638794,
+      "y": 1.4603129625320435,
+      "z": 3.200000047683716
+    },
+    "radius": 1.6981439114250305,
+    "textures": {
+      "atlas": 1024,
+      "rough": 256,
+      "sticker": 512
+    },
+    "sockets": {
+      "seat": [
+        0,
+        -0.19,
+        -0.33
+      ],
+      "wing_r": [
+        0.86,
+        -0.41,
+        0.83
+      ],
+      "wing_l": [
+        -0.86,
+        -0.41,
+        0.83
+      ],
+      "back": [
+        0,
+        0.32,
+        0.88
+      ],
+      "engine_l": [
+        -0.03,
+        -0.29,
+        1.6
+      ],
+      "engine_r": [
+        0.03,
+        -0.29,
+        1.6
+      ],
+      "nose": [
+        0,
+        -0.57,
+        -1.6
+      ],
+      "belly": [
+        0,
+        -0.6,
+        0.25
+      ]
+    },
+    "wallMs": 113
+  }
+}
