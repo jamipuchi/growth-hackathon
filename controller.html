@@ -1264,6 +1264,7 @@ const COPY = {
     back: "BACK TO LOBBY", notReady: "FINISH YOUR SHIP AND BUTTONS FIRST", notLobby: "THE ROUND IS STARTING", failed: "COULD NOT START PRACTICE · TRY AGAIN", backFailed: "COULD NOT GO BACK · TRY AGAIN" },
   wait: {
     title: "YOU'RE IN!", sub: "Wait for the host to press START on the big screen",
+    subAuto: "Starting automatically · or the host can start now.", // v1.9.2 (check C, P2): while the lobby auto-start counts down
     ready: "I'M READY", readyDone: "READY ✓", redrawShip: "REDRAW SHIP", redrawController: "REDRAW CONTROLLER", uses: "uses 1 drawing",
   },
   hud: { hp: "HP", shield: "SHIELD", boost: "BOOST", respawn: "BACK IN {n}…", timeLeft: "TIME LEFT", endless: "ENDLESS", getReady: "GET READY", assists: "THE CHESTS GLOW · DRAW WHAT YOU NEED",
@@ -3345,11 +3346,15 @@ function onNetTick(m) {
 // v1.9 LOBBY AUTO-START (owner 13:41: "We will wait for 30 seconds only to start the game"): tick.startIn (lobby only, while the countdown
 // runs: it starts at the first READY player; at 0 the round starts with the ready players). A top strip on every screen (the drawing goes on
 // under it): READY → "STARTING IN 27 · GET READY!"; still drawing → "GAME STARTS IN 27 · FINISH YOUR SHIP + BUTTONS TO JOIN · OR SKIP".
+// v1.9.2 (release check C, P2): the READY banner's subtitle says the lobby starts by itself while the countdown runs (no "wait for
+// the host" under STARTING IN 29); the ROUND IN PROGRESS banner (syncWaiting) keeps its own line.
+const lobbySub = () => (startShown ? COPY.wait.subAuto : COPY.wait.sub);
+function syncLobbySub() { const sub = lobbySub(); if (!S.waiting && $("bannerSub").textContent !== sub) $("bannerSub").textContent = sub; }
 function syncStartIn(m, me) {
   const n = m && m.phase === "lobby" && typeof m.startIn === "number" && Number.isFinite(m.startIn) && S.screen !== "join" ? Math.max(0, Math.ceil(m.startIn)) : null;
   const el = $("startStrip");
   if (n === null) {
-    if (startShown) { startShown = ""; el.classList.add("hidden"); document.body.classList.remove("startin"); }
+    if (startShown) { startShown = ""; el.classList.add("hidden"); document.body.classList.remove("startin"); syncLobbySub(); }
     return;
   }
   const ready = !!(me && me.flags && me.flags.ready);
@@ -3359,7 +3364,7 @@ function syncStartIn(m, me) {
   startShown = key;
   el.children[0].textContent = tpl(ready ? COPY.startIn.ready : COPY.startIn.draw, { n });
   el.children[1].textContent = ready ? COPY.startIn.readySub : COPY.startIn.drawSub;
-  if (wasHidden) { el.classList.remove("hidden"); document.body.classList.add("startin"); }
+  if (wasHidden) { el.classList.remove("hidden"); document.body.classList.add("startin"); syncLobbySub(); }
   if (el.offsetHeight) document.body.style.setProperty("--startH", el.offsetHeight + "px");   // v1.9 fix: the drawing screen's instruction line goes under it
 }
 // v1.9 PRACTICE (owner 14:08: "a lobby for people waiting ... they can go to planet and generate etc. ... while waiting only"). READY in the
@@ -3506,7 +3511,7 @@ function syncWaiting(wait, m) {
   el.classList.toggle("hidden", !on);
   document.body.classList.toggle("waiting", on);
   $("bannerTitle").textContent = on ? COPY.waiting.title : COPY.wait.title;
-  if (!on) $("bannerSub").textContent = COPY.wait.sub;
+  if (!on) $("bannerSub").textContent = lobbySub();
   if (S.screen === "play" && (m.phase || S.phase)) onPhase(m.phase || S.phase, null);
 }
 function syncReadyLook(ready) {
@@ -3569,7 +3574,7 @@ function onRestart(m) {
   // v1.8: nothing of the old game stays over JOIN: the sheets (z 8, above every screen), the v1.7 ROUND IN PROGRESS strip, the 3-2-1, a notice
   closeAdd(); closeSheets();
   S.waiting = false; $("waitStrip").classList.add("hidden"); document.body.classList.remove("waiting");
-  $("startStrip").classList.add("hidden"); document.body.classList.remove("startin"); startShown = "";
+  $("startStrip").classList.add("hidden"); document.body.classList.remove("startin"); startShown = ""; syncLobbySub();
   cdLast = null; if (countdownFx) { try { countdownFx.hide(); } catch {} }
   $("notice").classList.add("off");
   $("name").value = "";

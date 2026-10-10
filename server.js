@@ -657,6 +657,15 @@ const kickTimer = setInterval(() => { try { kickSweep(); } catch (err) { logOnce
 if (kickTimer.unref) kickTimer.unref();
 // POST /generate from a practicing phone: the explorer only (real generation, the practice world's budget); the ship and the
 // controller stay the lobby's (a redraw waits for the lobby: nothing here may change the real round).
+// v1.9.2 (release check C, P1): the /generate answer for an explorer committed on the planet carries what the world made of
+// it (world.setEntity normalizes: a drawn jetpack or wings unlock FLY and the card says so), so the phone's result card lists
+// FLY and its "draw a button" prompt (controller.html explorerNeedsPrompt) asks for one. The drawing's image / spec / type
+// stay. Off the planet (an explorer drawn in space: the world's entity is still the ship) the drawing's own answer stays.
+// p: the player in the world the drawing went to; now: that world's setEntity return.
+function withWorldSkills(entity, p, now) {
+  if (!entity || !now || !p || p.mode !== "planet" || p.entity !== now || kindOfEntity(now) !== "explorer") return entity;
+  return { ...entity, verbs: [...now.verbs], unlocked: now.unlocked.map((u) => ({ ...u })), card: now.card };
+}
 async function practiceGenerate(req, res, body, player) {
   const P = practice;
   const left = () => P.drawingsLeft(player);
@@ -687,10 +696,11 @@ async function practiceGenerate(req, res, body, player) {
       practiceFiles.set(player, buf);
       image = practiceImages[player] = `/drawings/${player}-explorer.png?v=${drawingV(buf)}&practice=1`;
       if (result.entity.spec) noteShipSpec(vOfUrl(image), result.entity.spec);
-      hallArchive({ player, color: q && q.color, round: world.round, kind: "explorer", image: body.image, spec: result.entity.spec || shipSpecOf(image), unlocked: result.entity.unlocked, card: result.entity.card, type: result.entity.type, source: result.entity.source, practice: true });
     }
     if (typeof result.entity.card !== "string" && typeof Verbs.cardOf === "function") result = { ...result, entity: { ...result.entity, card: Verbs.cardOf(result.entity.type, result.entity.unlocked) } };
-    P.setEntity(player, "explorer", result.entity); // the new entity reaches the practicing screens with its look (practiceOut)
+    const now = P.setEntity(player, "explorer", result.entity); // the new entity reaches the practicing screens with its look (practiceOut)
+    result = { ...result, entity: withWorldSkills(result.entity, P.players[player], now) }; // v1.9.2 P1: FLY from a jetpack, as in the round
+    if (image) hallArchive({ player, color: q && q.color, round: world.round, kind: "explorer", image: body.image, spec: result.entity.spec || shipSpecOf(image), unlocked: result.entity.unlocked, card: result.entity.card, type: result.entity.type, source: result.entity.source, practice: true });
     result = { ...result, entity: image ? { ...result.entity, image } : result.entity };
   }
   if (result && !result.ok) result = { ...result, message: plainMessage("explorer", result.error) };
@@ -1123,10 +1133,12 @@ async function handlePost(req, res, url) {
       const image = keepDrawing(player, body.kind, body.image);
       if (image && result.entity.spec) noteShipSpec(vOfUrl(image), result.entity.spec); // v1.4: ship and body specs alike
       if (typeof result.entity.card !== "string" && typeof Verbs.cardOf === "function") result = { ...result, entity: { ...result.entity, card: Verbs.cardOf(result.entity.type, result.entity.unlocked) } };
-      // v1.6 hall of fame: the drawing, its spec (a late one comes through noteShipSpec) and the skills it unlocked
-      if (image) hallArchive({ player, color: world.players[player] && world.players[player].color, round: world.round, kind: body.kind, image: body.image, spec: result.entity.spec || shipSpecOf(image), unlocked: result.entity.unlocked, card: result.entity.card, type: result.entity.type, source: result.entity.source });
       const before = world.players[player] && world.players[player].entity;
       const now = world.setEntity(player, body.kind, result.entity);
+      // v1.9.2 P1: an explorer committed on the planet answers with the world's normalized skills (FLY from a jetpack)
+      if (body.kind === "explorer") result = { ...result, entity: withWorldSkills(result.entity, world.players[player], now) };
+      // v1.6 hall of fame: the drawing, its spec (a late one comes through noteShipSpec) and the skills it unlocked (normalized, above)
+      if (image) hallArchive({ player, color: world.players[player] && world.players[player].color, round: world.round, kind: body.kind, image: body.image, spec: result.entity.spec || shipSpecOf(image), unlocked: result.entity.unlocked, card: result.entity.card, type: result.entity.type, source: result.entity.source });
       result = { ...result, entity: image ? { ...result.entity, image } : result.entity };
       // setEntity already broadcast when the skills changed; else the new look alone still has to go out.
       if (image && now && now === before && kindOfEntity(now) === body.kind) broadcast({ type: "entity", player, entity: now });
