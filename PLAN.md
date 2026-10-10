@@ -60,6 +60,8 @@ The owner answered a long round of questions after the first playtest. Where an 
 
 **Owner decision, 10 October 11:31:** every round starts from scratch. Drawings, entities, controllers, unlocked skills, drawing budgets and anything generated from them are cleared when a round ends; a drawing can never be reused in a later round. Only the joined name, colour and session stars carry over.
 
+**Owner decision, 10 October 11:53:** the v1.5 round flow is the demo. An optional **ENDLESS free-for-all** mode (a toggle, off by default) lets a session run forever: no clock, join any time, explore, take off back to space and land again; the boss and chests respawn, the drawing budget recharges, points accumulate until the host ends it.
+
 ## 1. Components
 
 One Node server, `node server.js`, runs everything: HTTP on port 8000 and HTTPS on port 8443 (a self-signed certificate, so phones get tilt and the camera). Phones join over the LAN by scanning the QR code on the big screen.
