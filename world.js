@@ -35,7 +35,10 @@ const TAKEN_MS = 30 * 1000;
 const MAX_PLAYERS = 25; // PLAN.md section 0 (owner, 10 Oct 09:05): humans and bots together never exceed 25 (v1.4: MAX_HUMANS 32 is gone)
 const MAX_RECORDS = 400;
 const MAX_PRESSES = 6; // pressed verbs queued per player per step (a flood of presses in one POST is dropped)
-const LAND_HINT_EXTRA = 50; // the LAND ladder starts this far beyond landing range (approaching the planet counts)
+// v1.6 (owner, 10 Oct 12:07: "you don't need anything special to land on the planet, no landing legs nor landing
+// button. when they collide with the planet they automatically land"): a human's ship that touches the open planet (its
+// hull within AUTO_LAND_MARGIN m of the surface) lands at once, with the usual landing shot. LAND is no gate any more.
+const AUTO_LAND_MARGIN = 2;
 const LATE_HINT_GAP = 6;    // s between two late "draw X" cards to the same player (v1.4, from 3:00)
 // While the phone's draw sheet is open (input action "drawing", v1.0 playtest: players died photographing a button),
 // the ship hovers and cannot be hurt, shoot or be targeted, for at most DRAWING_SHIELD_SECONDS per press.
@@ -44,6 +47,13 @@ const HIT_PER_SECOND = 4; // hit-marker notices per victim per second (v1.3)
 const TICK_MAX_BULLETS = 30; // the newest ones; keeps a tick under 8 KB with 25 players
 const PARKED_RADIUS = 2.5;
 const SHORE_TURNS = [0.35, 0.7, 1.05, Math.PI / 2]; // radians, either way: walkers slide along the shore
+// Island aim (v1.6, Codex v1.4 test M5): the phone's stick walks, it never aims up or down, so a level shot passed
+// over a rival 6 m away and 2 m downhill. The server aims for it (planetAim): a shot climbs or dips toward the rival the
+// explorer faces within a narrow cone, else it follows the ground ahead. Only the height: the yaw stays the player's.
+const AIM_CONE = Math.tan(0.15);  // sideways offset per metre ahead (about ±8.6°), never narrower than the target itself
+const AIM_RANGE = 100;            // m ahead; beyond it a shot just follows the ground
+const AIM_MAX_PITCH = 0.6;        // rad (about 34°) up or down at most
+const SLOPE_AHEAD = 8;            // m: where the ground ahead is read when nobody is in the cone
 
 // Every verb's numbers in one place.
 const VERB = {
@@ -74,8 +84,8 @@ const HOLD = ["shoot", "boost", "shield", "drill", "dig"];
 const PRESS = ["blast", "flare", "scan", "land", "takeoff", "jump", "invisible", "teleport", "heal", "drive", ...Verbs.MISCHIEF];
 const V1_VERBS = new Set([...HOLD, ...PRESS]);
 // Hint gates (rules.js): the skill must be drawn on the entity AND have a button.
-const GATES = ["weapon", "land", "dig", "drill"];
-const GATE_MODE = { weapon: "space", land: "space", dig: "planet", drill: "planet" };
+const GATES = ["weapon", "dig", "drill"]; // v1.6: no LAND gate (ships land by flying into the planet)
+const GATE_MODE = { weapon: "space", dig: "planet", drill: "planet" };
 // The phone's default controller (controller.html defaultLayout): what a player has until a drawn one arrives.
 const DEFAULT_LAYOUT = {
   buttons: [
@@ -568,7 +578,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     if (Contract.MOVES.includes(action)) { p.keys[action] = down; if (down) moved(p); return true; }
     if (!V1_VERBS.has(action)) return true;
     if (!down) { p.keys[action] = false; return true; }
-    if (!can(p, action)) { refuse(p, action); return true; }
+    // LAND needs nothing drawn (v1.6, owner 12:07): a LAND button anyone drew still lands in range, never a refusal.
+    if (!can(p, action) && action !== "land") { refuse(p, action); return true; }
     p.keys[action] = down;
     if (down) {
       moved(p); // using any skill drops the spawn shield
@@ -785,20 +796,48 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       if (pull && dist(rock.pos, p.pos) < pull) p.pos = add(p.pos, norm(sub(rock.pos, p.pos)), ROCK_TYPES[rock.type].pullSpeed * dt);
     }
     p.vel = { x: (p.pos.x - was.x) / dt, y: (p.pos.y - was.y) / dt, z: (p.pos.z - was.z) / dt }; // bots lead their shots
+    // v1.6: touching the open planet lands (humans only: bots never land; not while the draw sheet is open).
+    if (planet && !p.bot && !(p.drawingUntil > S.t) && dist(p.pos, planet) <= planet.radius + SHIP_RADIUS + AUTO_LAND_MARGIN) land(p);
   }
 
-  // Ships shoot in space, explorers on the island (level, from chest height); a bullet only meets its own mode.
+  // Ships shoot in space, explorers on the island (from chest height, aimed by planetAim); a bullet only meets its own
+  // mode.
   function fire(p, dt) {
     p.fireCd = Math.max(0, p.fireCd - dt);
     if (!p.keys.shoot || p.shielding || p.fireCd > 0 || p.stun > 0) return;
     const space = p.mode === "space";
-    const { forward } = basis(p.yaw, space ? p.pitch : 0);
+    const forward = space ? basis(p.yaw, p.pitch).forward : basis(p.yaw, planetAim(p)).forward;
     const from = space ? add(p.pos, forward, 3) : add(add(p.pos, v3(0, EXPLORER_CHEST, 0)), forward, 1);
     // A human's shot that is on its way to the boss flies through the bots in the swarm (stray hits would start
     // revenge fights the human never asked for); aimed anywhere else it hurts them.
     const atBoss = space && !p.bot && !boss.dead && onLine({ pos: from }, forward, boss.pos, boss.radius);
     bullets.push({ id: nextId++, mode: p.mode, pos: from, dir: forward, owner: p.name, color: p.color, life: VERB.shoot.life, damage: VERB.shoot.damage, atBoss });
     p.fireCd = p.bot ? BOT_FIRE_COOLDOWN : VERB.shoot.cooldown;
+  }
+
+  // The pitch of an explorer's shot (v1.6, M5). It may aim at a rival on the island (alive, visible, not shielded by a
+  // landing or a respawn), a rival's decoy or a rival's parked ship, ahead within AIM_RANGE and inside the cone: the one
+  // the shot would meet first (sideways offset under its hit radius), else the one nearest the line. The shot climbs or
+  // dips to its centre; with nobody there it follows the ground SLOPE_AHEAD m ahead (up a hill instead of into it, down
+  // a slope instead of over the rival's head).
+  function planetAim(p) {
+    const fx_ = -Math.sin(p.yaw), fz = -Math.cos(p.yaw);
+    const eye = add(p.pos, v3(0, EXPLORER_CHEST, 0));
+    let best = null;
+    const consider = (c, r) => {
+      const dx = c.x - eye.x, dz = c.z - eye.z, along = dx * fx_ + dz * fz;
+      if (along <= 0.3 || along > AIM_RANGE) return;
+      const side = Math.abs(dx * fz - dz * fx_), cone = Math.max(along * AIM_CONE, r);
+      if (side > cone) return;
+      const rank = side < r ? along : AIM_RANGE + side / cone; // in the line of fire: the nearest; else the best lined up
+      if (!best || rank < best.rank) best = { rank, dy: c.y - eye.y, along };
+    };
+    for (const q of active()) if (q !== p && q.mode === "planet" && !q.dead && q.invisibleFor <= 0 && !invulnerable(q) && canHurt(p.name, q)) consider(add(q.pos, v3(0, EXPLORER_CHEST, 0)), EXPLORER_RADIUS + 0.3);
+    for (const d of decoys) if (d.mode === "planet" && d.owner !== p.name) consider(decoyCentre(d), EXPLORER_RADIUS + 0.3);
+    for (const c of parked) if (c.player !== p.name && !c.wrecked && !leaving(c)) consider({ x: c.x, y: islandFeet(c.x, c.z) + 1.5, z: c.z }, PARKED_RADIUS);
+    const pitch = best ? Math.atan2(best.dy, best.along)
+      : Math.atan2(islandFeet(p.pos.x + fx_ * SLOPE_AHEAD, p.pos.z + fz * SLOPE_AHEAD) - islandFeet(p.pos.x, p.pos.z), SLOPE_AHEAD);
+    return clamp(pitch, -AIM_MAX_PITCH, AIM_MAX_PITCH);
   }
 
   function damageRock(rock, owner, amount = 1) {
@@ -1337,21 +1376,17 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
 
   // ---- Hints (PLAN.md section 4, rules.js): riddle at 6 s stuck, faint sketch 10 s later, the answer with a ghost
   // box 15 s after that (at once in assists). A player is stuck at a gate once they have reached it (near the boss with
-  // no usable weapon; in landing range; next to a closed chest) for as long as the gate is open and they are in its
-  // world. The ladder points at the drawing while the skill is missing, then at the button (rules.js need).
+  // no usable weapon; next to a closed chest) for as long as the gate is open and they are in its world. The ladder
+  // points at the drawing while the skill is missing, then at the button (rules.js need). v1.6: no LAND gate.
 
   function gateOpen(gate) {
     if (gate === "weapon") return !boss.dead;
-    if (gate === "land") return !!planet;
     const kind = gate === "dig" ? "buried" : "rock";
     return chests.some((c) => c.kind === kind && c.buried);
   }
 
   function atGate(p, gate) {
     if (gate === "weapon") return dist(p.pos, boss.pos) - boss.radius < BOSS_HINT_RANGE;
-    // Ships can't hover: anyone flying within LAND_HINT_EXTRA m of landing range has reached the LAND gate (the
-    // v1.0 e2e saw a player circling just outside landing range get no LAND hint).
-    if (gate === "land") return dist(p.pos, planet) <= planet.radius + planet.landRange + LAND_HINT_EXTRA;
     const kind = gate === "dig" ? "buried" : "rock";
     return chests.some((c) => c.kind === kind && c.buried && dist2(c, p.pos) <= VERB.dig.range + 2);
   }
@@ -1382,7 +1417,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   // v1.4 late hints (owner, 10 Oct 09:05: no free skills at 3:00). From 3:00 every human still missing what the gate
   // ahead of them needs gets one big card per gate and need (rules.js lateHint): "DRAW A SHOVEL" (the part, on the
   // explorer) or "DRAW A DIG BUTTON" (the controller, with the ghost box). The gate ahead is the one open in the
-  // player's world: in space the weapon while the boss lives, then LAND; on the island DIG and DRILL while such a chest
+  // player's world: in space the weapon while the boss lives (v1.6: no LAND card); on the island DIG and DRILL while such a chest
   // is closed (both parts missing: one card, one redraw). The part comes before the button. Never while the draw sheet
   // is open, nor with no drawing left for that world (a redraw or an added button costs one); at most one card per
   // LATE_HINT_GAP seconds; never the answer the hint ladder already gave, and the ladder never repeats a card's

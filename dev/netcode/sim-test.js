@@ -161,11 +161,13 @@ test("lobby waits for START; autostart; START only from the lobby", () => {
   return `lobby held 90 s; autostart after 5 s`;
 });
 
-test("4:00 cap, assists at 3:00, most points wins, stars, scoreboard 10 s → lobby keeps drawings", () => {
+test("4:00 cap, assists at 3:00, most points wins, stars, scoreboard 10 s → a fresh lobby (owner 11:31)", () => {
   const h = harness(3);
   h.w.join("ana"); h.w.join("bob");
   h.w.setEntity("ana", "ship", devKit("ship"));
   h.w.setLayout("ana", LAYOUT);
+  assert.strictEqual(h.w.spendDrawing("ana", "space"), true);
+  assert.strictEqual(h.w.drawingsLeft("ana").space, T.drawings.space - 1);
   h.w.start();
   const entFrom = h.steps;
   h.until("assists", () => h.w.phase === "assists", 181);
@@ -186,8 +188,14 @@ test("4:00 cap, assists at 3:00, most points wins, stars, scoreboard 10 s → lo
   assert.deepStrictEqual(wm.leaderboard[1], { name: "bob", stars: 0, total: 120 });
   h.wait(ROUND.scoreboardSeconds - 0.1); assert.strictEqual(h.w.phase, "scoreboard");
   h.wait(0.2); assert.strictEqual(h.w.phase, "lobby");
-  assert.strictEqual(h.p("ana").entity.source, "devkit", "drawings kept into the next lobby");
-  assert(h.p("ana").layout.buttons.some((b) => b.action === "dig"), "layout kept");
+  // v1.5 (owner, 10 Oct 11:31): every round starts from scratch: a plain ship, no layout, a full drawing budget.
+  const ana = h.p("ana");
+  assert.strictEqual(ana.entity.source, "plain", "no drawing carries into the next lobby");
+  assert.strictEqual(ana.entity.type, "ship"); assert.deepStrictEqual(ana.entity.unlocked, [], "a plain ship only flies");
+  assert(!ana.entity.verbs.includes("shoot") && !ana.entity.verbs.includes("dig"), "no skill carries over");
+  assert.strictEqual(ana.layout, null, "no layout carries over");
+  assert.deepStrictEqual(ana.drawn, { space: null, planet: null });
+  assert.deepStrictEqual(h.w.drawingsLeft("ana"), T.drawings, "a full drawing budget again");
   assert(!h.p("bob").entity.verbs.includes("shoot"), "assists are gone in the next round");
   h.w.start();
   assert.strictEqual(h.p("ana").score, 0, "scores reset each round");
@@ -700,6 +708,78 @@ test("scoring: chest +1500, boss last hit +1000 (stealable), kill +200, killed -
   return `cy last hit +1000 (stolen from bob), ana chest +1500 → killed at 5 s: bob +950, ana -800; at 16 s: +200 / -50`;
 });
 
+test("v1.6 island aim (M5): a rival 6 m away dies downhill, uphill and on the flat; with nobody in the narrow cone a shot follows the ground", () => {
+  const Terrain = require("../../terrain");
+  const h = harness(13);
+  for (const n of ["ana", "bob"]) { h.w.join(n); h.w.setEntity(n, "ship", devKit("ship")); h.w.setEntity(n, "explorer", devKit("explorer")); }
+  h.w.start();
+  killBoss(h, "bob");
+  landNow(h, "ana"); landNow(h, "bob");
+  const ana = h.p("ana"), bob = h.p("bob"), isl = h.dbg().island;
+  const ground = (x, z) => Terrain.height(x, z, isl.seed);
+  const pads = h.dbg().parked;
+  // A shooter spot and a rival 6 m ahead whose chest is dy higher, both dry, far from the parked ships, with nothing
+  // but air on the line between their chests.
+  const site = (lo, hi) => {
+    for (let x = -isl.size / 2; x < isl.size / 2; x += 1.5) for (let z = -isl.size / 2; z < isl.size / 2; z += 1.5) for (let k = 0; k < 8; k++) {
+      const yaw = (k * Math.PI) / 4, tx = x - Math.sin(yaw) * 6, tz = z - Math.cos(yaw) * 6;
+      const g0 = ground(x, z), g1 = ground(tx, tz), dy = g1 - g0;
+      if (dy < lo || dy > hi || g0 < 0.5 || g1 < 0.5 || Math.hypot(x, z) > isl.size / 2 - 15) continue;
+      if (pads.some((c) => Math.hypot(c.x - x, c.z - z) < 20 || Math.hypot(c.x - tx, c.z - tz) < 20)) continue;
+      let clear = true;
+      for (let i = 1; i < 20 && clear; i++) { const s = i / 20; clear = g0 + 1.1 + dy * s > ground(x + (tx - x) * s, z + (tz - z) * s) + 0.3; }
+      if (clear) return { x, z, yaw, tx, tz, dy };
+    }
+    throw new Error(`no site with a rival ${lo}..${hi} m higher`);
+  };
+  const place = (p, x, z, yaw = p.yaw) => { p.pos = { x, y: ground(x, z), z }; p.vy = 0; p.yaw = yaw; };
+  // At 140 m/s a shot covers 4.7 m a step, so it can meet a rival 6 m away in the step it is fired: read it from the
+  // list it was pushed to (fire() runs before the bullets move and the list is filtered into a new one).
+  const shootStep = () => { const was = h.dbg().bullets; h.step(); return [...was, ...h.dbg().bullets].filter((b) => b.owner === "bob").sort((a, b) => a.id - b.id).at(-1); };
+  const pitchOf = (b) => Math.asin(b.dir.y);
+  const EXPLORER_HIT = 0.9 + 0.3; // world.js: EXPLORER_RADIUS + 0.3 around the chest
+  // A rival in the cone: the shot climbs or dips to their chest; a level shot (the old rule) would pass 1.2 m+ away.
+  const kills = {};
+  for (const [label, lo, hi] of [["downhill", -2.6, -1.8], ["uphill", 1.8, 2.6], ["flat", -0.15, 0.15]]) {
+    if (ana.dead) h.until("ana respawns", () => !ana.dead, T.respawnSeconds + 2);
+    const s = site(lo, hi);
+    place(bob, s.x, s.z, s.yaw); place(ana, s.tx, s.tz); ana.hp = 1; ana.spawnShield = 0;
+    const b0 = bob.score, from = h.steps;
+    bob.fireCd = 0;
+    h.input("bob", "shoot", true);
+    const pitch = pitchOf(shootStep());
+    assert(Math.abs(pitch - Math.atan2(s.dy, 6)) < 0.02, `${label}: the shot aims at ana's chest (pitch ${pitch.toFixed(3)} vs ${Math.atan2(s.dy, 6).toFixed(3)})`);
+    h.until(`bob kills ana ${label}`, () => ana.dead, 3);
+    h.input("bob", "shoot", false);
+    assert.strictEqual(bob.score - b0, SCORING.kill, `${label}: a kill pays +200`);
+    if (label !== "flat") assert(Math.abs(s.dy) > EXPLORER_HIT, `${label}: a level shot would have missed`);
+    kills[label] = `${label} dy ${s.dy.toFixed(2)} m pitch ${(pitch * 57.3).toFixed(1)}° in ${((h.steps - from) * DT).toFixed(2)} s`;
+  }
+  h.until("ana respawns", () => !ana.dead, T.respawnSeconds + 2);
+  // Nobody in the cone (ana behind bob, then 3 m to his side 6 m ahead): the shot follows the ground 8 m ahead, so it
+  // climbs a hill instead of flying into it and dips down a slope.
+  const follow = {};
+  for (const [label, lo, hi] of [["uphill", 1.8, 2.6], ["downhill", -2.6, -1.8]]) {
+    const s = site(lo, hi);
+    place(bob, s.x, s.z, s.yaw);
+    for (const [where, ax, az] of [["behind", s.x + Math.sin(s.yaw) * 6, s.z + Math.cos(s.yaw) * 6], ["aside", s.tx + Math.cos(s.yaw) * 3, s.tz - Math.sin(s.yaw) * 3]]) {
+      place(ana, ax, az); ana.hp = 100; ana.spawnShield = 0;
+      bob.fireCd = 0;
+      h.input("bob", "shoot", true);
+      const shot = shootStep(), pitch = pitchOf(shot);
+      h.input("bob", "shoot", false);
+      const fx_ = -Math.sin(s.yaw), fz = -Math.cos(s.yaw);
+      const slope = Math.atan2(Math.max(0, ground(s.x + fx_ * 8, s.z + fz * 8)) - Math.max(0, ground(s.x, s.z)), 8);
+      assert(Math.abs(pitch - Math.max(-0.6, Math.min(0.6, slope))) < 0.01, `${label}, ana ${where}: the shot follows the ground (${pitch.toFixed(3)} vs ${slope.toFixed(3)})`);
+      assert(label === "uphill" ? pitch > 0.1 : pitch < -0.1, `${label}: the shot ${label === "uphill" ? "climbs" : "dips"}`);
+      h.wait(0.5);
+      assert.strictEqual(ana.hp, 100, `ana ${where} of the cone is not hit`);
+      follow[`${label} ${where}`] = (pitch * 57.3).toFixed(1) + "°";
+    }
+  }
+  return `${Object.values(kills).join("; ")}; no rival in the cone: ${Object.entries(follow).map(([k, v]) => `${k} ${v}`).join(", ")}`;
+});
+
 test("parked ships can be wrecked (+150, kill feed); the owner must redraw a ship (one drawing) to take off", () => {
   const h = harness(14);
   for (const n of ["ana", "bob"]) { h.w.join(n); h.w.setEntity(n, "explorer", devKit("explorer")); }
@@ -938,30 +1018,49 @@ test("v1.3 mischief: a rock hit while being pulled hurts, credited to the puller
   return "pulled into a rock: 30 damage credited to ana, a kill (+200), kill feed 🧲";
 });
 
-test("LAND hint: a regular player circling near the planet gets the riddle at 6 s, the sketch 10 s later, the answer and ghost box 15 s after", () => {
+test("v1.6 auto-land (owner 12:07): a plain ship flying into the open planet lands, no legs, no LAND button, no LAND hint", () => {
   const h = harness(24);
-  h.w.join("ana");
+  for (const n of ["ana", "bob"]) h.w.join(n);
   h.w.start();
-  h.w.setEntity("ana", "ship", { type: "ship", unlocked: [{ verb: "shoot", part: "gun" }, { verb: "land", part: "legs" }], parts: [], source: "model" });
-  h.w.setLayout("ana", { buttons: [LAYOUT.buttons[0], LAYOUT.buttons[1]], source: "model" });
-  killBoss(h, "ana");
-  const pl = h.dbg().planet, p = h.p("ana");
+  h.until("GO", () => h.w.tickMessage().countdown === 0 || h.w.tickMessage().countdown == null, 5);
+  const p = h.p("ana");
+  assert.deepStrictEqual(p.entity.unlocked, [], "ana flies a plain ship: nothing drawn");
+  assert(!p.entity.verbs.includes("land"), "no land skill");
+  assert.strictEqual(h.dbg().planet, null, "no planet before the boss dies");
+  killBoss(h, "cy");
+  const pl = h.dbg().planet;
   const from = h.steps;
-  // 90 m from the centre (50 m off the surface): outside landing range (65 m), inside the LAND gate.
+  // 90 m from the centre (50 m off the surface) for 32 s: the old LAND gate; no hint of any kind about landing now.
   h.wait(32, () => { const a = ((h.steps - from) / Contract.SIM_HZ) * 0.2; p.pos = { x: pl.x + Math.cos(a) * 90, y: pl.y, z: pl.z + Math.sin(a) * 90 }; });
-  const land = h.toasts("ana", from).filter((t) => t.kind === "hint" && t.gate === "land");
-  assert.deepStrictEqual(land.map((t) => [t.need, t.text, t.sketch]), [["button", "So close you could touch down.", null], ["button", "", "landing"], ["button", "Draw LAND", null]]);
-  assert.strictEqual(land[2].ghost.action, "land");
-  const at = land.map((t) => ((t.at - from) / Contract.SIM_HZ).toFixed(1));
-  // Then the button, LAND: the tick names the bay the landing shot ends on, and it is where the ship parks.
-  h.w.setLayout("ana", LAYOUT);
-  p.pos = { x: pl.x + pl.radius + 10, y: pl.y, z: pl.z };
-  press(h, "ana", "land"); h.step(); h.step();
+  assert.strictEqual(p.mode, "space", "circling 50 m off the surface does not land");
+  assert.deepStrictEqual(h.toasts("ana", from).filter((t) => t.gate === "land" || t.verb === "land").map((t) => t.text), [], "no LAND hint, card or refusal");
+  // Nose at the planet from 30 m off the surface, no input: the cruise carries the ship in; touching it lands.
+  p.pos = { x: pl.x + pl.radius + 30, y: pl.y, z: pl.z }; p.yaw = Math.PI / 2; p.pitch = 0;
+  const t0 = h.steps;
+  h.until("ana touches the planet", () => p.landingFor > 0, 10);
+  const touch = ((h.steps - t0) * DT).toFixed(2), off = dist(p.pos, pl) - pl.radius;
+  assert(off <= 1.5 + 2 + 1e-6, `the landing starts at the surface (${off.toFixed(2)} m off)`);
+  h.step(); h.step();
   const bay = tickOf(h, "ana").bay;
-  h.until("ana lands", () => p.mode === "planet" && !p.landingFor, 6);
+  h.until("ana lands", () => p.mode === "planet" && !p.landingFor, T.planet.landingSeconds + 1);
   const car = h.dbg().parked.find((c) => c.player === "ana");
   assert(bay && Math.abs(bay[0] - car.x) < 0.1 && Math.abs(bay[1] - car.z) < 0.1, `tick bay ${bay} = parked ${car.x},${car.z}`);
-  return `LAND ladder at ${at.join(", ")} s while circling 50 m off the surface; landing bay ${bay} in the tick`;
+  assert(h.announces(t0).some((a) => a.startsWith("ana landed on the planet")), "the landing is announced");
+  // A LAND button drawn without legs still lands in landing range (never a refusal): bob, 10 m off the surface.
+  const bob = h.p("bob");
+  h.w.setLayout("bob", LAYOUT);
+  bob.pos = { x: pl.x - pl.radius - 10, y: pl.y, z: pl.z }; bob.yaw = Math.PI / 2; bob.pitch = 0; // facing away
+  const b0 = h.steps;
+  press(h, "bob", "land"); h.step();
+  assert(bob.landingFor > 0, "LAND in range lands a plain ship");
+  assert.strictEqual(h.toasts("bob", b0).filter((t) => t.verb === "land").length, 0, "no refusal toast");
+  // Take-off is unchanged: the explorer takes off, back in space 15 m off the surface, flying away (no instant re-land).
+  h.until("bob lands", () => bob.mode === "planet" && !bob.landingFor, T.planet.landingSeconds + 1);
+  press(h, "ana", "takeoff");
+  h.until("ana takes off", () => p.mode === "space" && !p.takeoffFor, T.planet.takeoffSeconds + 1);
+  h.wait(1);
+  assert(p.mode === "space" && !p.landingFor, "ana flies away after take-off");
+  return `circled 50 m off for 32 s: no hint, no landing; flew in from 30 m: touched down after ${touch} s (${off.toFixed(2)} m off the surface), bay ${bay}; bob's LAND button with no legs lands in range`;
 });
 
 test("names and caps: a second device gets name2, the same device its ship back; 'constructor' is a name; 25 players at most (v1.3); floods are cut", () => {
@@ -1127,8 +1226,8 @@ test("v1.4 late hints: from 3:00 every human missing a gate skill gets one big D
   killBoss(h, "ana");
   keep();
   h.wait(7, pin);
-  const bob2 = late("bob");
-  assert.strictEqual(bob2.length, 2); assert.deepStrictEqual([bob2[1].gate, bob2[1].title], ["land", "DRAW LANDING LEGS"], "the boss is down: LAND is the gate ahead");
+  // v1.6 (owner 12:07): no LAND gate: with the boss down a plain ship just flies into the planet, no card for legs.
+  assert.strictEqual(late("bob").length, 1, "the boss is down: no DRAW LANDING LEGS card");
   landNow(h, "ana");
   h.wait(0.5, pin);
   const ana = late("ana");

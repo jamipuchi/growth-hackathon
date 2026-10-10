@@ -729,6 +729,7 @@
     <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></symbol>
     <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
     <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 7V4h4v3M6 7l1 13h10l1-13"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M12 2.5c3 2.4 4.4 5.8 4.4 9.6v4.2H7.6v-4.2c0-3.8 1.4-7.2 4.4-9.6z"/><circle cx="12" cy="9.5" r="1.7"/><path d="M7.6 13 5 15.8v3.4l2.6-1.6M16.4 13l2.6 2.8v3.4l-2.6-1.6M10 19c.4 1.1 1.1 2 2 2.6.9-.6 1.6-1.5 2-2.6"/></symbol>
     <symbol id="i-full" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
     <symbol id="i-unfull" viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></symbol>
   </defs>
@@ -823,6 +824,7 @@
     <div class="hl">
       <div id="vitals"></div>
       <div class="tools">
+        <button id="tTakeoff" class="tool on hidden" type="button" aria-label="Take off: back to space"><svg viewBox="0 0 24 24"><use href="#i-rocket"/></svg></button>
         <button id="tAdd" class="tool" type="button"><span class="badge" id="leftBadge">5</span><svg viewBox="0 0 24 24"><use href="#i-plus"/></svg></button>
         <button id="tRedraw" class="tool" type="button"><svg viewBox="0 0 24 24"><use href="#i-pencil"/></svg></button>
         <button id="tView" class="tool" type="button"><svg viewBox="0 0 24 24"><use href="#i-eye"/></svg></button>
@@ -1029,7 +1031,7 @@ const COPY = {
     ship: {
       title: "1 · DRAW YOUR SHIP", sub: "it becomes your 3D ship",
       redraw: { title: "REDRAW YOUR SHIP", sub: "it replaces your 3D ship" },
-      hint: "Draw a cannon to SHOOT, flames to BOOST, legs to LAND",
+      hint: "Draw a cannon to SHOOT, flames to BOOST",
       photoHint: "Draw your ship big and dark on paper, then take a photo of it",
       skip: "SKIP — plain ship + default buttons",
       example: { a: "flames = BOOST", b: "cannon = SHOOT" },
@@ -1037,7 +1039,7 @@ const COPY = {
     controller: {
       title: "2 · DRAW YOUR CONTROLLER", sub: "these become your buttons",
       redraw: { title: "REDRAW YOUR CONTROLLER", sub: "these replace your buttons" },
-      hint: "Draw a circle to steer, and boxes with a word: FIRE, BOOST, LAND",
+      hint: "Draw a circle to steer, and boxes with a word: FIRE, BOOST, SHIELD",
       photoHint: "Draw your buttons on paper, turn the page sideways, then take a photo",
       skip: "SKIP — use the default buttons",
       example: { stick: "circle = STEER", boxA: "FIRE", boxB: "BOOST", note: "box + word = button" },
@@ -1116,7 +1118,7 @@ const COPY = {
   does: {
     steer: "Drag to turn your ship", move: "Drag to walk around",
     shoot: "Hold to fire your gun", boost: "Hold for a burst of speed", shield: "Hold to block hits", blast: "One big explosion in front of you",
-    drill: "Hold close to a rock to break it open", dig: "Hold on an X to dig up a chest", land: "Press near the planet to touch down",
+    drill: "Hold close to a rock to break it open", dig: "Hold on an X to dig up a chest", land: "Fly into the planet to land",
     takeoff: "Go back up to your ship", jump: "Jump! (a quick dash in space)", scan: "Shows hidden things on your radar",
     flare: "A bright light everyone can see", invisible: "Hide for a few seconds", teleport: "Zip forward in a blink", heal: "Get some health back",
     drive: "Switch to fast driving", ready: "Tap when you are ready", view: "Change the camera",
@@ -1131,7 +1133,7 @@ const COPY = {
     title: "YOU'RE IN!", sub: "Wait for the host to press START on the big screen",
     ready: "I'M READY", readyDone: "READY ✓", redrawShip: "REDRAW SHIP", redrawController: "REDRAW CONTROLLER", uses: "uses 1 drawing",
   },
-  hud: { hp: "HP", shield: "SHIELD", boost: "BOOST", respawn: "BACK IN {n}…", timeLeft: "TIME LEFT", getReady: "GET READY", assists: "THE CHESTS GLOW · DRAW WHAT YOU NEED",
+  hud: { hp: "HP", shield: "SHIELD", boost: "BOOST", respawn: "BACK IN {n}…", timeLeft: "TIME LEFT", endless: "ENDLESS", getReady: "GET READY", assists: "THE CHESTS GLOW · DRAW WHAT YOU NEED",
     points: "POINTS", rank: "{r} OF {n}", spawn: "SPAWN SHIELD · YOU CAN'T BE HIT" },
   counter: { left: "{left} OF {max} DRAWINGS LEFT", none: "NO DRAWINGS LEFT {where}", space: "IN SPACE", planet: "ON THE PLANET" },
   tools: { add: "Add a button", redraw: "Redraw", view: "Change the camera", tilt: "Tilt to steer", sound: "Sound", full: "Full screen" },
@@ -1146,7 +1148,7 @@ const COPY = {
   // on: the button is already on the controller; then: it is not (the card says so too).
   late: {
     weapon: { part: "DRAW A GUN", on: "ON YOUR SHIP · A CANNON WORKS TOO", then: "ON YOUR SHIP · THEN A SHOOT BUTTON", button: "ADD A SHOOT BUTTON", sketch: "gun", action: "shoot" },
-    land: { part: "DRAW LANDING LEGS", on: "ON YOUR SHIP · A PARACHUTE WORKS TOO", then: "ON YOUR SHIP · THEN A LAND BUTTON", button: "ADD A LAND BUTTON", sketch: "landing", action: "land" },
+    land: { part: "FLY INTO THE PLANET", on: "NOTHING TO DRAW · TOUCHING IT LANDS", then: "NOTHING TO DRAW · TOUCHING IT LANDS", button: "FLY INTO THE PLANET", sketch: "landing", action: "land" }, // v1.6: never sent (no LAND gate)
     dig: { part: "DRAW A SHOVEL", on: "ON YOUR EXPLORER · CLAWS WORK TOO", then: "ON YOUR EXPLORER · THEN A DIG BUTTON", button: "ADD A DIG BUTTON", sketch: "shovel", action: "dig" },
     drill: { part: "DRAW A DRILL", on: "ON YOUR EXPLORER", then: "ON YOUR EXPLORER · THEN A DRILL BUTTON", button: "ADD A DRILL BUTTON", sketch: "drill", action: "drill" },
     buttonSub: "A BOX WITH THE WORD {word} ON YOUR CONTROLLER",
@@ -1159,7 +1161,7 @@ const COPY = {
     tiltHttps: "Tilt is not available on this page. Use the stick", tiltDenied: "Tilt is off. Allow motion in your phone settings to use it", tiltOn: "Tilt is on. Tilt your phone to steer",
   },
   add: {
-    hintPhoto: "Draw the new button on paper with its word (LAND, SCAN…), then take a photo",
+    hintPhoto: "Draw the new button on paper with its word (SCAN, FLARE…), then take a photo",
     hintGhost: "Draw a {action} button on paper, then take a photo",
     traceBox: "Trace the box and write the word",
     drawFirst: "Draw the button first", fail: "Could not read that button. Try again", photoOk: "Looks good? Tap DONE",
@@ -1197,7 +1199,7 @@ const COPY = {
   tips: [
     "TIP · A cannon on your ship lets you SHOOT",
     "TIP · Flames on the back = BOOST",
-    "TIP · Landing legs and a LAND button take you to the planet",
+    "TIP · Fly into the planet to land: nothing to draw",
     "TIP · A shovel lets your explorer DIG up chests",
     "TIP · A drill breaks open the chests inside rocks",
     "TIP · Every chest is worth +1500 points",
@@ -2351,11 +2353,12 @@ function entityTip(kind, entity) {
     const missing = (entity.unlocked || []).filter((u) => !layoutHas(u.verb)).map((u) => (COPY.skills[u.verb] || u.verb).toUpperCase());
     if (missing.length) return tpl(COPY.result.tips.newButtons, { list: joinWords(missing) });
   }
-  // the locked list on the card already says what to draw for LAND, DIG and DRILL; the one thing it cannot say is why a weapon matters
+  // the locked list on the card already says what to draw for DIG and DRILL (v1.6: LAND needs nothing); the one thing it cannot say is why a weapon matters
   return kind === "ship" && !V.WEAPONS.some((w) => verbs.includes(w)) ? COPY.result.tips.noWeapon : "";
 }
 // The skills worth drawing next, most important first (the gates of the round, then the classics): at most 3 on the card.
-const LOCK_ORDER = { space: ["shoot", "land", "boost", "shield", "emp"], planet: ["dig", "drill", "shoot", "boost", "jump"] };
+const LOCK_ORDER = { space: ["shoot", "boost", "shield", "emp"], // v1.6: no "land": every ship lands by flying into the planet
+  planet: ["dig", "drill", "shoot", "boost", "jump"] };
 function lockedItems(entity, kind) {
   const verbs = entity.verbs || [], w = kind === "ship" ? "space" : "planet";
   const can = (v) => (V.VERBS[v] && V.VERBS[v].modes.includes(w)) && !(v === "jump" && (entity.type === "car" || entity.type === "bike"));
@@ -2377,7 +2380,7 @@ function buildUnlockCard(entity, kind, rc) {
     ul.append(li);
   });
   card.append(head, ul);
-  // "🔒 DRAW IT TO UNLOCK" · "LAND draw landing legs or a parachute": what a full redraw could add (it costs a drawing, so say it here)
+  // "🔒 DRAW IT TO UNLOCK" · "BOOST draw an exhaust with fire": what a full redraw could add (it costs a drawing, so say it here)
   const locked = lockedItems(entity, kind);
   if (locked.length) {
     const box = document.createElement("div"); box.className = "ulock";
@@ -3123,6 +3126,7 @@ function onNetTick(m) {
   const me = m.players && m.players.find((p) => p.name === S.player);
   if (me && me.drawingsLeft) setLeft(me.drawingsLeft);
   S.net.phase = m.phase;
+  S.endless = m.mode === "endless"; // v1.6 ENDLESS (tick.mode, absent in the demo)
   syncDrawing();
   syncCountdown(m);
 }
@@ -3173,7 +3177,7 @@ function fallbackGame({ player }) {
         if (boss && me.mode === "space") radar.push({ kind: "boss", ...rel(boss.x, boss.z) });
       }
       const objective = me && me.mode === "planet" ? "openChests" : worldMsg && worldMsg.planet ? "planet" : "boss";
-      return { phase: tick.phase, clock: tick.clock, left: tick.left, objective, objectiveText: C.OBJECTIVES[objective], bar: boss ? boss.hp / boss.maxHp : 1, status: "",
+      return { phase: tick.phase, clock: tick.clock, left: tick.left, ...(tick.mode === "endless" ? { left: 3600, leftText: "∞" } : {}), objective, objectiveText: C.OBJECTIVES[objective], bar: boss ? boss.hp / boss.maxHp : 1, status: "",
         result: worldMsg ? worldMsg.result : null, me, radar, scores: tick.players.map((p) => ({ name: p.name, score: p.score, color: p.color })).sort((a, b) => b.score - a.score), tier: 0 };
     },
   };
@@ -3237,6 +3241,10 @@ function updateHud() {
   const playing = h.phase === "playing" || h.phase === "assists";
   const left = typeof h.left === "number" ? h.left : Math.max(0, C.ROUND.maxSeconds - (h.clock || 0));
   setCached("clock", hudEls.clock, playing ? (typeof h.leftText === "string" ? h.leftText : fmt(left)) : "");
+  // v1.6 ENDLESS: the timer says ENDLESS (render.js gives ∞), and an explorer can always TAKE OFF back to space (the rocket tool)
+  setCached("tl", hudEls.timer.firstElementChild, S.endless ? COPY.hud.endless : COPY.hud.timeLeft);
+  const canTakeoff = !!(S.endless && playing && me && me.mode === "planet" && !(me.flags && (me.flags.dead || me.flags.landing || me.flags.takingOff)));
+  if (hudCache.takeoff !== canTakeoff) { hudCache.takeoff = canTakeoff; $("tTakeoff").classList.toggle("hidden", !canTakeoff); }
   const low = playing && left < 30;
   if (hudCache.low !== low) { hudCache.low = low; hudEls.timer.classList.toggle("low", low); }
   if (h.phase === "assists" && !h.status) setCached("status", hudEls.status, COPY.hud.assists);
@@ -3265,7 +3273,7 @@ function updateHud() {
   if (hudCache.shotAlpha !== shotAlpha) { hudCache.shotAlpha = shotAlpha; $("area").classList.toggle("shot", shotAlpha !== null); $("area").style.opacity = shotAlpha === null ? "" : shotAlpha; }
   // after touchdown ("planet", no longer landing, the shot over) the phone asks for the explorer, once per landing
   const mode = me ? me.mode : null;
-  if (mode === "space") S.explorerAsked = false;
+  if (mode === "space" && !S.endless) S.explorerAsked = false; // v1.6 ENDLESS: asked once per game, not at every landing
   if (mode === "planet" && !locked && !h.transition && !S.explorerAsked && S.lastMode !== null && h.phase !== "scoreboard") { S.explorerAsked = true; openExplorer(); }
   if (mode) S.lastMode = mode;
   if (S.ghost && layoutHas(S.ghost.action)) clearGhost();
@@ -3782,7 +3790,7 @@ function placeHudBtn() {
 // ---- v1.6 (owner 11:59): with the HUD hidden the HINTS still show (CSS above): hint / refused toasts, the locked tip, the sketch and
 // ghost box, the late card, and #hintLine: the objective as one line when it says what to do next (a part to draw, a chest to find or
 // finish, touch down now, the 3:00 glow); plain progress (FLY TO IT, TAKE IT DOWN, the timer, the score) stays hidden with the HUD.
-const HINT_LINE_RE = /\bDRAW\b|AGAIN TO FINISH|TOUCH DOWN|FIND THE X|GET IT OPEN|CHESTS GLOW/;
+const HINT_LINE_RE = /\bDRAW\b|AGAIN TO FINISH|TOUCH DOWN|INTO THE PLANET|FIND THE X|GET IT OPEN|CHESTS GLOW/;
 function hintLineOf(h) {
   if (S.screen !== "play" || (h.phase !== "playing" && h.phase !== "assists")) return "";
   if (h.me && h.me.flags && h.me.flags.dead) return "";          // the death card says it
@@ -4092,6 +4100,8 @@ function toggleView() {
   if (S.game) S.game.setView(S.view);
 }
 $("tView").onclick = toggleView;
+// v1.6 ENDLESS: TAKE OFF from the planet (every explorer can: the innate skill), then land again, as often as you like
+$("tTakeoff").onclick = () => { sendInput("takeoff", true); setTimeout(() => sendInput("takeoff", false), 120); };
 $("tSound").onclick = () => { S.muted = !S.muted; store.set("muted", S.muted); applyMuted(); if (!S.muted) sfxPlay("pop"); };
 
 // ============================================================================================================

@@ -41,7 +41,7 @@ const HUD_COPY = {
   bossAway: "BOSS {m} M AWAY · FLY TO IT",
   bossHp: "BOSS HEALTH {pct} · TAKE IT DOWN",
   planetAway: "PLANET {m} M AWAY · FLY TO IT",
-  landNow: "CLOSE ENOUGH TO TOUCH DOWN",
+  landNow: "FLY INTO THE PLANET TO LAND", // v1.6 (owner 12:07): touching the planet lands, nothing to draw or press
   planetOpen: "THE PLANET IS OPEN",
   buriedChest: "BURIED CHEST {m} M · FIND THE X",
   rockChest: "ROCK CHEST {m} M · GET IT OPEN",
@@ -50,6 +50,10 @@ const HUD_COPY = {
   digPaused: "CHEST {pct} DUG · DIG AGAIN TO FINISH",       // v1.5 (QA N3): partly open, nobody working: the progress is kept
   drillPaused: "ROCK {pct} DRILLED · DRILL AGAIN TO FINISH",
   allOpen: "EVERY CHEST IS OPEN",
+  // v1.6 ENDLESS (endless.js, world.mode "endless"): no clock (the timer shows ∞), new chests keep coming, the host ends the game.
+  endless: "∞",
+  allOpenEndless: "EVERY CHEST IS OPEN · NEW ONES SOON",
+  gameOver: "GAME OVER",
   // Used only if contract.js has no title for an objective.
   objectives: { boss: "REACH THE BOSS", destroyBoss: "DESTROY THE BOSS", planet: "LAND ON THE PLANET", openChests: "OPEN THE CHESTS", weapon: "DRAW A WEAPON" },
 };
@@ -6165,6 +6169,7 @@ function computeHud(game) {
   const boss = world?.targets?.find((t) => t.kind === "boss");
   const bossAlive = boss && !boss.dead;
   const H = HUD_COPY;
+  const endless = world?.mode === "endless"; // v1.6 ENDLESS: no cap (tick.left is 0), the timer shows ∞
   let objective = null, bar = 0, status = "", objPos = null;
   const dist3 = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
   const pct = (v) => `${Math.round(clamp(v, 0, 1) * 100)}%`;
@@ -6192,7 +6197,7 @@ function computeHud(game) {
       if (working) { bar = near.dug || 0; status = (rock ? H.drilling : H.digging).replace("{pct}", pct(near.dug || 0)); }
       else if (near.dug > 0 && d < 4) { bar = near.dug; status = (rock ? H.drillPaused : H.digPaused).replace("{pct}", pct(near.dug)); }
       else { bar = clamp(1 - d / 120, 0, 1); status = (rock ? H.rockChest : H.buriedChest).replace("{m}", Math.round(d)); }
-    } else status = H.allOpen;
+    } else status = endless ? H.allOpenEndless : H.allOpen;
   } else if (bossAlive) {
     const ref = meP && meP.mode === "space" ? meP : null;
     const d = ref ? Math.max(0, dist3(ref, boss) - boss.radius) : null;
@@ -6212,11 +6217,12 @@ function computeHud(game) {
       status = d <= P.landRange ? H.landNow : H.planetAway.replace("{m}", Math.round(d));
     } else status = H.planetOpen;
   }
-  if (phase === "scoreboard") { objective = null; status = world?.result?.reason === "chests" ? H.allChests : H.timeUp; }
+  if (phase === "scoreboard") { objective = null; status = world?.result?.reason === "chests" ? H.allChests : world?.result?.reason === "host" ? H.gameOver : H.timeUp; }
   const objectiveText = objective ? OBJECTIVES[objective] || H.objectives[objective] || "" : phase === "lobby" ? H.getReady : phase === "scoreboard" ? H.roundOver : "";
   // Time left until the 4:00 cap (tick.left), counting down smoothly between ticks.
   const playing = phase === "playing" || phase === "assists";
-  const left = tick && playing && Number.isFinite(tick.left) ? Math.max(0, tick.left - elapsed) : 0;
+  // v1.6 ENDLESS: no cap: a time left that never runs low (the pages flag the last 30 s from it), ∞ as its text
+  const left = endless && playing ? 3600 : tick && playing && Number.isFinite(tick.left) ? Math.max(0, tick.left - elapsed) : 0;
   // Radar, heading-up: dx = metres to my right, dz = metres ahead, dy = metres above.
   const radar = [];
   if (meP) {
@@ -6233,7 +6239,7 @@ function computeHud(game) {
   const scores = (tick?.players || []).map((p) => ({ name: p.name, color: p.color, score: p.score, mode: p.mode, ready: !!p.flags?.ready, bot: !!p.flags?.bot, dead: !!p.flags?.dead, me: p.name === meName, stars: stars.get(p.name) || 0 })).sort((a, b) => b.score - a.score);
   return {
     phase, clock, clockText: formatClock(clock), round: tick?.round ?? world?.round ?? 0,
-    left, leftText: formatClock(Math.ceil(left)),
+    left, leftText: endless && playing ? H.endless : formatClock(Math.ceil(left)), endless, // v1.6: endless = world.mode "endless"
     objective, objectiveText, bar: clamp(bar, 0, 1), status,
     assists: phase === "assists", note: phase === "assists" ? H.assists : "",
     chests, leaderboard, result: world?.result || null, playerCount: world?.playerCount ?? null, entities,

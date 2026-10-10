@@ -8,18 +8,13 @@ const Contract = require("./contract.js");
 // Riddles never write the button's name; only the last step does.
 // late (v1.4, owner 10 Oct 09:05: no free skills at 3:00): the big "draw X" card (lateHint): thing = what to draw in
 // capitals (the card's headline is "DRAW " + thing), on = the drawing it goes on.
+// v1.6 (owner, 10 Oct 12:07): no LAND gate: a ship lands by flying into the planet, nothing to draw, no button.
 const GATES = {
   weapon: {
     part: { riddle: "Your ship can't shoot. What would let it?", sketch: "gun", answer: "Draw a gun or a cannon on your ship" },
     button: { riddle: "Your ship has a gun. Where's the trigger?", sketch: "gun", answer: "Draw SHOOT" },
     action: "shoot",
     late: { thing: "A GUN", on: "ship" },
-  },
-  land: {
-    part: { riddle: "So close you could touch down. What would your ship stand on?", sketch: "landing", answer: "Draw landing legs or a parachute on your ship" },
-    button: { riddle: "So close you could touch down.", sketch: "landing", answer: "Draw LAND" },
-    action: "land",
-    late: { thing: "LANDING LEGS", on: "ship" },
   },
   dig: {
     part: { riddle: "X marks the spot. Your explorer has nothing to dig with.", sketch: "shovel", answer: "Draw a shovel or claws on your explorer" },
@@ -182,6 +177,14 @@ function createBudget({ perWorld = Contract.TUNING.drawings } = {}) {
       const u = usedBy(player);
       if (u[w] >= perWorld[w]) return false;
       u[w]++;
+      return true;
+    },
+    // v1.6 ENDLESS (endless.js): one drawing back in that world, up to the maximum; false when none was used.
+    refund(player, world) {
+      const w = worldOf(world);
+      const u = used.get(player);
+      if (!u || u[w] <= 0) return false;
+      u[w]--;
       return true;
     },
     reset() {

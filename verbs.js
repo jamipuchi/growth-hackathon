@@ -105,11 +105,15 @@
     mine: "spikes or bombs on the back", tractor: "a magnet", emp: "a lightning bolt", inkbomb: "an octopus or an ink bottle",
     decoy: "a second, smaller copy of it",
   };
-  // The skills that gate a round (assists hand them out at 3:00). Any weapon hurts the boss.
-  const GATE_SKILLS = { space: ["shoot", "land"], planet: ["dig", "drill"] };
+  // The skills that gate a round (v1.4: nothing is handed out at 3:00, late cards ask for them). Any weapon hurts the
+  // boss. v1.6 (owner, 10 Oct 12:07): LAND is no gate: a ship lands by flying into the planet; a drawn "land" part is
+  // harmless (its LAND button lands in range, like flying in).
+  const GATE_SKILLS = { space: ["shoot"], planet: ["dig", "drill"] };
   const WEAPONS = ["shoot", "blast", "drill"];
-  // ASTRA_MOCK=1, no key or a failed call: every gate skill plus the basics, so development stays playable.
-  // Two mischief skills per world so they can be tried without a key. No drill on the ship (v1.2).
+  // ASTRA_MOCK=1 or no key (development only), and the bots: every gate skill plus the basics, so development stays
+  // playable. Two mischief skills per world so they can be tried without a key. No drill on the ship (v1.2).
+  // With a key, a failed or timed-out call does NOT get this kit: since v1.5 it gets the plain entity, free (astra.js
+  // plainEntity: nothing read means nothing unlocked).
   const DEV_KIT = {
     space: [{ verb: "shoot", part: "cannon" }, { verb: "boost", part: "exhaust flames" }, { verb: "shield", part: "bubble" }, { verb: "land", part: "landing legs" }, { verb: "scan", part: "antenna" }, { verb: "flare", part: "lamp" }, { verb: "emp", part: "lightning bolt" }, { verb: "mine", part: "spikes" }],
     planet: [{ verb: "dig", part: "shovel" }, { verb: "drill", part: "drill" }, { verb: "shoot", part: "blaster" }, { verb: "shield", part: "shield" }, { verb: "scan", part: "antenna" }, { verb: "flare", part: "torch" }, { verb: "inkbomb", part: "ink bottle" }, { verb: "tractor", part: "magnet" }],

@@ -3,7 +3,7 @@
 // dev/netcode/balance-sim.mjs (world.js fast-forward, simulated time), so both play exactly the same way.
 //   expert:  draws the ship and explorer in the lobby (lobbyDraws) and every button as the route needs it; boosts.
 //   regular: draws nothing up front; waits at each gate for the hint (part first, then button), then drawSeconds
-//            drawing. A plain ship that reaches the planet without legs redraws the ship on the land "part" hint.
+//            drawing. v1.6 (owner 12:07): nothing to draw for landing: every ship flies into the planet and lands.
 // createDriver({ route, me, drawSeconds, now, post, onStage, log, Contract }) → { D, onMessage, lobbyDraws }
 //   now() → ms; post(pathname, body) → Promise<{ status, json }>; onStage(name) e.g. takes screenshots.
 import zlib from "zlib";
@@ -18,11 +18,11 @@ const clamp = (v, lo = -1, hi = 1) => Math.max(lo, Math.min(hi, v));
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // Below the phone HUD band (the top ~30%, astra-html.js --hud): where a player adds a button without a ghost box.
-const GATE_REGION = { drill: { x: 0.38, y: 0.32, w: 0.18, h: 0.2 }, land: { x: 0.58, y: 0.32, w: 0.18, h: 0.2 }, dig: { x: 0.38, y: 0.56, w: 0.18, h: 0.2 } };
+const GATE_REGION = { drill: { x: 0.38, y: 0.32, w: 0.18, h: 0.2 }, dig: { x: 0.38, y: 0.56, w: 0.18, h: 0.2 } };
 // Which hint (rules.js gate + need) a drawing answers: the ship and explorer are "part" hints, buttons "button" hints.
-// "legs" is a second ship drawing: the ship reached the planet without landing legs (land "part" hint).
-const GATE_HINT = { ship: ["weapon", "part"], legs: ["land", "part"], explorer: [null, "part"], land: ["land", "button"], dig: ["dig", "button"], drill: ["drill", "button"] };
-const ENTITY_OF = { ship: "ship", legs: "ship", explorer: "explorer" };
+// v1.6: no LAND gate (no legs drawing, no LAND button): the ship lands by flying into the planet.
+const GATE_HINT = { ship: ["weapon", "part"], explorer: [null, "part"], dig: ["dig", "button"], drill: ["drill", "button"] };
+const ENTITY_OF = { ship: "ship", explorer: "explorer" };
 
 // Walking on the island: A* over a 2 m grid of dry land (the same terrain.js the server uses, with a margin off the
 // waterline), smoothed to the farthest waypoint in a dry straight line. Returns waypoints to `to`, or null.
@@ -228,13 +228,12 @@ export function createDriver({ route = "expert", me = "e2e", drawSeconds = 3, no
       if (!planet) { releaseAll(); return; }
       const d = dist(p, planet), within = planet.radius + planet.landRange;
       const err = aim(planet);
+      // v1.6 (owner 12:07): fly straight into the planet; touching it lands (world.js AUTO_LAND_MARGIN). No LAND press.
       key("boost", can("boost") && expert && d > within + 40 && err < 0.3);
-      key("forward", d > within + 3);
-      key("back", d <= within + 3);
+      key("forward", err < 0.5);
+      key("back", false);
       if (d < within) stage("planet");
-      // A ship without landing legs (the boss died before the regular drew one): the land "part" hint, a new ship.
-      const legs = can("land") || gate("legs", d < within);
-      if (legs && can("land") && gate("land", d < within) && d < within - 2 && (!D.pressedAt.land || now() - D.pressedAt.land > 1500)) { press("land"); stage("land-pressed"); }
+      if (d < within && !D.flewIn) { D.flewIn = true; stage("land-pressed"); } // the stage name the e2e reports know
     } else {
       stage("landed");
       for (const k of ["forward", "back", "shoot", "shield"]) key(k, false);

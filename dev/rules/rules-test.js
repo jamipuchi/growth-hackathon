@@ -43,7 +43,6 @@ test("ladder timings: 6s riddle, +10s sketch, +15s answer with ghost", () => {
 test("riddles and sketches per gate", () => {
   for (const [gate, riddle, sketch, answer] of [
     ["drill", "Your drill is ready. What starts it?", "drill", "Draw DRILL"],
-    ["land", "So close you could touch down.", "landing", "Draw LAND"],
     ["dig", "X marks the spot. The treasure isn't on top.", "shovel", "Draw DIG"],
     ["weapon", "Your ship has a gun. Where's the trigger?", "gun", "Draw SHOOT"],
   ]) {
@@ -60,7 +59,6 @@ test("riddles and sketches per gate", () => {
 test("v1.1: a missing skill points at the drawing (no ghost), then the button ladder starts over", () => {
   for (const [gate, riddle, sketch, answer] of [
     ["weapon", "Your ship can't shoot. What would let it?", "gun", "Draw a gun or a cannon on your ship"],
-    ["land", "So close you could touch down. What would your ship stand on?", "landing", "Draw landing legs or a parachute on your ship"],
     ["dig", "X marks the spot. Your explorer has nothing to dig with.", "shovel", "Draw a shovel or claws on your explorer"],
     ["drill", "The chest is locked inside the rock. What breaks rock?", "drill", "Draw a drill on your explorer"],
   ]) {
@@ -130,13 +128,13 @@ test("hasControl stops it for good", () => {
 test("no duplicates; gates and players are independent; reset restarts", () => {
   let t = 0;
   const hints = createHints({ now: () => t });
-  const count = { a: 0, b: 0, land: 0 };
+  const count = { a: 0, b: 0, dig: 0 };
   for (t = 0; t <= 100000; t += 500) {
     if (hints.update("a", A)) count.a++;
     if (hints.update("b", A)) count.b++;
-    if (hints.update("a", { ...A, gate: "land" })) count.land++;
+    if (hints.update("a", { ...A, gate: "dig" })) count.dig++;
   }
-  assert.deepStrictEqual(count, { a: 3, b: 3, land: 3 });
+  assert.deepStrictEqual(count, { a: 3, b: 3, dig: 3 });
   hints.reset("a");
   let again = 0;
   const t0 = t;
@@ -233,8 +231,9 @@ test("late hint (v1.4, no free skills at 3:00): one big DRAW X card for a missin
   assert.strictEqual(both.text, "Draw a shovel and a drill on your explorer");
   assert.deepStrictEqual(both.parts, ["shovel", "drill"]);
   assert.strictEqual(lateHint("ana", { gate: "weapon" }).title, "DRAW A GUN");
-  assert.strictEqual(lateHint("ana", { gate: "land" }).title, "DRAW LANDING LEGS");
-  assert.strictEqual(lateHint("ana", { gate: "land" }).on, "ship");
+  // v1.6 (owner 12:07): no LAND gate: ships land by flying into the planet, so no card ever asks for landing legs.
+  assert.strictEqual(lateHint("ana", { gate: "land" }), null);
+  assert.strictEqual(createHints({ now: () => 0 }).update("ana", { ...A, gate: "land" }), null);
   const btn = lateHint("ana", { gate: "weapon", need: "button", action: "blast", label: "blast", layout });
   assert.strictEqual(btn.title, "DRAW A BLAST BUTTON");
   assert.strictEqual(btn.text, "Draw a BLAST button on your controller");

@@ -1084,13 +1084,23 @@ function wheel(B, rig, name, c, r, w, P, opt = {}) {
   rig.bone(name, "root", c);
   B.bone = rig.id(name);
   const ax = [1, 0, 0];
-  // tyre: a fat rounded ring (rings around the X axis), tread from the trim region
-  const rows = [], k = 6, ri = r * (opt.thin ? 0.82 : 0.62);
-  for (let i = 0; i <= k; i++) { const a = -Math.PI / 2 + Math.PI * i / k; rows.push({ t: Math.sin(a) * w / 2, a: ri + (r - ri) * (0.5 + 0.5 * Math.cos(a)) + (r - ri) * 0.5 * Math.cos(a), b: 0, v: i / k }); }
-  const fr = frame(c, ax, [0, 1, 0]);
-  const tyre = [];
-  for (const row of rows) tyre.push({ t: row.t, a: row.a, b: row.a, v: row.v });
-  rings(B, D > 0.75 ? tyre : tyre.filter((_, i) => i % 2 === 0), sg(opt.thin ? 18 : 16), fr, R("trim"), P.dark);
+  // tyre (v1.6, N7): a CLOSED ring (rings around the X axis), tread from the trim region: bead, sidewall, rounded
+  // shoulder, tread, shoulder, sidewall, bead, then the inner barrel back to the first bead. The beads sit inside the hub
+  // (radius 0.98 ri), so no gap shows around it; the tread never passes r: its lowest vertex is exactly r below the
+  // centre (wheels are built at y = r, so they touch y = 0 and never sink below it).
+  const ri = r * (opt.thin ? 0.82 : 0.62), rIn = opt.thin ? ri : ri * 0.9, seg = sg(opt.thin ? 18 : 16);
+  let low = 0;
+  for (let j = 0; j < seg; j++) low = Math.min(low, Math.sin(Math.PI * 2 * j / seg)); // the lowest vertex, in radii (-1 .. -0.95)
+  const top = r / -low; // the tread radius whose lowest vertex is r below the centre
+  const sh = Math.min(w * 0.35, (top - rIn) * 0.45), c45 = 1 - Math.SQRT1_2, fine = D > 0.75; // lite: 6 bands, else 10
+  const half = [{ t: w * 0.42, a: rIn }];
+  if (fine) half.push({ t: w / 2, a: lerp(rIn, top - sh, 0.4) });
+  half.push({ t: w / 2, a: top - sh });
+  if (fine) half.push({ t: w / 2 - sh * c45, a: top - sh + sh * Math.SQRT1_2 });
+  half.push({ t: w / 2 - sh, a: top });
+  const prof = [...half.map((q) => ({ t: -q.t, a: q.a })), ...half.slice().reverse(), { t: -w * 0.42, a: rIn }];
+  const tyre = prof.map((q, i) => ({ t: q.t, a: q.a, b: q.a, v: i / (prof.length - 1) }));
+  rings(B, tyre, seg, frame(c, ax, [0, 1, 0]), R("trim"), P.dark);
   // hub
   const hubC = opt.hubColor || P.metal;
   if (!opt.thin) cyl(B, madd(c, ax, -w * 0.42), madd(c, ax, w * 0.42), ri * 0.98, ri * 0.98, sg(14), R("metal"), shade(hubC, 0.8), 0.15);
