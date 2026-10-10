@@ -80,6 +80,14 @@ const AUTOSTART = autoArg > 0 && Number.isFinite(Number(process.argv[autoArg + 1
 const argNum = (flag, fallback) => { const i = process.argv.indexOf(flag); return i > 0 && Number.isFinite(Number(process.argv[i + 1])) ? Number(process.argv[i + 1]) : fallback; };
 const MINUTES_AT_START = Contract.ROUND_MINUTES.includes(argNum("--minutes", 2)) ? argNum("--minutes", 2) : 2; // demo default: 2 minutes (owner 14:37; v1.9 had 1)
 const START_AFTER_AT_START = Contract.LOBBY_WAITS.includes(argNum("--start-after", 30)) ? argNum("--start-after", 30) : 30; // 0 = off
+// kick-idle (owner, 10 Oct 14:58): a phone unreachable this long is kicked out (the kick-idle section). --kick-after S
+// (seconds) or env KICK_AFTER_MS (ms); the flag wins; 0 = never. Default 30 s.
+const KICK_AFTER_MS = (() => {
+  const s = argNum("--kick-after", null);
+  if (s != null) return Math.max(0, s * 1000);
+  const env = process.env.KICK_AFTER_MS;
+  return env !== undefined && env !== "" && Number.isFinite(Number(env)) ? Math.max(0, Number(env)) : 30000;
+})();
 // v1.6 ENDLESS (owner, 10 Oct 11:53): --endless or ENDLESS=1 starts the server in the endless free-for-all (endless.js).
 const ENDLESS_AT_START = (() => { try { return require("./endless").fromEnv(); } catch { return false; } })();
 
@@ -498,8 +506,9 @@ function openStream(req, res, url) {
   const inPractice = !!(player && !big && practicing.has(player) && practice); // v1.9 PRACTICE: a phone that reconnects while practicing
   res.write(sse(inPractice ? practiceOut(practice.worldMessage()) : withDrawings(world.worldMessage())));
   res.write(sse(inPractice ? practiceOut(practice.tickMessage()) : mainTick()));
+  if (player && !big && isKicked(player)) res.write(sse({ type: "kicked", player, message: KICKED_MESSAGE })); // kick-idle: JOIN again
   streams.set(res, { player, big, practice: inPractice });
-  req.on("close", () => streams.delete(res));
+  req.on("close", () => { streams.delete(res); if (player && !big) touch(player); }); // kick-idle: out of reach from now
   res.on("error", () => streams.delete(res));
 }
 
@@ -591,6 +600,61 @@ function endPractice(name, why = "back") {
   return true;
 }
 function endAllPractice(why) { for (const name of [...practicing.keys()]) endPractice(name, why); }
+
+// ---- kick-idle (owner, 10 Oct 14:58: "make sure when user is unresponsive (device not reachable or whatever) for 30 seconds
+// they get kicked out automatically") -------------------------------------------------------------------------------------
+// Unreachable = the player's own event stream is closed (no open /events?player=<name>) AND no request naming them (any POST
+// whose body, or one of its messages, carries `player`) for KICK_AFTER_MS (30 s; --kick-after S, env KICK_AFTER_MS; 0 =
+// never). A phone that is connected but idle (drawing, reading) keeps its stream open and is never kicked; bots never are.
+// Then: out of the practice world, world.removePlayer in the real one (gone from the next tick: the lobby hangar, the waiting
+// list, the round, where their ship disappears and the round goes on; their session stars stay, as removePlayer leaves
+// them), their drawings and Sol's controller forgotten, the name and its device seat free; the TV's feed says "ana left"
+// (a quiet line). A kicked phone that comes back hears { type: "kicked", player, message } on its stream and 409 { error:
+// "join first", kicked: true, message } from /input, /generate, /default and /practice; its open stream never re-adopts it:
+// the phone shows JOIN, "You were disconnected — join again". The name joining again (from any phone) clears the mark.
+const KICKED_MESSAGE = "You were disconnected — join again";
+const KICKED_MAX = 500;      // kicked names remembered (the oldest go first)
+const contactAt = new Map(); // name → when their phone was last heard (a request naming them, or their stream seen open)
+const kicked = new Map();    // name → when they were kicked
+const isKicked = (name) => !!name && kicked.has(name) && !world.players[name];
+const kickedAnswer = () => ({ ok: false, error: "join first", kicked: true, message: KICKED_MESSAGE });
+function touch(name) { const p = name && world.players[name]; if (p && !p.bot) contactAt.set(name, Date.now()); }
+function noteContact(body) {
+  for (const m of Array.isArray(body) ? body.slice(0, 64) : [body]) if (m && typeof m === "object" && m.player) touch(Contract.cleanName(m.player));
+}
+function kick(name) {
+  const p = world.players[name];
+  if (!p || p.bot) return false;
+  endPractice(name, "left");
+  world.removePlayer(name);
+  contactAt.delete(name);
+  delete drawnImages[name];
+  for (const k of ["ship", "explorer"]) drawingFiles.delete(`${name}-${k}`);
+  const job = ctrl[name] && ctrl[name].job;
+  if (job && !job.done) { try { job.controller.abort(); } catch {} }
+  delete ctrl[name];
+  delete speculativeAt[name];
+  kicked.delete(name);
+  kicked.set(name, Date.now());
+  if (kicked.size > KICKED_MAX) kicked.delete(kicked.keys().next().value);
+  broadcast({ type: "announce", text: `${name} left`, big: false, quiet: true });
+  console.log(`kick-idle: ${name} left (no event stream and no request for ${KICK_AFTER_MS / 1000} s)`);
+  return true;
+}
+function kickSweep() {
+  if (!(KICK_AFTER_MS > 0)) return;
+  const now = Date.now();
+  const live = new Set();
+  for (const who of streams.values()) if (who.player && !who.big) live.add(who.player);
+  for (const p of Object.values(world.players)) {
+    if (p.bot) continue;
+    if (live.has(p.name) || !contactAt.has(p.name)) { contactAt.set(p.name, now); continue; } // first seen: the clock starts now
+    if (now - contactAt.get(p.name) >= KICK_AFTER_MS) kick(p.name);
+  }
+  for (const name of contactAt.keys()) if (!world.players[name]) contactAt.delete(name);
+}
+const kickTimer = setInterval(() => { try { kickSweep(); } catch (err) { logOnce("kick-idle failed", err); } }, Math.max(250, Math.min(1000, KICK_AFTER_MS / 3 || 1000)));
+if (kickTimer.unref) kickTimer.unref();
 // POST /generate from a practicing phone: the explorer only (real generation, the practice world's budget); the ship and the
 // controller stay the lobby's (a redraw waits for the lobby: nothing here may change the real round).
 async function practiceGenerate(req, res, body, player) {
@@ -736,7 +800,8 @@ function input(msg) {
   if (msg.type === "input") msg.action = Contract.normaliseAction(msg.action);
   if (Contract.CHECKS.input(msg).length) return "bad";
   // A phone whose own event stream is open (render.js names it: /events?player=<name>) is re-adopted after a server
-  // restart; a name nobody's screen is watching is dropped.
+  // restart; a name nobody's screen is watching is dropped. kick-idle: a kicked name never is (its phone joins again).
+  if (isKicked(msg.player)) return "kicked";
   if (!world.players[msg.player] && !(hasStream(msg.player) && world.join(msg.player, tokenOf(msg)))) return "unknown";
   if (boundElsewhere(msg.player, msg)) return "taken";
   // v1.9 PRACTICE: a practicing phone's input drives its practice ship; its lobby seat stays warm (seat: lastSeen)
@@ -854,11 +919,13 @@ function perf(sample) {
 
 async function handlePost(req, res, url) {
   const body = await readJson(req, SMALL_BODY[url.pathname] || BODY_LIMIT);
+  noteContact(body); // kick-idle: any request naming a player says their phone is reachable
   if (url.pathname === "/input") {
     // 204 as before; v1.3 (additive): 409 "join first" when a message named a player who never joined (the phone
     // should POST /join again), 403 "name taken" when its device token belongs to another phone.
     const outcomes = new Set((Array.isArray(body) ? body.slice(0, 64) : [body]).map(input));
     if (outcomes.has("taken")) return json(res, 403, { ok: false, error: "name taken" });
+    if (outcomes.has("kicked")) return json(res, 409, kickedAnswer()); // kick-idle: { kicked: true }: the phone shows JOIN
     if (outcomes.has("unknown")) return json(res, 409, { ok: false, error: "join first" });
     return res.writeHead(204).end();
   }
@@ -907,7 +974,8 @@ async function handlePost(req, res, url) {
   if (url.pathname === "/join") {
     // device (optional): a token the phone keeps; a name in use by another phone becomes "name2" (renamed: true).
     const joined = world.join(body.player, body.device);
-    if (joined) return json(res, 200, joined);
+    if (joined) { kicked.delete(joined.player); kicked.delete(Contract.cleanName(body.player)); touch(joined.player); return json(res, 200, joined); } // kick-idle: the mark goes
+
     return json(res, 400, { error: Contract.cleanName(body.player) ? "the game is full" : "player name required" });
   }
   if (url.pathname === "/default") {
@@ -922,6 +990,7 @@ async function handlePost(req, res, url) {
     // the round's explorer drawing (world.useDefault); the entity message reaches every screen as for a drawn one.
     const kinds = [...new Set((Array.isArray(body.kinds) ? body.kinds : [body.kind]).filter((k) => k === "ship" || k === "controller" || k === "explorer"))];
     if (!kinds.length) return json(res, 400, { ok: false, error: "kind must be ship, controller or explorer" });
+    if (isKicked(player)) return json(res, 409, kickedAnswer()); // kick-idle
     if (!world.players[player] && !world.join(player, tokenOf(body))) return json(res, 400, { ok: false, error: "the game is full" });
     if (boundElsewhere(player, body)) return json(res, 403, { ok: false, error: "name taken" });
     if (typeof world.seat === "function" && !world.seat(player)) return json(res, 400, { ok: false, error: "the game is full" });
@@ -941,7 +1010,7 @@ async function handlePost(req, res, url) {
     // into the practice world (their ship and controller copied; their phone's stream, inputs and explorer drawings follow
     // them there); { on: false } brings them back (BACK TO LOBBY). The round's START brings everybody back (endAllPractice).
     const player = Contract.cleanName(body.player);
-    if (!player || !world.players[player]) return json(res, 400, { ok: false, error: "join first" });
+    if (!player || !world.players[player]) return json(res, 400, { ok: false, error: "join first", ...(isKicked(player) ? kickedAnswer() : {}) });
     if (boundElsewhere(player, body)) return json(res, 403, { ok: false, error: "name taken" });
     const on = !(body.on === false || body.on === 0 || body.on === "0" || body.on === "false");
     if (!on) { endPractice(player, "back"); return json(res, 200, { ok: true, practicing: false, phase: world.phase }); }
@@ -960,7 +1029,8 @@ async function handlePost(req, res, url) {
     const finished = !body.speculative;
     // v1.3: a drawing from a name that has not joined (a phone that outlived a server restart) joins it first, so the
     // drawing lands on a real player (setEntity / setLayout never create players: no ghosts). A name bound to
-    // another phone, or a bot's name, is refused.
+    // another phone, or a bot's name, is refused. kick-idle: a kicked name is not joined: 409 "join first", kicked: true.
+    if (isKicked(player)) return json(res, 409, kickedAnswer());
     if (player && !world.players[player] && typeof body.image === "string" && body.image.startsWith("data:image/") && !world.join(player, tokenOf(body))) {
       return json(res, 400, { ok: false, error: "the game is full", message: "The game is full right now.", drawingsLeft: world.drawingsLeft(player) });
     }
@@ -1151,6 +1221,7 @@ server.on("listening", () => {
   console.log(`  big screen: http://${ip}:${PORT}/space.html`);
   console.log(`  phones:     http://${ip}:${PORT}/controller.html`);
   if (canEndless() && world.endless) console.log("  mode:       ENDLESS free-for-all (the host ends it from the big screen)");
+  console.log(`  kick-idle:  ${KICK_AFTER_MS > 0 ? `a phone unreachable for ${KICK_AFTER_MS / 1000} s leaves` : "off"}`);
 });
 
 function startHttps() {
