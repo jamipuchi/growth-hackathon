@@ -1194,7 +1194,7 @@ class ParkedShip extends ShipModel {
       if (Math.random() < dt * 3) isl.particles.emit(q.x, g.position.y + 0.8, q.z, (Math.random() - 0.5) * 2, 2.5, (Math.random() - 0.5) * 2, 0.8, 0.35, 0.05, isl.emberCol || (isl.emberCol = new THREE.Color(0xff7a2a)), 2.5, 0.5, 4);
     }
     // An impostor (no mesh): a glow in the player colour on the pad.
-    if (!this.model) isl.glow.add(q.x, g.position.y + 0.6, q.z, 2.6, c.r * 1.5, c.g * 1.5, c.b * 1.5, 0.9);
+    if (!this.model) isl.glow.add(q.x, g.position.y + 0.6, q.z, 0.9, c.r * 0.9, c.g * 0.9, c.b * 0.9, 0.5); // v1.7: small, no bloom
     if (p && p.flags.takingOff) {
       // Someone else's take-off lifts it away (the followed player gets the full shot).
       const k = clamp((ctx.serverNow - (p.startedAt || 0)) / (TUNING.planet.takeoffSeconds * 1000), 0, 1);
@@ -1436,9 +1436,10 @@ class ExplorerView {
       isl.particles.emit(p.x + f.x * 0.8, ground + 0.2, p.z + f.z * 0.8, (Math.random() - 0.5) * 3, 3 + Math.random() * 3, (Math.random() - 0.5) * 3, 0.8, 0.35, 0.15, DIRT, 1.0, 0.5, 12);
     }
     const c = this.color;
-    // An impostor (no mesh): a glow in the player colour at body height.
-    if (!model) isl.glow.add(p.x, p.y + 0.9, p.z, 2.0, c.r * 1.6, c.g * 1.6, c.b * 1.6, 0.9);
-    isl.glow.add(p.x, p.y + this.markY, p.z, 0.5, c.r * 3, c.g * 3, c.b * 3, 1);
+    // An impostor (no mesh): a glow in the player colour at body height. v1.7 look: small and not hot enough to bloom (crowds of
+    // big glowing balls), and the marker over the head a small crisp dot instead of a glowing ball.
+    if (!model) isl.glow.add(p.x, p.y + 0.9, p.z, 0.7, c.r * 1.0, c.g * 1.0, c.b * 1.0, 0.6);
+    isl.glow.add(p.x, p.y + this.markY, p.z, 0.3, c.r * 1.5, c.g * 1.5, c.b * 1.5, 1);
   }
   dispose() {
     this.disposed = true;
@@ -4991,6 +4992,9 @@ class ChestField {
 const SUN_DIR = v3(-0.55, 0.32, -0.62).normalize(); // warm late-afternoon sun
 // The island sky on both screens: a saturated cartoon gradient dome with a soft sun (one cheap draw). The three.js Sky add-on
 // gave the big screen a white horizon that the bloom spread into a milky veil over the whole island.
+// v1.7 look: a clean blue gradient (no grey / beige horizon): pale cyan at the horizon (= the fog, ISLAND_HORIZON, so far
+// land and sea melt into the sky) up to a deep saturated blue, with a warm late-afternoon glow only round the sun.
+const ISLAND_HORIZON = [0.36, 0.66, 1.0]; // linear rgb: the sky's horizon, the fog and the scene background
 function islandSky() {
   const mat = new THREE.ShaderMaterial({
     uniforms: { uSun: { value: SUN_DIR } },
@@ -4998,9 +5002,10 @@ function islandSky() {
     fragmentShader: /* glsl */ `uniform vec3 uSun; varying vec3 vD;
       void main(){
         float y = clamp(vD.y, -0.1, 1.0);
-        vec3 col = mix(vec3(1.0,0.8,0.58), vec3(0.12,0.42,0.96), pow(max(y,0.0), 0.5));
+        vec3 col = mix(vec3(${ISLAND_HORIZON.join(",")}), vec3(0.03,0.22,0.85), pow(max(y,0.0), 0.55));
         float s = max(dot(normalize(vD), uSun), 0.0);
-        col += vec3(1.0,0.75,0.45) * (pow(s, 600.0) * 6.0 + pow(s, 12.0) * 0.35);
+        col = mix(col, vec3(1.0,0.72,0.42), pow(s, 8.0) * 0.4 * (1.0 - smoothstep(0.0, 0.4, y)));
+        col += vec3(1.0,0.8,0.5) * (pow(s, 600.0) * 4.0 + pow(s, 24.0) * 0.25);
         gl_FragColor = vec4(col, 1.0);
       }`,
     side: THREE.BackSide, depthWrite: false,
@@ -5009,6 +5014,87 @@ function islandSky() {
   m.renderOrder = -10;
   m.frustumCulled = false;
   return m;
+}
+
+// v1.7 look: soft contact blobs under explorers, parked ships and chests (they stood on the grass without any contact): ONE
+// instanced quad batch with a radial alpha map, tilted to the terrain's slope; no shadow maps (PLAN.md section 4).
+class BlobShadows {
+  constructor(capacity) {
+    const n = 64, data = new Uint8Array(n * n * 4);
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const r = Math.hypot(((x + 0.5) / n) * 2 - 1, ((y + 0.5) / n) * 2 - 1), i = (y * n + x) * 4;
+      data[i] = data[i + 1] = data[i + 2] = 255;
+      data[i + 3] = Math.round((1 - THREE.MathUtils.smoothstep(r, 0.2, 1)) * 255);
+    }
+    this.tex = new THREE.DataTexture(data, n, n);
+    this.tex.magFilter = this.tex.minFilter = THREE.LinearFilter;
+    this.tex.needsUpdate = true;
+    const geo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
+    this.mat = new THREE.MeshBasicMaterial({ color: 0x0c2a16, map: this.tex, transparent: true, opacity: 0.5, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    this.mesh = new THREE.InstancedMesh(geo, this.mat, capacity);
+    this.mesh.count = 0;
+    this.mesh.frustumCulled = false;
+    this.mesh.renderOrder = 1;
+    this.cap = capacity;
+    this.m4 = new THREE.Matrix4(); this.q = new THREE.Quaternion(); this.up = v3(0, 1, 0); this.nrm = v3(); this.p = v3(); this.s = v3();
+  }
+  begin() { this.mesh.count = 0; }
+  // A blob of radius r (m) on the ground H(x, z) under (x, z); lift (m above the ground: a jump, a hover) shrinks it.
+  add(x, z, r, H, lift = 0) {
+    if (this.mesh.count >= this.cap) return;
+    const y = H(x, z), d = Math.max(0.6, r * 0.6);
+    this.nrm.set(H(x - d, z) - H(x + d, z), 2 * d, H(x, z - d) - H(x, z + d)).normalize();
+    const k = 2 * r * clamp(1 - lift / 8, 0.35, 1);
+    this.m4.compose(this.p.set(x, y + 0.06, z), this.q.setFromUnitVectors(this.up, this.nrm), this.s.set(k, 1, k));
+    this.mesh.setMatrixAt(this.mesh.count++, this.m4);
+  }
+  end() { this.mesh.instanceMatrix.needsUpdate = true; }
+}
+
+// v1.7 look on the A-005 kit, applied from here (assets/** stays as delivered): vivid greens and warm sand instead of olive,
+// softened shading (normals bent towards the sky: a soft, toon-like ramp instead of dark olive slopes), more saturated props,
+// chunkier palms (trunks widened towards the base in the vertex shader, since the kit rewrites the palm matrices for its LOD)
+// and darker contact decals under the props. Same draw calls and triangles.
+function islandKitLook(kit) {
+  const mats = [];
+  const terrain = kit.terrain && kit.terrain.material;
+  if (terrain && !terrain.userData.v17) {
+    const prev = terrain.onBeforeCompile;
+    terrain.onBeforeCompile = (shader, r) => {
+      prev.call(terrain, shader, r);
+      shader.vertexShader = shader.vertexShader.replace("#include <beginnormal_vertex>", "#include <beginnormal_vertex>\nobjectNormal = normalize(mix(objectNormal, vec3(0.0, 1.0, 0.0), 0.28));");
+      shader.fragmentShader = shader.fragmentShader.replace("diffuseColor.rgb*=base*(.96+.035*terrainVariation);", `
+        vec3 vSand=vec3(.78,.53,.24), vWet=vec3(.52,.34,.16), vRock=vec3(.40,.26,.15);
+        vec3 vGrass=mix(vec3(.04,.32,.025),vec3(.14,.50,.03),.5+.5*terrainVariation), vSlope=vec3(.03,.22,.04);
+        vec3 vBase=mix(vWet,vSand,smoothstep(-1.2,1.4,h));
+        float vLand=smoothstep(1.8,5.2,h+terrainVariation*.55); // all land above the beach is grass; steep grass is a deeper green, not sand
+        vBase=mix(vBase,vGrass,vLand);
+        vBase=mix(vBase,vSlope,smoothstep(.2,.6,slope)*vLand*.7);
+        vBase=mix(vBase,vRock,crags);
+        diffuseColor.rgb*=vBase*(.97+.03*terrainVariation);`);
+    };
+    terrain.customProgramCacheKey = () => "space_party_island_terrain_v17_look";
+    mats.push(terrain);
+  }
+  const SAT = "#include <color_fragment>\ndiffuseColor.rgb = max(mix(vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))), diffuseColor.rgb, 1.45), 0.0);";
+  const seen = new Set();
+  for (const [name, mesh] of kit.batches || []) {
+    const mat = mesh.material;
+    if (!mat || seen.has(mat) || mat.userData.v17) continue;
+    seen.add(mat);
+    const prev = mat.onBeforeCompile, palm = name.startsWith("palm_");
+    const key = mat.customProgramCacheKey.call(mat);
+    mat.onBeforeCompile = (shader, r) => {
+      prev.call(mat, shader, r);
+      shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", palm ? SAT : SAT + "\ndiffuseColor.rgb *= vec3(1.1, 1.0, 0.86);"); // warm rocks
+      if (palm) shader.vertexShader = shader.vertexShader.replace("#include <project_vertex>", "transformed.xz *= 1.0 + 0.6 * (1.0 - smoothstep(0.0, 5.5, position.y));\ntransformed *= 1.1;\n#include <project_vertex>");
+    };
+    mat.customProgramCacheKey = () => key + "_v17_look";
+    mats.push(mat);
+  }
+  for (const mat of mats) { mat.userData.v17 = true; mat.needsUpdate = true; }
+  const shade = kit.object3d.getObjectByName("ground_contact");
+  if (shade && shade.material) { shade.material.color.set(0x0c2414); shade.material.opacity = 0.4; }
 }
 
 function palmGeometry() {
@@ -5046,18 +5132,21 @@ class IslandWorld {
     this.phone = phone;
     this.big = big;
     const scene = (this.scene = new THREE.Scene());
-    const horizon = new THREE.Color(0xf3c9a0);
-    scene.fog = new THREE.Fog(horizon, 160, phone ? 650 : 900);
+    const horizon = new THREE.Color().setRGB(...ISLAND_HORIZON); // v1.7: the sky's pale-blue horizon (was a beige 0xf3c9a0)
+    scene.fog = new THREE.Fog(horizon, 200, phone ? 650 : 950);
     scene.background = horizon;
     scene.add(islandSky());
     // Bright, toon-like light: a strong sky fill with a warm sand bounce, a warm key, and a cool saturated rim from the other
-    // side so explorers and chests pop.
-    scene.add(new THREE.HemisphereLight(0xb4d8ff, 0xe2a45e, 1.85));
-    const sun = new THREE.DirectionalLight(0xffd9a8, 3.2);
+    // side so explorers and chests pop. v1.7: a warmer, stronger late-afternoon key over a near-neutral sky fill.
+    scene.add(new THREE.HemisphereLight(0xd6ebff, 0xf0b070, 1.7)); // a near-white sky fill: a blue one greyed the sand
+    const sun = new THREE.DirectionalLight(0xffcf94, 3.7);
     sun.position.copy(SUN_DIR).multiplyScalar(100);
     const rim = new THREE.DirectionalLight(0x6fc8ff, 1.1);
     rim.position.set(0.55, 0.3, 0.62).multiplyScalar(100);
     scene.add(sun, rim);
+    // v1.7: soft blob shadows under explorers, parked ships and chests (ONE instanced draw; IslandWorld.update fills it).
+    this.blobs = new BlobShadows(phone ? 48 : 96);
+    scene.add(this.blobs.mesh);
     this.glow = new BillboardBatch(288, { renderOrder: 14 });
     this.particles = new Particles(phone ? 600 : 1200);
     this.rings = new RingPool(6);
@@ -5100,6 +5189,7 @@ class IslandWorld {
       this.kit?.object3d.removeFromParent();
       this.kit?.dispose();
       this.kit = kit;
+      try { islandKitLook(kit); } catch (e) { console.warn("[render] island look:", e?.message || e); } // v1.7 look
       this.scene.add(kit.object3d);
       this.terrain.visible = false;
       this.props?.forEach((m) => (m.visible = false));
@@ -5180,12 +5270,12 @@ class IslandWorld {
     htex.needsUpdate = true;
     const fog = this.scene.fog;
     this.waterMat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uH: { value: htex }, uSize: { value: size }, uSun: { value: SUN_DIR }, uSky: { value: new THREE.Color(0x9cc7ea) }, uFog: { value: fog.color }, uFogNear: { value: fog.near }, uFogFar: { value: fog.far } },
+      uniforms: { uTime: { value: 0 }, uH: { value: htex }, uSize: { value: size }, uSun: { value: SUN_DIR }, uSky: { value: new THREE.Color(0x7cc8ff) }, uFog: { value: fog.color }, uFogNear: { value: fog.near }, uFogFar: { value: fog.far } },
       vertexShader: /* glsl */ `varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
       fragmentShader: /* glsl */ `uniform float uTime; uniform sampler2D uH; uniform float uSize; uniform vec3 uSun; uniform vec3 uSky; uniform vec3 uFog; uniform float uFogNear; uniform float uFogFar; varying vec3 vW;
         void main(){
           vec2 uv = vW.xz / uSize + 0.5;
-          float inside = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+          float inside = smoothstep(0.0, 0.08, min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y))); // v1.7: soft, no line where the map ends
           float h = mix(-8.0, texture2D(uH, uv).r * 48.0 - 8.0, inside);
           float depth = clamp(-h / 7.0, 0.0, 1.0);
           vec2 p = vW.xz; float t = uTime;
@@ -5193,12 +5283,17 @@ class IslandWorld {
                                   0.10*cos(p.y*0.19+t*0.9)+0.07*cos(p.x*0.29-t*1.3)+0.04*cos((p.x-p.y)*0.8+t*1.8)));
           vec3 V = normalize(cameraPosition - vW);
           float fres = pow(1.0 - max(dot(n, V), 0.0), 4.0);
-          vec3 col = mix(vec3(0.16,0.82,0.78), vec3(0.02,0.25,0.48), smoothstep(0.0, 1.0, depth));
-          col = mix(col, uSky, fres * 0.7);
-          col += vec3(1.0,0.85,0.6) * pow(max(dot(reflect(-uSun, n), V), 0.0), 160.0) * 3.0;
-          float foam = (1.0 - smoothstep(0.0, 0.07, depth)) * (0.55 + 0.45 * sin(t * 1.8 + length(vW.xz) * 0.9));
-          col = mix(col, vec3(1.0), clamp(foam, 0.0, 1.0) * 0.75);
-          float a = mix(0.5, 0.96, smoothstep(0.0, 0.45, depth));
+          // v1.7 look: saturated turquoise shallows into a deep vivid blue, and a bright shoreline foam band (a solid edge plus
+          // an animated ripple further out) instead of a faint flicker.
+          vec3 col = mix(vec3(0.03,0.85,0.78), vec3(0.0,0.42,0.82), smoothstep(0.0, 0.55, depth));
+          col = mix(col, vec3(0.0,0.17,0.6), smoothstep(0.55, 1.0, depth));
+          col = mix(col, uSky, fres * 0.5);
+          col += vec3(1.0,0.85,0.6) * pow(max(dot(reflect(-uSun, n), V), 0.0), 160.0) * 1.6;
+          float edge = 1.0 - smoothstep(0.012, 0.05, depth);
+          float ripple = smoothstep(0.55, 0.9, sin(depth * 70.0 - t * 2.2 + 1.5 * sin(p.x * 0.11 + p.y * 0.09))) * smoothstep(0.04, 0.07, depth) * (1.0 - smoothstep(0.1, 0.18, depth));
+          float foam = clamp(edge * (0.85 + 0.15 * sin(t * 1.8 + length(vW.xz) * 0.9)) + ripple * 0.55, 0.0, 1.0);
+          col = mix(col, vec3(1.0), foam * 0.9);
+          float a = max(mix(0.55, 0.97, smoothstep(0.0, 0.4, depth)), foam * 0.95);
           float f = smoothstep(uFogNear, uFogFar, length(cameraPosition - vW));
           gl_FragColor = vec4(mix(col, uFog, f), mix(a, 1.0, f));
         }`,
@@ -5327,6 +5422,17 @@ class IslandWorld {
     // Island bullets (mode 1).
     writeBullets(this.bullets, this.dummy, snap.bullets, 1);
     this.mischief.update(dt, t, snap, ctx, camera);
+    // v1.7 look: a soft contact blob under every explorer and parked ship shown as a mesh, and under every chest (one draw).
+    const B = this.blobs, G = this.groundFn || (this.groundFn = (x, z) => this.groundAt(x, z));
+    B.begin();
+    for (const e of this.explorers.values()) {
+      if (!e.model || !e.group.visible) continue;
+      const g = e.group.position;
+      B.add(g.x, g.z, 0.42 * (entSize[e.modelType] || 1.8), G, g.y - G(g.x, g.z));
+    }
+    for (const v of this.parked.values()) if (v.model && v.group.visible && !v.transit) B.add(v.group.position.x, v.group.position.z, 2.1, G);
+    for (const r of this.chests.values()) if (r.data) B.add(r.data.x, r.data.z, r.data.kind === "rock" && !r.data.open ? 2.0 : 1.25, G);
+    B.end();
     this.glow.end();
     this.particles.update(dt);
     this.rings.update(dt, camera);
