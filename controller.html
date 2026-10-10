@@ -366,10 +366,12 @@
   #ink { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.42; pointer-events: none; }
   #hits { position: absolute; inset: 0; touch-action: none; }
   .hit { position: absolute; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; pointer-events: none; border: 3px dashed rgb(255 255 255 / 0.62); border-radius: 16px;
-    background: rgb(255 255 255 / 0.05); box-shadow: 0 0 0 2px rgb(10 6 30 / 0.3), inset 0 0 0 2px rgb(10 6 30 / 0.22); transition: transform 0.08s, background 0.12s; }   /* the dark rim keeps the box visible on bright scenes */
+    background: rgb(255 255 255 / 0.05); box-shadow: 0 0 0 2px rgb(10 6 30 / 0.3), inset 0 0 0 2px rgb(10 6 30 / 0.22); transition: transform 0.08s, background 0.12s, scale 0.18s cubic-bezier(0.3, 1.8, 0.5, 1); }   /* the dark rim keeps the box visible on bright scenes */
   .hit .lab { font: 900 italic 14px/1 var(--f-head); letter-spacing: 0.06em; text-transform: uppercase; color: #fff; -webkit-text-stroke: 2.5px var(--ink); paint-order: stroke fill; text-shadow: 0 2px 0 rgb(10 6 30 / 0.6); }
   .hit.stick { border-radius: 50%; }
-  .hit.down { background: rgb(25 211 255 / 0.3); border-style: solid; border-color: #fff; transform: scale(0.97); }
+  /* v1.5 press juice: the "scale" property squashes the box and springs it back, composing with an EMP's translate (no stick: its knob maths) */
+  .hit.down { background: rgb(25 211 255 / 0.3); border-style: solid; border-color: #fff; scale: 0.9; transition: transform 0.08s, background 0.06s, scale 0.05s ease-out; }
+  .hit.stick.down { scale: none; }
   .hit.toggle.on { background: rgb(255 203 61 / 0.3); border-color: var(--gold); }
   .hit.locked { border-color: rgb(255 255 255 / 0.28); background: rgb(0 0 0 / 0.28); }
   .hit.locked .lab { opacity: 0.55; }
@@ -565,6 +567,58 @@
   #resList li .pt { font-variant-numeric: tabular-nums; }
   #resNextRound { flex: 1 1 100%; font: 900 italic 22px/1 var(--f-head); letter-spacing: 0.05em; text-transform: uppercase; color: #fff; -webkit-text-stroke: 2.4px var(--ink); paint-order: stroke fill; text-align: center; }
   @media (orientation: portrait) { .resme, #resList { flex: 1 1 100%; } }
+  /* v1.5 results: big and celebratory for the winner (gold sheet, a spinning star, confetti), kind for everyone else */
+  #resYou { font-size: 40px; color: #fff; -webkit-text-stroke-width: 3.6px; animation: pop 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.5) 0.1s both; }
+  #resYou:empty { display: none; }
+  .rank { animation: pop 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.6) 0.2s both; }
+  #resStar { position: absolute; left: 50%; top: 50%; z-index: -2; width: 150px; height: 150px; margin: -75px 0 0 -75px; display: none; pointer-events: none;
+    background: radial-gradient(circle, rgb(255 227 110 / 0.9) 0 18%, rgb(255 176 0 / 0.35) 40%, transparent 68%); border-radius: 50%; }
+  #resStar::before { content: "★"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 150px; line-height: 1; color: var(--gold);
+    -webkit-text-stroke: 5px var(--ink); paint-order: stroke fill; opacity: 0.95; animation: spin 7s linear infinite; }
+  #resultsSheet.win { background: radial-gradient(ellipse at 50% 30%, #ffcf4a 0%, #e0811c 30%, #6b2bb8 70%, #1d1360 100%); }
+  #resultsSheet.win #resYou { color: var(--gold); font-size: 54px; text-shadow: 0 5px 0 rgb(10 6 30 / 0.5); }
+  #resultsSheet.win #resStar { display: block; }
+  #resultsSheet.win .rank::before { background: linear-gradient(160deg, #ffe36e, #ffb000 55%, #d26a06); border-color: #fff; }
+  #resultsSheet.win #resPts { color: var(--gold); }
+  #resList li:nth-child(1) .n { color: var(--gold); }
+  #resList li:nth-child(2) .n { color: #dfe6ff; }
+  #resList li:nth-child(3) .n { color: #ff9b5c; }
+  #resList li.gap { margin-top: 6px; }
+  #resNextRound { animation: npulse 1s ease-in-out infinite alternate; }
+  #resNextRound.wait { color: #d9d0ff; animation: none; }
+  @keyframes npulse { from { transform: scale(1); } to { transform: scale(1.06); } }
+  @media (max-height: 440px) and (orientation: landscape) { #resTitle { font-size: 30px; } #resYou { font-size: 32px; } #resultsSheet.win #resYou { font-size: 40px; } #resRank { font-size: 38px; } #resStar { transform: scale(0.75); } }
+
+  /* v1.5 waiting card: what is happening now, a bar with a shimmer that keeps moving, and a tip from the game */
+  .gprog { width: min(78vw, 360px); display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+  .gbar { position: relative; display: block; height: 18px; overflow: hidden; border: 3px solid var(--ink); border-radius: 9px; background: rgb(255 255 255 / 0.12); box-shadow: 0 3px 0 var(--hard); }
+  .gbar b { position: absolute; inset: 0; transform-origin: 0 50%; transform: scaleX(0.04); background: linear-gradient(90deg, var(--gold2), var(--gold)); transition: transform 14s cubic-bezier(0.1, 0.7, 0.2, 1); }
+  .gbar.go b { transform: scaleX(0.94); }
+  .gbar::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent); animation: shimmer 1.1s linear infinite; }
+  @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+  #genStage { font: 900 italic 19px/1 var(--f-head); letter-spacing: 0.05em; text-transform: uppercase; color: var(--gold); -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
+  #genStage.tick { animation: pop 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.5) both; }
+  .gtip, .btip { max-width: min(80vw, 420px); font: 700 14px/1.25 var(--f-body); color: #d9d0ff; text-shadow: 0 2px 0 rgb(10 6 30 / 0.8); transition: opacity 0.25s; }
+  .gtip:empty, .btip:empty { display: none; }
+  .gtip.fade, .btip.fade { opacity: 0; }
+  .btip { font-style: normal; max-width: 90%; }
+  @media (max-height: 440px) and (orientation: landscape) { .gtip { font-size: 13px; } .gbar { height: 14px; } }
+
+  /* v1.5 button juice: a ring bursts from a pressed control; a gold ring sweeps round a control while it cools down, and flashes when it is ready */
+  .pfx { position: absolute; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 14px rgb(25 211 255 / 0.8); pointer-events: none; transform: translate(-50%, -50%) scale(0.55); opacity: 0.95;
+    animation: pfx 0.36s ease-out forwards; }
+  .pfx.ready { border-color: var(--gold); box-shadow: 0 0 18px rgb(255 203 61 / 0.9); animation-duration: 0.5s; }
+  @keyframes pfx { to { transform: translate(-50%, -50%) scale(1.25); opacity: 0; } }
+  .cdchip.ring { min-width: 0; padding: 0; border: 0; background: none; box-shadow: none; border-radius: 50%; }
+  .cdchip.ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+  .cdchip.ring .bg { fill: rgb(13 11 46 / 0.55); stroke: rgb(13 11 46 / 0.85); stroke-width: 14; }
+  .cdchip.ring .fg { fill: none; stroke: var(--gold); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.25s linear; }
+  .cdchip.ring span { position: relative; font: 900 italic 22px/1 var(--f-head); font-variant-numeric: tabular-nums; color: var(--gold); -webkit-text-stroke: 2.2px var(--ink); paint-order: stroke fill; }
+
+  /* v1.5 vibration switch (Android only: iPhones have none), in the wait banner */
+  .hapbtn { font: 800 13px/1 var(--f-body); letter-spacing: 0.04em; color: #d9d0ff; padding: 8px 12px; min-height: 36px; border: 2px solid rgb(217 208 255 / 0.4); border-radius: 18px; }
+  .hapbtn.on { color: #fff; border-color: var(--gold); }
+  @media (prefers-reduced-motion: reduce) { #resYou, .rank, #resStar::before, #resNextRound, .gbar::after, #genStage.tick { animation: none !important; } .pfx { display: none; } }
 
   /* redraw menu (the pencil tool) */
   #redrawMenu { position: fixed; left: calc(var(--sl) + 12px); top: calc(var(--st) + 148px); z-index: 7; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 12px 12px; isolation: isolate; }
@@ -762,6 +816,7 @@
         <div class="redo"><button id="redrawShip" class="btn blue sm" type="button" data-copy="wait.redrawShip"></button><span data-copy="wait.uses"></span></div>
         <div class="redo"><button id="redrawCtrl" class="btn blue sm" type="button" data-copy="wait.redrawController"></button><span data-copy="wait.uses"></span></div>
       </div>
+      <button id="hapBtn" class="hapbtn hidden" type="button"></button>
     </div>
   </div>
   <div id="chip" class="off" data-tone="gold" role="status"><span id="chipTitle"></span><span id="chipSub"></span></div>
@@ -784,6 +839,8 @@
   <div id="genSpin" class="spinner"></div>
   <h2 id="genTitle" class="hd"></h2>
   <p id="genSub" class="status"></p>
+  <div id="genProg" class="gprog hidden"><i id="genBarBox" class="gbar"><b></b></i><span id="genStage"></span></div>
+  <p id="genTip" class="gtip"></p>
   <p id="genErr" class="status"></p>
   <div id="genActions" class="row hidden"><button id="genRetry" class="btn" type="button" data-copy="gen.retry"></button><button id="genBack" class="btn blue sm" type="button" data-copy="gen.back"></button></div>
 </div>
@@ -804,7 +861,7 @@
         <div class="rays"></div>
         <canvas id="previewCanvas"></canvas>
         <div id="flatCard" class="flatcard hidden"><div class="flat3d"><img id="flatImg" alt=""></div></div>
-        <div id="building" class="building"><i class="spinner"></i><span id="buildingTxt"></span></div>
+        <div id="building" class="building"><i class="spinner"></i><span id="buildingTxt"></span><i id="buildTip" class="btip"></i></div>
       </div>
       <div id="ctrlPreview" class="cprev hidden"></div>
     </div>
@@ -871,7 +928,7 @@
 <div id="resultsSheet" class="sheet hidden">
   <div class="reswrap">
     <div class="reshead"><h2 id="resTitle" class="hd"></h2><div id="resWinner"></div></div>
-    <div class="resme"><div class="rank"><div id="resRank" class="hd"></div></div><div id="resPts"></div></div>
+    <div class="resme"><h2 id="resYou" class="hd"></h2><div class="rank"><i id="resStar"></i><div id="resRank" class="hd"></div></div><div id="resPts"></div></div>
     <ol id="resList"></ol>
     <div id="resNextRound"></div>
   </div>
@@ -1069,7 +1126,40 @@ const COPY = {
     winner: "WINNER: {name}", star: "+1 ★", noWinner: "NOBODY SCORED",
     youAre: "YOU", points: "{n} POINTS", next: "NEXT ROUND IN {n}",
     ord: { one: "ST", two: "ND", few: "RD", other: "TH" },
+    // v1.5: the big line over my place (winner: gold sheet, star, confetti; everyone else: kind words), and the line at the bottom once the
+    // countdown is over (the host starts the next round from the big screen)
+    you: { won: "YOU WON! ★", podium: "ON THE PODIUM!", good: "GREAT ROUND!", zero: "NEXT ROUND IS YOURS!" },
+    waiting: "WAITING FOR THE HOST",
   },
+  // v1.5 first-time coach marks: three bubbles the first time a phone plays (once per phone), never during a fight
+  coach: {
+    skip: "SKIP", next: "NEXT ▶", done: "GOT IT ▶",
+    steer: { title: "DRAG TO STEER", text: "The circle you drew is your stick" },
+    move: { title: "DRAG TO MOVE", text: "The circle you drew is your stick" },
+    buttons: { title: "YOUR BUTTONS = YOUR SKILLS", text: "Each box you drew does what its word says" },
+    pencil: { title: "✏️ REDRAW · + ADD A BUTTON", text: "Draw a better ship, or one more button", textPlanet: "Draw a better explorer, or one more button" },
+  },
+  // v1.5 vibration (Android; iPhones have none): the switch on the wait banner
+  haptics: { on: "📳 VIBRATION ON", off: "📳 VIBRATION OFF" },
+  // v1.5 waiting card while a drawing is read and built: what is happening now (one stage after another), and a tip from the game
+  stages: {
+    ship: ["READING YOUR LINES", "FINDING THE PARTS", "BUILDING YOUR 3D SHIP", "ALMOST THERE…"],
+    explorer: ["READING YOUR LINES", "FINDING THE PARTS", "BUILDING YOUR 3D EXPLORER", "ALMOST THERE…"],
+    controller: ["READING YOUR LINES", "FINDING YOUR BUTTONS", "MAKING YOUR CONTROLLER", "ALMOST THERE…"],
+    planetController: ["READING YOUR LINES", "FINDING YOUR BUTTONS", "MAKING YOUR CONTROLLER", "ALMOST THERE…"],
+  },
+  tips: [
+    "TIP · A cannon on your ship lets you SHOOT",
+    "TIP · Flames on the back = BOOST",
+    "TIP · Landing legs and a LAND button take you to the planet",
+    "TIP · A shovel lets your explorer DIG up chests",
+    "TIP · A drill breaks open the chests inside rocks",
+    "TIP · Every chest is worth +1500 points",
+    "TIP · The last hit on the boss is worth +1000",
+    "TIP · A bubble around your ship = SHIELD",
+    "TIP · Hold a button to see what it does",
+    "TIP · Rivals can steal your points: keep moving",
+  ],
   // My ship is destroyed: the big card (who did it, the countdown, the points), then a short pop when I am back.
   dead: { title: "DESTROYED!", by: "BY {name}", back: "BACK IN", points: "{n} POINTS", fight: "BACK IN THE FIGHT!" },
   // Big moments, one short chip under the objective ({name}: a player's name, {n}: points).
@@ -1218,6 +1308,31 @@ document.addEventListener("pointerdown", (e) => {
   const t = e.target;
   if (t && t.closest && t.closest("button, label.btn") && !t.closest("#tSound")) sfxPlay("click");
 }, { capture: true });
+
+// ---------- v1.5 haptics: a buzz on a hit taken, a kill, a chest, a steal, an EMP (and my death, my win). Android only: phone-extras'
+// Haptics.supported() is false on every iOS device (navigator.vibrate does nothing there) and wherever the API is missing. The switch on
+// the wait banner turns it off (localStorage sp.haptics; on by default). ----------
+const HAP = PE && PE.Haptics ? PE.Haptics : null;
+const HAPTIC = { hit: 35, hitBig: [60, 30, 45], kill: [30, 40, 80], chest: [40, 50, 40, 50, 130], steal: [25, 35, 25], stolen: 160, emp: [70, 40, 70, 40, 70], mischief: 90, dead: 260, win: [60, 60, 60, 60, 260] };
+let hapOn = store.get("haptics") !== false;
+const hapLog = [];          // for tests: the last kinds asked for (also when the device has no vibration)
+let hapHitAt = -1e9;
+function buzz(kind, strength = 0) {
+  hapLog.push(kind); if (hapLog.length > 20) hapLog.shift();
+  if (!hapOn || !HAP || !HAP.supported() || document.hidden) return false;
+  if (kind === "hit") { if (performance.now() - hapHitAt < 160) return false; hapHitAt = performance.now(); }   // the boss's lasers come in bursts
+  const p = kind === "hit" && strength > 0.7 ? HAPTIC.hitBig : HAPTIC[kind];
+  return p == null ? false : HAP.buzz(p);
+}
+function syncHapBtn() {
+  const b = $("hapBtn");
+  b.classList.toggle("hidden", !(HAP && HAP.supported()));
+  b.textContent = hapOn ? COPY.haptics.on : COPY.haptics.off;
+  b.classList.toggle("on", hapOn);
+  b.setAttribute("aria-pressed", String(hapOn));
+}
+$("hapBtn").onclick = () => { hapOn = !hapOn; store.set("haptics", hapOn); syncHapBtn(); if (hapOn) buzz("kill"); };
+syncHapBtn();
 
 // ---------- iOS: no pinch, no double-tap zoom, no callouts, no scrolling (except [data-scroll]) ----------
 for (const ev of ["gesturestart", "gesturechange", "dblclick", "contextmenu"]) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false });
@@ -1380,6 +1495,8 @@ async function join(name) {
   document.documentElement.style.setProperty("--me", S.color);
   store.set("player", S.player); store.set("color", S.color);
   if (S.game && typeof S.game.setPlayer === "function") { try { S.game.setPlayer(S.player); } catch {} }   // joined again under a new name: the view follows
+  if (earlyEs && !earlyEs.url.endsWith("=" + encodeURIComponent(S.player))) { earlyEs.close(); earlyEs = null; }   // a new name: its own stream
+  openEarlyStream();       // v1.5: the 3-2-1 reaches a phone that is still drawing
   // A refresh keeps the drawings: the saved controller goes straight to the wait screen.
   if (S.layout) enterPlay();
   else if (store.get("shipDone")) enterDraw("controller");
@@ -2000,8 +2117,42 @@ function onCommitted(kind, res, d) {
 // "reading your ship…" only shows when the answer takes a moment (a cache hit would just flash it). The drawing itself sits on a card
 // with a light sweeping over it, and one line says what is happening.
 function showGenSoon(kind, image) { clearTimeout(genTimer); genTimer = setTimeout(() => showGen(kind, image), 250); }
+// ---- v1.5 the waiting card: what is happening now (one stage after another), a gold bar that keeps creeping with a shimmer over it (the
+// server answers in 1-15 s), and a tip from the game every 4.5 s. Failure keeps the v1.3/v1.4 card (showGenError): plain words and one retry.
+const STAGE_MS = [0, 1400, 3600, 7500];
+let stageTimers = [];
+function makeTipper(el) {       // rotates COPY.tips in one element; start() / stop() (stop empties it, so :empty hides it)
+  let timer = 0, fade = 0, i = Math.floor(Math.random() * COPY.tips.length);
+  const stop = () => { clearInterval(timer); clearTimeout(fade); timer = 0; el.textContent = ""; el.classList.remove("fade"); };
+  const start = () => {
+    stop();
+    el.textContent = COPY.tips[i];
+    timer = setInterval(() => {
+      el.classList.add("fade");
+      fade = setTimeout(() => { i = (i + 1) % COPY.tips.length; el.textContent = COPY.tips[i]; el.classList.remove("fade"); }, 260);
+    }, 4500);
+  };
+  return { start, stop };
+}
+const genTips = makeTipper($("genTip")), buildTips = makeTipper($("buildTip"));
+function setStage(text) { const el = $("genStage"); el.textContent = text; el.classList.remove("tick"); void el.offsetWidth; el.classList.add("tick"); }
+function startProgress(kind) {
+  stopProgress();
+  const list = COPY.stages[kind] || COPY.stages.ship;
+  $("genProg").classList.remove("hidden");
+  const bar = $("genBarBox"); bar.classList.remove("go"); void bar.offsetWidth; bar.classList.add("go");      // 4% -> 94% over ~14 s, eased
+  list.forEach((t, i) => stageTimers.push(setTimeout(() => setStage(t), STAGE_MS[i] != null ? STAGE_MS[i] : i * 3000)));
+  genTips.start();
+}
+function stopProgress() {
+  for (const t of stageTimers) clearTimeout(t);
+  stageTimers = [];
+  $("genProg").classList.add("hidden"); $("genBarBox").classList.remove("go"); $("genStage").textContent = "";
+  genTips.stop();
+}
 function showGen(kind, image) {
-  $("gen").classList.remove("hidden"); $("genSpin").classList.remove("hidden");
+  $("gen").classList.remove("hidden"); $("genSpin").classList.add("hidden");
+  startProgress(kind);
   $("genTitle").textContent = COPY.gen.reading[kind] || COPY.gen.reading.ship;
   setText($("genSub"), COPY.gen.sub[kind] || "");
   $("genPic").classList.toggle("hidden", !image);
@@ -2013,6 +2164,7 @@ let genMode = "retry";
 function showGenError(res) {
   clearTimeout(genTimer);
   genMode = failureKind(res);
+  stopProgress();
   $("gen").classList.remove("hidden"); $("genSpin").classList.add("hidden"); $("genPic").classList.add("hidden");
   $("genTitle").textContent = COPY.gen.failed;
   const unsure = res && (res.error === "client timeout" || res.error === "network");   // the server may still have spent it
@@ -2023,7 +2175,7 @@ function showGenError(res) {
   $("genBack").textContent = genMode === "none" ? COPY.gen.backGame : COPY.gen.back;
   $("genActions").classList.remove("hidden");
 }
-function hideGen() { clearTimeout(genTimer); $("gen").classList.add("hidden"); }
+function hideGen() { clearTimeout(genTimer); stopProgress(); $("gen").classList.add("hidden"); }
 $("genRetry").onclick = () => {
   hideGen();
   if (genMode === "rename") { store.set("player", null); show("join"); setStep("join"); $("name").value = ""; return; }   // join under a new name; the drawings stay
@@ -2087,12 +2239,14 @@ function getPreview() {      // ONE preview renderer (a second WebGL context) fo
 }
 function previewOff() {      // the sheet is hidden: stop rendering, drop the model
   previewToken++;
+  buildTips.stop();
   if (previewObj) { try { previewObj.setVisible(false); if (previewObj.clear) previewObj.clear(); } catch {} }
 }
 const nextFrame = () => new Promise((ok) => requestAnimationFrame(() => ok()));
 async function show3D(image, type) {
   const token = ++previewToken;
   $("building").classList.remove("hidden");
+  buildTips.start();
   $("flatCard").classList.add("hidden");
   $("previewCanvas").classList.remove("hidden");
   const pv = await getPreview();
@@ -2108,9 +2262,11 @@ async function show3D(image, type) {
   if (token !== previewToken) return;
   if (!res || res.ok === false) return showFlat(image);   // inflate.js did not load: the flat drawing on a spinning card
   $("building").classList.add("hidden");
+  buildTips.stop();
 }
 function showFlat(image) {
   $("building").classList.add("hidden");
+  buildTips.stop();
   $("previewCanvas").classList.add("hidden");
   $("flatImg").src = image;
   $("flatCard").classList.remove("hidden");
@@ -2532,6 +2688,7 @@ hits.addEventListener("pointerdown", (e) => {
   if (!place) return;
   const ctl = actualOf(place);
   try { hits.setPointerCapture(e.pointerId); } catch {}
+  if (ctl.b.type !== "stick") juice(place.b);      // v1.5: where the finger is (under an EMP that is the swapped box)
   if (ctl.b.type === "toggle") {
     const spec = V.VERBS[ctl.b.action];
     if (spec && !spec.hold) {      // a switch drawn for a one-shot skill (BLAST, LAND...): every tap fires it once, no second tap to "turn it off"
@@ -2671,6 +2828,7 @@ function sbPress(rec, action) {
   if (S.ctl !== rec) return;
   const act = C.normaliseAction(action);
   sendInput(act, true);          // the server stays the authority: it refuses a locked skill and ignores one that is cooling down
+  juice(controlBox(act));        // v1.5: the frame squashes the button itself (ctrl-sandbox.js KIT_CSS); the ring and the click are the page's
   if (act === "view") toggleView();
   tipOnPress(act, sbLabel(act), () => sbRect(act));
 }
@@ -2696,12 +2854,35 @@ function syncDisabled() {
   for (const c of controls) c.el.classList.toggle("cool", coolLeft(C.normaliseAction(c.b.action)) > 0);
   paintCooldowns();
 }
-const cdChips = new Map();   // action -> the little number over its control
+// ---- v1.5 button juice: a ring bursts from a pressed drawn control and a soft click plays (render.js's sfx facade, "click" is a page sound);
+// a cooling-down control wears a gold ring that fills up as it recharges (the seconds in the middle), and flashes gold when it is ready. ----
+const coolDur = {};          // action -> the whole cooldown in ms (the ring's 100%)
+const RING_C = 2 * Math.PI * 17;
+function controlBox(action) {    // a control's box as fractions of the play area (both kinds of controller fill it), or null
+  if (S.ctl && S.ctl.live) { const c = S.ctl.handle.controls().find((o) => C.normaliseAction(o.action) === action); if (c) return c; }
+  const d = controls.find((c) => C.normaliseAction(c.b.action) === action);
+  return d ? d.b : null;
+}
+function juice(r, { ready = false } = {}) {
+  const root = $("cd");
+  if (!r || !root || S.screen !== "play") return;
+  const box = root.getBoundingClientRect();
+  const px = Math.max(44, Math.min(170, Math.min(r.w * box.width, r.h * box.height)));
+  const el = document.createElement("i");
+  el.className = ready ? "pfx ready" : "pfx";
+  Object.assign(el.style, { left: ((r.x + r.w / 2) * 100).toFixed(2) + "%", top: ((r.y + r.h / 2) * 100).toFixed(2) + "%", width: px + "px", height: px + "px" });
+  root.append(el);
+  el.addEventListener("animationend", () => el.remove(), { once: true });
+  setTimeout(() => el.remove(), 800);      // reduced motion (no animation): it still goes
+  if (!ready) sfxPlay("click", { volume: 0.3, pitch: 1.25 });
+}
+const cdChips = new Map();   // action -> the ring and number over its control
 function paintCooldowns() {
   const now = performance.now(), root = $("cd");
   const live = Object.keys(S.cool).filter((a) => S.cool[a] > now);
   for (const [a, el] of cdChips) if (!live.includes(a)) { el.remove(); cdChips.delete(a); }
   if (!live.length) return;
+  let box = null;
   const rects = {};      // action -> { x, y, w, h } as fractions of the play area (both kinds of controller fill it)
   if (S.ctl && S.ctl.live) for (const c of S.ctl.handle.controls()) rects[c.action] = c;
   else for (const b of S.layout ? S.layout.buttons : []) rects[C.normaliseAction(b.action)] = b;
@@ -2709,17 +2890,27 @@ function paintCooldowns() {
     const r = rects[a];
     let el = cdChips.get(a);
     if (!r) { if (el) { el.remove(); cdChips.delete(a); } continue; }
-    if (!el) { el = document.createElement("div"); el.className = "cdchip"; root.append(el); cdChips.set(a, el); }
+    if (!el) {
+      el = document.createElement("div"); el.className = "cdchip ring";
+      el.innerHTML = `<svg viewBox="0 0 40 40" aria-hidden="true"><circle class="bg" cx="20" cy="20" r="17"/><circle class="fg" cx="20" cy="20" r="17" stroke-dasharray="${RING_C.toFixed(1)}" stroke-dashoffset="${RING_C.toFixed(1)}"/></svg><span></span>`;
+      el.fg = el.querySelector(".fg"); el.num = el.querySelector("span");
+      root.append(el); cdChips.set(a, el);
+    }
     el.style.left = ((r.x + r.w / 2) * 100).toFixed(2) + "%"; el.style.top = ((r.y + r.h / 2) * 100).toFixed(2) + "%";
-    const n = String(Math.ceil((S.cool[a] - now) / 1000));
-    if (el.textContent !== n) el.textContent = n;
+    if (!box) box = root.getBoundingClientRect();
+    const px = Math.round(Math.max(40, Math.min(96, Math.min(r.w * box.width, r.h * box.height) * 0.8))) + "px";
+    if (el.style.width !== px) { el.style.width = px; el.style.height = px; }
+    const left = S.cool[a] - now, full = Math.max(left, coolDur[a] || left);
+    el.fg.style.strokeDashoffset = (RING_C * Math.max(0, Math.min(1, left / full))).toFixed(1);     // fills up as it recharges
+    const n = String(Math.ceil(left / 1000));
+    if (el.num.textContent !== n) el.num.textContent = n;
   }
 }
 let coolTimer = 0;
 function coolTick() {
   const now = performance.now();
   let any = false, ended = false;
-  for (const a of Object.keys(S.cool)) { if (S.cool[a] <= now) { delete S.cool[a]; ended = true; } else any = true; }
+  for (const a of Object.keys(S.cool)) { if (S.cool[a] <= now) { delete S.cool[a]; delete coolDur[a]; ended = true; juice(controlBox(a), { ready: true }); } else any = true; }
   if (ended) syncDisabled(); else paintCooldowns();
   if (!any && coolTimer) { clearInterval(coolTimer); coolTimer = 0; }
 }
@@ -2729,10 +2920,11 @@ function onCooldown(m) {
   const sec = Number(m.seconds);
   if (!(sec > 0)) return;
   S.cool[C.normaliseAction(m.verb)] = performance.now() + Math.min(sec, 120) * 1000;
+  coolDur[C.normaliseAction(m.verb)] = Math.min(sec, 120) * 1000;
   syncDisabled();
   if (!coolTimer) coolTimer = setInterval(coolTick, 250);
 }
-function clearCooldowns() { S.cool = {}; coolTick(); syncDisabled(); }
+function clearCooldowns() { S.cool = {}; for (const a of Object.keys(coolDur)) delete coolDur[a]; coolTick(); syncDisabled(); }
 
 // A newer pad from the server: a finished controller / button drawing (kind "controller" | "button", also what I just committed), or Sol's own
 // HTML for the same pad (kind "html", it swaps in without a flash). Only my own messages carry it.
@@ -2797,6 +2989,31 @@ async function startRenderer() {
     return game;
   }
 }
+// Every tick, from the game's stream (or, before the first play screen, the one opened at JOIN).
+function onNetTick(m) {
+  const me = m.players && m.players.find((p) => p.name === S.player);
+  if (me && me.drawingsLeft) setLeft(me.drawingsLeft);
+  S.net.phase = m.phase;
+  syncDrawing();
+  syncCountdown(m);
+}
+// ---- v1.5: the event stream from JOIN. The 3-2-1 after START is a server phase every phone counts down with (owner, 10 Oct 10:00), but the
+// game's stream (render.js) only opens at the first play screen: a phone still on its very first drawing saw no countdown. So JOIN opens a
+// light stream of its own (named, like render.js's) that feeds only the ticks: the countdown overlays the drawing (z 30, no taps, the
+// drawing goes on), GO! plays, the round phase and the drawings left stay current. wireGame closes it, so a phone never keeps two.
+let earlyEs = null;
+function openEarlyStream() {
+  if (earlyEs || gameWired || !S.player || typeof EventSource !== "function") return;
+  try { earlyEs = new EventSource(`/events?player=${encodeURIComponent(S.player)}`); } catch { earlyEs = null; return; }
+  const es = earlyEs;
+  es.onmessage = (ev) => {
+    if (earlyEs !== es || gameWired) return;
+    let m; try { m = JSON.parse(ev.data); } catch { return; }       // only the ticks are used here
+    if (m && m.type === "tick") onNetTick(m);
+  };
+}
+function closeEarlyStream() { gameWired = true; if (earlyEs) { try { earlyEs.close(); } catch {} earlyEs = null; } }
+let gameWired = false;
 // Without render.js the controller still works: a plain background and the HUD fed straight from /events.
 function fallbackGame({ player }) {
   const handlers = {};
@@ -2848,13 +3065,8 @@ function wireGame(game) {
   game.on("announce", onAnnounce);
   // drawingsLeft is not part of hud().me in every build, so read it from the tick too (setLeft does nothing unless it changed). The tick also
   // keeps the round phase for the "drawing" input, which must follow the screens even while the renderer is paused.
-  game.on("tick", (m) => {
-    const me = m.players && m.players.find((p) => p.name === S.player);
-    if (me && me.drawingsLeft) setLeft(me.drawingsLeft);
-    S.net.phase = m.phase;
-    syncDrawing();
-    syncCountdown(m);
-  });
+  closeEarlyStream();       // v1.5: the game's own stream takes over from the one opened at JOIN
+  game.on("tick", onNetTick);
   game.on("entity", (m) => { if (m.player === S.player && m.entity) setEntity(m.entity); });
   game.on("world", (m) => {
     if (m.entities && m.entities[S.player]) setEntity(m.entities[S.player]);
@@ -2923,6 +3135,7 @@ function updateHud() {
   if (mode) S.lastMode = mode;
   if (S.ghost && layoutHas(S.ghost.action)) clearGhost();
   if (S.sketch && sketchDone()) clearSketch();
+  maybeCoach(h);
 }
 function onPhase(phase, h) {
   S.phase = phase;
@@ -2930,7 +3143,7 @@ function onPhase(phase, h) {
   const lobby = phase === "lobby", board = phase === "scoreboard";
   $("banner").classList.toggle("hidden", !lobby);
   $("resultsSheet").classList.toggle("hidden", !board);
-  if (board) { closeSheets("resultsSheet"); closeAdd(); releaseAll(); hudCache.resRows = null; hudCache.resNext = null; }
+  if (board) { closeSheets("resultsSheet"); closeAdd(); releaseAll(); hudCache.resRows = null; hudCache.resNext = null; hudCache.resParty = null; if (coach) coach.hide(); }
   // a new round starts clean: no leftover ghost box or sketch hint (the server's hint ladder starts again), nothing cooling down
   if (board || lobby) { clearGhost(); clearSketch(); S.tipAt = {}; }
   if (lobby) { resetReady(); clearCooldowns(); }
@@ -3002,8 +3215,21 @@ function renderResults(h) {
     const idx = rows.findIndex((r) => r.name === S.player);
     $("resRank").textContent = idx >= 0 ? ordinal(idx + 1) : "–";
     $("resPts").textContent = idx >= 0 ? tpl(COPY.results.points, { n: Number(rows[idx].score).toLocaleString("en-US") }) : "";
-    $("resList").replaceChildren(...rows.slice(0, 5).map((r, i) => {
-      const li = document.createElement("li"); li.style.setProperty("--i", i); if (r.name === S.player) li.className = "me";
+    // v1.5: one big line over my place: the winner gets the gold sheet, the spinning star, confetti and a buzz; everyone else kind words
+    const won = !!winner && winner === S.player, Y = COPY.results.you;
+    $("resYou").textContent = idx < 0 ? "" : won ? Y.won : idx <= 2 && rows[idx].score > 0 ? Y.podium : rows[idx].score > 0 ? Y.good : Y.zero;
+    $("resultsSheet").classList.toggle("win", won);
+    const party = JSON.stringify([h.round, reason, winner]);
+    if (won && hudCache.resParty !== party && !$("resultsSheet").classList.contains("hidden")) {
+      hudCache.resParty = party;
+      if (PE && typeof PE.confetti === "function") { try { PE.confetti(document.body, { colors: [S.color, "#ffcb3d", "#19d3ff", "#b45cff", "#ff3b5c", "#ffffff"] }); } catch {} }
+      buzz("win");
+    }
+    // the top 3 (v1.5), then my own row when I am further down
+    const shown = rows.slice(0, 3).map((r, i) => [r, i]);
+    if (idx >= 3) shown.push([rows[idx], idx]);
+    $("resList").replaceChildren(...shown.map(([r, i], k) => {
+      const li = document.createElement("li"); li.style.setProperty("--i", k); if (r.name === S.player) li.className = i >= 3 ? "me gap" : "me";
       const n = document.createElement("span"); n.className = "n"; n.textContent = i + 1;
       const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = colorCss((info.get(r.name) || {}).color);
       const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = r.name;
@@ -3013,7 +3239,10 @@ function renderResults(h) {
     }));
     // (the win sound is render.js's: the page plays none)
   }
-  setCached("resNext", $("resNextRound"), tpl(COPY.results.next, { n: Math.max(0, Math.ceil(h.clock || 0)) }));
+  // NEXT ROUND IN n while the results run; then the host starts the next round from the big screen
+  const nextN = h.phase === "scoreboard" || h.phase == null ? Math.max(0, Math.ceil(h.clock || 0)) : 0;
+  setCached("resNext", $("resNextRound"), nextN > 0 ? tpl(COPY.results.next, { n: nextN }) : COPY.results.waiting);
+  if (hudCache.resWait !== (nextN <= 0)) { hudCache.resWait = nextN <= 0; $("resNextRound").classList.toggle("wait", nextN <= 0); }
 }
 
 // ---------- toasts: chunky bubbles; a hint about a missing part offers a one-tap redraw ----------
@@ -3112,6 +3341,7 @@ function onMischief(m) {
   if (!m || (m.player && m.player !== S.player) || S.screen !== "play") return;
   if (mfxLoading) return void MFXP.then(() => onMischief(m));      // still importing (a message right after the page opened)
   const host = $("play"), secs = Number(m.seconds);
+  if (m.kind === "emp") buzz("emp"); else if (m.kind === "inkbomb" || m.kind === "tractor" || m.kind === "mine") buzz("mischief");
   if (!MFX) return plainMischief(m);
   try {
     switch (m.kind) {
@@ -3159,7 +3389,7 @@ function onAnnounce(m) {
   const me = S.player, M = COPY.moment;
   let g;
   if ((g = /^(\w+) ✕ (\w+)/.exec(t))) {                       // "bob ✕ ana" (+ " 💣" / " 🧲" for a mischief kill)
-    if (g[1] === me) moment(tpl(M.kill, { name: short(g[2]) }), { sub: isBot(g[2]) ? "" : tpl(M.killSub, { n: C.SCORING.kill }), prio: 3 });
+    if (g[1] === me) { moment(tpl(M.kill, { name: short(g[2]) }), { sub: isBot(g[2]) ? "" : tpl(M.killSub, { n: C.SCORING.kill }), prio: 3 }); buzz("kill"); }
     else if (g[2] === me) noteKiller(g[1]);                    // the death card says who did it
   } else if ((g = /^\S+\s+(\w+) scrambled (\w+)'s buttons/.exec(t))) { if (g[1] === me) ownMischief("emp", g[2]); }
   else if ((g = /^\S+\s+(\w+) inked (\w+)'s screen/.exec(t))) { if (g[1] === me) ownMischief("inkbomb", g[2]); }
@@ -3180,11 +3410,11 @@ function onAnnounce(m) {
   else if (/brought the boss down/.test(t)) moment(M.bossDown, { sub: M.bossSwarm, prio: 4 });
   else if (/^Assists on/.test(t)) moment(M.powers, { sub: M.powersSub, tone: "violet", prio: 3 });
   else if ((g = /^\S+\s+(\w+) opened a chest \(\+(\d+)\)/.exec(t))) {
-    if (g[1] === me) moment(M.chestMe, { sub: tpl(M.chestMeSub, { n: g[2] }), prio: 2 });
+    if (g[1] === me) { moment(M.chestMe, { sub: tpl(M.chestMeSub, { n: g[2] }), prio: 2 }); buzz("chest"); }
     else moment(tpl(M.chest, { name: short(g[1]) }), { sub: tpl(M.chestSub, { n: g[2] }), tone: "cyan", prio: 1 });
   } else if ((g = /^\S+\s+(\w+) stole (\d+) points from (\w+)/.exec(t))) {
-    if (g[1] === me) moment(tpl(M.stoleMe, { n: g[2] }), { sub: tpl(M.stoleMeSub, { name: short(g[3]) }), prio: 3 });
-    else if (g[3] === me) moment(tpl(M.stoleYou, { name: short(g[1]), n: g[2] }), { sub: M.stoleYouSub, tone: "red", prio: 3 });
+    if (g[1] === me) { moment(tpl(M.stoleMe, { n: g[2] }), { sub: tpl(M.stoleMeSub, { name: short(g[3]) }), prio: 3 }); buzz("steal"); }
+    else if (g[3] === me) { moment(tpl(M.stoleYou, { name: short(g[1]), n: g[2] }), { sub: M.stoleYouSub, tone: "red", prio: 3 }); buzz("stolen"); }
     else moment(tpl(M.stole, { name: short(g[1]), n: g[2] }), { sub: tpl(M.stoleSub, { victim: short(g[3]) }), tone: "violet", prio: 2 });
   }
 }
@@ -3225,6 +3455,7 @@ function updateDeath(h, me) {
     paintKiller();
     $("deadPts").textContent = tpl(COPY.dead.points, { n: C.SCORING.killed });
     $("dead").classList.add("on");
+    if (!death.test) buzz("dead");
   } else if (!dead && death.on) {
     death.on = false; death.killer = null;
     $("dead").classList.remove("on");
@@ -3265,6 +3496,8 @@ function hitFrom(h, dmg, me, from = null) {
 }
 function showHit(angle, dmg) {
   const strength = Math.max(0.35, Math.min(1, (Number(dmg) || 10) / 25));
+  lastHitAt = performance.now();       // v1.5: the coach marks never show during a fight
+  buzz("hit", strength);
   if (MFX && typeof MFX.hitMarker === "function") { try { MFX.hitMarker($("play"), { angle, strength }); return; } catch {} }
   const el = $("hurt"); el.classList.remove("on"); void el.offsetWidth; el.classList.add("on");
 }
@@ -3314,6 +3547,56 @@ function showToolCaps() {
   $("hud").classList.add("caps");
   clearTimeout(showToolCaps.t);
   showToolCaps.t = setTimeout(() => $("hud").classList.remove("caps"), 6000);
+}
+
+// ---------- v1.5 first-time coach marks: three bubbles (the stick, the drawn buttons, the pencil) the first time this phone plays ----------
+// Once per phone (localStorage sp.coachSeen, set on GOT IT or SKIP). They wait 2.5 s after the round goes live and show only while it is
+// calm: no hit for 5 s, the boss out of range for 4 s, alive, no sheet, card or landing shot on top. A fight starting hides them; they come
+// back at the same bubble once it is calm again. Only the bubble takes taps: the controls under the ring keep working.
+let coachSeen = !!store.get("coachSeen");
+const coach = PE && typeof PE.createCoach === "function"
+  ? PE.createCoach(document.body, { copy: { skip: COPY.coach.skip, next: COPY.coach.next, done: COPY.coach.done }, onDone: () => { coachSeen = true; coachState.idx = 0; store.set("coachSeen", true); } })
+  : null;
+const coachState = { at: 0, idx: 0 };
+let lastHitAt = -1e9;
+const anySheetOpen = () => SHEETS.some((id) => !$(id).classList.contains("hidden")) || !$("add").classList.contains("hidden");
+function calmNow() {
+  const now = performance.now();
+  return now - lastHitAt > 5000 && now - bossNearAt > 4000 && !death.on && !anySheetOpen() && !(lateCard && lateCard.isOpen && lateCard.isOpen()) && !hudCache.locked;
+}
+// The controller on screen now, either kind: [{ action, stick, locked, rect (CSS px) }]
+function liveControls() {
+  const ent = S.entity || S.drawn.ship;
+  if (S.ctl && S.ctl.live) {
+    const fr = $("ctl").getBoundingClientRect();
+    return S.ctl.handle.controls().map((c) => { const a = C.normaliseAction(c.action); return { action: a, stick: c.kind === "stick" || C.STICKS.includes(a), locked: !!lockInfo(a, ent),
+      rect: { left: fr.left + c.x * fr.width, top: fr.top + c.y * fr.height, width: c.w * fr.width, height: c.h * fr.height } }; });
+  }
+  return controls.map((c) => ({ action: C.normaliseAction(c.b.action), stick: c.b.type === "stick", locked: !!c.info, rect: c.el.getBoundingClientRect() }));
+}
+function coachSteps() {
+  const list = liveControls(), out = [];
+  const stick = list.find((c) => c.stick);
+  if (stick) out.push({ ...COPY.coach[stick.action === "move" ? "move" : "steer"], round: true, rect: () => { const c = liveControls().find((o) => o.action === stick.action); return c && c.rect; } });
+  const skip = new Set(["view", "ready", "drawing"]);
+  const btn = list.find((c) => !c.stick && !c.locked && !skip.has(c.action)) || list.find((c) => !c.stick && !skip.has(c.action));
+  if (btn) out.push({ ...COPY.coach.buttons, rect: () => { const c = liveControls().find((o) => o.action === btn.action); return c && c.rect; } });
+  const P = COPY.coach.pencil;
+  out.push({ title: P.title, text: S.lastMode === "planet" ? P.textPlanet : P.text, rect: () => $("tRedraw").getBoundingClientRect() });
+  return out;
+}
+function maybeCoach(h) {
+  if (!coach) return;
+  const live = (h.phase === "playing" || h.phase === "assists") && S.screen === "play" && S.step === "play" && !h.transition;
+  if (coach.isOpen()) {
+    if (!live || !calmNow()) { coachState.idx = coach.index(); coach.hide(); }
+    return;
+  }
+  if (!live) { coachState.at = 0; return; }
+  if (coachSeen || S.ctlPending || (S.ctl && !S.ctl.live)) return;
+  if (!coachState.at) coachState.at = performance.now();
+  if (performance.now() - coachState.at < 2500 || !calmNow()) return;
+  coach.show(coachSteps(), coachState.idx);
 }
 
 // ---------- faint sketch hints (riddle step 2) ----------
@@ -3670,6 +3953,15 @@ window.__spTest = {
       on: need === "button" ? "controller" : gate === "dig" || gate === "drill" ? "explorer" : "ship", ghost: need === "button" ? { action: L.action, x: 0.4, y: 0.3, w: 0.2, h: 0.3 } : null });
   },
   fullscreen() { return FS ? { supported: FS.supported(), active: FS.active(), standalone: FS.standalone(), iosSafari: FS.iosSafari() } : null; },
+  // v1.5: coach()   the first-time bubbles now, even when seen (returns how many); coachReset()   forget that this phone saw them;
+  // haptics()   { supported, on, log: the last kinds asked for }; progress(kind)   the waiting card of that drawing kind (gen sheet);
+  // stream()   { early: the JOIN stream is open, wired: the game's stream took over }; juice(action)   the press ring on that control
+  coach() { if (!coach || S.screen !== "play") return 0; coach.hide(); const st = coachSteps(); return coach.show(st, 0) ? st.length : 0; },
+  coachReset() { coachSeen = false; coachState.idx = 0; coachState.at = 0; store.set("coachSeen", false); },
+  haptics() { return { supported: !!(HAP && HAP.supported()), on: hapOn, log: hapLog.slice() }; },
+  progress(kind = "ship") { showGen(kind, null); return !$("genProg").classList.contains("hidden"); },
+  stream() { return { early: !!earlyEs, wired: gameWired }; },
+  juice(action = "shoot") { const r = controlBox(C.normaliseAction(action)); juice(r); return !!r; },
   installHint() { if (installHint) installHint.show(); return !!installHint; },
   toolCaps() { $("hud").classList.add("caps"); clearTimeout(showToolCaps.t); showToolCaps.t = setTimeout(() => $("hud").classList.remove("caps"), 6000); },
   html(html, kind = "controller", padLayout = null) {
@@ -3688,7 +3980,8 @@ window.__spTest = {
       pad: S.pad ? { source: S.pad.source, bytes: S.pad.html.length, bad: !!S.pad.bad } : null, padFailed: S.padFailed, drawingDown: S.drawingDown, empMap };
   },
   // Jump to a screen with demo data, for screenshots: join, ship, controller, explorerDraw, planetController, shipResult, explorerResult,
-  // controllerResult, wrong (the ship step with the warning), wait/play (the play screen), explorer (the planet prompt), ctrlPrompt, results,
+  // controllerResult, wrong (the ship step with the warning), wait/play (the play screen), explorer (the planet prompt), ctrlPrompt, results
+  // (I won: gold, confetti), resultsLose (5th of 5, the host is next),
   // gen (reading the ship drawing), genError (a drawing that could not be read: DRAW IT AGAIN).
   go(step) {
     const img = (n) => strokesPNG(sampleStrokes(n, 1.6), 1.6, { crop: true });
@@ -3705,8 +3998,12 @@ window.__spTest = {
       case "wait": case "play": backToGame(); break;
       case "explorer": backToGame(); openExplorer(); break;
       case "ctrlPrompt": backToGame(); openCtrlPrompt(); break;
-      case "results": backToGame(); closeSheets("resultsSheet"); renderResults({ round: 1, clock: 8, result: { reason: "chests", winner: S.player, scores: [[S.player, 4500], ["ana", 3000], ["bo", 1500], ["cy", 200]] }, scores: [] });
-        $("resultsSheet").classList.remove("hidden"); setStep("results"); break;
+      case "results": backToGame(); closeSheets("resultsSheet"); hudCache.resRows = null; $("resultsSheet").classList.remove("hidden");
+        renderResults({ round: 1, clock: 8, result: { reason: "chests", winner: S.player, scores: [[S.player, 4500], ["ana", 3000], ["bo", 1500], ["cy", 200]] }, scores: [] });
+        setStep("results"); break;
+      case "resultsLose": backToGame(); closeSheets("resultsSheet"); hudCache.resRows = null; $("resultsSheet").classList.remove("hidden");     // v1.5: 5th, kind words, no confetti
+        renderResults({ round: 1, clock: 0, phase: "scoreboard", result: { reason: "time", winner: "ana", scores: [["ana", 4500], ["bo", 3000], ["cy", 1500], ["di", 1400], [S.player, 200]] }, scores: [] });
+        setStep("results"); break;
     }
     return S.step;
   },

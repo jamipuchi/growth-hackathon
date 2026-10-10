@@ -1329,3 +1329,289 @@ export const Fullscreen = Object.freeze({
   lockLandscape,
   onChange: fsOnChange,
 });
+
+// ================================================================ v1.5 (v15-phone): haptics, confetti, coach marks
+// Own style block (pe15-styles) so the v1.3 / v1.4 CSS above stays untouched. Same rules: transform / opacity only in
+// animations, no backdrop-filter, every string through `copy`.
+
+const STYLE15_ID = "pe15-styles";
+const CSS15 = `
+.pe-confetti{position:fixed;left:0;top:0;width:100%;height:100%;z-index:12;pointer-events:none}
+.pe-coach{position:fixed;inset:0;z-index:25;pointer-events:none;display:none}
+.pe-coach.pe-on{display:block}
+.pe-coach-ring{position:fixed;box-sizing:border-box;border:4px solid #ffcb3d;border-radius:18px;pointer-events:none;
+  box-shadow:0 0 0 3px #120a2e,0 0 22px rgb(255 203 61 / .7);animation:pe-ring 1.1s ease-in-out infinite}
+.pe-coach-ring.pe-round{border-radius:50%}
+.pe-coach-ring.pe-none{display:none}
+@keyframes pe-ring{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.07);opacity:.75}}
+.pe-coach-bub{position:fixed;box-sizing:border-box;width:max-content;max-width:min(300px,72vw);padding:10px 14px 12px;pointer-events:auto;
+  display:flex;flex-direction:column;gap:5px;text-align:left;font-family:${BODY_FONT};color:#fff;
+  background:linear-gradient(160deg,#4a33c9,#22146e);border:4px solid #ffcb3d;border-radius:12px;box-shadow:0 6px 0 #0a0830,0 0 0 3px #120a2e;
+  animation:pe-coach-pop .32s cubic-bezier(.2,.9,.3,1.5) both}
+@keyframes pe-coach-pop{0%{opacity:0;transform:scale(.6)}100%{opacity:1;transform:scale(1)}}
+.pe-coach-bub::after{content:"";position:absolute;width:16px;height:16px;background:#2f1f97;border:4px solid #ffcb3d;border-radius:3px;
+  transform:rotate(45deg);left:var(--ax,50%);margin-left:-12px;display:none}
+.pe-coach-bub.pe-a-down::after{display:block;bottom:-12px;border-top:0;border-left:0}
+.pe-coach-bub.pe-a-up::after{display:block;top:-12px;border-bottom:0;border-right:0;background:#4733c4}
+.pe-coach-dots{font:900 italic 13px/1 ${HEAD_FONT};letter-spacing:.08em;color:#ffcb3d}
+.pe-coach-t{font:900 italic 23px/1 ${HEAD_FONT};letter-spacing:.03em;text-transform:uppercase;${OUTLINE}}
+.pe-coach-s{font-weight:700;font-size:15px;line-height:1.2;text-shadow:0 2px 0 rgb(10 6 30 / .6)}
+.pe-coach-s:empty{display:none}
+.pe-coach-row{display:flex;gap:8px;justify-content:flex-end;margin-top:3px}
+.pe-coach-row button{font:900 italic 17px/1 ${HEAD_FONT};letter-spacing:.05em;text-transform:uppercase;color:#fff;border:3px solid #120a2e;
+  border-radius:8px;min-height:40px;padding:0 14px;cursor:pointer;touch-action:manipulation;transition:transform .08s}
+.pe-coach-row button:active{transform:scale(.92)}
+.pe-coach-skip{background:rgb(13 11 46 / .7)}
+.pe-coach-next{background:linear-gradient(180deg,#ffe36e,#ffb000 55%,#d26a06);-webkit-text-stroke:2.4px #120a2e;paint-order:stroke fill;box-shadow:0 3px 0 #0a0830}
+@media (prefers-reduced-motion:reduce){.pe-coach-ring,.pe-coach-bub{animation:none}}
+`;
+
+function injectStyles15() {
+  if (typeof document === "undefined" || document.getElementById(STYLE15_ID)) return;
+  const s = document.createElement("style");
+  s.id = STYLE15_ID;
+  s.textContent = CSS15;
+  document.head.appendChild(s);
+}
+
+function reducedMotion() {
+  try {
+    return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch {
+    return false;
+  }
+}
+
+// any iOS device (Safari or not, home-screen app included): navigator.vibrate does nothing there, so we never call it
+function isIos() {
+  if (typeof navigator === "undefined") return false;
+  return /iPhone|iPod|iPad/.test(uaString()) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+// Haptics (v1.5): Android Chrome and friends. supported() is false on iOS and wherever navigator.vibrate is missing;
+// buzz(pattern) never throws and returns true when the browser took the pattern (a number of ms or [on, off, on...]).
+// The caller owns the on/off setting (controller.html keeps it in localStorage).
+export const Haptics = Object.freeze({
+  supported: () => typeof navigator !== "undefined" && typeof navigator.vibrate === "function" && !isIos(),
+  buzz(pattern) {
+    if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function" || isIos()) return false;
+    try {
+      return navigator.vibrate(pattern) !== false;
+    } catch {
+      return false;
+    }
+  },
+});
+
+// confetti(container, { colors, count, ms }) → { stop() }
+// Two confetti cannons from the bottom corners plus a short rain from the top, on one full-screen canvas (z 12, no
+// pointer events) that removes itself after `ms`. Reduced motion: nothing. At most one canvas per container at a time.
+export function confetti(container, { colors = ["#ffcb3d", "#19d3ff", "#b45cff", "#ff3b5c", "#4ade5a", "#ffffff"], count = 140, ms = 3400 } = {}) {
+  if (typeof document === "undefined" || reducedMotion()) return { stop() {} };
+  injectStyles15();
+  const host = container || document.body;
+  const old = host.querySelector(":scope > .pe-confetti");
+  if (old) old.remove();
+  const cv = el("canvas", "pe-confetti", host);
+  const ctx = cv.getContext("2d");
+  if (!ctx) {
+    cv.remove();
+    return { stop() {} };
+  }
+  const dpr = Math.min(2, (typeof devicePixelRatio === "number" && devicePixelRatio) || 1);
+  const W = Math.max(1, innerWidth), H = Math.max(1, innerHeight);
+  cv.width = Math.round(W * dpr);
+  cv.height = Math.round(H * dpr);
+  ctx.scale(dpr, dpr);
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const parts = [];
+  const n = Math.max(10, Math.min(260, count | 0));
+  for (let i = 0; i < n; i++) {
+    const kind = i % 3; // 0 left cannon, 1 right cannon, 2 rain
+    const s = Math.min(W, H) / 390;
+    const p = {
+      x: kind === 0 ? -10 : kind === 1 ? W + 10 : rnd(0, W),
+      y: kind === 2 ? rnd(-H * 0.5, -10) : H * rnd(0.75, 1),
+      vx: kind === 0 ? rnd(4, 12) * s : kind === 1 ? -rnd(4, 12) * s : rnd(-1, 1),
+      vy: kind === 2 ? rnd(1, 3) : -rnd(11, 19) * s,
+      w: rnd(6, 11),
+      h: rnd(9, 16),
+      r: rnd(0, Math.PI * 2),
+      vr: rnd(-0.25, 0.25),
+      wob: rnd(0, Math.PI * 2),
+      c: colors[i % colors.length],
+      delay: kind === 2 ? rnd(0, 700) : rnd(0, 250),
+    };
+    parts.push(p);
+  }
+  const t0 = performance.now();
+  let last = t0, raf = 0, done = false;
+  function frame(now) {
+    if (done) return;
+    const k = Math.min(3, (now - last) / 16.7);
+    last = now;
+    const age = now - t0;
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = age > ms - 600 ? Math.max(0, (ms - age) / 600) : 1;
+    for (const p of parts) {
+      if (age < p.delay) continue;
+      p.vy += 0.32 * k;
+      p.vx *= Math.pow(0.985, k);
+      p.vy = Math.min(p.vy, 5.5);
+      p.wob += 0.12 * k;
+      p.x += (p.vx + Math.sin(p.wob) * 0.8) * k;
+      p.y += p.vy * k;
+      p.r += p.vr * k;
+      if (p.y > H + 30) continue;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.r);
+      ctx.scale(1, Math.cos(p.wob)); // the flutter: a strip turning over
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+    if (age >= ms) return stop();
+    raf = requestAnimationFrame(frame);
+  }
+  function stop() {
+    if (done) return;
+    done = true;
+    cancelAnimationFrame(raf);
+    cv.remove();
+  }
+  raf = requestAnimationFrame(frame);
+  return { stop };
+}
+
+// createCoach(container, { copy: { skip, next, done }, onDone(how), stepMs }) → { show(steps, from), hide(), isOpen(), index(), destroy() }
+// First-time coach marks: one bubble at a time with a pulsing gold ring around what it is about. steps: [{ title, text,
+// rect: DOMRect-like | () => DOMRect-like | null (null: centred, no ring), round }]. Each step moves on by itself after
+// stepMs, or on NEXT; SKIP ends them all. Only the bubble takes taps (the controls under the ring keep working).
+// onDone("done" | "skip") runs once when the last step ends or SKIP is tapped; hide() (the caller pausing it, e.g. a fight
+// started) does not call it, and show(steps, index()) resumes where it stopped.
+export function createCoach(container, { copy = {}, onDone, stepMs = 4500 } = {}) {
+  injectStyles15();
+  const T = { skip: "SKIP", next: "NEXT ▶", done: "GOT IT ▶", ...copy };
+  const root = el("div", "pe-coach", container || document.body);
+  const ring = el("div", "pe-coach-ring pe-none", root);
+  let bub = null;
+  let steps = [], i = 0, open = false, timer = 0;
+
+  function build() {
+    const b = el("div", "pe-coach-bub", null);
+    b.setAttribute("role", "dialog");
+    const dots = el("div", "pe-coach-dots", b);
+    const title = el("b", "pe-coach-t", b);
+    const text = el("span", "pe-coach-s", b);
+    const row = el("div", "pe-coach-row", b);
+    const skip = el("button", "pe-coach-skip", row, T.skip);
+    const next = el("button", "pe-coach-next", row, i >= steps.length - 1 ? T.done : T.next);
+    skip.type = next.type = "button";
+    skip.addEventListener("click", (e) => (e.stopPropagation(), finish("skip")));
+    next.addEventListener("click", (e) => (e.stopPropagation(), advance()));
+    b.addEventListener("click", advance);
+    return { b, dots, title, text };
+  }
+
+  function rectOf(s) {
+    let r = null;
+    try {
+      r = typeof s.rect === "function" ? s.rect() : s.rect;
+    } catch {
+      r = null;
+    }
+    if (!r || !(r.width > 0) || !(r.height > 0)) return null;
+    return { left: r.left, top: r.top, width: r.width, height: r.height, right: r.left + r.width, bottom: r.top + r.height };
+  }
+
+  function render() {
+    const s = steps[i];
+    const parts = build(); // a fresh node per step: its pop plays from the first frame
+    parts.dots.textContent = i + 1 + " / " + steps.length;
+    parts.title.textContent = str(s.title);
+    parts.text.textContent = str(s.text);
+    if (bub) bub.replaceWith(parts.b);
+    else root.appendChild(parts.b);
+    bub = parts.b;
+    const r = rectOf(s);
+    const VW = innerWidth, VH = innerHeight, M = 8, GAP = 18;
+    if (r) {
+      const pad = 6;
+      Object.assign(ring.style, { left: r.left - pad + "px", top: r.top - pad + "px", width: r.width + pad * 2 + "px", height: r.height + pad * 2 + "px" });
+      ring.classList.toggle("pe-round", !!s.round);
+      ring.classList.remove("pe-none");
+    } else ring.classList.add("pe-none");
+    const bw = bub.offsetWidth, bh = bub.offsetHeight;
+    let left, top, arrow = "";
+    if (!r) {
+      left = (VW - bw) / 2;
+      top = (VH - bh) / 2;
+    } else if (r.top - GAP - bh >= M) {
+      top = r.top - GAP - bh;
+      arrow = "pe-a-down";
+    } else if (r.bottom + GAP + bh <= VH - M) {
+      top = r.bottom + GAP;
+      arrow = "pe-a-up";
+    } else {
+      // a tall control (a big stick zone): beside it, on the side with more room
+      top = Math.max(M, Math.min(VH - bh - M, r.top + r.height / 2 - bh / 2));
+      left = r.left + r.width / 2 < VW / 2 ? r.right + GAP : r.left - GAP - bw;
+    }
+    if (left == null) left = r.left + r.width / 2 - bw / 2;
+    left = Math.max(M, Math.min(VW - bw - M, left));
+    top = Math.max(M, Math.min(VH - bh - M, top));
+    bub.style.left = Math.round(left) + "px";
+    bub.style.top = Math.round(top) + "px";
+    if (arrow) {
+      bub.classList.add(arrow);
+      const ax = Math.max(18, Math.min(bw - 18, r.left + r.width / 2 - left));
+      bub.style.setProperty("--ax", Math.round(ax) + "px");
+    }
+    clearTimeout(timer);
+    timer = setTimeout(advance, Math.max(1500, s.ms || stepMs));
+  }
+
+  function advance() {
+    if (!open) return;
+    if (i >= steps.length - 1) return finish("done");
+    i++;
+    render();
+  }
+
+  function finish(how) {
+    if (!open) return;
+    hide();
+    if (typeof onDone === "function") {
+      try {
+        onDone(how);
+      } catch {
+        // the caller's problem
+      }
+    }
+  }
+
+  function show(list, from = 0) {
+    steps = (Array.isArray(list) ? list : []).filter(Boolean);
+    if (!steps.length) return false;
+    i = Math.max(0, Math.min(steps.length - 1, from | 0));
+    open = true;
+    root.classList.add("pe-on");
+    render();
+    return true;
+  }
+
+  function hide() {
+    clearTimeout(timer);
+    if (!open) return;
+    open = false;
+    root.classList.remove("pe-on");
+    ring.classList.add("pe-none");
+    if (bub) {
+      bub.remove();
+      bub = null;
+    }
+  }
+
+  return { show, hide, isOpen: () => open, index: () => i, destroy: () => (hide(), root.remove()) };
+}

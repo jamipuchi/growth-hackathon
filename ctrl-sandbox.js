@@ -50,7 +50,13 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden!important;ba
 :focus{outline:none}
 [data-action],[data-stick]{cursor:pointer}
 .is-disabled{filter:grayscale(1) brightness(.8);opacity:.42}
+[data-action]{transition:scale .16s cubic-bezier(.3,1.8,.5,1)}
+[data-action].is-down{scale:.9;transition:scale .05s ease-out}
+@media (prefers-reduced-motion:reduce){[data-action],[data-action].is-down{transition:none}}
 `;
+// v1.5 press juice: the individual "scale" property (Safari 14.1+) composes with whatever transform Sol's own CSS puts on a
+// button (slanted panels), so a pressed control squashes and springs back without losing its look. No filter (Sol's drop
+// shadows stay) and nothing on sticks (their knob maths reads the stick's box).
 
 // ---- The kit: runs inside the frame, before the controller's own markup ---------------------------------------------
 // Serialised with Function.prototype.toString, so it must not use anything from this module's scope.
