@@ -46,10 +46,14 @@ console.log = () => {};
 
 // The fake fetch: the recorded calls of the case whose image this is, in order (aborted calls are skipped: they never
 // answered). Anything unexpected is a test failure, never a network call.
-let queues = new Map(), served = 0, unexpected = [], lastPromptSha = null;
+// v1.4: a ship / explorer drawing also asks for its 3D spec (text.format.name "ship_spec" / "body_spec"), a call the
+// fixtures (recorded before v1.4) do not hold. It is answered 599 apart from the queues, so it never takes the entity
+// call's recording: astra.js then builds the spec from the entity's own parts (spec.source "entity").
+let queues = new Map(), served = 0, unexpected = [], lastPromptSha = null, specCalls = 0;
 const imageOf = (req) => ((req.input[0].content.find((c) => c.type === "input_image") || {}).image_url) || "";
 Astra._internals.setFetch(async (url, opts) => {
   const req = JSON.parse(opts.body);
+  if (/_spec$/.test(((req.text || {}).format || {}).name || "")) { specCalls++; return { ok: false, status: 599, json: async () => ({}), text: async () => "no spec fixture" }; }
   const key = sha1(imageOf(req));
   lastPromptSha = sha1((req.input[0].content.find((c) => c.type === "input_text") || {}).text || "").slice(0, 12);
   const q = queues.get(key);
@@ -120,7 +124,7 @@ const essence = (r) => r && {
   for (const [name, ok] of gates) { console.log(`${ok ? "PASS" : "FAIL"} ${name}`); if (!ok) failures.push(`gate: ${name}`); }
   for (const f of failures) console.log(`FAIL ${f}`);
   if (promptDrift) console.log(`note: ${promptDrift} fixture(s) were recorded with a different prompt than astra.js sends today (older wording, or no pad); the replay checks the code only. Re-record with a key after prompt changes: node dev/gen-corpus/score.js --label after`);
-  console.log(`\n${out.length} cases replayed from ${new Set([...fixtures.values()].map((f) => f.run)).size} run(s), ${served} recorded calls, ${failures.length} failure(s), ${Date.now() - t0} ms`);
+  console.log(`\n${out.length} cases replayed from ${new Set([...fixtures.values()].map((f) => f.run)).size} run(s), ${served} recorded calls (+${specCalls} spec calls answered 599), ${failures.length} failure(s), ${Date.now() - t0} ms`);
   fs.rmSync(tmp, { recursive: true, force: true });
   process.exit(failures.length ? 1 : 0);
 })();

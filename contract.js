@@ -6,7 +6,8 @@
   const TICK_HZ = 15;
   const PERF_POST_SECONDS = 5;
 
-  const PHASES = ["lobby", "playing", "assists", "scoreboard", "countdown"]; // v1.3: countdown (3-2-1 after START)
+  const PHASES = ["lobby", "playing", "assists", "scoreboard", "countdown"]; // v1.3: countdown (3-2-1 after START);
+  // v1.4: a real server phase between the lobby and "playing" (see ROUND below, tick.countdown and POST /start)
   // v1.1 (PLAN.md section 0): the lobby lasts until the host presses START on the big screen (POST /start), or
   // autostartSeconds when the server runs with --autostart N (null = never). Playing lasts at most maxSeconds, or ends
   // earlier when every chest is open; most points wins. Assists at assistsAt: the chests glow and every hint jumps to
@@ -294,7 +295,12 @@
    *                                                                      // refuses the rest
    *                        unlocked: [{ verb, part }],                   // the card: what the drawing unlocked and why
    *                        parts: [{ name, x, y }],                      // drawn parts, x, y fractions of the drawing
-   *                        source: "plain"|"model"|"devkit"|"bot", anims, image?,
+   *                        source: "plain"|"model"|"devkit"|"fallback"|"bot", anims, image?,
+   *                                                                      // v1.5 source "fallback": a ship / explorer
+   *                                                                      // drawing nobody could read (a timeout or a
+   *                                                                      // failed model call): only its type's innate
+   *                                                                      // skills (a ship flies, a person walks and
+   *                                                                      // jumps), unlocked [], free (POST /generate)
    *                        spec?,                                        // v1.4, ships: the drawing as 3D parts
    *                                                                      // (astra-ship.js: hull, cockpit, wings, fins,
    *                                                                      // engines, weapons, extras, palette; source
@@ -307,6 +313,15 @@
    *                                                                      // built rigged by entity3d.js. A model spec
    *                                                                      // that lands after the /generate answer
    *                                                                      // re-sends the entity
+   *                                                                      // Spec source "model": the spec call (one
+   *                                                                      // more strict-JSON call per ship / explorer
+   *                                                                      // drawing since v1.4, next to the entity
+   *                                                                      // reading, cached by image; the answer waits
+   *                                                                      // for it at most 100 ms); "entity": made
+   *                                                                      // from the entity's own parts (ASTRA_MOCK,
+   *                                                                      // no key, a failed spec call). Still running
+   *                                                                      // after 100 ms: no spec yet (inflate.js
+   *                                                                      // builds the plush body), then the re-send
    *                        card,                                         // v1.3: the unlock card in plain words, ≤ 200
    *                                                                      // chars ("Your ship can: fly, shoot (cannon)"):
    *                                                                      // Astra's for a drawing, else Verbs.cardOf
@@ -322,6 +337,11 @@
    * GET  /ship-spec?v=<hash>                          → { ok, spec } | 404   // v1.4: the spec of a ship (or explorer: body spec) drawing by the
    *                                                  // ?v= of its /drawings URL (sha1 of the PNG, 10 hex): the phone's
    *                                                  // result card (its first ship comes before its event stream)
+   *                                                  // Both kinds: spec = a ship spec (astra-ship.js) for a ship
+   *                                                  // drawing, a body spec (astra-body.js, with its type) for an
+   *                                                  // explorer drawing. 404 { ok: false, error: "no spec" } until a
+   *                                                  // spec is known (the /generate answer's, or the model's late
+   *                                                  // one); the newest 200 drawings are kept
    * GET  /info                                        → { lanUrl, httpsUrl, controllerUrl, bigScreenUrl }   // v1.2: the
    *                                                  // join QR opens controllerUrl (HTTPS when it is up, else HTTP);
    *                                                  // httpsUrl is null when HTTPS is off
@@ -358,6 +378,18 @@
    *                                                                      // could not answer a finished ship / explorer:
    *                                                                      // the generous dev kit (source "devkit")
    *                                                                      // wearing the drawing; it counts as a drawing
+   *                                                                      // (v1.3). v1.5 (QA M1): the PLAIN entity
+   *                                                                      // instead (source "fallback", nothing
+   *                                                                      // unlocked) and it is free:
+   *                     free?, failed?, kept?,                           // free: true = no drawing spent (always with
+   *                                                                      // fallback); failed: "timeout" | "error";
+   *                                                                      // kept: true = a redraw nobody could read
+   *                                                                      // while the player already has a read entity
+   *                                                                      // in that world: the answer carries that
+   *                                                                      // entity and nothing changes. The phone says
+   *                                                                      // so and offers TRY AGAIN. Never cached.
+   *                                                                      // ASTRA_MOCK / no key: Astra still answers
+   *                                                                      // the dev kit
    *                     html, controls, htmlSource, padLayout }          // controller | button only: the pad as HTML now
    *                                                                      // (see generated); Sol's own follows
    *                 | { ok: false, error, message, looksLike?, thing?, drawingsLeft }   // image: PNG data URL, max 512 px.
@@ -382,7 +414,9 @@
    *     source: "model"|"default"|"manual"|"regions" }
    *   x, y, w, h are fractions of the drawing pad. A stick's action is "steer" or "move". source "regions": built from
    *   the phone's inkRegions (no model answer). auto: true = a steer stick the server added because the drawing had no
-   *   way to turn (PLAN.md section 7, "Never stuck").
+   *   way to turn (PLAN.md section 7, "Never stuck"). v1.5 (QA N1): ink: true (with auto: true) = that stick sits on a
+   *   circle (or roughly square blob on the left half) the player drew that no control covers, found in the phone's
+   *   inkRegions; without ink the stick went to the roomiest empty spot. The result card does not call it "added".
    *
    * render.js (ES module, shared by space.html and controller.html):
    *   startGame({ canvas, screen: "big"|"phone", view: "spectator"|"chase"|"cockpit", player }) → game

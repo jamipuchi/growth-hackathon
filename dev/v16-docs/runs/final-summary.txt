@@ -1,0 +1,6 @@
+11:30:22 astra-test exit=0 11842 ms :: 29/29 passed. cache hit 0.12 ms, mock 300 ms, timeout 4002 ms
+11:30:22 vocab-test exit=0 37 ms :: vocab: 415 checks passed
+11:30:22 anim-wire-test exit=0 61 ms :: 9 passed
+11:30:22 check-samples exit=0 30 ms :: all samples valid
+11:30:22 gen-regression-test exit=0 111 ms :: 103 cases replayed from 3 run(s), 103 recorded calls (+45 spec calls answered 599), 0 failure(s), 62 ms
+11:30:23 server-generate-test exit=0 912 ms :: 7/7 passed (port 8187, model answers replayed from fixtures; astra log lines: 12)

@@ -23,6 +23,10 @@ let n = 0;
 const image = (tag) => "data:image/png;base64," + Buffer.from(`fake-png-${tag}-${n++}`).toString("base64");
 
 // Fake fetch: `script(req, call)` returns { status, body | text, delay }.
+// v1.4: a ship / explorer drawing makes two calls by design, its entity reading (text.format.name "entity") and its 3D
+// spec next to it ("ship_spec" / "body_spec"); `calls` keeps both, `readings()` the entity readings only.
+const formatOf = (call) => (call.req.text && call.req.text.format && call.req.text.format.name) || "";
+const readings = () => calls.filter((c) => !/_spec$/.test(formatOf(c)));
 let calls = [];
 function fakeFetch(script) {
   calls = [];
@@ -314,15 +318,16 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     }
   });
 
-  await test("ship and explorer: one strict-JSON vision call → type, parts, verbs from drawn parts only", async () => {
+  await test("ship and explorer: one strict-JSON entity call + its spec call (v1.4) → type, parts, verbs from drawn parts only", async () => {
     fakeFetch((req) => {
+      if (/_spec$/.test(req.text.format.name)) return { status: 500, text: "no spec" }; // → the spec from the entity's parts
       const text = req.input[0].content[0].text;
       if (text.includes("SPACESHIP")) return answer({ type: "ship", parts: [{ name: "Cannon", x: 0.8, y: 0.4 }, { name: "flames", x: 0.1, y: 0.5 }], verbs: ["shoot", "boost", "dig"], unlocked: [{ verb: "shoot", part: "cannon" }, { verb: "boost", part: "flames" }] });
       return answer({ type: "bike", parts: [{ name: "shovel", x: 0.5, y: 0.2 }], verbs: ["dig"], unlocked: [{ verb: "dig", part: "shovel" }] });
     });
     const ship = await Astra.generate({ player: "ana", kind: "ship", image: image("ship") });
-    assert.strictEqual(calls.length, 1);
-    const req = calls[0].req;
+    assert.deepStrictEqual(calls.map(formatOf).sort(), ["entity", "ship_spec"], "two calls by design: the entity reading and its ship spec");
+    const req = readings()[0].req;
     assert.strictEqual(req.model, "gpt-6.1-sol"); assert.strictEqual(req.service_tier, "ultrafast");
     assert.strictEqual(req.text.format.strict, true); assert.strictEqual(req.text.format.name, "entity");
     assert.deepStrictEqual(req.text.format.schema.required, ["looksLike", "type", "parts", "verbs", "unlocked"]);
@@ -333,9 +338,12 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     assert.deepStrictEqual(ship.entity.unlocked, [{ verb: "shoot", part: "cannon" }, { verb: "boost", part: "flames" }]);
     assert.deepStrictEqual(ship.entity.parts[0], { name: "cannon", x: 0.8, y: 0.4 });
     assert.ok(ship.entity.anims && ship.entity.anims.primary, "animations wired for its verbs");
+    assert.ok(ship.entity.spec && ship.entity.spec.source === "entity", "a failed spec call: the spec from the entity's own parts");
     const ex = await Astra.generate({ player: "ana", kind: "explorer", image: image("explorer") });
+    assert.deepStrictEqual(calls.slice(2).map(formatOf).sort(), ["body_spec", "entity"], "an explorer: its entity reading and its body spec");
     assert.strictEqual(ex.entity.type, "bike"); assert.strictEqual(ex.entity.rig, "car");
     assert.deepStrictEqual(ex.entity.verbs, ["dig", "drive", "takeoff"], "bike: innate drive + take-off, no jump");
+    assert.ok(ex.entity.spec && ex.entity.spec.source === "entity", "an explorer carries its body spec too");
   });
 
   await test("a plain drawing unlocks nothing; junk types fall back to blob", async () => {
@@ -348,7 +356,7 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     assert.deepStrictEqual(sh.entity.verbs, [], "a plain ship only flies");
   });
 
-  await test("dev kit: ASTRA_MOCK=1, no key, a failed call → every gate skill", async () => {
+  await test("dev kit: ASTRA_MOCK=1, no key → every gate skill; a failed call → the plain entity, free (v1.5)", async () => {
     _internals.setFetch(() => { throw new Error("network used"); });
     process.env.ASTRA_MOCK = "1";
     try {
@@ -359,9 +367,15 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
       const e = await Astra.generate({ player: "cy", kind: "explorer", image: image("mock-ex") });
       for (const v of ["dig", "drill", "jump", "takeoff"]) assert.ok(e.entity.verbs.includes(v));
     } finally { delete process.env.ASTRA_MOCK; }
+    // v1.5 (QA M1): a failed call read nothing, so it unlocks nothing and costs no drawing: never the dev kit with a key.
     fakeFetch(() => ({ status: 500, text: "boom" }));
     const f = await Astra.generate({ player: "cy", kind: "ship", image: image("fail") });
-    assert.strictEqual(f.ok, true); assert.strictEqual(f.entity.source, "devkit");
+    assert.strictEqual(f.ok, true); assert.strictEqual(f.entity.source, "fallback");
+    assert.deepStrictEqual([f.fallback, f.free, f.failed], [true, true, "error"]);
+    assert.deepStrictEqual([f.entity.type, f.entity.verbs, f.entity.unlocked], ["ship", [], []], "a plain ship only flies");
+    const fe = await Astra.generate({ player: "cy", kind: "explorer", image: image("fail-ex") });
+    assert.deepStrictEqual([fe.ok, fe.entity.source, fe.free, fe.entity.type], [true, "fallback", true, "person"]);
+    assert.ok(!fe.entity.verbs.includes("dig") && fe.entity.verbs.includes("jump"), "a plain person walks and jumps, digs nothing");
     // A blank key means no key: astra never falls back to the .env then (and this test never reads it).
     const key = process.env.OPENAI_API_KEY;
     process.env.OPENAI_API_KEY = "";
@@ -421,7 +435,7 @@ const byAction = (layout, action) => layout.buttons.find((b) => b.action === act
     assert.deepStrictEqual(s, { ok: false, error: "looks like a controller", looksLike: "controller" });
     const sAnyway = await Astra.generate({ player: "ana", kind: "ship", image: img, anyway: true });
     assert.ok(sAnyway.ok && sAnyway.entity.type === "ship" && sAnyway.entity.source === "model" && sAnyway.looksLike === "controller");
-    assert.strictEqual(calls.length, 1);
+    assert.strictEqual(readings().length, 1, "anyway reads the entity from the cache (only the ship spec may run again)");
     fakeFetch(() => answer({ looksLike: "controller", type: "person", parts: [], verbs: [], unlocked: [] }));
     const e = await Astra.generate({ player: "ana", kind: "explorer", image: image("controller-as-explorer") });
     assert.deepStrictEqual(e, { ok: false, error: "looks like a controller", looksLike: "controller" });

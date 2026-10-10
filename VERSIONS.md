@@ -10,6 +10,9 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
 | v1.0 | Oct 9, 23:51 | First integrated build: landing shot, animations, HUD extras, riddle hints, drawn 3D ship pipeline (server half only, see notes), real assets | All 9 unit suites pass; expert round won in 26.8 s, regular in 123.6 s (24 bots, mock generation); 0 console errors; phone perf gate missed by 0.3 fps under video capture (1% low 29.7 vs 30). Playtest panel 4.0/10; 3 confirmed blockers (see notes) | requested | [expert](videos/v1.0-expert-side.mp4) · [regular](videos/v1.0-regular-side.mp4) |
 | v1.1 | Oct 10, 01:47 | Section 0's round: lobby with START on the big screen, 4:00 rounds won on points, session stars, two drawings (the ship first, as a 3D ship with an unlock card, then the controller), skills only from drawn parts, buried and rock chests, planet entity types, Fortnite-style big screen and phone, 25 players, synthesized sound, generation-quality fixes | **Built, not verified:** the version's verification run was cut off at 02:13 by a machine failure. Only the tracks' own checks exist: e2e expert won in 140.9 s, regular in 225.4 s (24 bots, mock generation), 0 console errors, phone about 59 fps. The `GET //` crash is still in v1.1 (fixed in v1.2) | not requested | – |
 | v1.2 | Oct 10, 08:36 (tag `v1.2`) | Sol writes the phone controller as HTML (sandboxed, template first), the five mischief skills on the phone and the TV, the drill on the planet only, a death card, one sound engine, a TV that fits 25 players (results, name tags, kill feed, QR from `GET /info`), duplicate-name protection, robustness (`GET //` fixed), v1.0 and Codex fixes | 9/9 unit suites. e2e expert won in 141 s, but the phone perf gate was missed under video capture and laptop load (43 fps, 1% low 21); regular PASS in 221 s (phone 59 fps, 1% low 30.4, at most 66 draw calls); 0 console errors (24 bots, mock generation). No playtest panel yet | not requested yet | [expert phone](videos/v1.2/expert-phone.webm) · [regular phone](videos/v1.2/regular-phone.webm) |
+| v1.3 | Oct 10, 09:39 (tag `v1.3`) | A drawn ship or explorer always becomes a 3D entity or a plain refusal, with an unlock card; ruthless PvP (steal chest points and the boss's last hit, wreck parked ships, spawn shield, score floor); every delivered asset in the world; sound loops; a cinematic TV camera; a numbered phone flow; a TV readable from the sofa, with a live map; docs that match section 0 | 9/9 unit suites. e2e expert PASS in 161 s, regular PASS in 242 s (at the 4:00 cap, 6 chests); phone 59 fps; 0 console errors (24 bots, mock generation). Entity kit: mock 477/482 checks (5 not applicable), real `gpt-6.1-sol` 496/496 | Codex QA of v1.3: 1 blocker (phone perf), 4 majors (see notes) | – |
+| v1.4 | Oct 10, 10:50 (tag `v1.4`) | Drawn ships become real 3D ships built from their parts; drawn astronauts, animals, cars, bikes and blobs become rigged 3D models; the owner's 09:05 and 10:00 decisions (no free skills, ink until wiped, a server countdown, a 25-player cap, a close and weaker boss, most of the round on the planet); full screen and Add to Home Screen | e2e expert won in 179 s (boss down 20.6 s, landed 37 s, 16/16 chests), 0 console errors; phone gate missed (1% low 28.6 vs 30, laptop loaded). Entity kit real 485/485. Ship and character contact sheets. A real iPhone on the 3D-ship build: 60 fps, 1% low 27, tier 5 | Codex test round (10:53-11:29): the gates do not all pass; B1 still open, M5 and N4-N7 new (see notes) | – |
+| v1.5 | in progress | First-time coach marks, results and a 3-2-1 on the phone, a HUD show/hide button, the Codex QA fixes (a failed read is a plain entity and free), a TV lobby hangar with every player's ship drawing and a podium, entity and ship polish (see notes) | – | – | – |
 
 ## Notes per version
 
@@ -207,6 +210,159 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
   only through the e2e run; the 25-player draw-call numbers on the TV after the v1.2 caps are not measured; phone
   numbers come from WebKit on a Mac, not a real iPhone; the TV page still lets a stray key add a "keyboard" player; the
   big banner can cover long kill-feed lines; ghost players via `/input` and PvP spawn camping (v1.3).
+
+### v1.3 (commit 21d3291, tag v1.3, Oct 10 09:39; client tracks db3c871)
+- **What changed:** one implement-only round (the owner, 08:40: "Don't test at all, first let's implement
+  everything"; "make sure the character / entity creation works asap"). Four tracks, entity creation first in each.
+  - Entity creation: a finished ship or explorer drawing always ends as a usable 3D entity (type, rig, skills,
+    unlocked parts, animations, the unlock `card` and the drawing `image`) or as a plain refusal ("looks like a
+    controller", "nothing to read"). In v1.3 a failed model call still gave the generous dev kit (changed in v1.5).
+    `Verbs.cardOf()` writes the card ("Your ship can: fly, shoot (cannon), boost (exhaust flames)") in the same words
+    on the phone, the TV and in `/generate` answers. Planet drawings map to person, quadruped, bike, car or blob. The
+    drawing's image URL rides on every `entity` message and on `island.parked[]`.
+  - Server (21d3291): ruthless PvP (steal chest points and the boss's last hit, wreck parked ships, spread spawns with
+    a spawn shield, a score floor); mischief balance; humans get name tags before bots; pacing toward about 3:00 for
+    an expert; the rock field is never rebuilt; the v1.0 server findings; better Sol controllers; `looksLike`; the mock
+    answers the button that was asked for.
+  - World (db3c871): the entity pipeline traced and fixed (a drawn person is 1.8 m tall, a car 4 m, a bike 2 m; a
+    lighter quality for the phone; parked ships show their drawing); assets A-001, A-002 foreground rocks, A-003,
+    A-007, A-010 and A-011 in the world; boost, drill and dig sound loops, steal and hit sounds; camera moments (intro,
+    reveal, outro) and a director that favours humans.
+  - Phone: "1 · DRAW YOUR SHIP" → a "becoming 3D" card → the unlock card, with up to 3 locked skills and what to draw
+    for each → a 3D turntable → "2 · DRAW YOUR CONTROLLER". Portrait photos are no longer turned (rockets flew
+    backwards). A 15 s limit on `/generate`. Failures in plain words with the right action (TRY AGAIN, DRAW IT AGAIN,
+    BACK TO THE GAME, PICK A NEW NAME). A Fortnite HUD on a dark scrim; a hit marker, a spawn-shield aura, steal and
+    wreck chips.
+  - TV: 28-40 px type, a big QR, player chips in the lobby, 3-2-1 then GO, boss-down and last-5-seconds moments, a
+    live map, a livelier kill feed at the bottom left, the keyboard player only with `?kb`.
+  - Docs: PLAN.md sections 1-12 rewritten to match section 0; README rewritten; VERSIONS.md v1.1 and v1.2.
+  - Entity-creation test kit (3db6cd8, `dev/v13-entity`): 14 drawings (ships, astronauts, a car, a bike, a dog, a
+    blob, a wrong-kind drawing and a scribble) sent through `/generate` like a phone, then built on the TV and the
+    phone.
+- **Recorded checks** (the tracks themselves ran syntax checks only; these ran on the frozen build, 09:39-09:47):
+  - 9/9 unit suites.
+  - e2e with 24 bots and mock generation: expert PASS in 161 s; regular PASS in 242 s (it reached the 4:00 cap with
+    6 chests open). Phone 59 fps. 0 console errors.
+  - Entity kit: mock 477/482 checks (5 not applicable); real `gpt-6.1-sol` (8 calls plus replay) 496/496, every type
+    at its expected size.
+- **Codex QA of the frozen v1.3** (10:18-10:54, `dev/v14-qa/FINDINGS.md`; from 10:24 QA goes to Codex, the owner's
+  call). Verdict: the gates do not all pass.
+  - B1 blocker: a staged island crowd (25 explorers, 25 parked ships, 16 mines, 8 decoys, EMP, ink and tractor on 8
+    players) gives the phone 89 draw calls in every sample (budget 80) and the TV a peak of 139. The same crowd
+    without effects stays at 72 and 103. Goes to v1.5's performance track.
+  - M1: a real generation timeout (about 4 s) returned the generous dev kit (SHOOT, BOOST, SHIELD, LAND, SCAN, FLARE,
+    MINE, EMP) and spent a drawing. Fixed in v1.5 (a plain entity, free).
+  - M2: phones missed the TV's countdown (the server stayed in the lobby). Fixed in v1.4 (a server countdown phase).
+  - M3: the opening ate the planet's time (boss reached at 37.9 s and killed at 77.9 s). Fixed in v1.4 (pacing).
+  - M4: Sol's finished controller page was lost while the player read the result card. Fixed in v1.5.
+  - Minor: N1 the drawn steering circle was ignored (fixed in v1.5); N2 the followed player replaces rank 7 on the
+    TV; N3 "DRILLING 78%" stays after the player stops. Polish: P1 island lighting and silhouettes; P2 dark-blue
+    names are hard to read from the sofa.
+- **Videos:** none for v1.3; Codex's screenshots are in `dev/v14-qa/shots/`.
+
+### v1.4 (tag v1.4 on a1bf429, Oct 10 10:50; play server from 10:55)
+- **What changed** (six commits, 09:48-10:45):
+  - Phone and TV (5fad1fe): full screen. A FULLSCREEN button, the first JOIN asks for full screen on Android and iPad,
+    and iPhone Safari shows a one-time "Add to Home Screen" hint; `controller.webmanifest` (full screen, landscape)
+    and the app icons make the home-screen app. The drawing canvas fills the screen, with a one-line instruction, an
+    example behind a tap and a slim tool rail (photo or draw, undo, clear, 6 pen colours, DONE). The 3-2-1 comes from
+    the server on every phone and the TV; ink stays until wiped; the "DRAW X" card; the TV's two numbered steps match
+    the phone's.
+  - Server (b099a9d), the owner's decisions: no free skills at 3:00 (one big card per missing part or button, such as
+    "DRAW A SHOVEL", and the chests glow); ink stays until wiped, with a 10 s safety fade; `POST /start` plays a 3 s
+    `countdown` phase (3, 2, 1; nothing moves, bots wait) before `playing`; at most 25 players in total (bots leave
+    first when a human joins a full room). The server serves the home-screen app files. `/generate` stops, and does
+    not spend the drawing, when the phone gives up.
+  - 3D ships (0f6ee6b): `astra-ship.js` reads the drawing into a ship spec (hull, cockpit, wings, fins, engines and
+    flames, weapons, extras, colours per part, the drawing's view) with one strict-JSON `gpt-6.1-sol` call next to the
+    entity reading. `ship3d.js` builds a chunky Fortnite-style ship from it: 3-5k triangles, 3 draw calls, the A-012
+    texture kit, glowing engines, the player's colour for black-ink drawings and the drawing as a hull sticker. The TV,
+    the phone preview and parked ships use it, with `inflate.js` as the fallback. `GET /ship-spec` serves the spec to a
+    screen that missed it.
+  - Pacing (17fa70e), the owner's 10:00 decisions: the boss is 400 m away (was 1,100 m) with 1,200 HP (was 3,000) and
+    +0.3 per extra player, where a bot counts 0.5; the planet is 350 m behind it (was 800 m); the chests count humans
+    only (15 + 0.65 per human, at most 32) and are spread wider; DIG takes 4 s and DRILL 4.5 s.
+  - 3D characters (a1bf429): `astra-body.js` reads a body spec (type, head, torso, limbs or wheels, tools,
+    attachments, colours) next to the entity reading. `entity3d.js` builds a person on the A-008 skeleton (all 33 clips
+    play), animals with the quadruped clips, cars and bikes with spinning wheels, and blobs that squash, in the
+    player's colour for black-ink drawings, with at most 5k triangles and 3 draw calls. Island explorers, decoys and
+    the phone's result card use it, with `inflate.js` as the fallback.
+- **Recorded checks:**
+  - Ships (09:44-10:30, 49 real OpenAI calls): the spec reading on `gpt-6.1-sol` 12/12 valid, p50 3.0 s, p90 3.3 s.
+    `gpt-6-astra` read the 12 drawings the same way on 10-11 of them, about 0.75 s slower, so 6.1 stays
+    (`dev/v14-ship/compare/REPORT.md`). Every ship takes 3 draw calls, 3.2k-4.8k triangles at full quality and 1.4k-2.4k
+    on the phone, and builds in 7-26 ms. Scores out of 5: looks like the drawing 4.1, reads as a ship 4.8, cool 4.3.
+    In a live game (TV Chromium 1440×900, phone WebKit 844×390): 5/5 drawn ships built by `ship3d.js` on both screens;
+    the unlock card in 1.6 s and the model's ship about 1.5 s later.
+  - Characters: 4/4 explorers built by `entity3d.js` on the TV and the phone, 0 page errors. Scores out of 5: looks
+    like the drawing 4.1, looks 3.7, animation 3.6 (`dev/v14-entity3d/compare/REPORT.md`).
+  - Pacing, balance sim (1 human and 24 bots, seeds 1-6, 10:35): all pass. An expert reaches the boss at 0:11, the
+    boss falls at 0:20, the expert lands at 0:35-0:39 and opens all 16 chests at 2:54-3:12 (about 80% of the round on
+    the planet). A regular player lands at 1:19-1:22 and is still opening chests at the 4:00 cap.
+  - Version checks (10:55, a1bf429 on ports 8102/8545): e2e expert won in 179 s (boss down at 20.6 s, landed at 37 s,
+    16/16 chests), 0 console errors; the phone perf gate was missed under laptop load (1% low 28.6 vs 30). Entity kit
+    with real generation 485/485. Contact sheets of the ships and the characters.
+  - The owner's real iPhone on the 3D-ship build: 60 fps, 1% low 27, quality tier 5.
+  - Codex's v1.4 test round (10:53-11:29 on the frozen tag, `dev/v14-test/FINDINGS.md`). Verdict: the gates do not
+    all pass. Unit suites: vocabulary 415 checks, animation wiring 9, rules 17, Astra entity 4/4, the live server and
+    HTTPS pass; the Astra suite (27/29) and the corpus replay (85 of 103 cases fail) still assumed one model call per
+    drawing (updated in v1.5); the simulation 31/32 (M5). Live server with 25 players: 15.21 ticks a second, largest
+    tick 5,508 B. The 25-seat cap, the frozen countdown, the 3-2-1, no bullets in it and no free skills pass (5/5).
+    Expert route: boss at 11.6 s, killed at 19.7 s, landed at 35.6 s, done at 181.3 s, with 80.4% of the round after
+    landing; regular route: landed at 80.0 s, done at 240.0 s (M3 fixed). 44/44 recorded-spec ship and character
+    builds on both screens. No real generation was tested (no credential in Codex's isolated build).
+  - Codex's recheck of the v1.3 findings: B1 still present (phone 91 draw calls, TV 142; 75 and 133 with the 3D
+    models); M1, M4, N1, N2, N3, P1 and P2 still present; M2 partly fixed (a phone still on its first drawing gets no
+    countdown). New: M5 planet gunfire cannot aim at a nearby player downhill; N4 "ALL POWERS ON" contradicts "no free
+    skills"; N5 a two-digit chest count wraps on the TV at 1440×900; N6 no GO sound after the countdown phase; N7
+    vehicle tyres show gaps around floating hubs.
+- **Still open after v1.4:** B1 (draw calls on a crowded island with effects); M1, M4 and N1 (fixed in v1.5); M2 for a
+  phone on its very first drawing (no 3-2-1); M5 (downhill aim on the planet); N2 (rank 7 replaced on the TV); N3 (a
+  stale "DRILLING"); N4 (the "ALL POWERS ON" copy); N5 (two-digit chest counts wrap on the TV); N6 (the GO sound no
+  longer plays after the countdown phase); N7 (tyre gaps); P1 and P2. The camera and the self-signed certificate in
+  home-screen mode on a real iPhone are unchecked.
+
+### v1.5 (in progress; preview cd6ff5c on ports 8103/8546 from 10:55)
+- **Landed so far:**
+  - Phone (cd6ff5c): first-time coach marks, results on the phone, the 3-2-1 while still drawing, Android haptics, a
+    livelier waiting card, button juice.
+  - Codex QA fixes (5336cc4, c2f6e31): a failed or timed-out read gives a plain entity with no undrawn skills and
+    costs no drawing (M1); Sol's controller survives the result card (M4); the drawn steering circle is honoured
+    (N1); the failed-read message names no internal module.
+  - TV (165b128): a lobby hangar with every player's ship drawing, a podium ceremony, attract tips, lobby ambience and
+    a fanfare.
+  - Entity and ship polish (a720e30): tools held per animation (a shovel at the side, stabbing when digging; a drill
+    held forward), vehicles with their own idle, run, jump and dig clips, a rider on bikes and saddled animals, a real
+    dog and horse, subtler ship stickers and an engine flame that no longer hides the ship in the chase view. Scores
+    out of 5: characters 4.1 / 3.7 / 3.6 → 4.3 / 4.0 / 4.0, ships "cool" 4.3 → 4.5 (`dev/v16-entity/NOTES.md`).
+  - Phone (daa29cd): a HUD show/hide button, so the normal UI never covers the generated controller (the owner's
+    11:18 "controls only" decision); the 3D view keeps rendering, and a HUD piece over a held control fades to 25%.
+  - TV and copy (de9a322): the scoreboard always shows ranks 1-7 with the followed player as an extra row (N2), dark
+    player colours lightened for names (P2), and the 3:00 copy says "THE CHESTS GLOW · DRAW WHAT YOU NEED" instead
+    of "ALL POWERS ON" (N4).
+  - Docs and tests (v16-docs): this entry, README, `contract.js` comments, and the `dev/astra` suites updated to the
+    two-call design (entity + spec) and the plain "fallback" entity: all six suites pass (11:30).
+- **Still coming:** phone performance on a crowded island (B1), the remaining TV and HUD fixes (the GO sound N6, the
+  two-digit chest count N5, the countdown clock, a phone chase camera), M5, N3, N7, the bigger A-005 island, and the
+  owner's 11:31 decision (every round starts from scratch).
+- **Checks:** none yet. v1.5 is checked after its last track lands.
+
+## The owner's decisions on the morning of Oct 10 (PLAN.md section 0 has the full text)
+| When | Decision | Landed in |
+| --- | --- | --- |
+| 08:40 | "Don't test at all, first let's implement everything" and "make sure the character / entity creation works asap": v1.3 is one implement-only round, entity creation first in every track, then a test round | v1.3 |
+| 09:05 | No free skills at 3:00: a player still missing a gate skill gets a big card such as "DRAW A SHOVEL" and the chests glow; the skill itself is never granted | v1.4 (server) |
+| 09:05 | The ink bomb stays until the player wipes it with a finger, with a 10 s automatic fade as a safety net (was 4 s) | v1.4 |
+| 09:05 | Adding one button to the controller stays (it costs one drawing); adding a part to an entity stays ruled out | unchanged |
+| 09:05 | The 3-2-1 after START is a real server phase (`countdown`), so the phones count down with the TV | v1.4 |
+| 09:05 | The TV's scoreboard during play shows 7 rows plus the followed player | v1.3 (TV) |
+| 09:05 | At most 25 players, humans and bots together (was 32 humans plus bots) | v1.4 |
+| 09:05 | Time to the boss stays about 60 s cruising | superseded at 10:00 |
+| 10:00 | "Not that far away from the boss, and less life": space is a short opening act; the boss is close (about 20 s cruising, 15 s with BOOST), falls in about 10-15 s of shared fire, and the planet is close behind it | v1.4: boss 400 m away with 1,200 HP, planet 350 m behind it |
+| 10:00 | "Most of the time on the planet": more chests, spread wider, a little more digging and drilling; an expert lands about 0:45, a regular player about 1:20; the 4:00 cap and "every chest open" still end the round | v1.4: 15 + 0.65 chests per human (at most 32), DIG 4 s, DRILL 4.5 s |
+| 10:24 | QA and testing go to Codex; Claude workers only build | v1.3 QA, v1.4 test round |
+| 11:18 | A phone "controls only" mode, and no control may overlap another; the 3D view stays rendered on the phone (11:21) | v1.5 (in progress) |
+| 11:31 | Every round starts from scratch: drawings, entities, controllers, unlocked skills, drawing budgets and anything generated from them are cleared when a round ends, and a drawing is never reused in a later round; only the joined name, colour and session stars carry over | v1.5 (to do; in PLAN.md section 0 at 11:33, not in the code yet) |
 
 ## Decisions taken overnight while the owner slept (overrule any in the morning)
 | When | Decision | Why |
