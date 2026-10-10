@@ -1,5 +1,6 @@
 """Original Space Party assets. Rebuild: blender -b --python assets/A-001-boss-rock/generate.py
 
+Boss-only hostile revision. The legacy decoy is preserved; use generate_decoy.py to rebuild it.
 All geometry is authored procedurally here; no external assets or textures.
 Blender's +Y becomes glTF -Z; Blender's +Z becomes glTF +Y.
 """
@@ -30,10 +31,13 @@ def material(name, color, metallic, roughness, emission=None):
     return mat
 
 
-BASALT = material('basalt_armour', (0.13, 0.155, 0.17), 0.24, 0.88)
+BASALT = material('basalt_armour', (1,1,1), 0.52, 0.58)
+vc=BASALT.node_tree.nodes.new('ShaderNodeVertexColor');vc.layer_name='armour_paint';BASALT.node_tree.links.new(vc.outputs['Color'],BASALT.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
+SEAM = material('hostile_seams', (.4,.004,.006), .15, .36, (1,.002,.005))
+SEAM.node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value=3.6
 EDGE = material('weathered_alloy', (0.26, 0.22, 0.155), 0.66, 0.57)
 OBSIDIAN = material('core_crust', (0.075, 0.053, 0.03), 0.63, 0.38)
-LIGHT = material('core_light', (0.9, 0.66, 0.3), 0.2, 0.36, (1.0, 0.68, 0.25))
+LIGHT = material('core_light', (.75,.003,.008), .2, .36, (1,.003,.009))
 
 
 class MeshBuilder:
@@ -52,7 +56,7 @@ class MeshBuilder:
             self.faces.append((indices[0], indices[n], indices[n+1]))
             self.materials.append(material_id)
 
-    def object(self, name, materials):
+    def object(self, name, materials, paint=False):
         mesh = bpy.data.meshes.new(name)
         mesh.from_pydata(self.vertices, [], self.faces)
         mesh.update()
@@ -60,8 +64,13 @@ class MeshBuilder:
         bpy.context.collection.objects.link(obj)
         for mat in materials:
             mesh.materials.append(mat)
+        colors=mesh.color_attributes.new(name='armour_paint',type='FLOAT_COLOR',domain='CORNER') if paint else None
         for face, material_id in zip(mesh.polygons, self.materials):
-            face.material_index = material_id
+            face.material_index = (1 if material_id==2 else 0) if paint else material_id
+            if paint:
+                base=[(.105,.135,.16),(.32,.31,.285),(1,1,1)][material_id]
+                tint=.92+.12*math.sin(face.index*.71)
+                for i in face.loop_indices:colors.data[i].color=tuple(min(1,c*tint) for c in base)+(1,)
         # Ensure outward consistent winding on closed independently modelled plates.
         bpy.context.view_layer.objects.active = obj
         obj.select_set(True)
@@ -127,6 +136,44 @@ def plate(builder, index, normal, corners, state):
         builder.face([rings[1][j], rings[1][k], crown])
         builder.face([rings[0][k], rings[0][j], rings[2][j], rings[2][k]])
         builder.face([rings[2][k], rings[2][j], inner])
+    # A narrow inset light strip hugs the plate bevel, tracing every fracture rim.
+    red_outer=[normal.lerp(p,.992).normalized()*(radius(p)+offset+.05) for p in directions]
+    red_inner=[normal.lerp(p,.950).normalized()*(radius(p)+offset+.17) for p in directions]
+    ro=[builder.vertex(p) for p in red_outer];ri=[builder.vertex(p) for p in red_inner]
+    for j in range(n):
+        k=(j+1)%n;builder.face([ro[j],ro[k],ri[k],ri[j]],2)
+    # Recessed red sensor ports add engineered detail to selected armour tiles.
+    if index%6==0:
+        centre=normal*(radius(normal)+offset+.9)
+        u=normal.cross(Vector((0,0,1)))
+        if u.length<.01:u=normal.cross(Vector((0,1,0)))
+        u.normalize();v=normal.cross(u).normalized()
+        rings=[]
+        for radius_port in (.76,.52,.30):
+            rings.append([builder.vertex(centre+(u*math.cos(k*math.tau/16)+v*math.sin(k*math.tau/16))*radius_port) for k in range(16)])
+        for j in range(16):
+            k=(j+1)%16;builder.face([rings[0][j],rings[0][k],rings[1][k],rings[1][j]],1);builder.face([rings[1][j],rings[1][k],rings[2][k],rings[2][j]],2)
+        builder.face(list(reversed(rings[2])),0)
+
+def box(builder,centre,u,v,w,material_id=0):
+    ids=[builder.vertex(centre+u*x+v*y+w*z) for x,y,z in [(-1,-1,-1),(1,-1,-1),(1,1,-1),(-1,1,-1),(-1,-1,1),(1,-1,1),(1,1,1),(-1,1,1)]]
+    for face in [(0,3,2,1),(4,5,6,7),(0,1,5,4),(3,7,6,2),(0,4,7,3),(1,2,6,5)]:builder.face([ids[i] for i in face],material_id)
+
+def machinery(builder,state):
+    for i in range(8):
+        a=i*math.tau/8+.12;n=Vector((math.cos(a),math.sin(a),.06)).normalized();t=Vector((-math.sin(a),math.cos(a),0));up=Vector((0,0,1))
+        hit=n.dot(Vector((.18,1,.16)).normalized())
+        if state==1 and hit>.77:continue
+        if state==2 and hit>-.02:continue
+        # Short radial buttresses retain the approximately thirty-metre envelope.
+        centre=n*13.1+up*(-.3 if i%2 else .45)
+        box(builder,centre,n*1.3,t*.75,up*1.65,0)
+        box(builder,centre+n*.75,n*.45,t*.88,up*1.8,1)
+        for z in (-.9,0,.9):box(builder,centre+n*1.24+up*z,n*.06,t*.62,up*.095,2)
+        # Three descending dorsal fins on each housing, inset inside collision scale.
+        for j in range(3):
+            box(builder,centre-n*(.9-j*.55)+up*1.95,n*.10,t*.76,up*(.5-j*.10),1)
+
 root = empty('boss_rock')
 root['default_state'] = 'armour_intact'
 root['seed'] = SEED
@@ -138,7 +185,8 @@ for number, name in enumerate(('armour_intact', 'armour_cracked', 'armour_broken
     mesh = MeshBuilder()
     for index, (normal, corners) in enumerate(polys):
         plate(mesh, index, normal, corners, number)
-    obj = mesh.object(name+'_shell', [BASALT, EDGE])
+    machinery(mesh,number)
+    obj = mesh.object(name+'_shell', [BASALT, SEAM],paint=True)
     obj.parent = group
     states.append(group)
 
@@ -188,7 +236,6 @@ def export(name, include_core):
 
 
 export('boss.glb', True)
-export('decoy.glb', False)
 root.name = 'boss_rock'
 root['asset_kind'] = 'boss'
 for obj in descendants(root):

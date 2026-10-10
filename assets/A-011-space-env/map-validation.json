@@ -1,0 +1,104 @@
+{
+  "space": {
+    "file": "space.jpg",
+    "bytes": 494033,
+    "sha256": "29d5665e1aca0decde73c016b3a1c3ac95abbd2c516de5e141936f7925639c91",
+    "dimensions": [
+      2048,
+      1024
+    ],
+    "mode": "RGB",
+    "mean_linear_luminance": 0.08266605193962179,
+    "raw_wrap_mean_abs_srgb": 0.02507404003267974,
+    "horizontal_neighbor_mean_abs_srgb": 0.0067356486337410695,
+    "north_row_rgb_range": [
+      0.043137254901960784,
+      0.027450980392156862,
+      0.05882352941176472
+    ],
+    "south_row_rgb_range": [
+      0.023529411764705882,
+      0.023529411764705882,
+      0.04313725490196074
+    ],
+    "coefficients_finite": true,
+    "pole_colors_linear": {
+      "north": [
+        0.003318052,
+        0.004803611,
+        0.111431019
+      ],
+      "south": [
+        0.001950843,
+        0.004854802,
+        0.090491417
+      ]
+    },
+    "guarded_north_row_rgb_range": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "guarded_south_row_rgb_range": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "nebula": {
+    "file": "space_nebula.jpg",
+    "bytes": 395700,
+    "sha256": "cb4b15b6ca1228460c49bc56783e6734e9875f28f1e19e8cbcf56def4ef6d6f3",
+    "dimensions": [
+      2048,
+      1024
+    ],
+    "mode": "RGB",
+    "mean_linear_luminance": 0.024686115388950207,
+    "raw_wrap_mean_abs_srgb": 0.01841171364379085,
+    "horizontal_neighbor_mean_abs_srgb": 0.0048770240494219195,
+    "north_row_rgb_range": [
+      0.027450980392156862,
+      0.023529411764705882,
+      0.07058823529411765
+    ],
+    "south_row_rgb_range": [
+      0.0196078431372549,
+      0.0196078431372549,
+      0.0392156862745098
+    ],
+    "coefficients_finite": true,
+    "pole_colors_linear": {
+      "north": [
+        0.001306237,
+        0.001940841,
+        0.029455758
+      ],
+      "south": [
+        0.000930348,
+        0.002091231,
+        0.025700934
+      ]
+    },
+    "guarded_north_row_rgb_range": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "guarded_south_row_rgb_range": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "dimmer_luminance_ratio": 0.29862458421239985,
+  "variant_rgb_correlation": 0.9796541227581271,
+  "checks": {
+    "exact_2048x1024": true,
+    "finite_sh": true,
+    "nebula_variant_dimmer": true,
+    "composition_correlated": true,
+    "raw_wrap_small": true,
+    "guarded_poles_uniform": true
+  }
+}

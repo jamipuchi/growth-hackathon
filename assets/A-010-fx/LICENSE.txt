@@ -1,0 +1,7 @@
+Original Space Party A-010 effect shaders, JavaScript, review files and captures
+are dedicated to the public domain under CC0 1.0 Universal.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+No external models, textures, scans, photos or generated images are used.
+Three.js and its add-ons remain under their upstream MIT license; they are
+loaded from the project's existing CDN and are not relicensed here.

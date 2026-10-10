@@ -1,0 +1,24 @@
+{
+  "module": {
+    "path": "fx.js",
+    "bytes": 30832,
+    "sha256": "d3f5db358e3c73649c05d96c709c5101f42010885b42ab611931a8c5ff7f47f8",
+    "texture_count": 0,
+    "geometry_buffer_bytes_default": 103192
+  },
+  "default_capacities": {
+    "maxParticles": 1024,
+    "maxRings": 24,
+    "maxShields": 32,
+    "maxEmitters": 32,
+    "maxLights": 1
+  },
+  "maximum_submitted_triangles_at_default_capacity": 25136,
+  "maximum_mesh_draw_calls": 3,
+  "browser_checks_per_engine": 59,
+  "limitations": [
+    "Timing samples are desktop CPU update/submission only, not GPU completion or actual FPS.",
+    "Physical iPhone under-2-ms target remains unmeasured.",
+    "Integration and full-game performance await a ready test version."
+  ]
+}

@@ -1,0 +1,11 @@
+A-003 Decorative nebula
+
+The original procedural geometry, noise texture, shader, custom source,
+documentation and review files in this directory are dedicated to the public
+domain under CC0 1.0 Universal, to the extent applicable rights exist.
+
+https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+No third-party artwork, photograph or stock texture was used. three.js and its
+add-ons are external dependencies and retain their upstream MIT license.
+This dedication does not relicense those dependencies or other tools.

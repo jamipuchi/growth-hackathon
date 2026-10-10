@@ -1,0 +1,190 @@
+{
+  "asset": "A-002 foreground extension",
+  "delivered": "2026-10-10",
+  "files": {
+    "README_foreground.md": {
+      "bytes": 7961,
+      "sha256": "d03ebf0fd3f570d4c1e7f4960f6971717c507411430501f3014e638d49cd81a1"
+    },
+    "foreground-browser-chrome.json": {
+      "bytes": 23775,
+      "sha256": "f8308617c341e5a8f872543ac53096cc9552420fa87a457157978fbc245ee382"
+    },
+    "foreground-browser-validation-independent.json": {
+      "bytes": 23767,
+      "sha256": "a4c09b6e7f8abf89dac568ea551bfa062f40d4b0dd1e3a159a5a67d8b0bde1e4"
+    },
+    "foreground-browser-webkit.json": {
+      "bytes": 23786,
+      "sha256": "5cef42f0a778ab9565cbbeda97352bc1c8fe5dd3b35845c6ac4320fe166e1a7e"
+    },
+    "foreground-close-one.png": {
+      "bytes": 37436,
+      "sha256": "649f0981273c6bad655e744c7be4c89c07cc3f9d418540e9ec6f608cb38392eb"
+    },
+    "foreground-close-three.png": {
+      "bytes": 49471,
+      "sha256": "8b8875a646b77b4687858f110b7e25514a9433702ba79cf5fb0e71ee370aad7b"
+    },
+    "foreground-close-two.png": {
+      "bytes": 43254,
+      "sha256": "39ac3d02ef1d2e8b34347fb6d436417829b294061a9f80306c3915fb2dbabe0a"
+    },
+    "foreground-console-chrome.txt": {
+      "bytes": 44,
+      "sha256": "67ade61a1847a48b0a6c91ab3f8536fc7e9953739987f7aed69181881cc73968"
+    },
+    "foreground-console-webkit.txt": {
+      "bytes": 44,
+      "sha256": "67ade61a1847a48b0a6c91ab3f8536fc7e9953739987f7aed69181881cc73968"
+    },
+    "foreground-flyby-middle.png": {
+      "bytes": 899471,
+      "sha256": "9e2770b7bbf2f721a45e4b3adbf6c1efd053df82c560c6d0e211f243b4ad93d0"
+    },
+    "foreground-flyby-start.png": {
+      "bytes": 852267,
+      "sha256": "02e3bdaf2ae77db1f6f6635fa47026c337167426214458d0809bde88a76a1cea"
+    },
+    "foreground-gallery.png": {
+      "bytes": 98242,
+      "sha256": "c9772ad2c09c3527a7b0100b06feb06c21299840d7e7ac39b9717218c9b583df"
+    },
+    "foreground-manifest.json": {
+      "bytes": 57695,
+      "sha256": "c5a99729a334a23e8fc9fd8174d8230e053f0eccc290303d749f57b31178addc"
+    },
+    "foreground-preview-desktop.png": {
+      "bytes": 867012,
+      "sha256": "95f0bd15d62b36438b79fa6eab87a6655fd83efb270e83f3d6400db6ea7ca9cd"
+    },
+    "foreground-preview-webkit-landscape.png": {
+      "bytes": 461659,
+      "sha256": "dd933f4e7b4a58ec0a56ba58add3336bcd7082ee56fe2badb7e244ad5cbab038"
+    },
+    "foreground-validation.json": {
+      "bytes": 16581,
+      "sha256": "e026361fbda871862c11a5b6bc9164f98ab8f3a233cbd84f232e1de7fa879d0f"
+    },
+    "foreground-visual-review-flyby-z171.png": {
+      "bytes": 899131,
+      "sha256": "6fcf15fff19d7331d9ba4f6524b18a19f8b4c5b2808a032f1a40bc8a17636846"
+    },
+    "foreground-visual-review-flyby-z3.png": {
+      "bytes": 925076,
+      "sha256": "e8b038364344dd00246b9ac774fa6ae3ba806c59443155b5d898ffdaeaf8c578"
+    },
+    "foreground-visual-review-flyby-z339.png": {
+      "bytes": 851237,
+      "sha256": "22f16c75ab11c409b717b0d3bc8a0c31b754ba0fd31ebf2915bf2e723f13a891"
+    },
+    "foreground-visual-review-gallery.png": {
+      "bytes": 866813,
+      "sha256": "7a04e5465d822cc9cf443358004c306bae8eeff6571358ec5ed33782f913a379"
+    },
+    "foreground-visual-review-hero.png": {
+      "bytes": 867371,
+      "sha256": "5f6ab9bce20a7cc29f235ce4c988926743f784eedfd31ea7472953cc7a2d05b3"
+    },
+    "foreground-visual-review-landscape.png": {
+      "bytes": 347160,
+      "sha256": "0282637dc8f88f7deab3f4bd89b1d128a1da5def98610ef1d79e6ebba4e92160"
+    },
+    "foreground-visual-review-one.png": {
+      "bytes": 37436,
+      "sha256": "649f0981273c6bad655e744c7be4c89c07cc3f9d418540e9ec6f608cb38392eb"
+    },
+    "foreground-visual-review-portrait.png": {
+      "bytes": 284717,
+      "sha256": "e41904fa5ed430de049a77671f567b4ba69de4061ee4c150f80ae08b3d08f820"
+    },
+    "foreground-visual-review-three.png": {
+      "bytes": 49471,
+      "sha256": "8b8875a646b77b4687858f110b7e25514a9433702ba79cf5fb0e71ee370aad7b"
+    },
+    "foreground-visual-review-two.png": {
+      "bytes": 43254,
+      "sha256": "39ac3d02ef1d2e8b34347fb6d436417829b294061a9f80306c3915fb2dbabe0a"
+    },
+    "foreground-visual-review.md": {
+      "bytes": 2735,
+      "sha256": "04b026a2fd95be85da1d625c2e7eb4380eed47a25ebb2e0666ebc55500e19dcc"
+    },
+    "foreground-webkit-close-one.png": {
+      "bytes": 35981,
+      "sha256": "6968c27e6f9035084a728545ad2ee2a9ed69c9dfe90e30f11bf02443aef49218"
+    },
+    "foreground-webkit-close-three.png": {
+      "bytes": 31731,
+      "sha256": "be8f40ee069f2ba01e501c662c7bdeadf3001022e1059a2d477a339338969ab1"
+    },
+    "foreground-webkit-close-two.png": {
+      "bytes": 24963,
+      "sha256": "05f8f0ab387940bfc03cb8b6b993b8bf9da49b352aacbfa7d1305e4cfbf55904"
+    },
+    "foreground-webkit-gallery.png": {
+      "bytes": 66868,
+      "sha256": "71935354235624515073ea52dbcb0ca1522583957c5785e3ea7086c02d8352d2"
+    },
+    "foreground-webkit-portrait.png": {
+      "bytes": 392814,
+      "sha256": "bd540bf70cfa0b5e34a7b7f6eeed4d89bacb1f00808f359a0f42c7cd9b3cfcc5"
+    },
+    "foreground.glb": {
+      "bytes": 109828,
+      "sha256": "642e68d0b5680dbbb8244cd35c23718a5145b9d04eeffd39235d300519024095"
+    },
+    "foreground.js": {
+      "bytes": 12767,
+      "sha256": "33dc96ec24bb8b48043e768397f1e5d852d8dd937a2151584a903ad38a062af0"
+    },
+    "foreground_source.blend": {
+      "bytes": 117747,
+      "sha256": "15fe0322757cf299126054e9bf565ac162d74b5beec4d3491c5e4c25c2629a0e"
+    },
+    "generate_foreground.py": {
+      "bytes": 8273,
+      "sha256": "f1ff8720ed144822fdc7a3f765fbfa12c72ee31686c72bfb0a6c296f5d8637d8"
+    },
+    "preview-foreground.html": {
+      "bytes": 9213,
+      "sha256": "46a0e3eacbdf1550c92a39fca4fda43104c85a6e1d5b3ca397ca1b10dba863b9"
+    },
+    "validate-foreground-browser.js": {
+      "bytes": 23408,
+      "sha256": "da71093c9f3503169b59c2a19eb59ddd903a2d1ac159f5639209bdad851ce85e"
+    },
+    "validate_foreground.py": {
+      "bytes": 20288,
+      "sha256": "157471e35b4d2fde05a7a82b55031b24443246397528ece0a69faa917e94ff57"
+    }
+  },
+  "structural_checks": 31,
+  "browser_checks": {
+    "chrome": 24,
+    "webkit": 24
+  },
+  "physical_phone_performance": "unmeasured",
+  "original_asset_preservation": {
+    "rocks.glb": {
+      "bytes": 175020,
+      "sha256": "b27753fc5e263cc565276e490a0acfa99371f3b15f780ef2efacdb467608273d",
+      "matches_snapshot": true
+    },
+    "rocks.js": {
+      "bytes": 5642,
+      "sha256": "073adfa764fe8def2d36c1f56dc9c578c88aa661aaf0505ccf5321c81353bc80",
+      "matches_snapshot": true
+    },
+    "rocks_color.png": {
+      "bytes": 13239,
+      "sha256": "73410ab483d278beeadb761a8847632933422141052151311ce7f72978f8f4ab",
+      "matches_snapshot": true
+    },
+    "rocks_emissive.png": {
+      "bytes": 11044,
+      "sha256": "c1ca90ec2ef249c5daded95c98de78d5c2e371bf48e509c93275c3c28c4840eb",
+      "matches_snapshot": true
+    }
+  }
+}

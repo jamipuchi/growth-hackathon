@@ -1,0 +1,814 @@
+{
+  "pass": true,
+  "checks": {
+    "decorative nebula factory is exported": true,
+    "low: one draw and two triangles per puff": true,
+    "low: one 128px procedural alpha texture": true,
+    "low: geometry and declared bounds are finite": true,
+    "low: puff geometry fits its radius and retains an open center": true,
+    "low: no fog, lights or reflection setup": true,
+    "low: texture residency returns to baseline": true,
+    "medium: one draw and two triangles per puff": true,
+    "medium: one 128px procedural alpha texture": true,
+    "medium: geometry and declared bounds are finite": true,
+    "medium: puff geometry fits its radius and retains an open center": true,
+    "medium: no fog, lights or reflection setup": true,
+    "medium: texture residency returns to baseline": true,
+    "high: one draw and two triangles per puff": true,
+    "high: one 128px procedural alpha texture": true,
+    "high: geometry and declared bounds are finite": true,
+    "high: puff geometry fits its radius and retains an open center": true,
+    "high: no fog, lights or reflection setup": true,
+    "high: texture residency returns to baseline": true,
+    "matching seeds produce identical static buffers and alpha textures": true,
+    "different seeds change static buffers and alpha textures": true,
+    "time animates the cloud without rewriting static geometry": true,
+    "outside: decorative clouds remain visibly rendered": true,
+    "inside: decorative clouds remain visibly rendered": true,
+    "flare copies its local position and is visible": true,
+    "flare remains active halfway through its 14-second life": true,
+    "flare expires at 14 seconds without residual visual change": true,
+    "zero-strength flare clears the accent": true,
+    "camera coordinates respect translated rotated scaled parents": true,
+    "camera coordinates are copied during update": true,
+    "camera movement updates the stored local position": true,
+    "invalid constructor radius, seed, quality, opacity and color are rejected": true,
+    "invalid position, strength, opacity, camera and time are rejected": true,
+    "valid updates continue after invalid inputs": true,
+    "zero opacity removes invisible rendering work": true,
+    "opacity can restore the cloud": true,
+    "disposal is idempotent and releases owned GPU resources": true,
+    "disposing one scene preserves another nebula": true,
+    "sustained updates retain bounded geometry and draw cost": true,
+    "no render target or reflection passes occur": true,
+    "WebGL shaders compile and render without errors": true
+  },
+  "measurements": {
+    "qualities": {
+      "low": {
+        "stats": {
+          "quality": "low",
+          "puffs": 24,
+          "submittedTriangles": 48,
+          "potentialTriangles": 48,
+          "meshDrawCalls": 1,
+          "textures": 1,
+          "textureSize": 128,
+          "textureBytesWithMips": 87380,
+          "radius": 250,
+          "boundsRadius": 248.42317261874808,
+          "hollowRadius": 82.0510428624737,
+          "opacity": 0.22,
+          "flareActive": false,
+          "flareRemaining": 0,
+          "flareStrength": 0,
+          "flarePosition": [
+            0,
+            0,
+            0
+          ],
+          "time": 0,
+          "phase": 0,
+          "cameraLocal": [
+            0,
+            42.5,
+            750
+          ],
+          "disposed": false,
+          "signature": "2f43e44b"
+        },
+        "actual": {
+          "calls": 1,
+          "triangles": 48,
+          "renders": 1,
+          "textures": 1,
+          "geometries": 1
+        },
+        "finite": {
+          "bad": 0,
+          "numbers": 372
+        }
+      },
+      "medium": {
+        "stats": {
+          "quality": "medium",
+          "puffs": 48,
+          "submittedTriangles": 96,
+          "potentialTriangles": 96,
+          "meshDrawCalls": 1,
+          "textures": 1,
+          "textureSize": 128,
+          "textureBytesWithMips": 87380,
+          "radius": 250,
+          "boundsRadius": 248.75,
+          "hollowRadius": 75.71257375997233,
+          "opacity": 0.22,
+          "flareActive": false,
+          "flareRemaining": 0,
+          "flareStrength": 0,
+          "flarePosition": [
+            0,
+            0,
+            0
+          ],
+          "time": 0,
+          "phase": 0,
+          "cameraLocal": [
+            0,
+            42.5,
+            750
+          ],
+          "disposed": false,
+          "signature": "f8b6682a"
+        },
+        "actual": {
+          "calls": 1,
+          "triangles": 96,
+          "renders": 1,
+          "textures": 1,
+          "geometries": 1
+        },
+        "finite": {
+          "bad": 0,
+          "numbers": 660
+        }
+      },
+      "high": {
+        "stats": {
+          "quality": "high",
+          "puffs": 80,
+          "submittedTriangles": 160,
+          "potentialTriangles": 160,
+          "meshDrawCalls": 1,
+          "textures": 1,
+          "textureSize": 128,
+          "textureBytesWithMips": 87380,
+          "radius": 250,
+          "boundsRadius": 248.74999999999994,
+          "hollowRadius": 74.95283982475236,
+          "opacity": 0.22,
+          "flareActive": false,
+          "flareRemaining": 0,
+          "flareStrength": 0,
+          "flarePosition": [
+            0,
+            0,
+            0
+          ],
+          "time": 0,
+          "phase": 0,
+          "cameraLocal": [
+            0,
+            42.5,
+            750
+          ],
+          "disposed": false,
+          "signature": "7642eab4"
+        },
+        "actual": {
+          "calls": 1,
+          "triangles": 160,
+          "renders": 1,
+          "textures": 1,
+          "geometries": 1
+        },
+        "finite": {
+          "bad": 0,
+          "numbers": 1044
+        }
+      }
+    },
+    "visuals": {
+      "animation": {
+        "mean": 0.2659619649251302,
+        "max": 8,
+        "changed": 146465,
+        "channels": 786432
+      },
+      "outside": {
+        "mean": 6.154958089192708,
+        "max": 124,
+        "changed": 259454,
+        "channels": 786432
+      },
+      "inside": {
+        "mean": 5.676476796468099,
+        "max": 43,
+        "changed": 501129,
+        "channels": 786432
+      },
+      "flare": {
+        "mean": 1.6443735758463542,
+        "max": 43,
+        "changed": 217479,
+        "channels": 786432
+      }
+    },
+    "stress": {
+      "iterations": 180,
+      "warmupIterations": 30,
+      "samples": 150,
+      "update": {
+        "medianMs": 0,
+        "p95Ms": 0,
+        "maxMs": 0.10000000894069672
+      },
+      "renderSubmission": {
+        "medianMs": 0.09999999403953552,
+        "p95Ms": 0.20000000298023224,
+        "maxMs": 0.4000000059604645
+      },
+      "maximumCalls": 1,
+      "maximumTriangles": 160,
+      "note": "Tight-loop desktop CPU update and render-submission timing including gl.getError. Excludes GPU completion; not FPS or physical-phone performance."
+    },
+    "shaderErrors": [],
+    "glErrors": []
+  },
+  "limitations": [
+    "Desktop/emulated WebGL tests do not establish physical-phone performance.",
+    "One transparent batch does not sort individual overlapping puffs.",
+    "Boss readability and final scene composition require visual review."
+  ],
+  "checkDetails": [
+    {
+      "name": "decorative nebula factory is exported",
+      "pass": true
+    },
+    {
+      "name": "low: one draw and two triangles per puff",
+      "pass": true,
+      "detail": {
+        "stats": {
+          "quality": "low",
+          "puffs": 24,
+          "submittedTriangles": 48,
+          "potentialTriangles": 48,
+          "meshDrawCalls": 1,
+          "textures": 1,
+          "textureSize": 128,
+          "textureBytesWithMips": 87380,
+          "radius": 250,
+          "boundsRadius": 248.42317261874808,
+          "hollowRadius": 82.0510428624737,
+          "opacity": 0.22,
+          "flareActive": false,
+          "flareRemaining": 0,
+          "flareStrength": 0,
+          "flarePosition": [
+            0,
+            0,
+            0
+          ],
+          "time": 0,
+          "phase": 0,
+          "cameraLocal": [
+            0,
+            42.5,
+            750
+          ],
+          "disposed": false,
+          "signature": "2f43e44b"
+        },
+        "actual": {
+          "calls": 1,
+          "triangles": 48,
+          "renders": 1,
+          "textures": 1,
+          "geometries": 1
+        },
+        "finite": {
+          "bad": 0,
+          "numbers": 372
+        }
+      }
+    },
+    {
+      "name": "low: one 128px procedural alpha texture",
+      "pass": true,
+      "detail": {
+        "width": 128,
+        "height": 128,
+        "resident": 1
+      }
+    },
+    {
+      "name": "low: geometry and declared bounds are finite",
+      "pass": true,
+      "detail": {
+        "boundsRadius": 248.42317261874808
+      }
+    },
+    {
+      "name": "low: puff geometry fits its radius and retains an open center",
+      "pass": true,
+      "detail": {
+        "outer": 248.42317586066827,
+        "inner": 82.05103790359539,
+        "reportedHollow": 82.0510428624737
+      }
+    },
+    {
+      "name": "low: no fog, lights or reflection setup",
+      "pass": true
+    },
+    {
+      "name": "low: texture residency returns to baseline",
+      "pass": true,
+      "detail": {
+        "baseline": 0,
+        "actual": 0
+      }
+    },
+    {
+      "name": "medium: one draw and two triangles per puff",
+      "pass": true,
+      "detail": {
+        "stats": {
+          "quality": "medium",
+          "puffs": 48,
+          "submittedTriangles": 96,
+          "potentialTriangles": 96,
+          "meshDrawCalls": 1,
+          "textures": 1,
+          "textureSize": 128,
+          "textureBytesWithMips": 87380,
+          "radius": 250,
+          "boundsRadius": 248.75,
+          "hollowRadius": 75.71257375997233,
+          "opacity": 0.22,
+          "flareActive": false,
+          "flareRemaining": 0,
+          "flareStrength": 0,
+          "flarePosition": [
+            0,
+            0,
+            0
+          ],
+          "time": 0,
+          "phase": 0,
+          "cameraLocal": [
+            0,
+            42.5,
+            750
+          ],
+          "disposed": false,
+          "signature": "f8b6682a"
+        },
+        "actual": {
+          "calls": 1,
+          "triangles": 96,
+          "renders": 1,
+          "textures": 1,
+          "geometries": 1
+        },
+        "finite": {
+          "bad": 0,
+          "numbers": 660
+        }
+      }
+    },
+    {
+      "name": "medium: one 128px procedural alpha texture",
+      "pass": true,
+      "detail": {
+        "width": 128,
+        "height": 128,
+        "resident": 1
+      }
+    },
+    {
+      "name": "medium: geometry and declared bounds are finite",
+      "pass": true,
+      "detail": {
+        "boundsRadius": 248.75
+      }
+    },
+    {
+      "name": "medium: puff geometry fits its radius and retains an open center",
+      "pass": true,
+      "detail": {
+        "outer": 248.75000585919014,
+        "inner": 75.71256839161865,
+        "reportedHollow": 75.71257375997233
+      }
+    },
+    {
+      "name": "medium: no fog, lights or reflection setup",
+      "pass": true
+    },
+    {
+      "name": "medium: texture residency returns to baseline",
+      "pass": true,
+      "detail": {
+        "baseline": 0,
+        "actual": 0
+      }
+    },
+    {
+      "name": "high: one draw and two triangles per puff",
+      "pass": true,
+      "detail": {
+        "stats": {
+          "quality": "high",
+          "puffs": 80,
+          "submittedTriangles": 160,
+          "potentialTriangles": 160,
+          "meshDrawCalls": 1,
+          "textures": 1,
+          "textureSize": 128,
+          "textureBytesWithMips": 87380,
+          "radius": 250,
+          "boundsRadius": 248.74999999999994,
+          "hollowRadius": 74.95283982475236,
+          "opacity": 0.22,
+          "flareActive": false,
+          "flareRemaining": 0,
+          "flareStrength": 0,
+          "flarePosition": [
+            0,
+            0,
+            0
+          ],
+          "time": 0,
+          "phase": 0,
+          "cameraLocal": [
+            0,
+            42.5,
+            750
+          ],
+          "disposed": false,
+          "signature": "7642eab4"
+        },
+        "actual": {
+          "calls": 1,
+          "triangles": 160,
+          "renders": 1,
+          "textures": 1,
+          "geometries": 1
+        },
+        "finite": {
+          "bad": 0,
+          "numbers": 1044
+        }
+      }
+    },
+    {
+      "name": "high: one 128px procedural alpha texture",
+      "pass": true,
+      "detail": {
+        "width": 128,
+        "height": 128,
+        "resident": 1
+      }
+    },
+    {
+      "name": "high: geometry and declared bounds are finite",
+      "pass": true,
+      "detail": {
+        "boundsRadius": 248.74999999999994
+      }
+    },
+    {
+      "name": "high: puff geometry fits its radius and retains an open center",
+      "pass": true,
+      "detail": {
+        "outer": 248.74999629749942,
+        "inner": 74.95283667382743,
+        "reportedHollow": 74.95283982475236
+      }
+    },
+    {
+      "name": "high: no fog, lights or reflection setup",
+      "pass": true
+    },
+    {
+      "name": "high: texture residency returns to baseline",
+      "pass": true,
+      "detail": {
+        "baseline": 0,
+        "actual": 0
+      }
+    },
+    {
+      "name": "matching seeds produce identical static buffers and alpha textures",
+      "pass": true
+    },
+    {
+      "name": "different seeds change static buffers and alpha textures",
+      "pass": true
+    },
+    {
+      "name": "time animates the cloud without rewriting static geometry",
+      "pass": true,
+      "detail": {
+        "mean": 0.2659619649251302,
+        "max": 8,
+        "changed": 146465,
+        "channels": 786432
+      }
+    },
+    {
+      "name": "outside: decorative clouds remain visibly rendered",
+      "pass": true,
+      "detail": {
+        "mean": 6.154958089192708,
+        "max": 124,
+        "changed": 259454,
+        "channels": 786432
+      }
+    },
+    {
+      "name": "inside: decorative clouds remain visibly rendered",
+      "pass": true,
+      "detail": {
+        "mean": 5.676476796468099,
+        "max": 43,
+        "changed": 501129,
+        "channels": 786432
+      }
+    },
+    {
+      "name": "flare copies its local position and is visible",
+      "pass": true,
+      "detail": {
+        "stats": {
+          "quality": "medium",
+          "puffs": 48,
+          "submittedTriangles": 96,
+          "potentialTriangles": 96,
+          "meshDrawCalls": 1,
+          "textures": 1,
+          "textureSize": 128,
+          "textureBytesWithMips": 87380,
+          "radius": 250,
+          "boundsRadius": 248.75,
+          "hollowRadius": 75.71257375997233,
+          "opacity": 0.22,
+          "flareActive": true,
+          "flareRemaining": 14,
+          "flareStrength": 2,
+          "flarePosition": [
+            0,
+            0,
+            125
+          ],
+          "time": 0,
+          "phase": 0,
+          "cameraLocal": [
+            0,
+            42.5,
+            750
+          ],
+          "disposed": false,
+          "signature": "f8b6682a"
+        },
+        "pixels": {
+          "mean": 1.6443735758463542,
+          "max": 43,
+          "changed": 217479,
+          "channels": 786432
+        }
+      }
+    },
+    {
+      "name": "flare remains active halfway through its 14-second life",
+      "pass": true,
+      "detail": {
+        "quality": "medium",
+        "puffs": 48,
+        "submittedTriangles": 96,
+        "potentialTriangles": 96,
+        "meshDrawCalls": 1,
+        "textures": 1,
+        "textureSize": 128,
+        "textureBytesWithMips": 87380,
+        "radius": 250,
+        "boundsRadius": 248.75,
+        "hollowRadius": 75.71257375997233,
+        "opacity": 0.22,
+        "flareActive": true,
+        "flareRemaining": 7,
+        "flareStrength": 2,
+        "flarePosition": [
+          0,
+          0,
+          125
+        ],
+        "time": 7,
+        "phase": 0.36651914291880916,
+        "cameraLocal": [
+          0,
+          42.5,
+          750
+        ],
+        "disposed": false,
+        "signature": "f8b6682a"
+      }
+    },
+    {
+      "name": "flare expires at 14 seconds without residual visual change",
+      "pass": true,
+      "detail": {
+        "stats": {
+          "quality": "medium",
+          "puffs": 48,
+          "submittedTriangles": 96,
+          "potentialTriangles": 96,
+          "meshDrawCalls": 1,
+          "textures": 1,
+          "textureSize": 128,
+          "textureBytesWithMips": 87380,
+          "radius": 250,
+          "boundsRadius": 248.75,
+          "hollowRadius": 75.71257375997233,
+          "opacity": 0.22,
+          "flareActive": false,
+          "flareRemaining": 0,
+          "flareStrength": 2,
+          "flarePosition": [
+            0,
+            0,
+            125
+          ],
+          "time": 14,
+          "phase": 0.7330382858376183,
+          "cameraLocal": [
+            0,
+            42.5,
+            750
+          ],
+          "disposed": false,
+          "signature": "f8b6682a"
+        },
+        "pixels": {
+          "mean": 0,
+          "max": 0,
+          "changed": 0,
+          "channels": 786432
+        }
+      }
+    },
+    {
+      "name": "zero-strength flare clears the accent",
+      "pass": true
+    },
+    {
+      "name": "camera coordinates respect translated rotated scaled parents",
+      "pass": true,
+      "detail": {
+        "cameraLocal": [
+          1.2789769243681803e-13,
+          50,
+          750
+        ],
+        "actual": {
+          "calls": 1,
+          "triangles": 96,
+          "renders": 1,
+          "textures": 1,
+          "geometries": 1
+        }
+      }
+    },
+    {
+      "name": "camera coordinates are copied during update",
+      "pass": true
+    },
+    {
+      "name": "camera movement updates the stored local position",
+      "pass": true
+    },
+    {
+      "name": "invalid constructor radius, seed, quality, opacity and color are rejected",
+      "pass": true,
+      "detail": {
+        "rejected": 8,
+        "cases": 8
+      }
+    },
+    {
+      "name": "invalid position, strength, opacity, camera and time are rejected",
+      "pass": true,
+      "detail": {
+        "rejected": 11,
+        "cases": 11,
+        "stats": {
+          "quality": "medium",
+          "puffs": 48,
+          "submittedTriangles": 96,
+          "potentialTriangles": 96,
+          "meshDrawCalls": 1,
+          "textures": 1,
+          "textureSize": 128,
+          "textureBytesWithMips": 87380,
+          "radius": 250,
+          "boundsRadius": 248.75,
+          "hollowRadius": 75.71257375997233,
+          "opacity": 0.22,
+          "flareActive": false,
+          "flareRemaining": 0,
+          "flareStrength": 0,
+          "flarePosition": [
+            0,
+            0,
+            0
+          ],
+          "time": 0,
+          "phase": 0,
+          "cameraLocal": [
+            0,
+            0,
+            750
+          ],
+          "disposed": false,
+          "signature": "f8b6682a"
+        }
+      }
+    },
+    {
+      "name": "valid updates continue after invalid inputs",
+      "pass": true
+    },
+    {
+      "name": "zero opacity removes invisible rendering work",
+      "pass": true,
+      "detail": {
+        "calls": 0,
+        "triangles": 0,
+        "renders": 1,
+        "textures": 2,
+        "geometries": 2
+      }
+    },
+    {
+      "name": "opacity can restore the cloud",
+      "pass": true
+    },
+    {
+      "name": "disposal is idempotent and releases owned GPU resources",
+      "pass": true,
+      "detail": {
+        "resourceDisposals": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "name": "disposing one scene preserves another nebula",
+      "pass": true
+    },
+    {
+      "name": "sustained updates retain bounded geometry and draw cost",
+      "pass": true,
+      "detail": {
+        "iterations": 180,
+        "warmupIterations": 30,
+        "samples": 150,
+        "update": {
+          "medianMs": 0,
+          "p95Ms": 0,
+          "maxMs": 0.10000000894069672
+        },
+        "renderSubmission": {
+          "medianMs": 0.09999999403953552,
+          "p95Ms": 0.20000000298023224,
+          "maxMs": 0.4000000059604645
+        },
+        "maximumCalls": 1,
+        "maximumTriangles": 160,
+        "note": "Tight-loop desktop CPU update and render-submission timing including gl.getError. Excludes GPU completion; not FPS or physical-phone performance."
+      }
+    },
+    {
+      "name": "no render target or reflection passes occur",
+      "pass": true,
+      "detail": {
+        "targetChanges": 0,
+        "renderInvocations": 200
+      }
+    },
+    {
+      "name": "WebGL shaders compile and render without errors",
+      "pass": true,
+      "detail": {
+        "shaderErrors": [],
+        "glErrors": []
+      }
+    }
+  ],
+  "three": "160",
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+  "webgl": {
+    "isWebGL2": true,
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "viewport": {
+    "width": 1440,
+    "height": 1000,
+    "devicePixelRatio": 1,
+    "renderPixelRatio": 1
+  }
+}

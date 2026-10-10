@@ -1,0 +1,25 @@
+/Users/jaumepuig/Documents/growth-hackathon/assets/A-001-boss-rock/generate.py:23: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes = True
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+23:27:31 | INFO: Starting glTF 2.0 export
+23:27:31 | INFO: Extracting primitive: armour_broken_shell
+23:27:31 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+23:27:31 | INFO: Primitives created: 2
+23:27:31 | INFO: Extracting primitive: armour_cracked_shell
+23:27:31 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+23:27:31 | INFO: Primitives created: 2
+23:27:31 | INFO: Extracting primitive: armour_intact_shell
+23:27:31 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+23:27:31 | INFO: Primitives created: 2
+23:27:31 | INFO: Extracting primitive: core_crust_mesh
+23:27:31 | INFO: Primitives created: 1
+23:27:31 | INFO: Extracting primitive: core_light_mesh
+23:27:31 | INFO: Primitives created: 1
+23:27:31 | INFO: Finished glTF 2.0 export in 0.017251968383789062 s
+
+Info: Saved as "boss_source.blend"
+ASSETS_EXPORTED {"seed": 240109, "plates": 42, "directory": "/Users/jaumepuig/Documents/growth-hackathon/assets/A-001-boss-rock"}
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

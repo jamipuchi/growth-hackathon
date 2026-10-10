@@ -1,0 +1,11 @@
+SPDX-License-Identifier: CC0-1.0
+
+Original Space Party A-007 cockpit geometry, palette, custom code, editable
+source and preview artwork are dedicated to the public domain under CC0 1.0
+Universal, to the extent permitted by law.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+No external artwork, meshes, textures or motion capture were used.
+Blender and three.js/add-ons are separate third-party software and retain
+their respective upstream licenses. Referenced A-004 and A-011 preview
+scenery retains the provenance and license documented in those directories.

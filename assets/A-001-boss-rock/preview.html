@@ -2,102 +2,67 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>A-001 • Boss rock review</title>
+<title>A-001 · Red boss review</title>
 <link rel="icon" href="data:,">
 <style>
-  *{box-sizing:border-box} body{margin:0;color:#e8e6de;background:#07090f;font:14px/1.4 system-ui,sans-serif;overflow:hidden}
-  header{position:absolute;top:24px;left:32px;right:32px;z-index:1;display:flex;justify-content:space-between;gap:24px;align-items:start}
-  .eyebrow{font:11px monospace;letter-spacing:2px;color:#ac9875} h1{margin:6px 0;font-size:25px;font-weight:500;letter-spacing:-.5px}
-  p{margin:5px 0;color:#a3a6af;font-size:12px}button{background:#1b202b;border:1px solid #3a4150;border-radius:5px;color:inherit;padding:8px 13px;cursor:pointer}
-  .labels{position:absolute;inset:112px 22px 42px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr;pointer-events:none}
-  .label{display:flex;flex-direction:column;justify-content:end;align-items:center;padding:10px;color:#d9dbdf;font-size:12px;letter-spacing:1px}
-  .label small{font:11px monospace;letter-spacing:0;color:#8a8f9e;margin-top:4px}
-  footer{position:absolute;bottom:15px;left:32px;right:32px;color:#838b99;font:11px monospace}
-  canvas{display:block;width:100%;height:100%}body.phone .labels{display:none}
-  @media(max-width:600px){header{left:18px;right:18px;top:15px;display:block}h1{font-size:21px}.labels{inset:150px 4px 55px}.label{font-size:9px;padding:0 2px}.label small{font-size:8px}footer{left:18px;font-size:9px}button{margin-top:8px}}
+*{box-sizing:border-box}body{margin:0;color:#e9e4e2;background:#050810;font:14px/1.4 system-ui,sans-serif;overflow:hidden}canvas{display:block}
+header{position:absolute;top:25px;left:32px;right:32px;z-index:1;display:flex;justify-content:space-between;gap:20px;align-items:start}.eyebrow{font:11px monospace;letter-spacing:2px;color:#ed7168}h1{margin:6px 0;font-size:28px;font-weight:500;letter-spacing:-.5px}p{margin:5px 0;color:#a3a6af;font-size:12px}.controls{display:flex;gap:7px;flex-wrap:wrap}button,select{background:#181e2b;border:1px solid #384052;border-radius:5px;color:inherit;padding:8px 10px;font:12px system-ui;cursor:pointer}.label{position:absolute;transform:translateX(-50%);text-align:center;white-space:nowrap;pointer-events:none;font-size:12px;letter-spacing:1px}.label small{display:block;margin-top:5px;letter-spacing:0;font:11px monospace;color:#9198aa}footer{position:absolute;bottom:18px;left:32px;right:32px;color:#9198aa;font:11px/1.7 monospace}body.single .label{display:none}
+@media(max-width:600px){header{top:17px;left:18px;right:18px;display:block}h1{font-size:24px}.controls{margin-top:14px}.label{font-size:9px}.label small{font-size:8px}footer{left:18px;right:18px;font-size:10px}}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
-<header><div><div class="eyebrow">SPACE PARTY / ASSET A-001</div><h1>Armoured in the dark.</h1><p id="subtitle">Boss above · empty decoy below · front faces camera</p></div><div><button id="spin">Rotate</button> <button id="view">100 m view</button> <button id="next" hidden>Next state</button></div></header>
-<div class="labels" id="labels"></div><footer id="status">Loading the actual GLB exports…</footer>
+<header><div><div class="eyebrow">SPACE PARTY / ASSET A-001</div><h1>The red enemy.</h1><p id="subtitle">Armour seams · mechanical housings · a pulsing reactor</p></div><div class="controls"><select id="view" aria-label="Review view"><option value="gallery">Three armour states</option><option value="intact">Intact · 100 m</option><option value="cracked">Cracked · 100 m</option><option value="broken">Broken · 100 m</option><option value="close">Reactor · 48 m</option><option value="rear">Rear · 100 m</option><option value="decoy">Legacy decoy · 100 m</option></select><button id="spin">Rotate</button><button id="bloom">Bloom on</button></div></header>
+<div id="labels"></div><footer id="status">Loading actual GLB exports…</footer>
 <script type="module">
 import * as THREE from 'three';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { createBossEncounter, setArmourState, ARMOUR_STATES } from './boss.js';
-
-const renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.15;
+import { createBossEncounter, setArmourState, updateBoss, disposeBossPulse, ARMOUR_STATES } from './boss.js';
+const report={three:THREE.REVISION,checks:{},states:{},shaderErrors:[]};
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;renderer.shadowMap.enabled=false;
+renderer.debug.onShaderError=(gl,program,vertex,fragment)=>{const error=[gl.getProgramInfoLog(program),gl.getShaderInfoLog(vertex),gl.getShaderInfoLog(fragment)].join('\n');report.shaderErrors.push(error);console.error(error);};
 document.body.prepend(renderer.domElement);
-const scene=new THREE.Scene();
-scene.background=new THREE.Color('#07090f');
-const pmrem=new THREE.PMREMGenerator(renderer);
-const environment=new RoomEnvironment();
-const environmentTarget=pmrem.fromScene(environment,.04);
-scene.environment=environmentTarget.texture;
-environment.dispose();pmrem.dispose();
-const key=new THREE.DirectionalLight(0xffe5c2,2.4);key.position.set(-60,70,100);scene.add(key);
-const rim=new THREE.DirectionalLight(0x7192c8,5);rim.position.set(70,40,-30);scene.add(rim);
-scene.add(new THREE.HemisphereLight(0xa9bacf,0x111320,.6));
+const scene=new THREE.Scene();scene.background=new THREE.Color('#050810');
+const key=new THREE.DirectionalLight(0xffe0c5,3);key.position.set(-50,60,65);scene.add(key);
+const rim=new THREE.DirectionalLight(0x749bdc,3.7);rim.position.set(50,20,-20);scene.add(rim);scene.add(new THREE.HemisphereLight(0xa9bacf,0x131624,1.1));
 const camera=new THREE.PerspectiveCamera(44,1,.1,1000);
-const composer=new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene,camera));
-const bloom=new UnrealBloomPass(new THREE.Vector2(1,1),.48,.4,1.0);composer.addPass(bloom);composer.addPass(new OutputPass());
-
-function inventory(object){
-  let triangles=0,drawCalls=0;const materials=new Set();
-  object.traverseVisible(o=>{if(!o.isMesh)return;
-    triangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3;
-    drawCalls+=Array.isArray(o.material)?o.geometry.groups.length:1;
-    (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>materials.add(m.name));
-  });
-  return {triangles,drawCalls,materials:[...materials]};
-}
-function shellSignature(object,state){
-  const out=[];object.getObjectByName(state).traverse(o=>{if(!o.isMesh)return;
-    out.push({positions:Array.from(o.geometry.attributes.position.array),indices:Array.from(o.geometry.index?.array??[]),material:o.material.name});
-  });return JSON.stringify(out);
-}
-const {boss,decoys}=await createBossEncounter();
-for(const asset of [boss,...decoys])asset.traverse(o=>{if(o.isMesh)o.material.envMapIntensity=.35;});
-const objects=[];const report={three:THREE.REVISION,states:{},decoys:decoys.length,checks:{}};
-for(let row=0;row<2;row++)for(let col=0;col<3;col++){
-  const state=ARMOUR_STATES[col];const object=setArmourState((row?decoys[0]:boss).clone(true),state);
-  object.position.set((col-1)*40,row?-22:22,0);object.rotation.y=Math.PI;scene.add(object);objects.push(object);
-  const stats=inventory(object);report.states[`${row?'decoy':'boss'}_${state}`]=stats;
-  const label=document.createElement('div');label.className='label';label.innerHTML=`${row?'DECOY':'BOSS'} / ${state.replace('armour_','').toUpperCase()}<small>${stats.triangles.toLocaleString()} triangles · ${stats.drawCalls} calls</small>`;document.querySelector('#labels').append(label);
-}
-report.checks.identicalShells=ARMOUR_STATES.every(s=>shellSignature(boss,s)===shellSignature(decoys[0],s));
-report.checks.noDecoyCore=decoys.every(d=>!d.getObjectByName('core'));
-report.checks.socket=Boolean(boss.getObjectByName('socket_core'))&&decoys.every(d=>d.getObjectByName('socket_core'));
-report.checks.materialsStandard=true;boss.traverse(o=>{if(o.isMesh&&!o.material.isMeshStandardMaterial)report.checks.materialsStandard=false;});
-report.checks.budget=Object.values(report.states).every(s=>s.triangles<=15000&&s.drawCalls<=4);
+const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));composer.addPass(new UnrealBloomPass(new THREE.Vector2(1,1),.52,.45,1));composer.addPass(new OutputPass());
+function inventory(object){let triangles=0,drawCalls=0;const materials=new Set();object.traverseVisible(o=>{if(!o.isMesh)return;triangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3;drawCalls+=Array.isArray(o.material)?o.geometry.groups.length:1;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>materials.add(m.name));});return{triangles,drawCalls,materials:[...materials]};}
+const requested=[];const realLoader=new GLTFLoader();const encounter=await createBossEncounter({decoyCount:0,loader:{loadAsync(url){requested.push(url);return realLoader.loadAsync(url);}}});const boss=encounter.boss;
+report.checks.bossOnlyLoad=requested.length===1&&requested[0].endsWith('/boss.glb')&&encounter.decoys.length===0;
 report.checks.initialState=boss.getObjectByName('armour_intact').visible&&!boss.getObjectByName('armour_cracked').visible&&!boss.getObjectByName('core').visible;
-report.checks.independentDecoyStates=true;
-setArmourState(decoys[0],'armour_broken');
-report.checks.independentDecoyStates=decoys.slice(1).every(d=>d.getObjectByName('armour_intact').visible);
-setArmourState(decoys[0]);
-report.checks.coreEmissive=false;boss.getObjectByName('core').traverse(o=>{if(o.isMesh&&o.material.emissiveIntensity>1)report.checks.coreEmissive=true;});
+report.checks.names=true;report.checks.pbr=true;boss.traverse(o=>{if(o!==boss&&o.name&&!/^[a-z0-9_]+$/.test(o.name))report.checks.names=false;if(o.isMesh&&!o.material.isMeshStandardMaterial)report.checks.pbr=false;});
+report.checks.socket=boss.getObjectByName('socket_core')?.position.length()===0;
+const objects=ARMOUR_STATES.map((state,i)=>{const object=setArmourState(boss.clone(true),state);object.position.x=(i-1)*38;object.rotation.y=Math.PI;scene.add(object);return object;});
+renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+report.checks.redSeams=true;
+for(let i=0;i<3;i++){objects.forEach((o,j)=>o.visible=i===j);const object=objects[i];camera.position.copy(object.position).add(new THREE.Vector3(0,0,100));camera.lookAt(object.position);renderer.render(scene,camera);const stats=inventory(object);report.states[ARMOUR_STATES[i]]={...stats,renderedTriangles:renderer.info.render.triangles,renderedCalls:renderer.info.render.calls};let red=false;object.traverseVisible(o=>{const m=o.material;if(m?.name==='hostile_seams'&&m.emissive.r>.9&&m.emissive.g<.02&&m.emissiveIntensity>3)red=true;});report.checks.redSeams&&=red;}
+report.checks.budget=Object.values(report.states).every(s=>s.triangles<=15000&&s.drawCalls<=4&&s.triangles===s.renderedTriangles&&s.drawCalls===s.renderedCalls);
+const coreMaterial=object=>{let found;object.getObjectByName('core').traverse(o=>{if(o.material?.name==='core_light')found=o.material;});return found;};
+const pulseA=setArmourState(boss.clone(true),'armour_broken'),pulseB=setArmourState(boss.clone(true),'armour_broken');const source=coreMaterial(boss);
+updateBoss(pulseA,0);updateBoss(pulseB,0);const owned=coreMaterial(pulseA);report.checks.independentPulse=owned!==coreMaterial(pulseB)&&owned!==source;
+let minEmission=Infinity,maxEmission=-Infinity,minScale=Infinity,maxScale=-Infinity;
+for(let frame=0;frame<150;frame++){updateBoss(pulseA,1/60);const e=owned.emissiveIntensity,s=pulseA.getObjectByName('core').scale.x;minEmission=Math.min(e,minEmission);maxEmission=Math.max(e,maxEmission);minScale=Math.min(s,minScale);maxScale=Math.max(s,maxScale);}
+report.pulse={hz:.8,samples:150,minEmission,maxEmission,minScale,maxScale};
+report.checks.pulseRange=maxEmission-minEmission>2&&maxScale-minScale>.06&&Math.abs(coreMaterial(pulseB).emissiveIntensity-5.5*.85)<1e-6&&source.emissiveIntensity===5.5;
+let disposed=0;owned.addEventListener('dispose',()=>disposed++);disposeBossPulse(pulseA);disposeBossPulse(pulseA);disposeBossPulse(pulseB);report.checks.pulseDisposal=disposed===1&&coreMaterial(pulseA)===source&&pulseA.getObjectByName('core').scale.x===1;
+const liveClone=setArmourState(boss.clone(true),'armour_broken');updateBoss(liveClone,.3);const cloneOfLive=liveClone.clone(true);updateBoss(cloneOfLive,0);disposeBossPulse(liveClone);disposeBossPulse(cloneOfLive);report.checks.liveCloneRestoresSource=coreMaterial(cloneOfLive)===source&&cloneOfLive.getObjectByName('core').scale.x===1;
+const released=await createBossEncounter({decoyCount:0});released.update(.1);const releasedCore=coreMaterial(released.boss);let releasedCount=0;releasedCore.addEventListener('dispose',()=>releasedCount++);released.dispose();released.update(.1);released.dispose();report.checks.encounterDisposal=releasedCount===1&&coreMaterial(released.boss)!==releasedCore;
+const legacy=await createBossEncounter();report.checks.legacyFourDecoys=legacy.decoys.length===4&&legacy.decoys.every(d=>!d.getObjectByName('core'));
+setArmourState(legacy.decoys[0],'armour_broken');report.checks.independentDecoyStates=legacy.decoys.slice(1).every(d=>d.getObjectByName('armour_intact').visible);setArmourState(legacy.decoys[0]);const decoy=legacy.decoys[0];report.legacyDecoy=inventory(decoy);decoy.rotation.y=Math.PI;scene.add(decoy);decoy.visible=false;
+report.checks.decoyNoRed=true;decoy.traverse(o=>{if(o.material?.emissiveIntensity>1)report.checks.decoyNoRed=false;});
+report.checks.noShadows=!renderer.shadowMap.enabled;report.checks.shaders=report.shaderErrors.length===0;
+const labels=objects.map((o,i)=>{const el=document.createElement('div');el.className='label';const s=report.states[ARMOUR_STATES[i]];el.innerHTML=`${ARMOUR_STATES[i].slice(7).toUpperCase()}<small>${s.triangles.toLocaleString()} triangles · ${s.drawCalls} calls</small>`;document.querySelector('#labels').append(el);return el;});
+let rotating=false,useBloom=true,view='gallery';
+function resize(){renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;
+if(view==='gallery'){camera.position.set(0,5,Math.max(120,150/camera.aspect));camera.lookAt(0,0,0);}else{const object=view==='decoy'?decoy:objects[view==='cracked'?1:['broken','close'].includes(view)?2:0];camera.position.copy(object.position).add(new THREE.Vector3(0,view==='close'?6:0,view==='close'?48:100));camera.lookAt(object.position);}camera.updateProjectionMatrix();}
+function arrange(){objects.forEach((o,i)=>{o.visible=view==='gallery'||i===(view==='cracked'?1:['broken','close'].includes(view)?2:0)&&view!=='decoy';o.rotation.y=view==='rear'?0:Math.PI;});decoy.visible=view==='decoy';document.body.classList.toggle('single',view!=='gallery');document.querySelector('#subtitle').textContent=view==='gallery'?'Armour seams · mechanical housings · a pulsing reactor':view==='decoy'?'Preserved legacy decoy · unused in the one-boss v1':`${view==='rear'?'Intact rear':view==='close'?'Exposed reactor':view[0].toUpperCase()+view.slice(1)} · ${view==='close'?'48':'100'} m camera distance`;resize();}
+document.querySelector('#view').onchange=e=>{view=e.target.value;arrange();};document.querySelector('#spin').onclick=e=>{rotating=!rotating;e.target.textContent=rotating?'Stop':'Rotate';};document.querySelector('#bloom').onclick=e=>{useBloom=!useBloom;e.target.textContent=useBloom?'Bloom on':'Bloom off';};addEventListener('resize',resize);arrange();
 window.assetReport=report;console.log('ASSET_REPORT',JSON.stringify(report));
-const passed=Object.values(report.checks).every(Boolean);
-document.querySelector('#status').textContent=`${passed?'PASS':'FAIL'} · three.js r${THREE.REVISION} · ${Object.keys(report.checks).length} load/contract checks · no textures · original CC0`;
-
-let rotating=false,phone=false,selection=0;
-document.querySelector('#spin').onclick=()=>{rotating=!rotating;document.querySelector('#spin').textContent=rotating?'Stop':'Rotate';};
-function selectPhone(){objects.forEach((o,i)=>{o.visible=!phone||i===selection;});document.querySelector('#subtitle').textContent=phone?`${selection<3?'Boss':'Decoy'} · ${ARMOUR_STATES[selection%3]} · camera 100 m away`:'Boss above · empty decoy below · front faces camera';}
-document.querySelector('#view').onclick=()=>{phone=!phone;document.body.classList.toggle('phone',phone);document.querySelector('#view').textContent=phone?'All states':'100 m view';document.querySelector('#next').hidden=!phone;selectPhone();resize();};
-document.querySelector('#next').onclick=()=>{selection=(selection+1)%6;selectPhone();resize();};
-function resize(){
-  const w=innerWidth,h=innerHeight;renderer.setSize(w,h);composer.setSize(w,h);camera.aspect=w/h;
-  if(phone){const p=objects[selection].position;camera.position.set(p.x,p.y,p.z+100);camera.lookAt(p);}
-  else {camera.position.set(0,3,Math.max(132,153/camera.aspect));camera.lookAt(0,3,0);}
-  camera.updateProjectionMatrix();
-}
-addEventListener('resize',resize);resize();
-let prev=performance.now();function frame(now){const dt=Math.min((now-prev)/1000,.1);prev=now;if(rotating)objects.forEach(o=>o.rotation.y+=dt*.23);composer.render();requestAnimationFrame(frame);}requestAnimationFrame(frame);
+const passed=Object.values(report.checks).every(Boolean);document.querySelector('#status').textContent=`${passed?'PASS':'FAIL'} · r${THREE.REVISION} · ${Object.keys(report.checks).length} browser checks · zero textures · original CC0\nViewport review only; physical-phone performance unmeasured.`;
+let last=performance.now();function frame(now){const dt=Math.max(0,Math.min((now-last)/1000,.1));last=now;objects.forEach(o=>{updateBoss(o,dt);if(rotating)o.rotation.y+=dt*.23;});if(useBloom)composer.render();else renderer.render(scene,camera);objects.forEach((o,i)=>{const p=o.position.clone().add(new THREE.Vector3(0,-20,0)).project(camera);labels[i].style.left=`${(p.x*.5+.5)*innerWidth}px`;labels[i].style.top=`${(-p.y*.5+.5)*innerHeight}px`;});requestAnimationFrame(frame);}requestAnimationFrame(frame);
 </script>
 </html>

@@ -1,0 +1,1041 @@
+{
+  "checks": [
+    {
+      "name": "foreground factory is exported and runs with three.js r160",
+      "pass": true,
+      "detail": "160"
+    },
+    {
+      "name": "loading does not install renderer state or extra rendering",
+      "pass": true
+    },
+    {
+      "name": "three rocks use one InstancedMesh with one shared opaque PBR material and zero textures",
+      "pass": true,
+      "detail": {
+        "meshes": 1,
+        "material": "foreground_variant_material",
+        "materialType": "MeshStandardMaterial",
+        "textures": 0
+      }
+    },
+    {
+      "name": "three variants submit one call and no more than 300 triangles per rock",
+      "pass": true,
+      "detail": {
+        "calls": 1,
+        "triangles": 768,
+        "renders": 1,
+        "stats": {
+          "count": 3,
+          "activeCount": 3,
+          "instances": 3,
+          "capacity": 3,
+          "hiddenInstances": 0,
+          "triangles": 768,
+          "submittedTriangles": 768,
+          "trianglesPerRock": 256,
+          "calls": 1,
+          "meshDrawCalls": 1,
+          "materials": 1,
+          "textures": 0,
+          "vertexAttributes": 14,
+          "vertexAttributeSlots": 14,
+          "variants": [
+            1,
+            1,
+            1
+          ],
+          "bounds": {
+            "min": [
+              -162.74141788482666,
+              -62.604525089263916,
+              -56.98136329650879
+            ],
+            "max": [
+              189.7889530658722,
+              57.39547848701477,
+              60.057857036590576
+            ]
+          },
+          "disposed": false
+        }
+      }
+    },
+    {
+      "name": "foreground adds no lights, camera, shadow pass or nonfinite geometry",
+      "pass": true,
+      "detail": {
+        "lightCount": 0,
+        "cameraCount": 0,
+        "finite": true
+      }
+    },
+    {
+      "name": "direct GLTFLoader exposes exactly three source variants",
+      "pass": true,
+      "detail": [
+        "foreground_stone_1",
+        "foreground_stone_2",
+        "foreground_stone_3"
+      ]
+    },
+    {
+      "name": "variant 1: shader silhouette, colour and normals match the direct GLTF source",
+      "pass": true,
+      "detail": [
+        {
+          "eye": [
+            0,
+            20,
+            180
+          ],
+          "occupiedUnion": 13913,
+          "silhouetteMismatch": 0,
+          "meanRGBDifference": 0,
+          "maximum": 0
+        },
+        {
+          "eye": [
+            150,
+            45,
+            130
+          ],
+          "occupiedUnion": 10917,
+          "silhouetteMismatch": 0,
+          "meanRGBDifference": 0,
+          "maximum": 0
+        },
+        {
+          "eye": [
+            -110,
+            90,
+            150
+          ],
+          "occupiedUnion": 12675,
+          "silhouetteMismatch": 0,
+          "meanRGBDifference": 0,
+          "maximum": 0
+        }
+      ]
+    },
+    {
+      "name": "variant 2: shader silhouette, colour and normals match the direct GLTF source",
+      "pass": true,
+      "detail": [
+        {
+          "eye": [
+            0,
+            20,
+            180
+          ],
+          "occupiedUnion": 5815,
+          "silhouetteMismatch": 0,
+          "meanRGBDifference": 0,
+          "maximum": 0
+        },
+        {
+          "eye": [
+            150,
+            45,
+            130
+          ],
+          "occupiedUnion": 3562,
+          "silhouetteMismatch": 0,
+          "meanRGBDifference": 0,
+          "maximum": 0
+        },
+        {
+          "eye": [
+            -110,
+            90,
+            150
+          ],
+          "occupiedUnion": 6243,
+          "silhouetteMismatch": 0,
+          "meanRGBDifference": 0,
+          "maximum": 0
+        }
+      ]
+    },
+    {
+      "name": "variant 3: shader silhouette, colour and normals match the direct GLTF source",
+      "pass": true,
+      "detail": [
+        {
+          "eye": [
+            0,
+            20,
+            180
+          ],
+          "occupiedUnion": 10598,
+          "silhouetteMismatch": 0,
+          "meanRGBDifference": 0,
+          "maximum": 0
+        },
+        {
+          "eye": [
+            150,
+            45,
+            130
+          ],
+          "occupiedUnion": 6997,
+          "silhouetteMismatch": 0,
+          "meanRGBDifference": 0,
+          "maximum": 0
+        },
+        {
+          "eye": [
+            -110,
+            90,
+            150
+          ],
+          "occupiedUnion": 7786,
+          "silhouetteMismatch": 0,
+          "meanRGBDifference": 0,
+          "maximum": 0
+        }
+      ]
+    },
+    {
+      "name": "all three foreground variants have distinct rendered silhouettes",
+      "pass": true,
+      "detail": [
+        {
+          "variants": [
+            1,
+            2
+          ],
+          "occupiedUnion": 13994,
+          "silhouetteMismatch": 0.5902529655566672,
+          "meanRGBDifference": 44.22540612643514,
+          "maximum": 134
+        },
+        {
+          "variants": [
+            1,
+            3
+          ],
+          "occupiedUnion": 15445,
+          "silhouetteMismatch": 0.4130139203625769,
+          "meanRGBDifference": 29.504435092262867,
+          "maximum": 134
+        },
+        {
+          "variants": [
+            2,
+            3
+          ],
+          "occupiedUnion": 12178,
+          "silhouetteMismatch": 0.6522417474133684,
+          "meanRGBDifference": 45.87597854053758,
+          "maximum": 153
+        }
+      ]
+    },
+    {
+      "name": "omitted variants are seeded, valid and reproducible",
+      "pass": true,
+      "detail": [
+        [
+          1,
+          2,
+          2,
+          3,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          3
+        ],
+        [
+          1,
+          2,
+          2,
+          3,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          3
+        ],
+        [
+          1,
+          1,
+          3,
+          3,
+          3,
+          2,
+          3,
+          2,
+          3,
+          1,
+          3,
+          1
+        ]
+      ]
+    },
+    {
+      "name": "records are copied before awaiting load and nonunit quaternions are normalized",
+      "pass": true,
+      "detail": {
+        "maximumMatrixError": 0.00000146719125382333,
+        "handle": {
+          "id": "copied",
+          "index": 0,
+          "variant": 2,
+          "diameter": 120,
+          "position": [
+            41,
+            -19,
+            73
+          ],
+          "quaternion": [
+            0.22645540682891913,
+            -0.33968311024337866,
+            0.11322770341445956,
+            0.9058216273156765
+          ],
+          "hidden": false
+        }
+      }
+    },
+    {
+      "name": "bounding box and sphere include every transformed vertex of all three selected variants",
+      "pass": true,
+      "detail": {
+        "expected": {
+          "min": [
+            -830.1055216789246,
+            -27.35998570919037,
+            -30.175685893015526
+          ],
+          "max": [
+            835.5892897290618,
+            89.85096911403807,
+            56.41886548360708
+          ]
+        },
+        "actual": {
+          "min": [
+            -832.7424178848266,
+            -44.28290380929587,
+            -87.49787747524479
+          ],
+          "max": [
+            894.3602621605286,
+            106.42780379283109,
+            103.97671723596076
+          ],
+          "sphereCenter": [
+            24.259722537106768,
+            15.3514914391592,
+            4.733187312907781
+          ],
+          "sphereRadius": 878.1775480902444
+        },
+        "missingBox": 0,
+        "missingSphere": 0,
+        "visibleAtEachInstance": [
+          {
+            "id": 1,
+            "calls": 1,
+            "occupied": 5512
+          },
+          {
+            "id": 2,
+            "calls": 1,
+            "occupied": 5208
+          },
+          {
+            "id": 3,
+            "calls": 1,
+            "occupied": 14533
+          }
+        ],
+        "facingAwayCalls": 0,
+        "facingAwayOccupied": 0
+      }
+    },
+    {
+      "name": "widely separated variants remain visible near either end of the batch",
+      "pass": true,
+      "detail": [
+        {
+          "id": 1,
+          "calls": 1,
+          "occupied": 5512
+        },
+        {
+          "id": 2,
+          "calls": 1,
+          "occupied": 5208
+        },
+        {
+          "id": 3,
+          "calls": 1,
+          "occupied": 14533
+        }
+      ]
+    },
+    {
+      "name": "a batch entirely behind the camera is culled without a draw",
+      "pass": true,
+      "detail": {
+        "expected": {
+          "min": [
+            -830.1055216789246,
+            -27.35998570919037,
+            -30.175685893015526
+          ],
+          "max": [
+            835.5892897290618,
+            89.85096911403807,
+            56.41886548360708
+          ]
+        },
+        "actual": {
+          "min": [
+            -832.7424178848266,
+            -44.28290380929587,
+            -87.49787747524479
+          ],
+          "max": [
+            894.3602621605286,
+            106.42780379283109,
+            103.97671723596076
+          ],
+          "sphereCenter": [
+            24.259722537106768,
+            15.3514914391592,
+            4.733187312907781
+          ],
+          "sphereRadius": 878.1775480902444
+        },
+        "missingBox": 0,
+        "missingSphere": 0,
+        "visibleAtEachInstance": [
+          {
+            "id": 1,
+            "calls": 1,
+            "occupied": 5512
+          },
+          {
+            "id": 2,
+            "calls": 1,
+            "occupied": 5208
+          },
+          {
+            "id": 3,
+            "calls": 1,
+            "occupied": 14533
+          }
+        ],
+        "facingAwayCalls": 0,
+        "facingAwayOccupied": 0
+      }
+    },
+    {
+      "name": "hide compacts instance count without replacing geometry, material or matrix buffers",
+      "pass": true,
+      "detail": {
+        "beforeTriangles": 768,
+        "afterTriangles": 512,
+        "liveIndices": [
+          0,
+          1
+        ],
+        "hidden": {
+          "id": 2,
+          "index": -1,
+          "variant": 2,
+          "diameter": 90,
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "quaternion": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "hidden": true
+        }
+      }
+    },
+    {
+      "name": "hiding all rocks leaves zero submitted geometry and zero visible pixels",
+      "pass": true,
+      "detail": {
+        "calls": 0,
+        "triangles": 0,
+        "stats": {
+          "count": 0,
+          "activeCount": 0,
+          "instances": 0,
+          "capacity": 3,
+          "hiddenInstances": 3,
+          "triangles": 0,
+          "submittedTriangles": 0,
+          "trianglesPerRock": 256,
+          "calls": 0,
+          "meshDrawCalls": 0,
+          "materials": 1,
+          "textures": 0,
+          "vertexAttributes": 14,
+          "vertexAttributeSlots": 14,
+          "variants": [
+            0,
+            0,
+            0
+          ],
+          "bounds": null,
+          "disposed": false
+        }
+      }
+    },
+    {
+      "name": "an empty field avoids asset loading, mesh allocation and GPU submissions",
+      "pass": true,
+      "detail": {
+        "loads": 0,
+        "stats": {
+          "count": 0,
+          "activeCount": 0,
+          "instances": 0,
+          "capacity": 0,
+          "hiddenInstances": 0,
+          "triangles": 0,
+          "submittedTriangles": 0,
+          "trianglesPerRock": 256,
+          "calls": 0,
+          "meshDrawCalls": 0,
+          "materials": 0,
+          "textures": 0,
+          "vertexAttributes": 14,
+          "vertexAttributeSlots": 14,
+          "variants": [
+            0,
+            0,
+            0
+          ],
+          "bounds": null,
+          "disposed": false
+        }
+      }
+    },
+    {
+      "name": "invalid records, transforms, duplicate IDs and seeds fail before asset loading",
+      "pass": true,
+      "detail": {
+        "cases": 21,
+        "rejected": 21,
+        "loads": 0
+      }
+    },
+    {
+      "name": "independent factory calls own separate geometry, material and transforms",
+      "pass": true
+    },
+    {
+      "name": "idempotent disposal releases owned GPU resources exactly once and preserves caller resources",
+      "pass": true,
+      "detail": {
+        "geometry": 1,
+        "material": 1,
+        "instancedMesh": 1,
+        "externalGeometry": 0,
+        "externalMaterial": 0,
+        "hideAfterDisposeRejected": false
+      }
+    },
+    {
+      "name": "disposing one field preserves a second renderable field",
+      "pass": true,
+      "detail": {
+        "calls": 1,
+        "triangles": 256
+      }
+    },
+    {
+      "name": "linked shader attribute locations fit a 16-slot phone GPU budget",
+      "pass": true,
+      "detail": {
+        "hardwareLimit": 16,
+        "programs": [
+          {
+            "slots": 14,
+            "highestLocationPlusOne": 15,
+            "attributes": [
+              {
+                "name": "instanceMatrix",
+                "location": 0,
+                "slots": 4
+              },
+              {
+                "name": "position",
+                "location": 4,
+                "slots": 1
+              },
+              {
+                "name": "normal",
+                "location": 5,
+                "slots": 1
+              },
+              {
+                "name": "color",
+                "location": 7,
+                "slots": 1
+              },
+              {
+                "name": "instance_variant",
+                "location": 8,
+                "slots": 1
+              },
+              {
+                "name": "fg_position_2",
+                "location": 9,
+                "slots": 1
+              },
+              {
+                "name": "fg_normal_2",
+                "location": 10,
+                "slots": 1
+              },
+              {
+                "name": "fg_color_2",
+                "location": 11,
+                "slots": 1
+              },
+              {
+                "name": "fg_position_3",
+                "location": 12,
+                "slots": 1
+              },
+              {
+                "name": "fg_normal_3",
+                "location": 13,
+                "slots": 1
+              },
+              {
+                "name": "fg_color_3",
+                "location": 14,
+                "slots": 1
+              }
+            ]
+          },
+          {
+            "slots": 3,
+            "highestLocationPlusOne": 4,
+            "attributes": [
+              {
+                "name": "position",
+                "location": 0,
+                "slots": 1
+              },
+              {
+                "name": "normal",
+                "location": 1,
+                "slots": 1
+              },
+              {
+                "name": "color",
+                "location": 3,
+                "slots": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "foreground and source PBR shaders render without shader or WebGL errors",
+      "pass": true,
+      "detail": {
+        "shaderErrors": [],
+        "glErrors": []
+      }
+    }
+  ],
+  "measurements": {
+    "actual": {
+      "calls": 1,
+      "triangles": 768,
+      "renders": 1,
+      "stats": {
+        "count": 3,
+        "activeCount": 3,
+        "instances": 3,
+        "capacity": 3,
+        "hiddenInstances": 0,
+        "triangles": 768,
+        "submittedTriangles": 768,
+        "trianglesPerRock": 256,
+        "calls": 1,
+        "meshDrawCalls": 1,
+        "materials": 1,
+        "textures": 0,
+        "vertexAttributes": 14,
+        "vertexAttributeSlots": 14,
+        "variants": [
+          1,
+          1,
+          1
+        ],
+        "bounds": {
+          "min": [
+            -162.74141788482666,
+            -62.604525089263916,
+            -56.98136329650879
+          ],
+          "max": [
+            189.7889530658722,
+            57.39547848701477,
+            60.057857036590576
+          ]
+        },
+        "disposed": false
+      }
+    },
+    "variants": [
+      {
+        "variant": 1,
+        "source": "foreground_stone_1",
+        "views": [
+          {
+            "eye": [
+              0,
+              20,
+              180
+            ],
+            "occupiedUnion": 13913,
+            "silhouetteMismatch": 0,
+            "meanRGBDifference": 0,
+            "maximum": 0
+          },
+          {
+            "eye": [
+              150,
+              45,
+              130
+            ],
+            "occupiedUnion": 10917,
+            "silhouetteMismatch": 0,
+            "meanRGBDifference": 0,
+            "maximum": 0
+          },
+          {
+            "eye": [
+              -110,
+              90,
+              150
+            ],
+            "occupiedUnion": 12675,
+            "silhouetteMismatch": 0,
+            "meanRGBDifference": 0,
+            "maximum": 0
+          }
+        ]
+      },
+      {
+        "variant": 2,
+        "source": "foreground_stone_2",
+        "views": [
+          {
+            "eye": [
+              0,
+              20,
+              180
+            ],
+            "occupiedUnion": 5815,
+            "silhouetteMismatch": 0,
+            "meanRGBDifference": 0,
+            "maximum": 0
+          },
+          {
+            "eye": [
+              150,
+              45,
+              130
+            ],
+            "occupiedUnion": 3562,
+            "silhouetteMismatch": 0,
+            "meanRGBDifference": 0,
+            "maximum": 0
+          },
+          {
+            "eye": [
+              -110,
+              90,
+              150
+            ],
+            "occupiedUnion": 6243,
+            "silhouetteMismatch": 0,
+            "meanRGBDifference": 0,
+            "maximum": 0
+          }
+        ]
+      },
+      {
+        "variant": 3,
+        "source": "foreground_stone_3",
+        "views": [
+          {
+            "eye": [
+              0,
+              20,
+              180
+            ],
+            "occupiedUnion": 10598,
+            "silhouetteMismatch": 0,
+            "meanRGBDifference": 0,
+            "maximum": 0
+          },
+          {
+            "eye": [
+              150,
+              45,
+              130
+            ],
+            "occupiedUnion": 6997,
+            "silhouetteMismatch": 0,
+            "meanRGBDifference": 0,
+            "maximum": 0
+          },
+          {
+            "eye": [
+              -110,
+              90,
+              150
+            ],
+            "occupiedUnion": 7786,
+            "silhouetteMismatch": 0,
+            "meanRGBDifference": 0,
+            "maximum": 0
+          }
+        ]
+      }
+    ],
+    "culling": {
+      "expected": {
+        "min": [
+          -830.1055216789246,
+          -27.35998570919037,
+          -30.175685893015526
+        ],
+        "max": [
+          835.5892897290618,
+          89.85096911403807,
+          56.41886548360708
+        ]
+      },
+      "actual": {
+        "min": [
+          -832.7424178848266,
+          -44.28290380929587,
+          -87.49787747524479
+        ],
+        "max": [
+          894.3602621605286,
+          106.42780379283109,
+          103.97671723596076
+        ],
+        "sphereCenter": [
+          24.259722537106768,
+          15.3514914391592,
+          4.733187312907781
+        ],
+        "sphereRadius": 878.1775480902444
+      },
+      "missingBox": 0,
+      "missingSphere": 0,
+      "visibleAtEachInstance": [
+        {
+          "id": 1,
+          "calls": 1,
+          "occupied": 5512
+        },
+        {
+          "id": 2,
+          "calls": 1,
+          "occupied": 5208
+        },
+        {
+          "id": 3,
+          "calls": 1,
+          "occupied": 14533
+        }
+      ],
+      "facingAwayCalls": 0,
+      "facingAwayOccupied": 0
+    },
+    "lifetime": {
+      "geometry": 1,
+      "material": 1,
+      "instancedMesh": 1,
+      "externalGeometry": 0,
+      "externalMaterial": 0,
+      "hideAfterDisposeRejected": false
+    },
+    "shaderErrors": [],
+    "glErrors": [],
+    "silhouettes": [
+      {
+        "variants": [
+          1,
+          2
+        ],
+        "occupiedUnion": 13994,
+        "silhouetteMismatch": 0.5902529655566672,
+        "meanRGBDifference": 44.22540612643514,
+        "maximum": 134
+      },
+      {
+        "variants": [
+          1,
+          3
+        ],
+        "occupiedUnion": 15445,
+        "silhouetteMismatch": 0.4130139203625769,
+        "meanRGBDifference": 29.504435092262867,
+        "maximum": 134
+      },
+      {
+        "variants": [
+          2,
+          3
+        ],
+        "occupiedUnion": 12178,
+        "silhouetteMismatch": 0.6522417474133684,
+        "meanRGBDifference": 45.87597854053758,
+        "maximum": 153
+      }
+    ],
+    "copiedTransform": {
+      "maximumMatrixError": 0.00000146719125382333,
+      "handle": {
+        "id": "copied",
+        "index": 0,
+        "variant": 2,
+        "diameter": 120,
+        "position": [
+          41,
+          -19,
+          73
+        ],
+        "quaternion": [
+          0.22645540682891913,
+          -0.33968311024337866,
+          0.11322770341445956,
+          0.9058216273156765
+        ],
+        "hidden": false
+      }
+    },
+    "attributes": {
+      "hardwareLimit": 16,
+      "programs": [
+        {
+          "slots": 14,
+          "highestLocationPlusOne": 15,
+          "attributes": [
+            {
+              "name": "instanceMatrix",
+              "location": 0,
+              "slots": 4
+            },
+            {
+              "name": "position",
+              "location": 4,
+              "slots": 1
+            },
+            {
+              "name": "normal",
+              "location": 5,
+              "slots": 1
+            },
+            {
+              "name": "color",
+              "location": 7,
+              "slots": 1
+            },
+            {
+              "name": "instance_variant",
+              "location": 8,
+              "slots": 1
+            },
+            {
+              "name": "fg_position_2",
+              "location": 9,
+              "slots": 1
+            },
+            {
+              "name": "fg_normal_2",
+              "location": 10,
+              "slots": 1
+            },
+            {
+              "name": "fg_color_2",
+              "location": 11,
+              "slots": 1
+            },
+            {
+              "name": "fg_position_3",
+              "location": 12,
+              "slots": 1
+            },
+            {
+              "name": "fg_normal_3",
+              "location": 13,
+              "slots": 1
+            },
+            {
+              "name": "fg_color_3",
+              "location": 14,
+              "slots": 1
+            }
+          ]
+        },
+        {
+          "slots": 3,
+          "highestLocationPlusOne": 4,
+          "attributes": [
+            {
+              "name": "position",
+              "location": 0,
+              "slots": 1
+            },
+            {
+              "name": "normal",
+              "location": 1,
+              "slots": 1
+            },
+            {
+              "name": "color",
+              "location": 3,
+              "slots": 1
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "note": "Real browser GPU submission and 256×256 source-parity samples. No physical-phone FPS measurement; test render targets and lights are not installed by the foreground asset.",
+  "three": "160",
+  "browser": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+  "webgl2": true,
+  "viewport": {
+    "width": 844,
+    "height": 390,
+    "devicePixelRatio": 3,
+    "renderPixelRatio": 1.5
+  }
+}

@@ -1,20 +1,76 @@
 {
   "boss": {
-    "bytes": 313516,
-    "sha256": "95109ed9163e4a7fac2330f3474789385f512d158fec0bcfbd48497f8d86ed19",
+    "bytes": 884640,
+    "sha256": "96a8af4dcd77dd58dfc773533ab23fced029bc473913847b6192e06ec568f459",
     "textures": 0,
+    "materials": 4,
+    "stored_triangles": 8538,
     "states": {
       "armour_intact": {
-        "triangles": 1440,
-        "draw_calls": 2
+        "triangles": 3234,
+        "draw_calls": 2,
+        "bounds_metres": {
+          "min": [
+            -14.926699,
+            -13.437204,
+            -14.786969
+          ],
+          "max": [
+            14.360565,
+            14.165041,
+            14.870757
+          ],
+          "size": [
+            29.287264,
+            27.602245,
+            29.657726
+          ]
+        },
+        "red_emissive_primitives": 1
       },
       "armour_cracked": {
-        "triangles": 1236,
-        "draw_calls": 2
+        "triangles": 2692,
+        "draw_calls": 2,
+        "bounds_metres": {
+          "min": [
+            -15.298048,
+            -14.04782,
+            -14.287636
+          ],
+          "max": [
+            14.360565,
+            14.804502,
+            15.476069
+          ],
+          "size": [
+            29.658613,
+            28.852323,
+            29.763705
+          ]
+        },
+        "red_emissive_primitives": 1
       },
       "armour_broken": {
-        "triangles": 1620,
-        "draw_calls": 4
+        "triangles": 2612,
+        "draw_calls": 4,
+        "bounds_metres": {
+          "min": [
+            -15.628407,
+            -14.482501,
+            -5.009872
+          ],
+          "max": [
+            13.666368,
+            13.209685,
+            15.839876
+          ],
+          "size": [
+            29.294775,
+            27.692186,
+            20.849749
+          ]
+        },
+        "red_emissive_primitives": 2
       }
     }
   },
@@ -22,26 +78,86 @@
     "bytes": 238100,
     "sha256": "603de7f5577c8c58375492c570e153bae5901755aaaa1bff411ffaa52920ab54",
     "textures": 0,
+    "materials": 2,
+    "stored_triangles": 3330,
     "states": {
       "armour_intact": {
         "triangles": 1440,
-        "draw_calls": 2
+        "draw_calls": 2,
+        "bounds_metres": {
+          "min": [
+            -14.926699,
+            -13.272202,
+            -14.786969
+          ],
+          "max": [
+            12.707507,
+            14.165041,
+            14.870757
+          ],
+          "size": [
+            27.634206,
+            27.437243,
+            29.657726
+          ]
+        }
       },
       "armour_cracked": {
         "triangles": 1236,
-        "draw_calls": 2
+        "draw_calls": 2,
+        "bounds_metres": {
+          "min": [
+            -15.298048,
+            -13.94646,
+            -14.287636
+          ],
+          "max": [
+            13.273588,
+            14.804502,
+            15.476069
+          ],
+          "size": [
+            28.571636,
+            28.750962,
+            29.763705
+          ]
+        }
       },
       "armour_broken": {
         "triangles": 654,
-        "draw_calls": 2
+        "draw_calls": 2,
+        "bounds_metres": {
+          "min": [
+            -15.628407,
+            -14.394494,
+            -3.079727
+          ],
+          "max": [
+            13.666368,
+            13.209685,
+            15.839876
+          ],
+          "size": [
+            29.294775,
+            27.604179,
+            18.919603
+          ]
+        }
       }
     }
   },
   "checks": {
-    "shells_identical": true,
-    "embedded_buffers": true,
-    "no_decoders": true,
-    "names_and_sockets": true,
-    "within_budget": true
+    "actual_accessor_values": true,
+    "finite_geometry_and_unit_normals": true,
+    "valid_indices_and_nondegenerate_triangles": true,
+    "accurate_accessor_bounds": true,
+    "names_and_central_socket": true,
+    "embedded_buffers_zero_textures": true,
+    "pbr_and_supported_extensions_only": true,
+    "red_seams_each_state_and_red_core": true,
+    "consolidated_vertex_color_armour": true,
+    "per_state_budget": true,
+    "legacy_decoy_byte_identical": true,
+    "boss_shells_differ_from_legacy_decoy": true
   }
 }

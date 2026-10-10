@@ -1,0 +1,11 @@
+# A-007 independent visual review
+
+Final verdict: **PASS** for the reviewed asset and preview views. Chromium 154 on macOS, three.js r160, renderer DPR capped at 1.5. Reviewed the final opaque PBR path on 10 October 2026 (local time).
+
+- Desktop pilot view at 1440×900: clean bevels, cyan accents and a large unobstructed window. Three sample gauges are legible. No overlay shards or incorrect surface ordering remain.
+- Exterior inspection: the window frame, dashboard and gauge recesses read as solid low-poly geometry, without visible holes or protruding triangles in the sampled angle.
+- Live resize 1440×900 → 390×844 → 844×390: frame remains fitted, controls stay available, and gauge text changes between stacked portrait and horizontal landscape layouts. Final screenshots are `visual-review-desktop.png`, `visual-review-portrait.png` and `visual-review-landscape.png`.
+- The initial live-resize check exposed three `glCopySubTextureCHROMIUM` warnings and squashed gauge text. The preview now recreates resized CanvasTextures; repeating the sequence produced **zero console warnings and errors**, with correctly arranged values. This fix is in the preview sample gauges, not the GLB.
+- The independent browser validator passes **35/35 checks**. Actual asset submission is **1,366 triangles / 3 draw calls**, with three PBR materials and no asset textures. Five projection cases leave **80.899–81.248%** of the sampled screen clear; the defined central 50% × 40% aperture is fully clear in every case. Gauge socket +Z planes face the camera. Camera parenting, independent resources, disposal and ordinary depth occlusion all pass. Evidence: `browser-validation-independent.json`.
+
+Limits: phone dimensions here are resized desktop Chromium, not physical iPhone measurements. Pixel coverage uses offscreen samples up to 480 pixels on the longest side, a white geometry override and a threshold of 32; sample gauges are excluded from asset budgets. The preview scene adds lighting, scenery and three gauge textures/draws. No physical-phone FPS, thermal, long-duration stability or game-integration claim is made. Geometry physically closer than the cockpit can occlude it; integration must hide the player's exterior hull in first person.

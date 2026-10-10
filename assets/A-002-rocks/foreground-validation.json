@@ -1,0 +1,576 @@
+{
+  "file": "foreground.glb",
+  "validated_at_utc": "2026-10-09T22:56:35.345257+00:00",
+  "checks": [
+    {
+      "name": "delivered field-rock GLB, helper and both maps are byte-identical",
+      "pass": true,
+      "detail": {
+        "rocks.glb": {
+          "bytes": 175020,
+          "sha256": "b27753fc5e263cc565276e490a0acfa99371f3b15f780ef2efacdb467608273d",
+          "matches_snapshot": true
+        },
+        "rocks.js": {
+          "bytes": 5642,
+          "sha256": "073adfa764fe8def2d36c1f56dc9c578c88aa661aaf0505ccf5321c81353bc80",
+          "matches_snapshot": true
+        },
+        "rocks_color.png": {
+          "bytes": 13239,
+          "sha256": "73410ab483d278beeadb761a8847632933422141052151311ce7f72978f8f4ab",
+          "matches_snapshot": true
+        },
+        "rocks_emissive.png": {
+          "bytes": 11044,
+          "sha256": "c1ca90ec2ef249c5daded95c98de78d5c2e371bf48e509c93275c3c28c4840eb",
+          "matches_snapshot": true
+        }
+      }
+    },
+    {
+      "name": "GLB 2 header and exact file length",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "glTF 2 uses embedded geometry without textures or decoder extensions",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "all buffer views, accessors and declared extrema match finite binary data",
+      "pass": true,
+      "detail": {
+        "buffer_views": 15,
+        "accessors": 15,
+        "extrema": 6
+      }
+    },
+    {
+      "name": "three uniquely named variants are the only reachable mesh nodes",
+      "pass": true,
+      "detail": [
+        "foreground_stone_1",
+        "foreground_stone_2",
+        "foreground_stone_3"
+      ]
+    },
+    {
+      "name": "static rocks contain no skin, animation, cameras or lights",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "foreground_stone_1: one primitive stays within the 300-triangle budget",
+      "pass": true,
+      "detail": {
+        "triangles": 256
+      }
+    },
+    {
+      "name": "foreground_stone_1: finite 2-metre diameter bounds and unit normals/vertex colours",
+      "pass": true,
+      "detail": {
+        "name": "foreground_stone_1",
+        "vertices": 768,
+        "expanded_vertices": 768,
+        "triangles": 256,
+        "material": 0,
+        "bounds": {
+          "min": [
+            -1.0035173892974854,
+            -0.911999523639679,
+            -0.9496893882751465
+          ],
+          "max": [
+            0.9964825510978699,
+            0.7762464880943298,
+            1.0009642839431763
+          ]
+        },
+        "extents": [
+          1.9999999403953552,
+          1.6882460117340088,
+          1.9506536722183228
+        ],
+        "longest_extent": 1.9999999403953552,
+        "signed_volume": 2.8420658842314857,
+        "volume_centroid": [
+          -1.6941776019846643e-09,
+          -1.9358524524363047e-08,
+          -1.0063776912895503e-08
+        ],
+        "welded_vertices": 130,
+        "unique_edges": 384,
+        "topology_sha256": "94d60e44cd44bf4ad79fb55d27b82d043073018fcf2b98f9ed7f2d9edffbfda3",
+        "maximum_normal_error": 1.1622277895639854e-07,
+        "degenerate_faces": 0,
+        "reversed_faces": 0,
+        "color_range": [
+          0.19012203812599182,
+          0.48198238015174866
+        ]
+      }
+    },
+    {
+      "name": "foreground_stone_1: closed connected solid with positive outward volume",
+      "pass": true,
+      "detail": {
+        "closed_oriented_manifold": true,
+        "connected_vertices": 130,
+        "volume": 2.8420658842314857,
+        "degenerate_faces": 0,
+        "reversed_faces": 0
+      }
+    },
+    {
+      "name": "foreground_stone_1: volume centre of mass is at the origin",
+      "pass": true,
+      "detail": [
+        -1.6941776019846643e-09,
+        -1.9358524524363047e-08,
+        -1.0063776912895503e-08
+      ]
+    },
+    {
+      "name": "foreground_stone_2: one primitive stays within the 300-triangle budget",
+      "pass": true,
+      "detail": {
+        "triangles": 256
+      }
+    },
+    {
+      "name": "foreground_stone_2: finite 2-metre diameter bounds and unit normals/vertex colours",
+      "pass": true,
+      "detail": {
+        "name": "foreground_stone_2",
+        "vertices": 768,
+        "expanded_vertices": 768,
+        "triangles": 256,
+        "material": 0,
+        "bounds": {
+          "min": [
+            -1.0913805961608887,
+            -0.3280085623264313,
+            -0.6201657056808472
+          ],
+          "max": [
+            0.9086194038391113,
+            0.33626002073287964,
+            0.6268517374992371
+          ]
+        },
+        "extents": [
+          2.0,
+          0.6642685830593109,
+          1.2470174431800842
+        ],
+        "longest_extent": 2.0,
+        "signed_volume": 0.7954404609459212,
+        "volume_centroid": [
+          -6.668913825597427e-11,
+          -1.2245153699727958e-09,
+          4.960091633048004e-09
+        ],
+        "welded_vertices": 130,
+        "unique_edges": 384,
+        "topology_sha256": "94d60e44cd44bf4ad79fb55d27b82d043073018fcf2b98f9ed7f2d9edffbfda3",
+        "maximum_normal_error": 1.1366234531351438e-07,
+        "degenerate_faces": 0,
+        "reversed_faces": 0,
+        "color_range": [
+          0.21283270418643951,
+          0.5144814848899841
+        ]
+      }
+    },
+    {
+      "name": "foreground_stone_2: closed connected solid with positive outward volume",
+      "pass": true,
+      "detail": {
+        "closed_oriented_manifold": true,
+        "connected_vertices": 130,
+        "volume": 0.7954404609459212,
+        "degenerate_faces": 0,
+        "reversed_faces": 0
+      }
+    },
+    {
+      "name": "foreground_stone_2: volume centre of mass is at the origin",
+      "pass": true,
+      "detail": [
+        -6.668913825597427e-11,
+        -1.2245153699727958e-09,
+        4.960091633048004e-09
+      ]
+    },
+    {
+      "name": "foreground_stone_3: one primitive stays within the 300-triangle budget",
+      "pass": true,
+      "detail": {
+        "triangles": 256
+      }
+    },
+    {
+      "name": "foreground_stone_3: finite 2-metre diameter bounds and unit normals/vertex colours",
+      "pass": true,
+      "detail": {
+        "name": "foreground_stone_3",
+        "vertices": 768,
+        "expanded_vertices": 768,
+        "triangles": 256,
+        "material": 0,
+        "bounds": {
+          "min": [
+            -0.6904717087745667,
+            -1.043408751487732,
+            -0.7229204773902893
+          ],
+          "max": [
+            0.6394174695014954,
+            0.9565913081169128,
+            0.5571216344833374
+          ]
+        },
+        "extents": [
+          1.329889178276062,
+          2.0000000596046448,
+          1.2800421118736267
+        ],
+        "longest_extent": 2.0000000596046448,
+        "signed_volume": 1.3045433649386682,
+        "volume_centroid": [
+          -1.9755689403042306e-08,
+          -5.006213477869468e-08,
+          -1.7985640128364545e-08
+        ],
+        "welded_vertices": 130,
+        "unique_edges": 384,
+        "topology_sha256": "94d60e44cd44bf4ad79fb55d27b82d043073018fcf2b98f9ed7f2d9edffbfda3",
+        "maximum_normal_error": 1.2336060528639337e-07,
+        "degenerate_faces": 0,
+        "reversed_faces": 0,
+        "color_range": [
+          0.2004428207874298,
+          0.44247719645500183
+        ]
+      }
+    },
+    {
+      "name": "foreground_stone_3: closed connected solid with positive outward volume",
+      "pass": true,
+      "detail": {
+        "closed_oriented_manifold": true,
+        "connected_vertices": 130,
+        "volume": 1.3045433649386682,
+        "degenerate_faces": 0,
+        "reversed_faces": 0
+      }
+    },
+    {
+      "name": "foreground_stone_3: volume centre of mass is at the origin",
+      "pass": true,
+      "detail": [
+        -1.9755689403042306e-08,
+        -5.006213477869468e-08,
+        -1.7985640128364545e-08
+      ]
+    },
+    {
+      "name": "all variants share one named opaque single-sided PBR material",
+      "pass": true,
+      "detail": {
+        "materials": [
+          "foreground_stone_paint"
+        ],
+        "indices": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "expanded vertices preserve identical triangle topology and order across variants",
+      "pass": true,
+      "detail": {
+        "expanded_vertices": [
+          768,
+          768,
+          768
+        ],
+        "topology_hashes": [
+          "94d60e44cd44bf4ad79fb55d27b82d043073018fcf2b98f9ed7f2d9edffbfda3",
+          "94d60e44cd44bf4ad79fb55d27b82d043073018fcf2b98f9ed7f2d9edffbfda3",
+          "94d60e44cd44bf4ad79fb55d27b82d043073018fcf2b98f9ed7f2d9edffbfda3"
+        ]
+      }
+    },
+    {
+      "name": "manifest file hash, bytes, shared material and budgets match exported data",
+      "pass": true,
+      "detail": {
+        "file": "foreground.glb",
+        "bytes": 109828,
+        "sha256": "642e68d0b5680dbbb8244cd35c23718a5145b9d04eeffd39235d300519024095",
+        "materials": 1,
+        "textures": 0,
+        "material": "foreground_stone_paint",
+        "stored_triangles": 768
+      }
+    },
+    {
+      "name": "foreground_stone_1: manifest bounds, volume and centroid match independent measurements",
+      "pass": true,
+      "detail": {
+        "centroid_difference": 8.793969986621516e-09,
+        "volume_difference": 3.885705535111583e-09
+      }
+    },
+    {
+      "name": "foreground_stone_1: expanded UV identities prove exact source triangle and vertex order",
+      "pass": true,
+      "detail": {
+        "source_vertices": 130,
+        "expanded_corners": 768,
+        "maximum_id_rounding_error": 1.1324882507324219e-05,
+        "source_vertex_order_sha256": "429b40fb021994efdac74704537db23ff88977969770df6ed93f7ae9acda3835"
+      }
+    },
+    {
+      "name": "foreground_stone_1: every expanded corner matches its normalized source vertex",
+      "pass": true,
+      "detail": {
+        "maximum_position_error_metres": 0.0
+      }
+    },
+    {
+      "name": "foreground_stone_2: manifest bounds, volume and centroid match independent measurements",
+      "pass": true,
+      "detail": {
+        "centroid_difference": 7.287563624070067e-09,
+        "volume_difference": 5.518074330801426e-09
+      }
+    },
+    {
+      "name": "foreground_stone_2: expanded UV identities prove exact source triangle and vertex order",
+      "pass": true,
+      "detail": {
+        "source_vertices": 130,
+        "expanded_corners": 768,
+        "maximum_id_rounding_error": 1.1324882507324219e-05,
+        "source_vertex_order_sha256": "429b40fb021994efdac74704537db23ff88977969770df6ed93f7ae9acda3835"
+      }
+    },
+    {
+      "name": "foreground_stone_2: every expanded corner matches its normalized source vertex",
+      "pass": true,
+      "detail": {
+        "maximum_position_error_metres": 0.0
+      }
+    },
+    {
+      "name": "foreground_stone_3: manifest bounds, volume and centroid match independent measurements",
+      "pass": true,
+      "detail": {
+        "centroid_difference": 3.917505420829601e-08,
+        "volume_difference": 8.753063607258582e-09
+      }
+    },
+    {
+      "name": "foreground_stone_3: expanded UV identities prove exact source triangle and vertex order",
+      "pass": true,
+      "detail": {
+        "source_vertices": 130,
+        "expanded_corners": 768,
+        "maximum_id_rounding_error": 1.1324882507324219e-05,
+        "source_vertex_order_sha256": "429b40fb021994efdac74704537db23ff88977969770df6ed93f7ae9acda3835"
+      }
+    },
+    {
+      "name": "foreground_stone_3: every expanded corner matches its normalized source vertex",
+      "pass": true,
+      "detail": {
+        "maximum_position_error_metres": 0.0
+      }
+    },
+    {
+      "name": "all variants expose identical verified source IDs after toNonIndexed expansion",
+      "pass": true,
+      "detail": {
+        "expanded_vertices_per_variant": [
+          768,
+          768,
+          768
+        ],
+        "source_triangles": 256
+      }
+    }
+  ],
+  "variants": [
+    {
+      "name": "foreground_stone_1",
+      "vertices": 768,
+      "expanded_vertices": 768,
+      "triangles": 256,
+      "material": 0,
+      "bounds": {
+        "min": [
+          -1.0035173892974854,
+          -0.911999523639679,
+          -0.9496893882751465
+        ],
+        "max": [
+          0.9964825510978699,
+          0.7762464880943298,
+          1.0009642839431763
+        ]
+      },
+      "extents": [
+        1.9999999403953552,
+        1.6882460117340088,
+        1.9506536722183228
+      ],
+      "longest_extent": 1.9999999403953552,
+      "signed_volume": 2.8420658842314857,
+      "volume_centroid": [
+        -1.6941776019846643e-09,
+        -1.9358524524363047e-08,
+        -1.0063776912895503e-08
+      ],
+      "welded_vertices": 130,
+      "unique_edges": 384,
+      "topology_sha256": "94d60e44cd44bf4ad79fb55d27b82d043073018fcf2b98f9ed7f2d9edffbfda3",
+      "maximum_normal_error": 1.1622277895639854e-07,
+      "degenerate_faces": 0,
+      "reversed_faces": 0,
+      "color_range": [
+        0.19012203812599182,
+        0.48198238015174866
+      ]
+    },
+    {
+      "name": "foreground_stone_2",
+      "vertices": 768,
+      "expanded_vertices": 768,
+      "triangles": 256,
+      "material": 0,
+      "bounds": {
+        "min": [
+          -1.0913805961608887,
+          -0.3280085623264313,
+          -0.6201657056808472
+        ],
+        "max": [
+          0.9086194038391113,
+          0.33626002073287964,
+          0.6268517374992371
+        ]
+      },
+      "extents": [
+        2.0,
+        0.6642685830593109,
+        1.2470174431800842
+      ],
+      "longest_extent": 2.0,
+      "signed_volume": 0.7954404609459212,
+      "volume_centroid": [
+        -6.668913825597427e-11,
+        -1.2245153699727958e-09,
+        4.960091633048004e-09
+      ],
+      "welded_vertices": 130,
+      "unique_edges": 384,
+      "topology_sha256": "94d60e44cd44bf4ad79fb55d27b82d043073018fcf2b98f9ed7f2d9edffbfda3",
+      "maximum_normal_error": 1.1366234531351438e-07,
+      "degenerate_faces": 0,
+      "reversed_faces": 0,
+      "color_range": [
+        0.21283270418643951,
+        0.5144814848899841
+      ]
+    },
+    {
+      "name": "foreground_stone_3",
+      "vertices": 768,
+      "expanded_vertices": 768,
+      "triangles": 256,
+      "material": 0,
+      "bounds": {
+        "min": [
+          -0.6904717087745667,
+          -1.043408751487732,
+          -0.7229204773902893
+        ],
+        "max": [
+          0.6394174695014954,
+          0.9565913081169128,
+          0.5571216344833374
+        ]
+      },
+      "extents": [
+        1.329889178276062,
+        2.0000000596046448,
+        1.2800421118736267
+      ],
+      "longest_extent": 2.0000000596046448,
+      "signed_volume": 1.3045433649386682,
+      "volume_centroid": [
+        -1.9755689403042306e-08,
+        -5.006213477869468e-08,
+        -1.7985640128364545e-08
+      ],
+      "welded_vertices": 130,
+      "unique_edges": 384,
+      "topology_sha256": "94d60e44cd44bf4ad79fb55d27b82d043073018fcf2b98f9ed7f2d9edffbfda3",
+      "maximum_normal_error": 1.2336060528639337e-07,
+      "degenerate_faces": 0,
+      "reversed_faces": 0,
+      "color_range": [
+        0.2004428207874298,
+        0.44247719645500183
+      ]
+    }
+  ],
+  "limitations": [
+    "Structural checks do not measure GPU timing or physical-phone performance.",
+    "Topology equivalence is checked on exported expanded triangle corners; browser loading/rendering is separate evidence."
+  ],
+  "original_assets": {
+    "rocks.glb": {
+      "bytes": 175020,
+      "sha256": "b27753fc5e263cc565276e490a0acfa99371f3b15f780ef2efacdb467608273d",
+      "matches_snapshot": true
+    },
+    "rocks.js": {
+      "bytes": 5642,
+      "sha256": "073adfa764fe8def2d36c1f56dc9c578c88aa661aaf0505ccf5321c81353bc80",
+      "matches_snapshot": true
+    },
+    "rocks_color.png": {
+      "bytes": 13239,
+      "sha256": "73410ab483d278beeadb761a8847632933422141052151311ce7f72978f8f4ab",
+      "matches_snapshot": true
+    },
+    "rocks_emissive.png": {
+      "bytes": 11044,
+      "sha256": "c1ca90ec2ef249c5daded95c98de78d5c2e371bf48e509c93275c3c28c4840eb",
+      "matches_snapshot": true
+    }
+  },
+  "bytes": 109828,
+  "sha256": "642e68d0b5680dbbb8244cd35c23718a5145b9d04eeffd39235d300519024095",
+  "totals": {
+    "triangles": 768,
+    "direct_template_draw_calls": 3,
+    "shared_materials": 1,
+    "textures": 0
+  },
+  "manifest": {
+    "file": "foreground-manifest.json",
+    "bytes": 57695,
+    "sha256": "c5a99729a334a23e8fc9fd8174d8230e053f0eccc290303d749f57b31178addc"
+  },
+  "pass": true
+}

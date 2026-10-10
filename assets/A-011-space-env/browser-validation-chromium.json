@@ -1,0 +1,694 @@
+{
+  "pass": true,
+  "checks": {
+    "environment factory is exported": true,
+    "loading requires no renderer operation": true,
+    "space: 2048×1024 sRGB image texture": true,
+    "space: 12 triangles and one sky draw": true,
+    "space: exactly one resident sky texture": true,
+    "nebula: 2048×1024 sRGB image texture": true,
+    "nebula: 12 triangles and one sky draw": true,
+    "nebula: exactly one resident sky texture": true,
+    "diffuse lighting uses nine finite SH coefficients": true,
+    "diffuse SH rotation follows the panorama orientation": true,
+    "sky does not trigger environment/cubemap conversion": true,
+    "public appearance controls retain finite geometry and lighting": true,
+    "variant teardown releases the resident texture": true,
+    "camera translation leaves the distant panorama unchanged": true,
+    "camera rotation reveals a different part of the panorama": true,
+    "environment rotation visibly changes the backdrop": true,
+    "opposite panorama rotation matches the camera rotation": true,
+    "resetting panorama rotation restores the original view": true,
+    "space: finite polar colors match baked linear radiance": true,
+    "space: north polar center is stable under Y rotation": true,
+    "space: south polar center is stable under Y rotation": true,
+    "nebula: finite polar colors match baked linear radiance": true,
+    "nebula: north polar center is stable under Y rotation": true,
+    "nebula: south polar center is stable under Y rotation": true,
+    "space: longitude seam has no dark sampling stripe": true,
+    "nebula: longitude seam has no dark sampling stripe": true,
+    "initial create loads only the selected JPEG": true,
+    "selecting the active variant performs no load": true,
+    "switch replaces and disposes the previous texture once": true,
+    "scene instances own independent textures, lighting and lifetime": true,
+    "duplicate pending variants share one load": true,
+    "selecting current variant cancels a pending alternate": true,
+    "newest variant wins and stale loaded textures are disposed": true,
+    "load failure preserves the current environment": true,
+    "disposal is idempotent and cleans arriving textures": true,
+    "all checks avoid render targets, cube renders and PMREM passes": true,
+    "WebGL shaders compile and render without errors": true
+  },
+  "measurements": {
+    "variants": {
+      "space": {
+        "width": 2048,
+        "height": 1024,
+        "colorSpace": "srgb",
+        "actual": {
+          "calls": 1,
+          "triangles": 12,
+          "renderInvocations": 1,
+          "textures": 1,
+          "geometries": 1
+        }
+      },
+      "nebula": {
+        "width": 2048,
+        "height": 1024,
+        "colorSpace": "srgb",
+        "actual": {
+          "calls": 1,
+          "triangles": 12,
+          "renderInvocations": 1,
+          "textures": 1,
+          "geometries": 1
+        }
+      }
+    },
+    "camera": {
+      "translation": {
+        "maxDifference": 0,
+        "meanDifference": 0,
+        "changedChannels": 0,
+        "channels": 196608
+      },
+      "rotation": {
+        "maxDifference": 211,
+        "meanDifference": 84.53177388509114,
+        "changedChannels": 189116,
+        "channels": 196608
+      },
+      "environmentRotation": {
+        "maxDifference": 197,
+        "meanDifference": 34.87946065266927,
+        "changedChannels": 184116,
+        "channels": 196608
+      },
+      "oppositeRotationEquivalence": {
+        "maxDifference": 2,
+        "meanDifference": 0.0022684733072916665,
+        "changedChannels": 445,
+        "channels": 196608
+      }
+    },
+    "poles": {
+      "space": {
+        "north": {
+          "pixels": 64,
+          "rotationsCompared": 3,
+          "maximumDifference": 0,
+          "maximumMeanDifference": 0,
+          "visible": true,
+          "centerRGBA": [
+            0,
+            2,
+            86,
+            255
+          ]
+        },
+        "south": {
+          "pixels": 64,
+          "rotationsCompared": 3,
+          "maximumDifference": 0,
+          "maximumMeanDifference": 0,
+          "visible": true,
+          "centerRGBA": [
+            0,
+            2,
+            73,
+            255
+          ]
+        }
+      },
+      "nebula": {
+        "north": {
+          "pixels": 64,
+          "rotationsCompared": 3,
+          "maximumDifference": 0,
+          "maximumMeanDifference": 0,
+          "visible": true,
+          "centerRGBA": [
+            0,
+            0,
+            27,
+            255
+          ]
+        },
+        "south": {
+          "pixels": 64,
+          "rotationsCompared": 3,
+          "maximumDifference": 0,
+          "maximumMeanDifference": 0,
+          "visible": true,
+          "centerRGBA": [
+            0,
+            0,
+            24,
+            255
+          ]
+        }
+      }
+    },
+    "seam": {
+      "space": {
+        "columnMeanRgb": [
+          91.77200000000006,
+          91.83600000000003,
+          91.86400000000013,
+          91.76200000000007,
+          91.60733333333341,
+          91.53800000000012,
+          91.53933333333345,
+          91.61000000000006,
+          91.77266666666671,
+          91.88333333333341,
+          91.88333333333337,
+          91.86266666666661,
+          91.67666666666673
+        ],
+        "centerMean": 91.53866666666678,
+        "neighborMean": 91.78683333333336,
+        "dip": 0.24816666666657738,
+        "rows": 500
+      },
+      "nebula": {
+        "columnMeanRgb": [
+          42.35466666666666,
+          42.4693333333333,
+          42.570666666666654,
+          42.615333333333325,
+          42.62066666666664,
+          42.61666666666662,
+          42.617333333333285,
+          42.62999999999996,
+          42.63333333333333,
+          42.591333333333324,
+          42.50466666666665,
+          42.422000000000025,
+          42.30533333333336
+        ],
+        "centerMean": 42.61699999999995,
+        "neighborMean": 42.38783333333333,
+        "dip": -0.22916666666661456,
+        "rows": 500
+      }
+    },
+    "loading": {
+      "races": {
+        "loadCalls": 3,
+        "staleApplied": false,
+        "staleDisposals": 1
+      },
+      "disposal": {
+        "textureDisposals": 1,
+        "geometryDisposals": 1,
+        "materialDisposals": 1,
+        "lateTextureDisposals": 1,
+        "outcome": {
+          "value": false
+        },
+        "actual": {
+          "calls": 0,
+          "triangles": 0,
+          "renderInvocations": 1,
+          "textures": 0,
+          "geometries": 0
+        }
+      }
+    },
+    "shaderErrors": [],
+    "glErrors": []
+  },
+  "limitations": [
+    "Desktop or emulated WebGL evidence only; physical-phone performance is not measured.",
+    "Diffuse LightProbe lighting is tested; this helper does not provide specular image-based reflections.",
+    "GPU residency checks use renderer.info.memory.textures; browser HTTP/decoded-image caching is outside that counter.",
+    "Panorama art quality, seams and pole appearance require visual review."
+  ],
+  "checkDetails": [
+    {
+      "name": "environment factory is exported",
+      "pass": true
+    },
+    {
+      "name": "loading requires no renderer operation",
+      "pass": true
+    },
+    {
+      "name": "space: 2048×1024 sRGB image texture",
+      "pass": true,
+      "detail": {
+        "width": 2048,
+        "height": 1024,
+        "colorSpace": "srgb",
+        "actual": {
+          "calls": 1,
+          "triangles": 12,
+          "renderInvocations": 1,
+          "textures": 1,
+          "geometries": 1
+        }
+      }
+    },
+    {
+      "name": "space: 12 triangles and one sky draw",
+      "pass": true,
+      "detail": {
+        "calls": 1,
+        "triangles": 12,
+        "renderInvocations": 1,
+        "textures": 1,
+        "geometries": 1
+      }
+    },
+    {
+      "name": "space: exactly one resident sky texture",
+      "pass": true,
+      "detail": {
+        "baseline": 0,
+        "actual": 1
+      }
+    },
+    {
+      "name": "nebula: 2048×1024 sRGB image texture",
+      "pass": true,
+      "detail": {
+        "width": 2048,
+        "height": 1024,
+        "colorSpace": "srgb",
+        "actual": {
+          "calls": 1,
+          "triangles": 12,
+          "renderInvocations": 1,
+          "textures": 1,
+          "geometries": 1
+        }
+      }
+    },
+    {
+      "name": "nebula: 12 triangles and one sky draw",
+      "pass": true,
+      "detail": {
+        "calls": 1,
+        "triangles": 12,
+        "renderInvocations": 1,
+        "textures": 1,
+        "geometries": 1
+      }
+    },
+    {
+      "name": "nebula: exactly one resident sky texture",
+      "pass": true,
+      "detail": {
+        "baseline": 0,
+        "actual": 1
+      }
+    },
+    {
+      "name": "diffuse lighting uses nine finite SH coefficients",
+      "pass": true,
+      "detail": {
+        "intensity": 0.35,
+        "coefficients": [
+          [
+            0.081291965,
+            0.038844329,
+            0.580428318
+          ],
+          [
+            -0.000578226,
+            0.009208631,
+            0.048623637
+          ],
+          [
+            0.074520995,
+            -0.021315163,
+            -0.030394597
+          ],
+          [
+            -0.029415394,
+            -0.002410423,
+            -0.048684269
+          ],
+          [
+            -0.004791174,
+            -0.0037240030000000005,
+            -0.029481624
+          ],
+          [
+            0.017365538,
+            -0.012860534,
+            -0.045427283
+          ],
+          [
+            0.053550135,
+            0.021136305,
+            0.184507128
+          ],
+          [
+            -0.035214799,
+            0.000845082,
+            0.030155688000000003
+          ],
+          [
+            0.031922462,
+            0.008347658999999999,
+            0.17726398
+          ]
+        ]
+      }
+    },
+    {
+      "name": "diffuse SH rotation follows the panorama orientation",
+      "pass": true,
+      "detail": {
+        "maximumLightingError": 5.93873657494515e-17
+      }
+    },
+    {
+      "name": "sky does not trigger environment/cubemap conversion",
+      "pass": true
+    },
+    {
+      "name": "public appearance controls retain finite geometry and lighting",
+      "pass": true,
+      "detail": {
+        "bad": 0,
+        "numbers": 318
+      }
+    },
+    {
+      "name": "variant teardown releases the resident texture",
+      "pass": true,
+      "detail": {
+        "baseline": 0,
+        "after": 0
+      }
+    },
+    {
+      "name": "camera translation leaves the distant panorama unchanged",
+      "pass": true,
+      "detail": {
+        "maxDifference": 0,
+        "meanDifference": 0,
+        "changedChannels": 0,
+        "channels": 196608
+      }
+    },
+    {
+      "name": "camera rotation reveals a different part of the panorama",
+      "pass": true,
+      "detail": {
+        "maxDifference": 211,
+        "meanDifference": 84.53177388509114,
+        "changedChannels": 189116,
+        "channels": 196608
+      }
+    },
+    {
+      "name": "environment rotation visibly changes the backdrop",
+      "pass": true,
+      "detail": {
+        "maxDifference": 197,
+        "meanDifference": 34.87946065266927,
+        "changedChannels": 184116,
+        "channels": 196608
+      }
+    },
+    {
+      "name": "opposite panorama rotation matches the camera rotation",
+      "pass": true,
+      "detail": {
+        "maxDifference": 2,
+        "meanDifference": 0.0022684733072916665,
+        "changedChannels": 445,
+        "channels": 196608
+      }
+    },
+    {
+      "name": "resetting panorama rotation restores the original view",
+      "pass": true,
+      "detail": {
+        "maxDifference": 0,
+        "meanDifference": 0,
+        "changedChannels": 0,
+        "channels": 196608
+      }
+    },
+    {
+      "name": "space: finite polar colors match baked linear radiance",
+      "pass": true,
+      "detail": {
+        "north": [
+          0.003318052,
+          0.004803611,
+          0.111431019
+        ],
+        "south": [
+          0.001950843,
+          0.004854802,
+          0.090491417
+        ]
+      }
+    },
+    {
+      "name": "space: north polar center is stable under Y rotation",
+      "pass": true,
+      "detail": {
+        "pixels": 64,
+        "rotationsCompared": 3,
+        "maximumDifference": 0,
+        "maximumMeanDifference": 0,
+        "visible": true,
+        "centerRGBA": [
+          0,
+          2,
+          86,
+          255
+        ]
+      }
+    },
+    {
+      "name": "space: south polar center is stable under Y rotation",
+      "pass": true,
+      "detail": {
+        "pixels": 64,
+        "rotationsCompared": 3,
+        "maximumDifference": 0,
+        "maximumMeanDifference": 0,
+        "visible": true,
+        "centerRGBA": [
+          0,
+          2,
+          73,
+          255
+        ]
+      }
+    },
+    {
+      "name": "nebula: finite polar colors match baked linear radiance",
+      "pass": true,
+      "detail": {
+        "north": [
+          0.001306237,
+          0.001940841,
+          0.029455758
+        ],
+        "south": [
+          0.000930348,
+          0.002091231,
+          0.025700934
+        ]
+      }
+    },
+    {
+      "name": "nebula: north polar center is stable under Y rotation",
+      "pass": true,
+      "detail": {
+        "pixels": 64,
+        "rotationsCompared": 3,
+        "maximumDifference": 0,
+        "maximumMeanDifference": 0,
+        "visible": true,
+        "centerRGBA": [
+          0,
+          0,
+          27,
+          255
+        ]
+      }
+    },
+    {
+      "name": "nebula: south polar center is stable under Y rotation",
+      "pass": true,
+      "detail": {
+        "pixels": 64,
+        "rotationsCompared": 3,
+        "maximumDifference": 0,
+        "maximumMeanDifference": 0,
+        "visible": true,
+        "centerRGBA": [
+          0,
+          0,
+          24,
+          255
+        ]
+      }
+    },
+    {
+      "name": "space: longitude seam has no dark sampling stripe",
+      "pass": true,
+      "detail": {
+        "columnMeanRgb": [
+          91.77200000000006,
+          91.83600000000003,
+          91.86400000000013,
+          91.76200000000007,
+          91.60733333333341,
+          91.53800000000012,
+          91.53933333333345,
+          91.61000000000006,
+          91.77266666666671,
+          91.88333333333341,
+          91.88333333333337,
+          91.86266666666661,
+          91.67666666666673
+        ],
+        "centerMean": 91.53866666666678,
+        "neighborMean": 91.78683333333336,
+        "dip": 0.24816666666657738,
+        "rows": 500
+      }
+    },
+    {
+      "name": "nebula: longitude seam has no dark sampling stripe",
+      "pass": true,
+      "detail": {
+        "columnMeanRgb": [
+          42.35466666666666,
+          42.4693333333333,
+          42.570666666666654,
+          42.615333333333325,
+          42.62066666666664,
+          42.61666666666662,
+          42.617333333333285,
+          42.62999999999996,
+          42.63333333333333,
+          42.591333333333324,
+          42.50466666666665,
+          42.422000000000025,
+          42.30533333333336
+        ],
+        "centerMean": 42.61699999999995,
+        "neighborMean": 42.38783333333333,
+        "dip": -0.22916666666661456,
+        "rows": 500
+      }
+    },
+    {
+      "name": "initial create loads only the selected JPEG",
+      "pass": true,
+      "detail": {
+        "calls": [
+          "http://127.0.0.1:8766/assets/A-011-space-env/space.jpg"
+        ]
+      }
+    },
+    {
+      "name": "selecting the active variant performs no load",
+      "pass": true
+    },
+    {
+      "name": "switch replaces and disposes the previous texture once",
+      "pass": true,
+      "detail": {
+        "calls": [
+          "http://127.0.0.1:8766/assets/A-011-space-env/space.jpg",
+          "http://127.0.0.1:8766/assets/A-011-space-env/space_nebula.jpg"
+        ],
+        "oldDisposals": 1
+      }
+    },
+    {
+      "name": "scene instances own independent textures, lighting and lifetime",
+      "pass": true,
+      "detail": {
+        "calls": 1,
+        "triangles": 12,
+        "renderInvocations": 1,
+        "textures": 1,
+        "geometries": 1
+      }
+    },
+    {
+      "name": "duplicate pending variants share one load",
+      "pass": true
+    },
+    {
+      "name": "selecting current variant cancels a pending alternate",
+      "pass": true
+    },
+    {
+      "name": "newest variant wins and stale loaded textures are disposed",
+      "pass": true,
+      "detail": {
+        "loadCalls": 3,
+        "staleApplied": false,
+        "staleDisposals": 1
+      }
+    },
+    {
+      "name": "load failure preserves the current environment",
+      "pass": true
+    },
+    {
+      "name": "disposal is idempotent and cleans arriving textures",
+      "pass": true,
+      "detail": {
+        "textureDisposals": 1,
+        "geometryDisposals": 1,
+        "materialDisposals": 1,
+        "lateTextureDisposals": 1,
+        "outcome": {
+          "value": false
+        },
+        "actual": {
+          "calls": 0,
+          "triangles": 0,
+          "renderInvocations": 1,
+          "textures": 0,
+          "geometries": 0
+        }
+      }
+    },
+    {
+      "name": "all checks avoid render targets, cube renders and PMREM passes",
+      "pass": true,
+      "detail": {
+        "nonNullRenderTargetChanges": 0,
+        "totalRenderInvocations": 30
+      }
+    },
+    {
+      "name": "WebGL shaders compile and render without errors",
+      "pass": true,
+      "detail": {
+        "shaderErrors": [],
+        "glErrors": []
+      }
+    }
+  ],
+  "three": "160",
+  "webgl": {
+    "isWebGL2": true,
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 1440,
+    "height": 1000,
+    "devicePixelRatio": 1,
+    "renderPixelRatio": 1
+  }
+}

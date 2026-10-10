@@ -1,0 +1,179 @@
+{
+  "asset": "cockpit",
+  "license": "CC0-1.0",
+  "authoring": "Original procedural geometry and vertex paint, Blender 5.2; no textures or external artwork",
+  "file": "cockpit.glb",
+  "bytes": 112492,
+  "sha256": "dce0ac26524567870d0e3d64d75026e2e1d2d9daf7e95c93e42fc096bdec2199",
+  "triangles": 1366,
+  "draw_calls": 3,
+  "materials": 3,
+  "textures": 0,
+  "mesh_names": [
+    "cockpit_hull_geometry",
+    "cockpit_signals_geometry",
+    "cockpit_trim_geometry"
+  ],
+  "camera": {
+    "position": [
+      0,
+      0,
+      0
+    ],
+    "forward": [
+      0,
+      0,
+      -1
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "vertical_fov_degrees": 70.0,
+    "aspect": 1.7777777777777777,
+    "reference_depth": 1.5,
+    "projected_unit_metres": [
+      1.867220101892559,
+      1.0503113073145647
+    ]
+  },
+  "opening_ndc": [
+    [
+      -0.82,
+      0.94
+    ],
+    [
+      0.82,
+      0.94
+    ],
+    [
+      0.94,
+      0.82
+    ],
+    [
+      0.94,
+      -0.68
+    ],
+    [
+      0.82,
+      -0.8
+    ],
+    [
+      -0.82,
+      -0.8
+    ],
+    [
+      -0.94,
+      -0.68
+    ],
+    [
+      -0.94,
+      0.82
+    ]
+  ],
+  "opening_polygon_fraction": 0.8106,
+  "opening_note": "Nominal polygon is the protected window aperture. Small frame details remain in the peripheral band; actual raster coverage is separately browser-tested.",
+  "gauges": [
+    {
+      "name": "socket_gauge_1",
+      "position": [
+        -0.7898341031005524,
+        -0.8507521589247974,
+        -1.35
+      ],
+      "ndc_center": [
+        -0.47,
+        -0.9
+      ],
+      "ndc_size": [
+        0.28,
+        0.12
+      ],
+      "display_size_metres": [
+        0.47053946567692495,
+        0.11343362118997298
+      ],
+      "normal": [
+        0,
+        0,
+        1
+      ],
+      "suggested_forward_offset_metres": 0.002
+    },
+    {
+      "name": "socket_gauge_2",
+      "position": [
+        0.0,
+        -0.8507521589247974,
+        -1.35
+      ],
+      "ndc_center": [
+        0,
+        -0.9
+      ],
+      "ndc_size": [
+        0.28,
+        0.12
+      ],
+      "display_size_metres": [
+        0.47053946567692495,
+        0.11343362118997298
+      ],
+      "normal": [
+        0,
+        0,
+        1
+      ],
+      "suggested_forward_offset_metres": 0.002
+    },
+    {
+      "name": "socket_gauge_3",
+      "position": [
+        0.7898341031005524,
+        -0.8507521589247974,
+        -1.35
+      ],
+      "ndc_center": [
+        0.47,
+        -0.9
+      ],
+      "ndc_size": [
+        0.28,
+        0.12
+      ],
+      "display_size_metres": [
+        0.47053946567692495,
+        0.11343362118997298
+      ],
+      "normal": [
+        0,
+        0,
+        1
+      ],
+      "suggested_forward_offset_metres": 0.002
+    }
+  ],
+  "bounds": {
+    "min": [
+      -2.4956019068494686,
+      -1.403776072602826,
+      -1.79
+    ],
+    "max": [
+      2.4956019068494686,
+      1.403776072602826,
+      -1.183
+    ]
+  },
+  "fit_scale": {
+    "x": "(aspect / (16/9)) * tan(verticalFov/2) / tan(35deg)",
+    "y": "tan(verticalFov/2) / tan(35deg)",
+    "z": 1
+  },
+  "source_piece_counts": {
+    "cockpit_hull": 45,
+    "cockpit_trim": 28,
+    "cockpit_signals": 8
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "asset": "A-007",
+  "delivered": "2026-10-10",
+  "files": {
+    "LICENSE.txt": {
+      "bytes": 569,
+      "sha256": "df908a2f5ca70ff99a2823e20e6001cae3f08d476eee3bab373f4b8a7dc86af4"
+    },
+    "README.md": {
+      "bytes": 8003,
+      "sha256": "e2cdde97b900f48da0ff91bbbc673d6b4fd088a81465538905b0194d5842be4f"
+    },
+    "browser-console-chrome.txt": {
+      "bytes": 44,
+      "sha256": "67ade61a1847a48b0a6c91ab3f8536fc7e9953739987f7aed69181881cc73968"
+    },
+    "browser-console-webkit.txt": {
+      "bytes": 44,
+      "sha256": "67ade61a1847a48b0a6c91ab3f8536fc7e9953739987f7aed69181881cc73968"
+    },
+    "browser-validation-chrome.json": {
+      "bytes": 15654,
+      "sha256": "79f96779e3b346d29630cad66620edcc3497428ac189ae2760e0c4f6d307db31"
+    },
+    "browser-validation-independent.json": {
+      "bytes": 16027,
+      "sha256": "b5f199f5611a793dc852f0107e13fc96f84f102cb2aab79fabf885e44bcffc6c"
+    },
+    "browser-validation-webkit.json": {
+      "bytes": 15665,
+      "sha256": "54a232b39172ab84f454b08c6cd2eefbb7643828f198b3628c759b378addb5ea"
+    },
+    "cockpit.glb": {
+      "bytes": 112492,
+      "sha256": "dce0ac26524567870d0e3d64d75026e2e1d2d9daf7e95c93e42fc096bdec2199"
+    },
+    "cockpit.js": {
+      "bytes": 3816,
+      "sha256": "597d8c9dc4750aacd203b650429b9de51dbc2271a6132bdf851ffe0b827602b3"
+    },
+    "cockpit_source.blend": {
+      "bytes": 127855,
+      "sha256": "350cfc54bf0f740b93dba6f557475bcc70bf29ac40950431064236853c372e6a"
+    },
+    "depth-review.png": {
+      "bytes": 908720,
+      "sha256": "cec2a974f6deb9128dc651dc16f639dbcc0a52a65f81997f82932179db7eb8bc"
+    },
+    "generate.py": {
+      "bytes": 14812,
+      "sha256": "dd82ecd5466f468b5a39c9645eba02f05492bd488ecfbdbe6d12fd849aadbe62"
+    },
+    "geometry-manifest.json": {
+      "bytes": 3170,
+      "sha256": "687f54938d0449de9446d056210a60348b966314a29341bce524beb7fdbc2716"
+    },
+    "preview-desktop.png": {
+      "bytes": 889341,
+      "sha256": "4846452a97fdf1a598834ddbd5603e756e0f4f863a7e17e440b48212d08ad960"
+    },
+    "preview-exterior.png": {
+      "bytes": 33557,
+      "sha256": "338938f03031f78ebb4dfed500e477c37f542bff96698d45e8b93f22609b7484"
+    },
+    "preview-mask.png": {
+      "bytes": 6766,
+      "sha256": "688dfc91d4ce297d9bf8c12fd83e22636f4434a55275b0b4b438a019504f714b"
+    },
+    "preview-pilot.png": {
+      "bytes": 849728,
+      "sha256": "7dfce05ccdf300f3abfde111d3c403ae5da2b0290abed050333968775be6fdfd"
+    },
+    "preview-webkit-landscape.png": {
+      "bytes": 426526,
+      "sha256": "6296197851bcc6a97e19ef215327978f5223e15250d4f27c865abc6d0d840cc0"
+    },
+    "preview-webkit-portrait-pilot.png": {
+      "bytes": 370554,
+      "sha256": "e9f505d4119f76de32f05e2177f6800c1bea2079ffc88ae0932c845cb5a6d349"
+    },
+    "preview-webkit-portrait.png": {
+      "bytes": 388785,
+      "sha256": "a6d99fe493bb68ff3852799885900b9b55696c64f43027b39cc89dee17864b95"
+    },
+    "preview-webkit-wide-fov.png": {
+      "bytes": 441362,
+      "sha256": "6626dea9bde0517165303223a07dbc452e5d013ba6b7da21c4b45648b996331a"
+    },
+    "preview.html": {
+      "bytes": 9812,
+      "sha256": "3cc983d4c0e6576d1edcfef44f1e53c660b8c65408bfb3c8624fe99a53d699c0"
+    },
+    "validate-browser.js": {
+      "bytes": 19108,
+      "sha256": "150363e60aaa1ebd41f3a1499547ee75c8f0d7a49fa11907ffaa3e871f71281e"
+    },
+    "validate.py": {
+      "bytes": 19420,
+      "sha256": "2289acca09de2f3bb7ebf417fbd3925068caf6ce046d1f864370619ebd3d3754"
+    },
+    "validation.json": {
+      "bytes": 15537,
+      "sha256": "220de352eabd29d48a93d910b0d8d7726b9b55f7c9e875b8afb9bc4b66583b4e"
+    },
+    "visual-review-desktop.png": {
+      "bytes": 889673,
+      "sha256": "6243d510c461bbb75dbf1659c85f4463df34c090bebee519d68237b09f98fdfa"
+    },
+    "visual-review-landscape.png": {
+      "bytes": 324798,
+      "sha256": "8a8478c678b89867274bb45573dbbd2aa52098b97ecf795ba8afb33cb967b96d"
+    },
+    "visual-review-portrait.png": {
+      "bytes": 286935,
+      "sha256": "04840c02c3fa3e02d293e2cd388670db778d0ce27622f54606c51149dbd9a0da"
+    },
+    "visual-review.md": {
+      "bytes": 2255,
+      "sha256": "8dd24d3847d01afdbdb894ba315502e90746fc0b642321f175371badf75386f8"
+    }
+  },
+  "structural_checks": 28,
+  "browser_checks": {
+    "chrome": 35,
+    "webkit": 35
+  },
+  "clear_fraction_range": [
+    0.8089902402402402,
+    0.8124826388888888
+  ],
+  "physical_phone_performance": "unmeasured",
+  "game_integration": "not changed or tested; awaiting ready version in TESTING.md"
+}

@@ -1,0 +1,718 @@
+{
+  "file": "cockpit.glb",
+  "checks": [
+    {
+      "name": "GLB 2 header and exact file length",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "JSON and BIN chunks are complete and ordered",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "glTF asset version is 2.0",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "single embedded buffer without external resources",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "no decoder or unsupported extension is required",
+      "pass": true,
+      "detail": [
+        "KHR_materials_emissive_strength"
+      ]
+    },
+    {
+      "name": "all buffer views and accessors are bounded and finite",
+      "pass": true,
+      "detail": {
+        "buffer_views": 12,
+        "accessors": 12
+      }
+    },
+    {
+      "name": "declared accessor extrema match exported binary values",
+      "pass": true,
+      "detail": {
+        "extrema_checked": 6
+      }
+    },
+    {
+      "name": "nodes have unique lowercase underscore names",
+      "pass": true,
+      "detail": [
+        "cockpit_hull",
+        "cockpit_signals",
+        "cockpit_trim",
+        "socket_gauge_1",
+        "socket_gauge_2",
+        "socket_gauge_3",
+        "cockpit"
+      ]
+    },
+    {
+      "name": "root, three visual parts and three gauge sockets exist",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "scene transforms form a finite single-parent hierarchy",
+      "pass": true,
+      "detail": {
+        "reachable_nodes": 7,
+        "total_nodes": 7
+      }
+    },
+    {
+      "name": "cockpit has no animation, skin or morph state",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "cockpit fits 8000-triangle / 4-draw-call budget",
+      "pass": true,
+      "detail": {
+        "triangles": 1366,
+        "draw_calls": 3
+      }
+    },
+    {
+      "name": "all geometry is finite and in front of the camera",
+      "pass": true,
+      "detail": {
+        "min": [
+          -2.4956018924713135,
+          -1.4037760496139526,
+          -1.7899999618530273
+        ],
+        "max": [
+          2.4956018924713135,
+          1.4037760496139526,
+          -1.1829999685287476
+        ]
+      }
+    },
+    {
+      "name": "normals are normalized and vertex colors are bounded",
+      "pass": true,
+      "detail": {
+        "maximum_normal_error": 1.1195897631210983e-07,
+        "color_range": [
+          0.006560000125318766,
+          0.9399999976158142
+        ]
+      }
+    },
+    {
+      "name": "triangle indices form nondegenerate faces",
+      "pass": true,
+      "detail": {
+        "degenerate_faces": 0
+      }
+    },
+    {
+      "name": "materials are opaque metallic-roughness PBR without textures",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "closed-solid materials use single-sided face culling",
+      "pass": true,
+      "detail": {
+        "double_sided_materials": [],
+        "reason": "Single-sided materials avoid separate front/back passes when the helper enables transparent overlay rendering."
+      }
+    },
+    {
+      "name": "socket_gauge_1: XY display faces camera with upright axes",
+      "pass": true,
+      "detail": {
+        "name": "socket_gauge_1",
+        "position": [
+          -0.7898340821266174,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "normal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "x_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "y_axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "ndc": [
+          -0.46999997921871683,
+          -0.9000000009570257
+        ],
+        "screen_fraction": [
+          0.2650000103906416,
+          0.9500000004785129
+        ]
+      }
+    },
+    {
+      "name": "socket_gauge_1: visible at the reference dashboard position",
+      "pass": true,
+      "detail": {
+        "name": "socket_gauge_1",
+        "position": [
+          -0.7898340821266174,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "normal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "x_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "y_axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "ndc": [
+          -0.46999997921871683,
+          -0.9000000009570257
+        ],
+        "screen_fraction": [
+          0.2650000103906416,
+          0.9500000004785129
+        ]
+      }
+    },
+    {
+      "name": "socket_gauge_2: XY display faces camera with upright axes",
+      "pass": true,
+      "detail": {
+        "name": "socket_gauge_2",
+        "position": [
+          0.0,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "normal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "x_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "y_axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "ndc": [
+          0.0,
+          -0.9000000009570257
+        ],
+        "screen_fraction": [
+          0.5,
+          0.9500000004785129
+        ]
+      }
+    },
+    {
+      "name": "socket_gauge_2: visible at the reference dashboard position",
+      "pass": true,
+      "detail": {
+        "name": "socket_gauge_2",
+        "position": [
+          0.0,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "normal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "x_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "y_axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "ndc": [
+          0.0,
+          -0.9000000009570257
+        ],
+        "screen_fraction": [
+          0.5,
+          0.9500000004785129
+        ]
+      }
+    },
+    {
+      "name": "socket_gauge_3: XY display faces camera with upright axes",
+      "pass": true,
+      "detail": {
+        "name": "socket_gauge_3",
+        "position": [
+          0.7898340821266174,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "normal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "x_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "y_axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "ndc": [
+          0.46999997921871683,
+          -0.9000000009570257
+        ],
+        "screen_fraction": [
+          0.7349999896093584,
+          0.9500000004785129
+        ]
+      }
+    },
+    {
+      "name": "socket_gauge_3: visible at the reference dashboard position",
+      "pass": true,
+      "detail": {
+        "name": "socket_gauge_3",
+        "position": [
+          0.7898340821266174,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "normal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "x_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "y_axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "ndc": [
+          0.46999997921871683,
+          -0.9000000009570257
+        ],
+        "screen_fraction": [
+          0.7349999896093584,
+          0.9500000004785129
+        ]
+      }
+    },
+    {
+      "name": "manifest hash, budgets and bounds match the actual GLB",
+      "pass": true,
+      "detail": {
+        "bytes": 112492,
+        "sha256": "dce0ac26524567870d0e3d64d75026e2e1d2d9daf7e95c93e42fc096bdec2199",
+        "triangles": 1366,
+        "draw_calls": 3,
+        "materials": 3,
+        "textures": 0
+      }
+    },
+    {
+      "name": "socket_gauge_1: declared display fits the visible dashboard band",
+      "pass": true,
+      "detail": {
+        "name": "socket_gauge_1",
+        "local_size_metres": [
+          0.47053946567692495,
+          0.11343362118997298
+        ],
+        "ndc_corners": [
+          [
+            -0.609999976746228,
+            -0.9599999998973876
+          ],
+          [
+            -0.3299999816912057,
+            -0.9599999998973876
+          ],
+          [
+            -0.3299999816912057,
+            -0.8400000020166638
+          ],
+          [
+            -0.609999976746228,
+            -0.8400000020166638
+          ]
+        ],
+        "ndc_size": [
+          0.27999999505502227,
+          0.1199999978807238
+        ]
+      }
+    },
+    {
+      "name": "socket_gauge_2: declared display fits the visible dashboard band",
+      "pass": true,
+      "detail": {
+        "name": "socket_gauge_2",
+        "local_size_metres": [
+          0.47053946567692495,
+          0.11343362118997298
+        ],
+        "ndc_corners": [
+          [
+            -0.13999999752751108,
+            -0.9599999998973876
+          ],
+          [
+            0.13999999752751108,
+            -0.9599999998973876
+          ],
+          [
+            0.13999999752751108,
+            -0.8400000020166638
+          ],
+          [
+            -0.13999999752751108,
+            -0.8400000020166638
+          ]
+        ],
+        "ndc_size": [
+          0.27999999505502216,
+          0.1199999978807238
+        ]
+      }
+    },
+    {
+      "name": "socket_gauge_3: declared display fits the visible dashboard band",
+      "pass": true,
+      "detail": {
+        "name": "socket_gauge_3",
+        "local_size_metres": [
+          0.47053946567692495,
+          0.11343362118997298
+        ],
+        "ndc_corners": [
+          [
+            0.3299999816912057,
+            -0.9599999998973876
+          ],
+          [
+            0.609999976746228,
+            -0.9599999998973876
+          ],
+          [
+            0.609999976746228,
+            -0.8400000020166638
+          ],
+          [
+            0.3299999816912057,
+            -0.8400000020166638
+          ]
+        ],
+        "ndc_size": [
+          0.27999999505502227,
+          0.1199999978807238
+        ]
+      }
+    },
+    {
+      "name": "reference cockpit leaves at least 70 percent clear",
+      "pass": true,
+      "detail": {
+        "width": 640,
+        "height": 360,
+        "occupied_pixels": 43632,
+        "occupied_fraction": 0.189375,
+        "clear_fraction": 0.810625,
+        "method": "Projected opaque triangle union including back faces, sampled at pixel centers"
+      }
+    }
+  ],
+  "limitations": [
+    "Reference projection assumes vertical FOV 70 degrees, aspect 16:9, camera at origin looking -Z.",
+    "Triangle coverage is a geometric estimate; final browser visibility and phone performance require separate evidence."
+  ],
+  "bytes": 112492,
+  "sha256": "dce0ac26524567870d0e3d64d75026e2e1d2d9daf7e95c93e42fc096bdec2199",
+  "triangles": 1366,
+  "draw_calls": 3,
+  "textures": 0,
+  "materials": 3,
+  "bounds": {
+    "min": [
+      -2.4956018924713135,
+      -1.4037760496139526,
+      -1.7899999618530273
+    ],
+    "max": [
+      2.4956018924713135,
+      1.4037760496139526,
+      -1.1829999685287476
+    ]
+  },
+  "parts": [
+    {
+      "node": "cockpit_hull",
+      "vertices": 1692,
+      "triangles": 824,
+      "material": 0
+    },
+    {
+      "node": "cockpit_signals",
+      "vertices": 194,
+      "triangles": 96,
+      "material": 1
+    },
+    {
+      "node": "cockpit_trim",
+      "vertices": 898,
+      "triangles": 446,
+      "material": 2
+    }
+  ],
+  "reference_camera": {
+    "position": [
+      0,
+      0,
+      0
+    ],
+    "forward": [
+      0,
+      0,
+      -1
+    ],
+    "vertical_fov_degrees": 70,
+    "aspect": 1.7777777777777777,
+    "gauges": [
+      {
+        "name": "socket_gauge_1",
+        "position": [
+          -0.7898340821266174,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "normal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "x_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "y_axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "ndc": [
+          -0.46999997921871683,
+          -0.9000000009570257
+        ],
+        "screen_fraction": [
+          0.2650000103906416,
+          0.9500000004785129
+        ]
+      },
+      {
+        "name": "socket_gauge_2",
+        "position": [
+          0.0,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "normal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "x_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "y_axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "ndc": [
+          0.0,
+          -0.9000000009570257
+        ],
+        "screen_fraction": [
+          0.5,
+          0.9500000004785129
+        ]
+      },
+      {
+        "name": "socket_gauge_3",
+        "position": [
+          0.7898340821266174,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "normal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "x_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "y_axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "ndc": [
+          0.46999997921871683,
+          -0.9000000009570257
+        ],
+        "screen_fraction": [
+          0.7349999896093584,
+          0.9500000004785129
+        ]
+      }
+    ],
+    "display_extents": [
+      {
+        "name": "socket_gauge_1",
+        "local_size_metres": [
+          0.47053946567692495,
+          0.11343362118997298
+        ],
+        "ndc_corners": [
+          [
+            -0.609999976746228,
+            -0.9599999998973876
+          ],
+          [
+            -0.3299999816912057,
+            -0.9599999998973876
+          ],
+          [
+            -0.3299999816912057,
+            -0.8400000020166638
+          ],
+          [
+            -0.609999976746228,
+            -0.8400000020166638
+          ]
+        ],
+        "ndc_size": [
+          0.27999999505502227,
+          0.1199999978807238
+        ]
+      },
+      {
+        "name": "socket_gauge_2",
+        "local_size_metres": [
+          0.47053946567692495,
+          0.11343362118997298
+        ],
+        "ndc_corners": [
+          [
+            -0.13999999752751108,
+            -0.9599999998973876
+          ],
+          [
+            0.13999999752751108,
+            -0.9599999998973876
+          ],
+          [
+            0.13999999752751108,
+            -0.8400000020166638
+          ],
+          [
+            -0.13999999752751108,
+            -0.8400000020166638
+          ]
+        ],
+        "ndc_size": [
+          0.27999999505502216,
+          0.1199999978807238
+        ]
+      },
+      {
+        "name": "socket_gauge_3",
+        "local_size_metres": [
+          0.47053946567692495,
+          0.11343362118997298
+        ],
+        "ndc_corners": [
+          [
+            0.3299999816912057,
+            -0.9599999998973876
+          ],
+          [
+            0.609999976746228,
+            -0.9599999998973876
+          ],
+          [
+            0.609999976746228,
+            -0.8400000020166638
+          ],
+          [
+            0.3299999816912057,
+            -0.8400000020166638
+          ]
+        ],
+        "ndc_size": [
+          0.27999999505502227,
+          0.1199999978807238
+        ]
+      }
+    ]
+  },
+  "manifest_sha256": "687f54938d0449de9446d056210a60348b966314a29341bce524beb7fdbc2716",
+  "reference_coverage": {
+    "width": 640,
+    "height": 360,
+    "occupied_pixels": 43632,
+    "occupied_fraction": 0.189375,
+    "clear_fraction": 0.810625,
+    "method": "Projected opaque triangle union including back faces, sampled at pixel centers"
+  },
+  "binary_bytes": 108420,
+  "node_count": 7,
+  "pass": true
+}

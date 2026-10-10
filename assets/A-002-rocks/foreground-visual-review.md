@@ -1,0 +1,13 @@
+# A-002 foreground rocks — independent review
+
+**PASS for the foreground asset.** Reviewed in Chromium 154 on macOS with three.js r160, on 10 October 2026 local time. No asset blocker found.
+
+The rounded boulder, low slab and tall split rock have clearly different silhouettes. Broad, irregular facets remain readable at close range. Warm stone colours separate from the blue/violet sky; the plain-studio views show no missing faces, stray triangles or obvious normal/colour-selection fault. Desktop hero framing and both phone-shaped viewports preserve usable preview controls. In the gallery, the 3 m comparison ship is tiny beside 60–120 m rocks, as expected.
+
+`validate-foreground-browser.js` passes **24/24 checks**. The three shader-selected variants are pixel-identical to direct GLTFLoader meshes in nine comparisons (three views per shape), including shaded normals and vertex colours. Three rocks submit **768 triangles in one draw**: 256 per rock, one opaque PBR material, zero textures. The linked instanced shader uses 14 active attribute slots and stays within the browser's 16-slot hardware limit. Bounds contain all selected transformed vertices; separated instances stay visible; the entire conservative bound is culled when behind the camera. Seeded selection, copied records during asynchronous loading, hide compaction, empty/no-load behavior and resource ownership checks pass. Hiding all instances leaves zero draws, triangles and visible pixels. No shader/GL errors or browser console warnings/errors were observed.
+
+Evidence: `foreground-browser-validation-independent.json` and ten `foreground-visual-review-*.png` screenshots cover the gallery, three studio close views, hero, portrait, landscape and three flyby samples. The flyby samples are approximately camera Z=339,171,3 m; the nearest rocks leave the screen as the camera passes them. These are sampled positions, not a frame-by-frame temporal guarantee.
+
+Resolved preview-only finding: the comparison ship previously clipped below the flyby view as the camera bobbed. The preview now positions the unchanged 3 m ship relative to the camera. A fresh reload confirms the whole ship is visible at the start and around six seconds; the final flyby, hero and portrait screenshots replace the earlier captures. The repeated check produced zero console warnings/errors. No asset or helper change was needed.
+
+Limits: resized desktop Chromium at phone dimensions is not physical-iPhone testing. Source-parity images use 256×256 offscreen targets and controlled lights; preview shots use DPR capped at 1.5. No physical-phone FPS, thermal performance, collision behavior or game-integration claim is made. Field-rock files were not changed by this review.

@@ -1,0 +1,671 @@
+{
+  "independentVisualReview": {
+    "verdict": "PASS",
+    "resizeSequence": [[1440, 900], [390, 844], [844, 390]],
+    "consoleWarnings": 0,
+    "consoleErrors": 0,
+    "resolvedIssue": "Preview gauge CanvasTextures now recreated when resized; final live rotation remains readable.",
+    "phoneMethod": "Resized desktop Chromium; no physical-phone performance measurement."
+  },
+  "checks": [
+    {
+      "name": "cockpit factory and authored camera contract are exported",
+      "pass": true
+    },
+    {
+      "name": "real browser uses three.js r160",
+      "pass": true,
+      "detail": "160"
+    },
+    {
+      "name": "loading performs no render, render-target setup or global renderer mutation",
+      "pass": true
+    },
+    {
+      "name": "cockpit is finite and carries no lights, cameras, textures or animation",
+      "pass": true,
+      "detail": {
+        "lights": 0,
+        "cameras": 0,
+        "textures": 0,
+        "stats": {
+          "meshes": 3,
+          "triangles": 1366,
+          "calls": 3,
+          "materials": 3,
+          "textures": 0,
+          "animations": 0,
+          "disposed": false
+        }
+      }
+    },
+    {
+      "name": "all authored surfaces load as PBR materials",
+      "pass": true,
+      "detail": [
+        {
+          "name": "cockpit_painted_hull",
+          "type": "MeshStandardMaterial"
+        },
+        {
+          "name": "cockpit_cyan_signal",
+          "type": "MeshStandardMaterial"
+        },
+        {
+          "name": "cockpit_dark_trim",
+          "type": "MeshStandardMaterial"
+        }
+      ]
+    },
+    {
+      "name": "three authored meshes fit the 8000-triangle and four-call budget",
+      "pass": true,
+      "detail": {
+        "meshes": 3,
+        "triangles": 1366,
+        "calls": 3,
+        "materials": 3,
+        "textures": 0,
+        "animations": 0,
+        "disposed": false
+      }
+    },
+    {
+      "name": "opaque cockpit surfaces use ordinary depth with no shadow passes",
+      "pass": true
+    },
+    {
+      "name": "GPU submission matches the declared cockpit cost in one render",
+      "pass": true,
+      "detail": {
+        "calls": 3,
+        "triangles": 1366,
+        "renders": 1
+      }
+    },
+    {
+      "name": "desktop: at least 70% of the rendered view is clear",
+      "pass": true,
+      "detail": {
+        "sourceViewport": [
+          1440,
+          900
+        ],
+        "sampleViewport": [
+          480,
+          300
+        ],
+        "fov": 60,
+        "zoom": 1,
+        "maximumNdcDelta": 2.220446049250313e-16,
+        "clearFraction": 0.8118611111111111,
+        "occupiedPixels": 27092,
+        "totalPixels": 144000,
+        "centerClearFraction": 1,
+        "centerOccupied": 0,
+        "centerPixels": 28800,
+        "threshold": 32
+      }
+    },
+    {
+      "name": "desktop: central 50% x 40% window is unobstructed",
+      "pass": true,
+      "detail": {
+        "centralClearFraction": 1,
+        "centralPixels": 28800
+      }
+    },
+    {
+      "name": "desktop: fitting preserves screen-space geometry",
+      "pass": true,
+      "detail": {
+        "maximumNdcDelta": 2.220446049250313e-16,
+        "projectedVertices": 2784
+      }
+    },
+    {
+      "name": "landscape_phone: at least 70% of the rendered view is clear",
+      "pass": true,
+      "detail": {
+        "sourceViewport": [
+          844,
+          390
+        ],
+        "sampleViewport": [
+          480,
+          222
+        ],
+        "fov": 70,
+        "zoom": 1,
+        "maximumNdcDelta": 2.220446049250313e-16,
+        "clearFraction": 0.8113363363363364,
+        "occupiedPixels": 20104,
+        "totalPixels": 106560,
+        "centerClearFraction": 1,
+        "centerOccupied": 0,
+        "centerPixels": 21120,
+        "threshold": 32
+      }
+    },
+    {
+      "name": "landscape_phone: central 50% x 40% window is unobstructed",
+      "pass": true,
+      "detail": {
+        "centralClearFraction": 1,
+        "centralPixels": 21120
+      }
+    },
+    {
+      "name": "landscape_phone: fitting preserves screen-space geometry",
+      "pass": true,
+      "detail": {
+        "maximumNdcDelta": 2.220446049250313e-16,
+        "projectedVertices": 2784
+      }
+    },
+    {
+      "name": "portrait_phone: at least 70% of the rendered view is clear",
+      "pass": true,
+      "detail": {
+        "sourceViewport": [
+          390,
+          844
+        ],
+        "sampleViewport": [
+          222,
+          480
+        ],
+        "fov": 70,
+        "zoom": 1,
+        "maximumNdcDelta": 2.220446049250313e-16,
+        "clearFraction": 0.8089902402402402,
+        "occupiedPixels": 20354,
+        "totalPixels": 106560,
+        "centerClearFraction": 1,
+        "centerOccupied": 0,
+        "centerPixels": 21504,
+        "threshold": 32
+      }
+    },
+    {
+      "name": "portrait_phone: central 50% x 40% window is unobstructed",
+      "pass": true,
+      "detail": {
+        "centralClearFraction": 1,
+        "centralPixels": 21504
+      }
+    },
+    {
+      "name": "portrait_phone: fitting preserves screen-space geometry",
+      "pass": true,
+      "detail": {
+        "maximumNdcDelta": 2.220446049250313e-16,
+        "projectedVertices": 2784
+      }
+    },
+    {
+      "name": "square_wide: at least 70% of the rendered view is clear",
+      "pass": true,
+      "detail": {
+        "sourceViewport": [
+          900,
+          900
+        ],
+        "sampleViewport": [
+          480,
+          480
+        ],
+        "fov": 90,
+        "zoom": 1,
+        "maximumNdcDelta": 2.220446049250313e-16,
+        "clearFraction": 0.8124826388888888,
+        "occupiedPixels": 43204,
+        "totalPixels": 230400,
+        "centerClearFraction": 1,
+        "centerOccupied": 0,
+        "centerPixels": 46080,
+        "threshold": 32
+      }
+    },
+    {
+      "name": "square_wide: central 50% x 40% window is unobstructed",
+      "pass": true,
+      "detail": {
+        "centralClearFraction": 1,
+        "centralPixels": 46080
+      }
+    },
+    {
+      "name": "square_wide: fitting preserves screen-space geometry",
+      "pass": true,
+      "detail": {
+        "maximumNdcDelta": 2.220446049250313e-16,
+        "projectedVertices": 2784
+      }
+    },
+    {
+      "name": "zoomed: at least 70% of the rendered view is clear",
+      "pass": true,
+      "detail": {
+        "sourceViewport": [
+          1440,
+          900
+        ],
+        "sampleViewport": [
+          480,
+          300
+        ],
+        "fov": 70,
+        "zoom": 1.6,
+        "maximumNdcDelta": 4.440892098500626e-16,
+        "clearFraction": 0.8118611111111111,
+        "occupiedPixels": 27092,
+        "totalPixels": 144000,
+        "centerClearFraction": 1,
+        "centerOccupied": 0,
+        "centerPixels": 28800,
+        "threshold": 32
+      }
+    },
+    {
+      "name": "zoomed: central 50% x 40% window is unobstructed",
+      "pass": true,
+      "detail": {
+        "centralClearFraction": 1,
+        "centralPixels": 28800
+      }
+    },
+    {
+      "name": "zoomed: fitting preserves screen-space geometry",
+      "pass": true,
+      "detail": {
+        "maximumNdcDelta": 4.440892098500626e-16,
+        "projectedVertices": 2784
+      }
+    },
+    {
+      "name": "all three exact gauge socket names are present once",
+      "pass": true
+    },
+    {
+      "name": "socket_gauge_1: +Z PlaneGeometry faces the camera inside the viewport",
+      "pass": true,
+      "detail": {
+        "name": "socket_gauge_1",
+        "world": [
+          -0.7898340821266174,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "ndc": [
+          -0.46999997921871695,
+          -0.9000000009570257,
+          0.985205037497199
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "facingDot": 1,
+        "planeHits": 1
+      }
+    },
+    {
+      "name": "socket_gauge_2: +Z PlaneGeometry faces the camera inside the viewport",
+      "pass": true,
+      "detail": {
+        "name": "socket_gauge_2",
+        "world": [
+          0,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "ndc": [
+          0,
+          -0.9000000009570257,
+          0.985205037497199
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "facingDot": 1,
+        "planeHits": 2
+      }
+    },
+    {
+      "name": "socket_gauge_3: +Z PlaneGeometry faces the camera inside the viewport",
+      "pass": true,
+      "detail": {
+        "name": "socket_gauge_3",
+        "world": [
+          0.7898340821266174,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "ndc": [
+          0.46999997921871695,
+          -0.9000000009570257,
+          0.985205037497199
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "facingDot": 1,
+        "planeHits": 1
+      }
+    },
+    {
+      "name": "translated and rotated camera parents preserve cockpit projection",
+      "pass": true,
+      "detail": {
+        "maximumNdcDelta": 3.574918139293004e-14
+      }
+    },
+    {
+      "name": "transparent world geometry behind the cockpit is blocked by its depth while the aperture remains open",
+      "pass": true,
+      "detail": {
+        "behindDifference": {
+          "mean": 0,
+          "maximum": 0,
+          "channels": 73032
+        },
+        "windowDifference": {
+          "mean": 55.666666666666664,
+          "maximum": 166,
+          "channels": 315768
+        },
+        "foregroundDifference": {
+          "mean": 72.91313396867126,
+          "maximum": 166,
+          "channels": 73032
+        }
+      }
+    },
+    {
+      "name": "physically closer world geometry can occlude the opaque cockpit",
+      "pass": true,
+      "detail": {
+        "mean": 72.91313396867126,
+        "maximum": 166,
+        "channels": 73032
+      }
+    },
+    {
+      "name": "invalid camera projection arguments do not load or corrupt a live fit",
+      "pass": true,
+      "detail": {
+        "cases": 14,
+        "constructorRejections": 14,
+        "fitRejections": 14,
+        "loads": 0
+      }
+    },
+    {
+      "name": "independent cockpit instances own their geometry and material state",
+      "pass": true
+    },
+    {
+      "name": "idempotent disposal releases only loaded resources and detaches the cockpit",
+      "pass": true,
+      "detail": {
+        "ownedDisposals": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "foreignGeometry": 0,
+        "foreignMaterial": 0,
+        "disposedRejections": 1
+      }
+    },
+    {
+      "name": "disposing one instance preserves another renderable cockpit",
+      "pass": true,
+      "detail": {
+        "calls": 3,
+        "triangles": 1366
+      }
+    },
+    {
+      "name": "PBR and override shaders render without WebGL errors",
+      "pass": true,
+      "detail": {
+        "shaderErrors": [],
+        "glErrors": []
+      }
+    }
+  ],
+  "measurements": {
+    "fits": {
+      "desktop": {
+        "sourceViewport": [
+          1440,
+          900
+        ],
+        "sampleViewport": [
+          480,
+          300
+        ],
+        "fov": 60,
+        "zoom": 1,
+        "maximumNdcDelta": 2.220446049250313e-16,
+        "clearFraction": 0.8118611111111111,
+        "occupiedPixels": 27092,
+        "totalPixels": 144000,
+        "centerClearFraction": 1,
+        "centerOccupied": 0,
+        "centerPixels": 28800,
+        "threshold": 32
+      },
+      "landscape_phone": {
+        "sourceViewport": [
+          844,
+          390
+        ],
+        "sampleViewport": [
+          480,
+          222
+        ],
+        "fov": 70,
+        "zoom": 1,
+        "maximumNdcDelta": 2.220446049250313e-16,
+        "clearFraction": 0.8113363363363364,
+        "occupiedPixels": 20104,
+        "totalPixels": 106560,
+        "centerClearFraction": 1,
+        "centerOccupied": 0,
+        "centerPixels": 21120,
+        "threshold": 32
+      },
+      "portrait_phone": {
+        "sourceViewport": [
+          390,
+          844
+        ],
+        "sampleViewport": [
+          222,
+          480
+        ],
+        "fov": 70,
+        "zoom": 1,
+        "maximumNdcDelta": 2.220446049250313e-16,
+        "clearFraction": 0.8089902402402402,
+        "occupiedPixels": 20354,
+        "totalPixels": 106560,
+        "centerClearFraction": 1,
+        "centerOccupied": 0,
+        "centerPixels": 21504,
+        "threshold": 32
+      },
+      "square_wide": {
+        "sourceViewport": [
+          900,
+          900
+        ],
+        "sampleViewport": [
+          480,
+          480
+        ],
+        "fov": 90,
+        "zoom": 1,
+        "maximumNdcDelta": 2.220446049250313e-16,
+        "clearFraction": 0.8124826388888888,
+        "occupiedPixels": 43204,
+        "totalPixels": 230400,
+        "centerClearFraction": 1,
+        "centerOccupied": 0,
+        "centerPixels": 46080,
+        "threshold": 32
+      },
+      "zoomed": {
+        "sourceViewport": [
+          1440,
+          900
+        ],
+        "sampleViewport": [
+          480,
+          300
+        ],
+        "fov": 70,
+        "zoom": 1.6,
+        "maximumNdcDelta": 4.440892098500626e-16,
+        "clearFraction": 0.8118611111111111,
+        "occupiedPixels": 27092,
+        "totalPixels": 144000,
+        "centerClearFraction": 1,
+        "centerOccupied": 0,
+        "centerPixels": 28800,
+        "threshold": 32
+      }
+    },
+    "sockets": [
+      {
+        "name": "socket_gauge_1",
+        "world": [
+          -0.7898340821266174,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "ndc": [
+          -0.46999997921871695,
+          -0.9000000009570257,
+          0.985205037497199
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "facingDot": 1,
+        "planeHits": 1
+      },
+      {
+        "name": "socket_gauge_2",
+        "world": [
+          0,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "ndc": [
+          0,
+          -0.9000000009570257,
+          0.985205037497199
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "facingDot": 1,
+        "planeHits": 2
+      },
+      {
+        "name": "socket_gauge_3",
+        "world": [
+          0.7898340821266174,
+          -0.8507521748542786,
+          -1.350000023841858
+        ],
+        "ndc": [
+          0.46999997921871695,
+          -0.9000000009570257,
+          0.985205037497199
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "facingDot": 1,
+        "planeHits": 1
+      }
+    ],
+    "ownership": {
+      "ownedDisposals": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "foreignGeometry": 0,
+      "foreignMaterial": 0,
+      "disposedRejections": 1
+    },
+    "actual": {
+      "declared": {
+        "meshes": 3,
+        "triangles": 1366,
+        "calls": 3,
+        "materials": 3,
+        "textures": 0,
+        "animations": 0,
+        "disposed": false
+      },
+      "rendered": {
+        "calls": 3,
+        "triangles": 1366,
+        "renders": 1
+      },
+      "depth": {
+        "behindDifference": {
+          "mean": 0,
+          "maximum": 0,
+          "channels": 73032
+        },
+        "windowDifference": {
+          "mean": 55.666666666666664,
+          "maximum": 166,
+          "channels": 315768
+        },
+        "foregroundDifference": {
+          "mean": 72.91313396867126,
+          "maximum": 166,
+          "channels": 73032
+        }
+      }
+    },
+    "shaderErrors": [],
+    "glErrors": []
+  },
+  "note": "Offscreen desktop/emulated-browser pixel coverage and rendering checks; not physical-phone FPS. Temporary render targets are test equipment, not cockpit runtime requirements.",
+  "three": "160",
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 1200,
+    "height": 818,
+    "devicePixelRatio": 2,
+    "renderPixelRatio": 1.5
+  },
+  "webgl2": true
+}

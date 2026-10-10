@@ -1,66 +1,73 @@
 {
   "three": "160",
+  "checks": {
+    "bossOnlyLoad": true,
+    "initialState": true,
+    "names": true,
+    "pbr": true,
+    "socket": true,
+    "redSeams": true,
+    "budget": true,
+    "independentPulse": true,
+    "pulseRange": true,
+    "pulseDisposal": true,
+    "liveCloneRestoresSource": true,
+    "encounterDisposal": true,
+    "legacyFourDecoys": true,
+    "independentDecoyStates": true,
+    "decoyNoRed": true,
+    "noShadows": true,
+    "shaders": true
+  },
   "states": {
-    "boss_armour_intact": {
-      "triangles": 1440,
+    "armour_intact": {
+      "triangles": 3234,
       "drawCalls": 2,
       "materials": [
         "basalt_armour",
-        "weathered_alloy"
-      ]
+        "hostile_seams"
+      ],
+      "renderedTriangles": 3234,
+      "renderedCalls": 2
     },
-    "boss_armour_cracked": {
-      "triangles": 1236,
+    "armour_cracked": {
+      "triangles": 2692,
       "drawCalls": 2,
       "materials": [
         "basalt_armour",
-        "weathered_alloy"
-      ]
+        "hostile_seams"
+      ],
+      "renderedTriangles": 2692,
+      "renderedCalls": 2
     },
-    "boss_armour_broken": {
-      "triangles": 1620,
+    "armour_broken": {
+      "triangles": 2612,
       "drawCalls": 4,
       "materials": [
         "basalt_armour",
-        "weathered_alloy",
+        "hostile_seams",
         "core_crust",
         "core_light"
-      ]
-    },
-    "decoy_armour_intact": {
-      "triangles": 1440,
-      "drawCalls": 2,
-      "materials": [
-        "basalt_armour",
-        "weathered_alloy"
-      ]
-    },
-    "decoy_armour_cracked": {
-      "triangles": 1236,
-      "drawCalls": 2,
-      "materials": [
-        "basalt_armour",
-        "weathered_alloy"
-      ]
-    },
-    "decoy_armour_broken": {
-      "triangles": 654,
-      "drawCalls": 2,
-      "materials": [
-        "basalt_armour",
-        "weathered_alloy"
-      ]
+      ],
+      "renderedTriangles": 2612,
+      "renderedCalls": 4
     }
   },
-  "decoys": 4,
-  "checks": {
-    "identicalShells": true,
-    "noDecoyCore": true,
-    "socket": true,
-    "materialsStandard": true,
-    "budget": true,
-    "initialState": true,
-    "independentDecoyStates": true,
-    "coreEmissive": true
+  "shaderErrors": [],
+  "pulse": {
+    "hz": 0.8,
+    "samples": 150,
+    "minEmission": 3.3003015602220875,
+    "maxEmission": 6.049698439777912,
+    "minScale": 0.9650076760783804,
+    "maxScale": 1.0349923239216197
+  },
+  "legacyDecoy": {
+    "triangles": 1440,
+    "drawCalls": 2,
+    "materials": [
+      "basalt_armour",
+      "weathered_alloy"
+    ]
   }
 }

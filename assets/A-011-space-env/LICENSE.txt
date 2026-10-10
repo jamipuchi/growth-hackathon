@@ -1,0 +1,24 @@
+A-011 Space environment — original artwork and custom source
+
+To the extent the contributors hold applicable copyright and related rights,
+the original generated artwork, custom environment helper, lighting data,
+prompts, bake/validation source and documentation in this asset directory are
+dedicated to the public domain under CC0 1.0 Universal.
+
+CC0 1.0 Universal legal text:
+https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+The images were made with the built-in image_gen tool. The dim panorama is an
+edit of the original generated bright panorama. No external photograph,
+stock texture or third-party reference image was used as a generation input.
+Unmodified generated source PNGs and exact prompts are retained alongside the
+mechanically exported JPEGs. Image generation is not guaranteed repeatable.
+
+This dedication does not assert copyright eligibility or exclusive ownership
+of generated imagery, does not grant rights the contributors do not possess,
+and does not waive third-party rights. The material is provided without
+warranty to the extent permitted by applicable law.
+
+three.js is an external dependency and retains its upstream MIT license.
+Other tools used for generation, mechanical export or validation retain their
+own licenses. This dedication does not relicense those tools or dependencies.

@@ -1,0 +1,168 @@
+{
+  "files": {
+    "space.jpg": {
+      "bytes": 494033,
+      "sha256": "29d5665e1aca0decde73c016b3a1c3ac95abbd2c516de5e141936f7925639c91"
+    },
+    "space_nebula.jpg": {
+      "bytes": 395700,
+      "sha256": "cb4b15b6ca1228460c49bc56783e6734e9875f28f1e19e8cbcf56def4ef6d6f3"
+    },
+    "space_source.png": {
+      "bytes": 2010540,
+      "sha256": "d9f05f7cf65646e02c9188c805923cff8fc84427c61174d9f4b46f1c12f37a47"
+    },
+    "space_nebula_source.png": {
+      "bytes": 1793280,
+      "sha256": "141d55306345a3bffa4c9281a50868b1796d4c325599f454378728842dda8cee"
+    },
+    "environment.js": {
+      "bytes": 12677,
+      "sha256": "1dc7c650bfc8e93714780e661c174e903fbdba4a1aebf8336747a7c838cac414"
+    },
+    "lighting.json": {
+      "bytes": 1891,
+      "sha256": "c816bce2f05758c9e7ac48cdeaba78962a21c0d17243ec8351dfd33fb66321ca"
+    },
+    "bake_lighting.py": {
+      "bytes": 4221,
+      "sha256": "5eadabc7c438169bc3ce0dd6d7b34f4075958649eeebde620a7a93fdc2802cd6"
+    },
+    "validate-browser.js": {
+      "bytes": 19684,
+      "sha256": "afba80df2561e55690b4e5d6e413944d5be97166e28d6fe8977480df1fef6f5d"
+    },
+    "prompts.json": {
+      "bytes": 2781,
+      "sha256": "dbb4c0bdcb7ea4c9ea42744e2715bdfe8c5ba644aa969be27f3176025b9da36b"
+    }
+  },
+  "map_checks": {
+    "exact_2048x1024": true,
+    "finite_sh": true,
+    "nebula_variant_dimmer": true,
+    "composition_correlated": true,
+    "raw_wrap_small": true,
+    "guarded_poles_uniform": true
+  },
+  "browser_checks": {
+    "chromium": {
+      "count": 37,
+      "all_pass": true,
+      "webgl": {
+        "isWebGL2": true,
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "seam": {
+        "space": {
+          "columnMeanRgb": [
+            91.77200000000006,
+            91.83600000000003,
+            91.86400000000013,
+            91.76200000000007,
+            91.60733333333341,
+            91.53800000000012,
+            91.53933333333345,
+            91.61000000000006,
+            91.77266666666671,
+            91.88333333333341,
+            91.88333333333337,
+            91.86266666666661,
+            91.67666666666673
+          ],
+          "centerMean": 91.53866666666678,
+          "neighborMean": 91.78683333333336,
+          "dip": 0.24816666666657738,
+          "rows": 500
+        },
+        "nebula": {
+          "columnMeanRgb": [
+            42.35466666666666,
+            42.4693333333333,
+            42.570666666666654,
+            42.615333333333325,
+            42.62066666666664,
+            42.61666666666662,
+            42.617333333333285,
+            42.62999999999996,
+            42.63333333333333,
+            42.591333333333324,
+            42.50466666666665,
+            42.422000000000025,
+            42.30533333333336
+          ],
+          "centerMean": 42.61699999999995,
+          "neighborMean": 42.38783333333333,
+          "dip": -0.22916666666661456,
+          "rows": 500
+        }
+      }
+    },
+    "webkit": {
+      "count": 37,
+      "all_pass": true,
+      "webgl": {
+        "isWebGL2": true,
+        "version": "WebGL 2.0"
+      },
+      "seam": {
+        "space": {
+          "columnMeanRgb": [
+            91.61986301369868,
+            91.81164383561645,
+            91.8744292237443,
+            91.82990867579906,
+            91.6746575342466,
+            91.55821917808221,
+            91.5570776255708,
+            91.6769406392694,
+            91.84931506849318,
+            91.90753424657527,
+            91.8630136986301,
+            91.72374429223743,
+            91.54223744292237
+          ],
+          "centerMean": 91.5576484018265,
+          "neighborMean": 91.67437214611873,
+          "dip": 0.11672374429222998,
+          "rows": 292
+        },
+        "nebula": {
+          "columnMeanRgb": [
+            42.3184931506849,
+            42.45205479452052,
+            42.55707762557073,
+            42.61986301369859,
+            42.63812785388126,
+            42.66894977168948,
+            42.67123287671231,
+            42.64726027397259,
+            42.6404109589041,
+            42.5901826484018,
+            42.49543378995433,
+            42.35388127853876,
+            42.22374429223741
+          ],
+          "centerMean": 42.6700913242009,
+          "neighborMean": 42.3370433789954,
+          "dip": -0.3330479452054931,
+          "rows": 292
+        }
+      }
+    }
+  },
+  "budget": {
+    "draw_calls": 1,
+    "triangles": 12,
+    "resident_sky_textures": 1,
+    "rgba8_mip_estimate_mib": 10.66667,
+    "lighting": "diffuse SH only",
+    "reflection_passes": 0
+  },
+  "limitations": [
+    "Physical iPhone performance unmeasured",
+    "Direct raw-JPEG backgrounds lack runtime seam and pole corrections",
+    "No specular IBL; no WebGL1 validation",
+    "Generated originals1774x887 mechanically resized to2048x1024"
+  ]
+}

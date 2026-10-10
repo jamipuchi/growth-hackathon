@@ -1,0 +1,388 @@
+{
+  "files": {
+    "nebula.js": {
+      "bytes": 14041,
+      "sha256": "27b16f63ed1aa109ceeb187a3d3a24512fec39c72db0c3e6109f0daf1f70aa77"
+    },
+    "validate-browser.js": {
+      "bytes": 17870,
+      "sha256": "fae6ee1ed525fbe33b107cd45ca3047a39da37791d58efbad16a8538511d0929"
+    },
+    "preview.html": {
+      "bytes": 10385,
+      "sha256": "5acba4a4d41db773fc37a7aebc20f0a83140f8069d95ddf4a38eab8779537111"
+    },
+    "README.md": {
+      "bytes": 6717,
+      "sha256": "0139ea4ad6820ed432323ccb36e86f6024733ec6326bbd2e6a1966a3706322c6"
+    },
+    "LICENSE.txt": {
+      "bytes": 529,
+      "sha256": "ed2fd4babaff9b3d2ccf7f9f039ac42165a3bf0ebf43c430eb96a07e2e838814"
+    },
+    "preview-flythrough.webm": {
+      "bytes": 2955142,
+      "sha256": "c40b8db7f5157762ba4a26298a6e1aad95e29ec2351f384cd1f581e5234a8e49"
+    },
+    "visual-review.md": {
+      "bytes": 2202,
+      "sha256": "1ade7f65cc6ed2b44df8913faa6e9f20d8bd48b4c072ddab4fcb2ba3952cbf92"
+    }
+  },
+  "browserChecks": {
+    "chromium": {
+      "count": 41,
+      "allPass": true,
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "devicePixelRatio": 1,
+        "renderPixelRatio": 1
+      },
+      "webgl": {
+        "isWebGL2": true,
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "qualities": {
+        "low": {
+          "stats": {
+            "quality": "low",
+            "puffs": 24,
+            "submittedTriangles": 48,
+            "potentialTriangles": 48,
+            "meshDrawCalls": 1,
+            "textures": 1,
+            "textureSize": 128,
+            "textureBytesWithMips": 87380,
+            "radius": 250,
+            "boundsRadius": 248.42317261874808,
+            "hollowRadius": 82.0510428624737,
+            "opacity": 0.22,
+            "flareActive": false,
+            "flareRemaining": 0,
+            "flareStrength": 0,
+            "flarePosition": [
+              0,
+              0,
+              0
+            ],
+            "time": 0,
+            "phase": 0,
+            "cameraLocal": [
+              0,
+              42.5,
+              750
+            ],
+            "disposed": false,
+            "signature": "2f43e44b"
+          },
+          "actual": {
+            "calls": 1,
+            "triangles": 48,
+            "renders": 1,
+            "textures": 1,
+            "geometries": 1
+          },
+          "finite": {
+            "bad": 0,
+            "numbers": 372
+          }
+        },
+        "medium": {
+          "stats": {
+            "quality": "medium",
+            "puffs": 48,
+            "submittedTriangles": 96,
+            "potentialTriangles": 96,
+            "meshDrawCalls": 1,
+            "textures": 1,
+            "textureSize": 128,
+            "textureBytesWithMips": 87380,
+            "radius": 250,
+            "boundsRadius": 248.75,
+            "hollowRadius": 75.71257375997233,
+            "opacity": 0.22,
+            "flareActive": false,
+            "flareRemaining": 0,
+            "flareStrength": 0,
+            "flarePosition": [
+              0,
+              0,
+              0
+            ],
+            "time": 0,
+            "phase": 0,
+            "cameraLocal": [
+              0,
+              42.5,
+              750
+            ],
+            "disposed": false,
+            "signature": "f8b6682a"
+          },
+          "actual": {
+            "calls": 1,
+            "triangles": 96,
+            "renders": 1,
+            "textures": 1,
+            "geometries": 1
+          },
+          "finite": {
+            "bad": 0,
+            "numbers": 660
+          }
+        },
+        "high": {
+          "stats": {
+            "quality": "high",
+            "puffs": 80,
+            "submittedTriangles": 160,
+            "potentialTriangles": 160,
+            "meshDrawCalls": 1,
+            "textures": 1,
+            "textureSize": 128,
+            "textureBytesWithMips": 87380,
+            "radius": 250,
+            "boundsRadius": 248.74999999999994,
+            "hollowRadius": 74.95283982475236,
+            "opacity": 0.22,
+            "flareActive": false,
+            "flareRemaining": 0,
+            "flareStrength": 0,
+            "flarePosition": [
+              0,
+              0,
+              0
+            ],
+            "time": 0,
+            "phase": 0,
+            "cameraLocal": [
+              0,
+              42.5,
+              750
+            ],
+            "disposed": false,
+            "signature": "7642eab4"
+          },
+          "actual": {
+            "calls": 1,
+            "triangles": 160,
+            "renders": 1,
+            "textures": 1,
+            "geometries": 1
+          },
+          "finite": {
+            "bad": 0,
+            "numbers": 1044
+          }
+        }
+      },
+      "cpuOnlyTimings": {
+        "iterations": 180,
+        "warmupIterations": 30,
+        "samples": 150,
+        "update": {
+          "medianMs": 0,
+          "p95Ms": 0,
+          "maxMs": 0.10000000894069672
+        },
+        "renderSubmission": {
+          "medianMs": 0.09999999403953552,
+          "p95Ms": 0.20000000298023224,
+          "maxMs": 0.4000000059604645
+        },
+        "maximumCalls": 1,
+        "maximumTriangles": 160,
+        "note": "Tight-loop desktop CPU update and render-submission timing including gl.getError. Excludes GPU completion; not FPS or physical-phone performance."
+      }
+    },
+    "webkit": {
+      "count": 41,
+      "allPass": true,
+      "viewport": {
+        "width": 844,
+        "height": 390,
+        "devicePixelRatio": 3,
+        "renderPixelRatio": 1.5
+      },
+      "webgl": {
+        "isWebGL2": true,
+        "version": "WebGL 2.0"
+      },
+      "qualities": {
+        "low": {
+          "stats": {
+            "quality": "low",
+            "puffs": 24,
+            "submittedTriangles": 48,
+            "potentialTriangles": 48,
+            "meshDrawCalls": 1,
+            "textures": 1,
+            "textureSize": 128,
+            "textureBytesWithMips": 87380,
+            "radius": 250,
+            "boundsRadius": 248.42317261874808,
+            "hollowRadius": 82.0510428624737,
+            "opacity": 0.22,
+            "flareActive": false,
+            "flareRemaining": 0,
+            "flareStrength": 0,
+            "flarePosition": [
+              0,
+              0,
+              0
+            ],
+            "time": 0,
+            "phase": 0,
+            "cameraLocal": [
+              0,
+              42.5,
+              750
+            ],
+            "disposed": false,
+            "signature": "2f43e44b"
+          },
+          "actual": {
+            "calls": 1,
+            "triangles": 48,
+            "renders": 1,
+            "textures": 1,
+            "geometries": 1
+          },
+          "finite": {
+            "bad": 0,
+            "numbers": 372
+          }
+        },
+        "medium": {
+          "stats": {
+            "quality": "medium",
+            "puffs": 48,
+            "submittedTriangles": 96,
+            "potentialTriangles": 96,
+            "meshDrawCalls": 1,
+            "textures": 1,
+            "textureSize": 128,
+            "textureBytesWithMips": 87380,
+            "radius": 250,
+            "boundsRadius": 248.75,
+            "hollowRadius": 75.71257375997233,
+            "opacity": 0.22,
+            "flareActive": false,
+            "flareRemaining": 0,
+            "flareStrength": 0,
+            "flarePosition": [
+              0,
+              0,
+              0
+            ],
+            "time": 0,
+            "phase": 0,
+            "cameraLocal": [
+              0,
+              42.5,
+              750
+            ],
+            "disposed": false,
+            "signature": "f8b6682a"
+          },
+          "actual": {
+            "calls": 1,
+            "triangles": 96,
+            "renders": 1,
+            "textures": 1,
+            "geometries": 1
+          },
+          "finite": {
+            "bad": 0,
+            "numbers": 660
+          }
+        },
+        "high": {
+          "stats": {
+            "quality": "high",
+            "puffs": 80,
+            "submittedTriangles": 160,
+            "potentialTriangles": 160,
+            "meshDrawCalls": 1,
+            "textures": 1,
+            "textureSize": 128,
+            "textureBytesWithMips": 87380,
+            "radius": 250,
+            "boundsRadius": 248.74999999999994,
+            "hollowRadius": 74.95283982475236,
+            "opacity": 0.22,
+            "flareActive": false,
+            "flareRemaining": 0,
+            "flareStrength": 0,
+            "flarePosition": [
+              0,
+              0,
+              0
+            ],
+            "time": 0,
+            "phase": 0,
+            "cameraLocal": [
+              0,
+              42.5,
+              750
+            ],
+            "disposed": false,
+            "signature": "7642eab4"
+          },
+          "actual": {
+            "calls": 1,
+            "triangles": 160,
+            "renders": 1,
+            "textures": 1,
+            "geometries": 1
+          },
+          "finite": {
+            "bad": 0,
+            "numbers": 1044
+          }
+        }
+      },
+      "cpuOnlyTimings": {
+        "iterations": 180,
+        "warmupIterations": 30,
+        "samples": 150,
+        "update": {
+          "medianMs": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "renderSubmission": {
+          "medianMs": 0,
+          "p95Ms": 1,
+          "maxMs": 1
+        },
+        "maximumCalls": 1,
+        "maximumTriangles": 160,
+        "note": "Tight-loop desktop CPU update and render-submission timing including gl.getError. Excludes GPU completion; not FPS or physical-phone performance."
+      }
+    }
+  },
+  "limits": [
+    "Physical-phone under2ms frame cost unverified",
+    "Billboard overdraw depends on screen coverage",
+    "No scene-depth soft intersection pass",
+    "Uniform positive root scale only; final game contrast unverified"
+  ],
+  "video": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "vp9",
+        "width": 1280,
+        "height": 888
+      }
+    ],
+    "format": {
+      "duration": "28.440000",
+      "size": "2955142"
+    },
+    "full_decode": "passed"
+  }
+}
