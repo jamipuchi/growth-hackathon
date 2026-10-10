@@ -307,7 +307,17 @@
    *                                                                      // kill; mischief lines start with ⚡ 🦑 🧲 💣 🎭.
    *                                                                      // v1.8 quiet: true = a minor feed line (a pickup
    *                                                                      // collected: "✨ ana · 🔥 RAPID FIRE"), the TV
-   *                                                                      // shows it small; never big
+   *                                                                      // shows it small; never big. kick-idle: "ana
+   *                                                                      // left" (quiet: an unreachable phone's player
+   *                                                                      // was removed, see kicked)
+   * kicked     { type, player, message }                                 // kick-idle (owner, 10 Oct 14:58), that phone's
+   *                                                                      // own stream only: its player was removed after
+   *                                                                      // KICK_AFTER_MS (30 s; server --kick-after S,
+   *                                                                      // env KICK_AFTER_MS) with no open /events?player=
+   *                                                                      // stream and no request naming them (bots never;
+   *                                                                      // a connected idle phone never). Sent when such
+   *                                                                      // a phone reconnects: it shows JOIN with message
+   *                                                                      // ("You were disconnected — join again")
    * toast      { type, player, text, sketch, ghost, kind, verb, need, gate }  // one player only. Hints are riddles first:
    *                                                                      // kind "hint" (ladder) | "refused" (a verb the
    *                                                                      // entity has not unlocked; verb set) | "info".
@@ -461,6 +471,9 @@
    *                                                  // world.handleInput returns false for an unknown name; a
    *                                                  // never-joined name whose own /events?player= stream is open
    *                                                  // is re-joined automatically, e.g. after a server restart).
+   *                                                  // kick-idle: never a kicked name: 409 { ok: false, error: "join
+   *                                                  // first", kicked: true, message } (also from /generate, /default
+   *                                                  // and /practice) until that name joins again (POST /join)
    *                                                  // device? (or token?): 403 { ok: false, error: "name taken" }
    *                                                  // when it differs from the token the name joined with (none =
    *                                                  // accepted as before).

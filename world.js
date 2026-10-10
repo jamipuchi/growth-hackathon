@@ -30,7 +30,7 @@ const BOT_REVENGE_SECONDS = 10; // a bot shoots back only at a human who hit it 
 const BOT_RANGE = T.bulletSpeed * T.bulletLife - 6; // a bot fires only when its shot can still arrive
 const BOT_ENGAGE = 190; // m from the boss's surface: closer than this a bot makes attack runs
 const ROCK_WEIGHTS = { stone: 6, iron: 2, volatile: 1, crystal: 1, magnet: 1, splitter: 1 };
-const INACTIVE_MS = 10 * 60 * 1000;
+const INACTIVE_MS = 10 * 60 * 1000; // a player unseen this long stops counting (kick-idle: server.js removes an unreachable phone's player after 30 s)
 // Name binding and caps (v1.0 review): a device token from /join keeps a second phone from taking over a name in use;
 // at most MAX_PLAYERS active players, humans and bots together (a new human takes the newest bot's seat), MAX_RECORDS
 // ever.
@@ -633,14 +633,15 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     return p.name;
   }
   // v1.9 PRACTICE: a player leaves this world (back to the lobby): gone from every list, with their shots, mines, decoys and
-  // parked ship. → true when they were here.
+  // parked ship. → true when they were here. kick-idle (server.js): an unreachable phone's player leaves the real world the
+  // same way (the next tick has no ship; the session stars stay); every screen gets a fresh world message (leaderboard,
+  // parked ships, the auto-start).
   function removePlayer(name) {
     const p = players[Contract.cleanName(name)];
     if (!p) return false;
     dropBot(p);
-    const n = parked.length;
     parked = parked.filter((c) => c.player !== p.name);
-    if (parked.length !== n) worldDirty = true;
+    worldDirty = true;
     return true;
   }
   // A bot leaves so a human can play (MAX_PLAYERS): gone from every list, with its mines and decoys.
