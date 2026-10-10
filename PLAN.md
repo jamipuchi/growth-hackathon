@@ -75,6 +75,8 @@ The owner answered a long round of questions after the first playtest. Where an 
 - **Nobody stuck in short rounds:** in 1-2 minute rounds a landed player with no explorer after 12 s (20 s at 2 minutes) gets USE A QUICK EXPLORER (a person with a shovel and a drill, counted as that round's explorer drawing; POST /default kinds ["explorer"]), and an explorer that can DIG or DRILL with no such button on its pad gets big DIG / DRILL buttons on the phone.
 - **Mock hall of fame:** `hall-of-fame.html?mock=1` (or the MOCK pill on the page) shows 16 ranked entries built from real drawings and specs (`hall-mock/`), each beside its live 3D model, with no API call. The TV's HALL OF FAME opens the live hall when this session has entries, else the mock.
 
+**Owner decision, 10 October 14:08:** players waiting for the next round can PLAY WHILE YOU WAIT in a shared practice world: the whole game (boss, planet, explorer drawing, chests) with endless rules and no clock or points; the round start pulls them back with their lobby ship and controller.
+
 ## 1. Components
 
 One Node server, `node server.js`, runs everything: HTTP on port 8000 and HTTPS on port 8443 (a self-signed certificate, so phones get tilt and the camera). Phones join over the LAN by scanning the QR code on the big screen.

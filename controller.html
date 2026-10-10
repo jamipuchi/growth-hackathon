@@ -581,6 +581,21 @@
   body.startin #draw .dline { top: calc(var(--startH, 66px) + 4px); }
   body.startin #draw .guide, body.startin #draw .camcard { padding-top: calc(var(--startH, 66px) + 52px); }
   @media (orientation: landscape) { body.startin #draw .example { height: min(42vh, 200px); } }
+  /* v1.9 PRACTICE (owner 14:08: play while you wait in the lobby). The offer sits next to READY ✓ on the wait banner (READY is a status
+     by then: it gets smaller), and while practising a small strip takes the timer's place in the HUD's middle column (the timer says ∞) */
+  body.canpractice #banner { width: min(500px, 74vw); }       /* READY ✓ and the offer side by side (they wrap on a narrow phone) */
+  body.canpractice #readyBtn { min-height: 52px; font-size: 21px; padding: 0 14px; }
+  #pracBtn { min-height: 64px; padding: 0 14px; font-size: 23px; animation: qxPulse 1.2s ease-in-out infinite; }
+  #pracBtn .qx { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+  #pracBtn .qx i { font: 700 10px/1.1 var(--f-body); font-style: normal; -webkit-text-stroke: 0; letter-spacing: .02em; margin-top: 3px; }
+  #pracBar { position: relative; z-index: 0; isolation: isolate; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 10px; max-width: 46vw; padding: 4px 6px 6px 14px; }
+  #pracBar::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-9deg); background: linear-gradient(180deg, #ffb347, var(--orange) 55%, #e06a00);
+    border: 3px solid var(--ink); border-radius: 6px; box-shadow: 0 4px 0 var(--hard), 0 0 0 2px var(--gold) inset; }
+  #pracText { font: italic 900 16px/1 var(--f-head); letter-spacing: .02em; color: #fff; -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; white-space: nowrap; }
+  #pracBack { min-height: 30px; font-size: 14px; padding: 0 10px; pointer-events: auto; }
+  #pracBack::before { box-shadow: 0 3px 0 var(--hard); }
+  body.practice #hud .timer { display: none; }
+  body.hudoff #pracBar { visibility: visible !important; }   /* BACK TO LOBBY stays reachable with the HUD hidden */
   @keyframes qxPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
   #natBtns { position: fixed; left: 45vw; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 6; transform: translateX(-50%); display: flex; gap: 12px; }
   #natBtns.hidden, .natbtn.hidden, body.waiting #natBtns, body.adding #natBtns { display: none; }
@@ -915,6 +930,7 @@
         <div id="status"></div>
       </div>
       <div class="timer" id="timer"><span class="tl" data-copy="hud.timeLeft"></span><span id="clock"></span></div>
+      <div id="pracBar" class="hidden" role="status"><b id="pracText"></b><button id="pracBack" class="btn blue sm" type="button" data-copy="practice.back"></button></div>
     </div>
     <div class="hr"><div id="score" class="score"><b id="scoreN">0</b><span id="scoreRank"></span></div><canvas id="radar"></canvas></div>
   </div>
@@ -925,7 +941,11 @@
     <h2 id="bannerTitle" class="hd" data-copy="wait.title"></h2>
     <div id="bannerSub" data-copy="wait.sub"></div>
     <div id="bannerActions">
-      <button id="readyBtn" class="btn big" type="button"></button>
+      <div class="row">
+        <button id="readyBtn" class="btn big" type="button"></button>
+        <!-- v1.9 PRACTICE: READY in the lobby → play a practice world until the round starts (POST /practice) -->
+        <button id="pracBtn" class="btn orange hidden" type="button"><span class="qx"><span data-copy="practice.play"></span><i data-copy="practice.playSub"></i></span></button>
+      </div>
       <div class="row">
         <div class="redo"><button id="redrawShip" class="btn blue sm" type="button" data-copy="wait.redrawShip"></button><span data-copy="wait.uses"></span></div>
         <div class="redo"><button id="redrawCtrl" class="btn blue sm" type="button" data-copy="wait.redrawController"></button><span data-copy="wait.uses"></span></div>
@@ -1226,6 +1246,9 @@ const COPY = {
   // v1.9 short rounds (Contract.pacing): a ready-made explorer (shovel + drill) after quickExplorerSeconds on the planet, and native DIG / DRILL
   quick: { explorer: "USE A QUICK EXPLORER", sub: "SHOVEL + DRILL · NO DRAWING" },
   native: { dig: "DIG", drill: "DRILL" },
+  // v1.9 PRACTICE (owner 14:08): READY players in the lobby play a practice world (fly, land, draw an explorer, dig) until the round starts
+  practice: { play: "PLAY WHILE YOU WAIT", playSub: "FLY, FIGHT, LAND AND DIG · NOTHING COUNTS", banner: "PRACTICE · ROUND STARTS IN {n}", bannerHost: "PRACTICE · WAITING FOR THE HOST",
+    back: "BACK TO LOBBY", notReady: "FINISH YOUR SHIP AND BUTTONS FIRST", notLobby: "THE ROUND IS STARTING", failed: "COULD NOT START PRACTICE · TRY AGAIN", backFailed: "COULD NOT GO BACK · TRY AGAIN" },
   wait: {
     title: "YOU'RE IN!", sub: "Wait for the host to press START on the big screen",
     ready: "I'M READY", readyDone: "READY ✓", redrawShip: "REDRAW SHIP", redrawController: "REDRAW CONTROLLER", uses: "uses 1 drawing",
@@ -1466,6 +1489,7 @@ const S = {
   waiting: false,            // v1.7: I am not in this round (tick.waiting lists me): I keep drawing for the next one
   waitedIn: (() => { const r = store.get("waitedIn"); return Number.isFinite(r) ? r : null; })(),   // v1.7: the round I waited out (its end keeps my drawings)
   drawingDown: false,        // "drawing" is down on the server (a draw sheet is open during play)
+  practicing: false,         // v1.9 PRACTICE: the newest tick is the practice world's (tick.practice === true)
 };
 const natHeld = {};          // v1.9: the native DIG / DRILL buttons held right now (action -> true)
 let startShown = "";         // v1.9: what the lobby auto-start strip shows ("" = hidden)
@@ -3275,6 +3299,13 @@ function onNetTick(m) {
   setMinutes(m.minutes);      // v1.9 (the stream peek has normally done it already)
   if (typeof m.minutes === "number") S.minutes = m.minutes;
   noteRound(m.round);
+  // v1.9 PRACTICE: the first tick without `practice` after practice ticks (the round started, or BACK TO LOBBY) drops the practice's state
+  const prac = m.practice === true;
+  if (prac !== S.practicing) {
+    if (S.practicing) leavePractice();
+    S.practicing = prac;
+    document.body.classList.toggle("practice", prac);
+  }
   const me = m.players && m.players.find((p) => p.name === S.player);
   if (me && me.drawingsLeft) setLeft(me.drawingsLeft);
   S.net.phase = m.phase;
@@ -3286,12 +3317,14 @@ function onNetTick(m) {
   syncQuickExplorer();
   S.endless = m.mode === "endless"; // v1.6 ENDLESS (tick.mode, absent in the demo)
   // v1.7 (owner 12:26): tick.waiting lists who is not in this round; my drawings then carry over to the next one
-  const wait = Array.isArray(m.waiting) ? m.waiting.find((w) => w && w.name === S.player) || null : null;
+  // (v1.9 PRACTICE: a practice tick is never the main round's: no waiting, and S.waitedIn stays as the main ticks left it)
+  const wait = !prac && Array.isArray(m.waiting) ? m.waiting.find((w) => w && w.name === S.player) || null : null;
   if (wait && wait.drawingsLeft) setLeft(wait.drawingsLeft);
   if (wait && S.waitedIn !== m.round) { S.waitedIn = m.round; store.set("waitedIn", m.round); }
-  else if (!wait && me && m.phase !== "lobby" && S.waitedIn === m.round) { S.waitedIn = null; store.set("waitedIn", null); }   // ENDLESS: I am in now
+  else if (!prac && !wait && me && m.phase !== "lobby" && S.waitedIn === m.round) { S.waitedIn = null; store.set("waitedIn", null); }   // ENDLESS: I am in now
   syncWaiting(wait, m);
   if (m.phase === "lobby" && me) syncReadyLook(!!(me.flags && me.flags.ready));
+  syncPractice(m, me);
   syncDrawing();
   syncCountdown(m);
 }
@@ -3315,6 +3348,57 @@ function syncStartIn(m, me) {
   if (wasHidden) { el.classList.remove("hidden"); document.body.classList.add("startin"); }
   if (el.offsetHeight) document.body.style.setProperty("--startH", el.offsetHeight + "px");   // v1.9 fix: the drawing screen's instruction line goes under it
 }
+// v1.9 PRACTICE (owner 14:08: "a lobby for people waiting ... they can go to planet and generate etc. ... while waiting only"). READY in the
+// lobby → PLAY WHILE YOU WAIT (POST /practice { on: true }). The server moves me by name: the same event stream then carries a practice
+// world (ticks with practice: true, phase "playing", mode "endless", the MAIN round number, practiceStartIn while the lobby auto-start
+// counts), and /input, /generate, /default go there too. The round's START (or BACK TO LOBBY, on: false) brings the main world back on the
+// same stream; its first tick (no `practice`) runs leavePractice, so the real round starts clean. Kept: the ship, the controller (layout,
+// pad), S.round and S.waitedIn; the main ticks set the drawings left and the 3-2-1 runs from them as usual.
+let pracShown = null, pracOffer = null, pracBusy = false;
+function leavePractice() {
+  releaseAll();                     // held pad buttons and sticks, and the native DIG / DRILL (releaseNative)
+  clearCooldowns();
+  S.drawn.explorer = null;
+  S.explorerAsked = false; S.quickExp = false; S.landedAt = null; S.lastMode = null; S.wrecked = false;
+  clearGhost(); clearSketch(); S.tipAt = {}; lateSeen.clear(); closeLate();   // the practice's hints and DRAW-X cards come again in the round
+  $("redrawMenu").classList.add("hidden");
+  // the explorer flow (prompt, drawing, reading card, result card, the controller prompt after it) closes: back to the play screen
+  const expKind = (k) => k === "explorer" || k === "planetController";
+  const onDraw = S.screen === "draw" && expKind(DR.kind);
+  const sheet = !$("explorer").classList.contains("hidden") || !$("ctrlPrompt").classList.contains("hidden") || (!$("result").classList.contains("hidden") && expKind(S.resultKind));
+  if (onDraw) { clearTimeout(specTimer); latest[KINDS[DR.kind].wire] = null; DR.busy = false; }   // an answer still on its way is dropped (isLatest)
+  if (expKind(S.resultKind)) S.resultKind = null;
+  if (onDraw || sheet) { hideGen(); backToGame(); }
+  hudCache.leftWorld = null; updateCounters();
+  syncQuickExplorer();
+}
+function syncPractice(m, me) {
+  // the offer, next to READY ✓ on the wait banner: the main lobby, me READY, not practising
+  const offer = !S.practicing && m.phase === "lobby" && !!(me && me.flags && me.flags.ready);
+  if (offer !== pracOffer) { pracOffer = offer; $("pracBtn").classList.toggle("hidden", !offer); document.body.classList.toggle("canpractice", offer); }
+  // the strip in the HUD while practising: PRACTICE · ROUND STARTS IN 27 (the lobby auto-start counts) / PRACTICE · WAITING FOR THE HOST
+  const n = S.practicing && typeof m.practiceStartIn === "number" && Number.isFinite(m.practiceStartIn) ? Math.max(0, Math.ceil(m.practiceStartIn)) : null;
+  const text = !S.practicing ? "" : n === null ? COPY.practice.bannerHost : tpl(COPY.practice.banner, { n });
+  if (text === pracShown) return;
+  pracShown = text;
+  $("pracText").textContent = text;
+  $("pracBar").classList.toggle("hidden", !text);
+}
+async function askPractice(on) {
+  if (pracBusy || !S.player) return;
+  pracBusy = true;
+  $("pracBtn").disabled = $("pracBack").disabled = true;
+  let res = null;
+  try { res = await post("/practice", { player: S.player, device: DEVICE, token: DEVICE, on }, { timeoutMs: 8000 }); } catch { res = null; }
+  pracBusy = false;
+  $("pracBtn").disabled = $("pracBack").disabled = false;
+  if (res && res.ok) return;        // the stream switches worlds by itself: the next ticks say so
+  const err = res && res.error;
+  if (!on && err === "not in the lobby") return;   // the round is starting: the main world is on its way anyway
+  notice(!on ? COPY.practice.backFailed : err === "not ready" ? COPY.practice.notReady : err === "not in the lobby" ? COPY.practice.notLobby : COPY.practice.failed, 3000);
+}
+$("pracBtn").onclick = () => askPractice(true);
+$("pracBack").onclick = () => askPractice(false);
 // v1.9 QUICK EXPLORER (short rounds: Contract.pacing(minutes).quickExplorerSeconds, 12 s for 1 min, 20 s for 2): landed that long with no
 // explorer drawing finished → the explorer prompt and the explorer drawing screen offer USE A QUICK EXPLORER (POST /default kinds
 // ["explorer"]: a plain person with a shovel and a drill, the server counts it as this round's explorer drawing, free).
@@ -4333,7 +4417,7 @@ $("hudBtn").addEventListener("click", (e) => {
 
 // No overlaps while the HUD is shown: a HUD piece over the control a finger is on fades to 25 % (.ovf) until that finger lifts. The controls
 // never move (they are where the player drew them); the HUD pieces take no touches except the tool row, which the corner button skirts.
-const OVF_SEL = "#vitals, #hud .tool, #hud .objpanel, #timer, #score, #radar, #chip:not(.off), #toast:not(.off), #legend.on .chip, .mfx-toasts .mfx-t, .pe-coach-bub";
+const OVF_SEL = "#vitals, #hud .tool, #hud .objpanel, #timer, #pracBar, #score, #radar, #chip:not(.off), #toast:not(.off), #legend.on .chip, .mfx-toasts .mfx-t, .pe-coach-bub";
 const ovfHeld = new Map();     // finger / action key -> the control's rect
 function ovfApply() {
   for (const el of document.querySelectorAll(".ovf")) el.classList.remove("ovf");

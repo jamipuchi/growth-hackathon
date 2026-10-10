@@ -237,6 +237,7 @@ export function injectStyles() {
 .bse-hc.ok .bse-hc-ok{display:block;animation:bse-pop .4s cubic-bezier(.34,1.56,.64,1) both}
 .bse-hc-ok .s,.bse-hangar.compact .bse-hc-ok .l{display:none}
 .bse-hc.wt{opacity:.72}.bse-hc.wt .bse-hc-ok{display:block;background:#ffc93c;color:#3a2400}
+.bse-hc.pr .bse-hc-ok{display:block;background:linear-gradient(180deg,#b45cff,#8a3dff);color:#fff}
 .bse-hangar.compact .bse-hc-ok .s{display:inline}
 .bse-hangar.compact .bse-hc-nm{font-size:2em}
 .bse-hangar.compact .bse-hc-st,.bse-hangar.compact .bse-hc-ok{font-size:1.7em}
@@ -799,8 +800,9 @@ export function createKillFeed(container, opts = {}) {
 const PENCIL_SVG = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40l3.2-10.4L33.4 7.4a4.2 4.2 0 0 1 6 0l1.2 1.2a4.2 4.2 0 0 1 0 6L18.4 36.8z" fill="#ffcb3d" stroke="#120a2e" stroke-width="3" stroke-linejoin="round"/><path d="M8 40l3.2-10.4 7.2 7.2z" fill="#ffe9c4" stroke="#120a2e" stroke-width="3" stroke-linejoin="round"/><path d="M8 40l1.4-4.4 3 3z" fill="#120a2e"/><path d="M29.4 11.4l7.2 7.2" stroke="#120a2e" stroke-width="3"/></svg>';
 export function createHangar(container, opts = {}) {
   injectStyles();
-  // v1.7: an entry's optional state "in" | "waiting" (who plays this round, who waits for the next) swaps the READY badge
-  const L = Object.assign({ ready: "✔ READY", readyShort: "✔", drawing: "DRAWING…", stars: "★ {n}", inRound: "✔ IN", waiting: "⏳ NEXT ROUND", waitingShort: "⏳" }, opts.labels || {});
+  // v1.7: an entry's optional state "in" | "waiting" (who plays this round, who waits for the next) swaps the READY badge;
+  // v1.9: an entry's practicing: true (in the practice world while the TV waits) swaps it for 🎮 PRACTICING
+  const L = Object.assign({ ready: "✔ READY", readyShort: "✔", drawing: "DRAWING…", stars: "★ {n}", inRound: "✔ IN", waiting: "⏳ NEXT ROUND", waitingShort: "⏳", practicing: "🎮 PRACTICING", practicingShort: "🎮" }, opts.labels || {});
   const maxCard = opts.maxCard || 15;
   const el = document.createElement("div");
   el.className = "bse-hangar";
@@ -859,15 +861,17 @@ export function createHangar(container, opts = {}) {
       if (el.children[i] !== c.el) el.insertBefore(c.el, el.children[i] || null); // join order; moves only what is out of place
       i++;
       const stars = p.stars || 0;
-      const sig = `${p.color}|${p.ready ? 1 : 0}|${stars}|${p.state || ""}`;
+      const pr = !p.state && !!p.practicing; // v1.9 PRACTICE (the 3-2-1's IN / NEXT ROUND win over it)
+      const sig = `${p.color}|${p.ready ? 1 : 0}|${stars}|${p.state || ""}|${pr ? 1 : 0}`;
       if (sig !== c.sig) {
         c.sig = sig;
+        c.el.classList.toggle("pr", pr);
         c.el.style.setProperty("--pc", p.color || "#ffffff"); // the stripe and the join ring: the true colour
         c.el.style.setProperty("--pt", readableColour(p.color || "#ffffff")); // the name: a readable tint of it
         c.el.classList.toggle("ok", p.state ? p.state === "in" : !!p.ready);
         c.el.classList.toggle("wt", p.state === "waiting"); // v1.7
-        c.el.querySelector(".bse-hc-ok .l").textContent = p.state === "in" ? L.inRound : p.state === "waiting" ? L.waiting : L.ready;
-        c.el.querySelector(".bse-hc-ok .s").textContent = p.state === "waiting" ? L.waitingShort : L.readyShort;
+        c.el.querySelector(".bse-hc-ok .l").textContent = p.state === "in" ? L.inRound : p.state === "waiting" ? L.waiting : pr ? L.practicing : L.ready;
+        c.el.querySelector(".bse-hc-ok .s").textContent = p.state === "waiting" ? L.waitingShort : pr ? L.practicingShort : L.readyShort;
         c.st.textContent = stars ? fill(L.stars, stars) : "";
       }
       setImage(c, p.image);

@@ -233,7 +233,13 @@ function ghostBox(layout, action) {
 // Off (tests, tools): everybody plays, as before.
 // v1.9 (owner, 10 Oct 13:41): minutes (1-4, the round length; default 4 = the pre-v1.9 tuning, server.js passes 1) and
 // startAfter (the lobby auto-start: that many seconds after the first READY player; 0 = off, the default; server.js 30).
-function createWorld({ broadcast = () => {}, random = Math.random, autoStart = false, wireAnimations = null, autostartSeconds = ROUND.autostartSeconds, onRoundReset = null, readyGate = false, minutes = 4, startAfter = 0 } = {}) {
+// v1.9 PRACTICE (owner, 10 Oct 14:08: "a lobby for people waiting ... like the regular game but while waiting only"):
+// practice: true makes this the PRACTICE world server.js runs next to the real one: ENDLESS with the picked round length's
+// pacing (not the 4-minute one) and quicker comebacks (PRACTICE_ENDLESS); players come in with importPlayer and leave with
+// removePlayer. onStart() (the real world): called by start() once the round will start, before any of its messages, so
+// server.js can pull every practicing player back into the lobby in time for the 3-2-1.
+const PRACTICE_ENDLESS = { bossRespawnSeconds: 15, bossWarnSeconds: 5, chestRefreshSeconds: 30, allOpenDelaySeconds: 4, rechargeSeconds: 20, leaderSeconds: 1e9 };
+function createWorld({ broadcast = () => {}, random = Math.random, autoStart = false, wireAnimations = null, autostartSeconds = ROUND.autostartSeconds, onRoundReset = null, readyGate = false, minutes = 4, startAfter = 0, practice = false, onStart = null } = {}) {
   const players = Object.create(null);
   // Hints run on the simulation clock so fast-forward tests see the same ladder as a live round.
   const hints = Rules.createHints({ now: () => Math.round(S.t * 1000) });
@@ -277,8 +283,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     refreshChests: () => refreshChests(),
     // +1 drawing per world for every human below the maximum (rules.js refund)
     recharge: () => { if (typeof budget.refund === "function") for (const q of active()) if (!q.bot) { budget.refund(q.name, "space"); budget.refund(q.name, "planet"); } },
-  });
-  const repace = () => { pace = Contract.pacing(endless.on ? 4 : S.minutes); };
+  }, { tuning: practice ? PRACTICE_ENDLESS : null });
+  const repace = () => { pace = Contract.pacing(endless.on && !practice ? 4 : S.minutes); }; // v1.9 practice: the picked length's pacing
 
   // ---- World generation ----------------------------------------------------------------------------------------
 
@@ -608,6 +614,35 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     return clean !== base && players[base] && !players[base].bot ? { player: p.name, color: p.color, renamed: true } : { player: p.name, color: p.color };
   };
   const addBot = (name) => getPlayer(name, true);
+  // v1.9 PRACTICE: a player from the real world's lobby comes in with their ship drawing's entity (space) and their controller
+  // (copies: nothing here ever changes the real world's player), in the lobby's colour, in space with a spawn shield. → the
+  // player's name, or null when there is no seat.
+  function importPlayer(name, { color = null, device = null, space = null, layout = null } = {}) {
+    const p = getPlayer(name);
+    if (!p) return null;
+    if (color) p.color = color;
+    if (typeof device === "string") p.device = device;
+    const copy = (v) => (v ? JSON.parse(JSON.stringify(v)) : null);
+    p.drawn = { space: copy(space), planet: null };
+    p.layout = copy(layout);
+    parked = parked.filter((c) => c.player !== p.name);
+    Object.assign(p, { bayIndex: null, inRound: true, score: 0, pressed: [], keys: {}, axes: {}, hitBy: Object.create(null), run: null, hitAcc: 0, power: null, bubbleFor: 0, drawingUntil: 0 });
+    setMode(p, "space", "fresh");
+    spawnAt(p);
+    p.pos = clearSpot(p, p.pos, 40);
+    return p.name;
+  }
+  // v1.9 PRACTICE: a player leaves this world (back to the lobby): gone from every list, with their shots, mines, decoys and
+  // parked ship. → true when they were here.
+  function removePlayer(name) {
+    const p = players[Contract.cleanName(name)];
+    if (!p) return false;
+    dropBot(p);
+    const n = parked.length;
+    parked = parked.filter((c) => c.player !== p.name);
+    if (parked.length !== n) worldDirty = true;
+    return true;
+  }
   // A bot leaves so a human can play (MAX_PLAYERS): gone from every list, with its mines and decoys.
   function dropBot(q) {
     delete players[q.name];
@@ -775,6 +810,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       const here = new Set(present());
       for (const p of Object.values(players)) p.inRound = here.has(p) && readyNow(p);
     }
+    // v1.9 PRACTICE: the practicing players come back to this lobby before any message of the round goes out
+    if (typeof onStart === "function") { try { onStart(); } catch (err) { console.log(`start hook failed: ${(err && err.message) || err}`); } }
     const roster = active().filter((p) => !readyGate || p.inRound);
     S.playerCount = scaledCount(roster);
     const hp = bossHp(hpCount(roster), pace);
@@ -2054,6 +2091,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     get phase() { return S.phase; },
     get round() { return S.round; },
     get countdown() { return countdownField().countdown; }, // v1.4: whole seconds left in phase "countdown", else undefined
+    // v1.9 PRACTICE: in and out of the practice world; startIn = the lobby auto-start's whole seconds left (else undefined)
+    importPlayer, removePlayer, practice: !!practice, get startIn() { return lengthFields(false).startIn; },
     debug: () => ({ ...S, boss, planet, landing, chests, island, parked, rocks, bullets, bossShots, mines, decoys, pickups, endless: endless.debug() }),
     // v1.8 loot: drop a pickup of that kind at a space position (tests, tools); returns it, or null for an unknown kind
     spawnPickup: (kind, at) => spawnPickup(kind, at),

@@ -350,6 +350,11 @@
   .seg button:focus-visible { outline: .25rem solid #fff; outline-offset: .3rem; }
   #autoStartBar { padding: .35rem 1.7rem .5rem; font-size: 2.2rem; white-space: nowrap; --bg: linear-gradient(180deg, #ffe27a, #ffb000); color: #1a0f3a; animation: throb 1s ease-in-out infinite; }
   #autoStartBar.hidden { display: none; }
+  /* v1.9 PRACTICE (owner 14:08, "play while you wait"): n PRACTICING beside the lobby count / STARTING IN (from tick.practicing) */
+  #countRow { display: flex; align-items: center; justify-content: center; gap: 1.1rem; }
+  #practiceChip { padding: .45rem 1.5rem .6rem; font-size: 1.75rem; white-space: nowrap; animation: popIn .38s var(--pop) both; }
+  #practiceChip.hidden { display: none; }
+  #practiceChip b { color: var(--gold); font-weight: inherit; }
   #endWrap { position: absolute; left: 0; right: 0; top: 100%; margin-top: 1rem; display: flex; justify-content: center; }
   #endBtn { pointer-events: auto; cursor: pointer; padding: .35rem 1.1rem .45rem; border: 0; background: none; font: inherit; font-size: 1.5rem; white-space: nowrap;
             --bg: linear-gradient(180deg, #ff7b92, #ff3b5c); }
@@ -552,8 +557,7 @@
         <div class="seg" id="lenSeg"><span class="lbl h" data-copy="length.round"></span></div>
         <div class="seg" id="waitSeg"><span class="lbl h" data-copy="length.auto"></span></div>
       </div>
-      <div id="autoStartBar" class="sk h hidden"></div>
-      <div id="lobbyCount" class="sk navy h"></div>
+      <div id="countRow"><div id="autoStartBar" class="sk h hidden"></div><div id="lobbyCount" class="sk navy h"></div><div id="practiceChip" class="sk purple h hidden"></div></div>
       <div id="startNote" class="tx"></div>
     </footer>
   </section>
@@ -616,6 +620,7 @@ const COPY = {
     sep: " · ",
     bots: "+{n} BOTS",
     botsOne: "+{n} BOT",
+    practicing: "{n} PRACTICING", // v1.9 PRACTICE: READY players playing the practice world while the TV waits (tick.practicing)
     joined: "+ {name} JOINED",
     rosterEmpty: "← SCAN THE CODE TO JOIN",
     getReady: "GET READY!",
@@ -624,7 +629,7 @@ const COPY = {
     tips: ["DRAW A GUN TO SHOOT", "STEAL THE BOSS'S LAST HIT", "DRAW FLAMES ON YOUR SHIP TO BOOST", "DRAW A BUTTON FOR EVERY POWER",
       "DRAW A SHOVEL TO DIG UP CHESTS", "DRAW A DRILL TO OPEN ROCK CHESTS", "WRECK PARKED SHIPS FOR POINTS", "MOST POINTS WINS A ★"],
   },
-  cards: { ready: "✔ READY", readyShort: "✔", drawing: "DRAWING…", drawingShort: "…", bot: "BOT", stars: "★ {n}", inRound: "✔ IN", waiting: "⏳ NEXT ROUND", waitingShort: "⏳" },
+  cards: { ready: "✔ READY", readyShort: "✔", drawing: "DRAWING…", drawingShort: "…", bot: "BOT", stars: "★ {n}", inRound: "✔ IN", waiting: "⏳ NEXT ROUND", waitingShort: "⏳", practicing: "🎮 PRACTICING", practicingShort: "🎮" },
   play: {
     scores: "SCOREBOARD",
     more: "+{n} MORE",
@@ -909,7 +914,7 @@ const killFeed = BX ? BX.createKillFeed(hudEl, { max: 5, life: 6500, labels: COP
 const nameTags = BX ? BX.createNameTags(hudEl, { max: 25, offset: 6, labels: COPY.feed }) : null;
 const miniMap = BX && BX.createMiniMap ? BX.createMiniMap($("mapSlot"), { labels: COPY.map }) : null;
 // v1.5 lobby hangar: a card per player with their ship drawing (the chips of renderRoster are the fallback without it)
-const hangar = BX && BX.createHangar ? BX.createHangar($("roster"), { labels: { ready: COPY.cards.ready, readyShort: COPY.cards.readyShort, drawing: COPY.cards.drawing, stars: COPY.cards.stars, inRound: COPY.cards.inRound, waiting: COPY.cards.waiting, waitingShort: COPY.cards.waitingShort }, onPop: hangarPop }) : null;
+const hangar = BX && BX.createHangar ? BX.createHangar($("roster"), { labels: { ready: COPY.cards.ready, readyShort: COPY.cards.readyShort, drawing: COPY.cards.drawing, stars: COPY.cards.stars, inRound: COPY.cards.inRound, waiting: COPY.cards.waiting, waitingShort: COPY.cards.waitingShort, practicing: COPY.cards.practicing, practicingShort: COPY.cards.practicingShort }, onPop: hangarPop }) : null;
 if (hangar) $("roster").classList.add("hangar");
 const tagOpts = { limit: 0, focus: null };
 const bots = new Set(); // names of the filler players (tick flags.bot): their kills are dim in the feed, their tags come last
@@ -946,7 +951,9 @@ game.on("world", (m) => {
 });
 const prevPos = new Map(); // name → { x, z, mode } in the tick before the latest (the map interpolates between the two)
 let prevTickAt = 0;
+let practicing = []; // v1.9 PRACTICE: tick.practicing, the names of the lobby's players in the practice world now (absent: nobody)
 game.on("tick", (m) => {
+  practicing = m.phase === "lobby" && Array.isArray(m.practicing) ? m.practicing.map((p) => (typeof p === "string" ? p : p && p.name)).filter(Boolean) : [];
   if (tick && tick.players) { prevPos.clear(); for (const p of tick.players) prevPos.set(p.name, { x: p.x, z: p.z, mode: p.mode }); }
   prevTickAt = tickAt;
   tick = m; tickAt = performance.now(); haveTick = true;
@@ -1127,6 +1134,9 @@ function syncLength() {
   flag($("autoStartBar"), "hidden", n == null || mocked);
   $("lobbyCount").style.display = n == null || mocked ? "" : "none"; // STARTING IN n · r READY takes its place
   if (n != null) setText($("autoStartBar"), lobbyReady > 0 ? fmt(COPY.length.startingInReady, { n, r: lobbyReady }) : fmt(COPY.length.startingIn, { n }));
+  const np = mocked ? 0 : practicing.length; // v1.9 PRACTICE: n PRACTICING beside the count (hidden at 0 and outside the lobby)
+  flag($("practiceChip"), "hidden", !np);
+  if (np) setHtml($("practiceChip"), fmtB(COPY.lobby.practicing, { n: np }));
 }
 game.on("world", syncLength);
 game.on("tick", syncLength);
@@ -1193,7 +1203,7 @@ function renderRoster(h, humans) {
     flag($("rosterEmpty"), "on", !humans.length);
     for (const s of humans) if (!joinOrder.has(s.name)) joinOrder.set(s.name, joinOrder.size);
     hangar.update(humans.slice().sort((a, b) => joinOrder.get(a.name) - joinOrder.get(b.name)).map((s) => ({
-      name: s.name, color: colourOf(s.name), image: s.image || shipImg.get(s.name) || null, ready: !!s.ready, stars: stars.get(s.name) || s.stars || 0, state: s.state || null })));
+      name: s.name, color: colourOf(s.name), image: s.image || shipImg.get(s.name) || null, ready: !!s.ready, stars: stars.get(s.name) || s.stars || 0, state: s.state || null, practicing: practicing.includes(s.name) })));
     return;
   }
   let sig = humans.length + "|";

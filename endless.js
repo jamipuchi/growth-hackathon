@@ -72,16 +72,18 @@ function freshChests(chests, { want, at, spread, ok, random = Math.random }) {
 //   recharge()           +1 drawing per world for every human below the maximum
 // Returns { on, set(on), reset(), step(dt), fields() }: world.js calls reset() at START (and at every new lobby),
 // step(dt) in play (phase "playing"), and spreads fields() into its world and tick messages.
-function createEndless(world, { on = false } = {}) {
+// tuning (v1.9 practice, optional): overrides of ENDLESS for this world only (the practice world's quicker boss and chests).
+function createEndless(world, { on = false, tuning = null } = {}) {
+  const ENDLESS_T = tuning && typeof tuning === "object" ? { ...ENDLESS, ...tuning } : ENDLESS;
   const S = { on: !!on, boss: null, warned: false, chests: 0, allOpen: null, recharge: 0, leader: 0 };
   function reset() {
     Object.assign(S, { boss: null, warned: false, chests: 0, allOpen: null, recharge: 0, leader: 0 });
   }
   function stepBoss(dt) {
     if (!world.bossDead()) { S.boss = null; S.warned = false; return; }
-    if (S.boss == null) { S.boss = ENDLESS.bossRespawnSeconds; S.warned = false; return; }
+    if (S.boss == null) { S.boss = ENDLESS_T.bossRespawnSeconds; S.warned = false; return; }
     S.boss -= dt;
-    if (!S.warned && S.boss <= ENDLESS.bossWarnSeconds) { S.warned = true; world.announce(`👾 The boss is back in ${ENDLESS.bossWarnSeconds} s!`); }
+    if (!S.warned && S.boss <= ENDLESS_T.bossWarnSeconds) { S.warned = true; world.announce(`👾 The boss is back in ${ENDLESS_T.bossWarnSeconds} s!`); }
     if (S.boss > 0) return;
     S.boss = null; S.warned = false;
     world.respawnBoss();
@@ -92,7 +94,7 @@ function createEndless(world, { on = false } = {}) {
     const open = list.filter((c) => c.open).length;
     S.chests += dt;
     if (list.length && open === list.length) {
-      if (S.allOpen == null) S.allOpen = ENDLESS.allOpenDelaySeconds;
+      if (S.allOpen == null) S.allOpen = ENDLESS_T.allOpenDelaySeconds;
       else if ((S.allOpen -= dt) <= 0) {
         S.allOpen = null; S.chests = 0;
         world.refreshChests();
@@ -101,7 +103,7 @@ function createEndless(world, { on = false } = {}) {
       return;
     }
     S.allOpen = null;
-    if (S.chests < ENDLESS.chestRefreshSeconds) return;
+    if (S.chests < ENDLESS_T.chestRefreshSeconds) return;
     S.chests = 0;
     if (open > 0) { world.refreshChests(); world.announce("💎 New chests on the planet!"); }
   }
@@ -109,8 +111,8 @@ function createEndless(world, { on = false } = {}) {
     if (!S.on) return;
     stepBoss(dt);
     stepChests(dt);
-    if ((S.recharge += dt) >= ENDLESS.rechargeSeconds) { S.recharge = 0; world.recharge(); }
-    if ((S.leader += dt) >= ENDLESS.leaderSeconds) {
+    if ((S.recharge += dt) >= ENDLESS_T.rechargeSeconds) { S.recharge = 0; world.recharge(); }
+    if ((S.leader += dt) >= ENDLESS_T.leaderSeconds) {
       S.leader = 0;
       const top = leaderOf(world.humans());
       if (top) world.announce(`👑 LEADER: ${top.name} · ${top.score} points`, true);

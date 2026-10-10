@@ -39,6 +39,7 @@ const SMALL_BODY = { "/input": 64 * 1024, "/perf": 16 * 1024, "/join": 4096, "/s
 Object.assign(SMALL_BODY, { "/hall/judge": 4096, "/hall/reset": 4096 }); // v1.6 hall of fame
 SMALL_BODY["/restart"] = 4096; // v1.6.1 RESTART
 SMALL_BODY["/default"] = 4096; // v1.8 skipready: SKIP on a drawing step
+SMALL_BODY["/practice"] = 4096; // v1.9 PRACTICE: play while you wait
 // v1.6.1: this server process's id, in every world message and in GET /info. A screen that sees it change knows the server
 // restarted (a phone then forgets its player and joins again, the TV reloads).
 const SESSION_ID = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString("hex")}`;
@@ -98,7 +99,12 @@ function logOnce(what, err) {
 // that player's streams; a `generated` carrying controller HTML goes in full only to its player (other screens get it
 // without the HTML, and never the HTML-only upgrade). A stream that names nobody gets everything, as before.
 
-const streams = new Map(); // res → { player, big }
+const streams = new Map(); // res → { player, big, practice } (v1.9: practice = this phone's stream carries the practice world)
+// v1.9 PRACTICE (section below): declared here, before the world exists (its first messages read them)
+let practice = null;                        // the practice world, made at the first POST /practice (again for a new length)
+const practicing = new Map();               // name → { since }
+const practiceImages = Object.create(null); // name → the URL of the explorer they drew while practicing
+const practiceFiles = new Map();            // name → that drawing's PNG
 const hasStream = (player) => { for (const who of streams.values()) if (who.player === player) return true; return false; };
 const PERSONAL = new Set(["toast", "mischief", "cooldown", "hit"]); // v1.3: hit = the victim's hit marker
 const sse = (m) => `data: ${JSON.stringify(m)}\n\n`;
@@ -116,6 +122,8 @@ function broadcast(m) {
   const heavy = m.type === "generated" && typeof m.html === "string";
   let full = null, lite = null;
   for (const [res, who] of streams) {
+    // v1.9 PRACTICE: a practicing phone hears the practice world (practiceBroadcast); of the real one only its own pad
+    if (who.practice && !(m.type === "generated" && who.player === m.player)) continue;
     const other = who.big || (who.player && who.player !== m.player);
     if (personal && other) continue;
     if (heavy && other) {
@@ -143,11 +151,16 @@ function onLateShipSpec({ player, kind, image, spec }) {
   const v = sha1(Buffer.from(m[1], "base64")).slice(0, 10);
   noteShipSpec(v, spec);
   const family = kind === "explorer" ? "explorer" : "ship"; // v1.4: an explorer's body spec comes the same way
+  if (family === "explorer") onLatePracticeSpec(player, v);
   const url = drawnImages[player] && drawnImages[player][family];
   if (!url || specKey(vOfUrl(url)) !== v) return; // an older drawing of theirs: kept by its hash, nothing to send
   const p = world.players[player];
   if (p && p.entity && kindOfEntity(p.entity) === family) broadcast({ type: "entity", player, entity: p.entity });
   if (p && p.mode === "planet") broadcast(world.worldMessage({ entities: false }));
+}
+function onLatePracticeSpec(player, v) { // v1.9 PRACTICE: an explorer drawn while practicing
+  const q = practice && practicing.has(player) && practice.players[player];
+  if (q && q.entity && kindOfEntity(q.entity) === "explorer" && specKey(vOfUrl(practiceImages[player])) === v) practiceBroadcast({ type: "entity", player, entity: q.entity });
 }
 function wireAnimations(type, verbs) {
   const a = loadAstra();
@@ -255,6 +268,7 @@ function withDrawings(m) {
   }
   if (m && m.type === "world") {
     m = { ...m, session: SESSION_ID }; // v1.6.1 RESTART: screens notice a new server by this id
+    if (practicing.size && m.phase === "lobby") m.practicing = [...practicing.keys()]; // v1.9 PRACTICE: the TV's "n PRACTICING"
     if (m.entities) for (const name of Object.keys(m.entities)) m.entities[name] = drawnEntity(name, m.entities[name]);
     const island = withParkedImages(m.island);
     if (island !== m.island) m = { ...m, island };
@@ -268,7 +282,9 @@ function serveDrawing(req, res, url) {
   const m = DRAWING_PATH.exec(url.pathname);
   const name = m && `${m[1]}-${m[2]}`;
   const v = url.searchParams.get("v");
-  const buf = name && (v == null || roundOfV(v) === world.round) ? drawingFiles.get(name) : null;
+  // v1.9 PRACTICE: an explorer drawn while practicing (&practice=1) lives in its own store, never in the round's drawings
+  const buf = name && url.searchParams.get("practice") === "1" ? (m[2] === "explorer" ? practiceFiles.get(m[1]) : null)
+    : name && (v == null || roundOfV(v) === world.round) ? drawingFiles.get(name) : null;
   if (!validPng(buf)) return res.writeHead(404, { "Content-Type": "text/plain" }).end("not found");
   res.writeHead(200, { "Content-Type": "image/png", "Content-Length": buf.length, "Cache-Control": url.searchParams.has("v") ? "public, max-age=86400" : "no-cache" });
   res.end(req.method === "HEAD" ? undefined : buf);
@@ -429,7 +445,8 @@ function freshRound(round, names) {
 // v1.7 readyGate (owner 12:26): only the ready players (ship + controller) enter a round; START needs one of them.
 // v1.9 (owner 13:41): 1-minute rounds by default and the lobby auto-start 30 s after the first READY player; the TV lobby
 // changes both (POST /mode { minutes, startAfter }), remembered for the session. --minutes N / --start-after S at launch.
-const world = createWorld({ broadcast, autoStart: true, wireAnimations, autostartSeconds: AUTOSTART, onRoundReset: freshRound, readyGate: true, minutes: MINUTES_AT_START, startAfter: START_AFTER_AT_START });
+const world = createWorld({ broadcast, autoStart: true, wireAnimations, autostartSeconds: AUTOSTART, onRoundReset: freshRound, readyGate: true, minutes: MINUTES_AT_START, startAfter: START_AFTER_AT_START,
+  onStart: () => endAllPractice("start") }); // v1.9 PRACTICE: everybody back in the lobby before the 3-2-1
 for (let i = 1; i <= BOTS; i++) world.addBot(`bot${i}`);
 // v1.6 ENDLESS: guarded, so a world.js without the endless hooks still runs (the demo).
 const canEndless = () => typeof world.setEndless === "function" && typeof world.endSession === "function";
@@ -437,8 +454,21 @@ if (ENDLESS_AT_START && canEndless()) world.setEndless(true);
 
 setInterval(() => {
   if (!streams.size) return;
-  try { writeAll(sse(world.tickMessage())); } catch (err) { logOnce("tick failed", err); }
+  if (practicing.size && world.phase !== "lobby") endAllPractice("start"); // a safety net: start() already did it
+  let main = null, prac = null;
+  for (const [res, who] of streams) {
+    try {
+      if (who.practice) write(res, prac || (prac = sse(practiceOut(practice.tickMessage()))));
+      else write(res, main || (main = sse(mainTick())));
+    } catch (err) { logOnce("tick failed", err); }
+  }
 }, 1000 / Contract.TICK_HZ);
+// v1.9 PRACTICE: the real world's tick names who practices (lobby only; absent when nobody does: the demo's ticks unchanged)
+function mainTick() {
+  const m = world.tickMessage();
+  if (practicing.size && m.phase === "lobby") m.practicing = [...practicing.keys()];
+  return m;
+}
 setInterval(() => writeAll(": keepalive\n\n"), KEEPALIVE_MS);
 
 function openStream(req, res, url) {
@@ -447,11 +477,143 @@ function openStream(req, res, url) {
   const big = url.searchParams.get("screen") === "big";
   res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store", Connection: "keep-alive", "X-Accel-Buffering": "no" });
   res.write("retry: 1000\n\n");
-  res.write(sse(withDrawings(world.worldMessage())));
-  res.write(sse(world.tickMessage()));
-  streams.set(res, { player, big });
+  const inPractice = !!(player && !big && practicing.has(player) && practice); // v1.9 PRACTICE: a phone that reconnects while practicing
+  res.write(sse(inPractice ? practiceOut(practice.worldMessage()) : withDrawings(world.worldMessage())));
+  res.write(sse(inPractice ? practiceOut(practice.tickMessage()) : mainTick()));
+  streams.set(res, { player, big, practice: inPractice });
   req.on("close", () => streams.delete(res));
   res.on("error", () => streams.delete(res));
+}
+
+// ---- v1.9 PRACTICE: play while you wait (owner, 10 Oct 14:08) ------------------------------------------------------
+// "a lobby for people waiting which is essentially the same but without time ... they can go to planet and generate etc.
+// everything like the regular game but while waiting only". A second world (world.js practice: true): ENDLESS rules with the
+// picked round length's pacing, no clock, its own ticks, never a result or a session star. A READY player of the lobby opts
+// in (POST /practice): their ship entity and controller are copied in; the switch is by name, so the phone changes nothing:
+// its own stream (/events?player=<name>, render.js's and the JOIN one) gets the practice world's world message and ticks,
+// its /input, its explorer drawings (/generate kind explorer, real generation, the practice world's drawing budget) and its
+// quick explorer (/default) go there. The practice world's messages carry the real round's number (the phone keeps its
+// drawings), practice: true, and practiceStartIn (the lobby auto-start's seconds left). The real world never changes: its
+// lobby keeps the player READY with their ship (the TV hears practicing: [names]). The round's START (the host's or the
+// auto-start: world.js onStart) brings everybody back first: their streams get the lobby's world message, then the 3-2-1.
+// Explorer drawings made while practicing are kept apart (practiceImages / practiceFiles, served with &practice=1) and
+// forgotten on the way out, so no practice drawing ever shows in the round; they still go to the hall of fame's archive.
+// (practice, practicing, practiceImages and practiceFiles are declared with the event streams, above)
+function practiceWorld() {
+  if (practice && (practicing.size || practice.minutes === world.minutes)) return practice;
+  practice = createWorld({ broadcast: practiceBroadcast, autoStart: false, wireAnimations, autostartSeconds: null, readyGate: false, minutes: world.minutes, startAfter: 0, practice: true });
+  practice.setEndless(true);
+  practice.start({ countdown: false });
+  return practice;
+}
+// The practice world runs only while somebody practices (no work otherwise).
+setInterval(() => { if (practice && practicing.size) practice.safeStep(1 / Contract.SIM_HZ); }, 1000 / Contract.SIM_HZ);
+// A practice entity with its look: the ship drawing of the lobby, the explorer drawn while practicing.
+function practiceEntity(name, entity) {
+  if (!entity) return entity;
+  const url = entity.type === "ship" ? drawnImages[name] && drawnImages[name].ship : practiceImages[name];
+  if (!url) return entity;
+  const spec = shipSpecOf(url);
+  return spec ? { ...entity, image: url, spec } : { ...entity, image: url };
+}
+// What a practicing phone receives: the real round's number (so the phone never takes it for a new round), practice: true.
+function practiceOut(m) {
+  if (!m || typeof m !== "object") return m;
+  if (m.type === "entity") return { ...m, entity: practiceEntity(m.player, m.entity) };
+  if (m.type === "world") {
+    m = { ...m, round: world.round, practice: true, session: SESSION_ID, island: withParkedImages(m.island) };
+    if (m.entities) m.entities = Object.fromEntries(Object.entries(m.entities).map(([k, e]) => [k, practiceEntity(k, e)]));
+    return m;
+  }
+  if (m.type === "tick") {
+    const startIn = world.phase === "lobby" ? world.startIn : undefined;
+    return { ...m, round: world.round, practice: true, ...(startIn != null ? { practiceStartIn: startIn } : {}) };
+  }
+  return m;
+}
+function practiceBroadcast(m) {
+  if (!practicing.size) return;
+  m = practiceOut(m);
+  const personal = PERSONAL.has(m.type) ? m.player : null;
+  let line = null;
+  for (const [res, who] of streams) {
+    if (!who.practice || (personal && who.player !== personal)) continue;
+    write(res, line || (line = sse(m)));
+  }
+}
+// The player's streams change world: the new world's world message (with every entity) and a tick, at once.
+function switchStreams(name, on) {
+  for (const [res, who] of streams) {
+    if (who.big || who.player !== name || !!who.practice === on) continue;
+    who.practice = on;
+    try {
+      write(res, sse(on ? practiceOut(practice.worldMessage()) : withDrawings(world.worldMessage())));
+      write(res, sse(on ? practiceOut(practice.tickMessage()) : mainTick()));
+    } catch (err) { logOnce("practice switch failed", err); }
+  }
+}
+function startPractice(name) {
+  const p = world.players[name];
+  if (!p || p.bot) return false;
+  const P = practiceWorld();
+  if (!P.importPlayer(name, { color: p.color, device: p.device, space: p.drawn.space, layout: p.layout })) return false;
+  practicing.set(name, { since: Date.now() });
+  switchStreams(name, true);
+  console.log(`practice: ${name} plays while they wait (${practicing.size} practicing)`);
+  return true;
+}
+function endPractice(name, why = "back") {
+  if (!practicing.has(name)) return false;
+  practicing.delete(name);
+  try { if (practice) practice.removePlayer(name); } catch (err) { logOnce("practice remove failed", err); }
+  delete practiceImages[name];
+  practiceFiles.delete(name);
+  switchStreams(name, false);
+  console.log(`practice: ${name} back in the lobby (${why})`);
+  return true;
+}
+function endAllPractice(why) { for (const name of [...practicing.keys()]) endPractice(name, why); }
+// POST /generate from a practicing phone: the explorer only (real generation, the practice world's budget); the ship and the
+// controller stay the lobby's (a redraw waits for the lobby: nothing here may change the real round).
+async function practiceGenerate(req, res, body, player) {
+  const P = practice;
+  const left = () => P.drawingsLeft(player);
+  if (body.kind !== "explorer") return json(res, 200, { ok: false, error: "practice", message: "Practice keeps your ship and buttons. Redraw them in the lobby.", drawingsLeft: left() });
+  const finished = !body.speculative;
+  if (!finished && !speculativeOk(player)) return json(res, 200, { ok: false, error: "slow down", message: "", drawingsLeft: left() });
+  const where = P.drawingWorld(player);
+  if (finished && left()[where] <= 0) return json(res, 200, { ok: false, error: "no drawings left", message: plainMessage("explorer", "no drawings left"), drawingsLeft: left() });
+  const gone = new AbortController();
+  res.on("close", () => { if (!res.writableEnded) gone.abort(); });
+  if (res.destroyed || (req.socket && req.socket.destroyed)) gone.abort();
+  let { status, result } = await generate({ ...body, where }, gone.signal);
+  if (gone.signal.aborted) return;
+  // the round started meanwhile: the drawing belongs to no world (nothing spent or kept)
+  if (practice !== P || !practicing.has(player)) return json(res, 200, { ok: false, error: "practice over", message: "The round is starting!", drawingsLeft: world.drawingsLeft(player) });
+  if (finished && !(result && result.ok) && !ENTITY_NO_FALLBACK.test(String((result && result.error) || ""))) {
+    status = 200;
+    result = { ok: true, entity: fallbackEntity("explorer"), fallback: true, free: true, failed: result && result.error === "timeout" ? "timeout" : "error" };
+  }
+  const free = !!(result && result.ok && result.fallback && result.free);
+  if (result && result.ok && finished && !free && !P.spendDrawing(player, where)) result = { ok: false, error: "no drawings left" };
+  const q = P.players[player];
+  if (result && result.ok && finished && result.entity && !(free && q && q.drawn.planet)) {
+    const m = /^data:image\/png;base64,(.+)$/.exec(String(body.image || ""));
+    const buf = m ? Buffer.from(m[1], "base64") : null;
+    let image = null;
+    if (buf && validPng(buf)) {
+      practiceFiles.set(player, buf);
+      image = practiceImages[player] = `/drawings/${player}-explorer.png?v=${drawingV(buf)}&practice=1`;
+      if (result.entity.spec) noteShipSpec(vOfUrl(image), result.entity.spec);
+      hallArchive({ player, color: q && q.color, round: world.round, kind: "explorer", image: body.image, spec: result.entity.spec || shipSpecOf(image), unlocked: result.entity.unlocked, card: result.entity.card, type: result.entity.type, source: result.entity.source, practice: true });
+    }
+    if (typeof result.entity.card !== "string" && typeof Verbs.cardOf === "function") result = { ...result, entity: { ...result.entity, card: Verbs.cardOf(result.entity.type, result.entity.unlocked) } };
+    P.setEntity(player, "explorer", result.entity); // the new entity reaches the practicing screens with its look (practiceOut)
+    result = { ...result, entity: image ? { ...result.entity, image } : result.entity };
+  }
+  if (result && !result.ok) result = { ...result, message: plainMessage("explorer", result.error) };
+  else if (free) result = { ...result, message: plainMessage("explorer", result.failed === "timeout" ? "fallback timeout" : "fallback error") };
+  return json(res, status, result ? { ...result, drawingsLeft: left() } : result);
 }
 
 // ---- Static files: an allowlist only -------------------------------------------------------------------------------
@@ -559,6 +721,8 @@ function input(msg) {
   // restart; a name nobody's screen is watching is dropped.
   if (!world.players[msg.player] && !(hasStream(msg.player) && world.join(msg.player, tokenOf(msg)))) return "unknown";
   if (boundElsewhere(msg.player, msg)) return "taken";
+  // v1.9 PRACTICE: a practicing phone's input drives its practice ship; its lobby seat stays warm (seat: lastSeen)
+  if (practice && practicing.has(msg.player)) { world.seat(msg.player); return practice.handleInput(msg) === false ? "unknown" : "ok"; }
   return world.handleInput(msg) === false ? "unknown" : "ok";
 }
 
@@ -743,10 +907,31 @@ async function handlePost(req, res, url) {
     if (!world.players[player] && !world.join(player, tokenOf(body))) return json(res, 400, { ok: false, error: "the game is full" });
     if (boundElsewhere(player, body)) return json(res, 403, { ok: false, error: "name taken" });
     if (typeof world.seat === "function" && !world.seat(player)) return json(res, 400, { ok: false, error: "the game is full" });
+    // v1.9 PRACTICE: the quick explorer of a practicing player is the practice world's
+    if (kinds.includes("explorer") && practice && practicing.has(player)) {
+      if (!practice.quickExplorer(player)) return json(res, 400, { ok: false, error: "the quick explorer is for a player in a round", phase: world.phase });
+      for (const k of kinds) if (k !== "explorer") world.useDefault(player, k);
+      return json(res, 200, { ok: true, kinds, ready: world.isReady(player), phase: world.phase, practice: true });
+    }
     // the quick explorer only in a round being played, for a player in it (400 otherwise, as before v1.9)
     if (kinds.includes("explorer") && !(typeof world.quickExplorer === "function" && world.quickExplorer(player))) return json(res, 400, { ok: false, error: "the quick explorer is for a player in a round", phase: world.phase });
     for (const k of kinds) if (k !== "explorer") world.useDefault(player, k);
     return json(res, 200, { ok: true, kinds, ready: world.isReady(player), phase: world.phase });
+  }
+  if (url.pathname === "/practice") {
+    // v1.9 PRACTICE (owner, 10 Oct 14:08): PLAY WHILE YOU WAIT. { player, device, on: true } puts a READY player of the lobby
+    // into the practice world (their ship and controller copied; their phone's stream, inputs and explorer drawings follow
+    // them there); { on: false } brings them back (BACK TO LOBBY). The round's START brings everybody back (endAllPractice).
+    const player = Contract.cleanName(body.player);
+    if (!player || !world.players[player]) return json(res, 400, { ok: false, error: "join first" });
+    if (boundElsewhere(player, body)) return json(res, 403, { ok: false, error: "name taken" });
+    const on = !(body.on === false || body.on === 0 || body.on === "0" || body.on === "false");
+    if (!on) { endPractice(player, "back"); return json(res, 200, { ok: true, practicing: false, phase: world.phase }); }
+    if (world.phase !== "lobby") return json(res, 409, { ok: false, error: "not in the lobby", phase: world.phase });
+    if (!world.isReady(player)) return json(res, 409, { ok: false, error: "not ready", phase: world.phase });
+    if (!practicing.has(player) && !startPractice(player)) return json(res, 400, { ok: false, error: "the practice is full" });
+    const startIn = world.startIn;
+    return json(res, 200, { ok: true, practicing: true, phase: world.phase, ...(startIn != null ? { startIn } : {}) });
   }
   if (url.pathname === "/generate") {
     // Drawing budget (PLAN.md): only finished (non-speculative), successful drawings count, in the world the player
@@ -764,6 +949,7 @@ async function handlePost(req, res, url) {
     if (player && boundElsewhere(player, body)) {
       return json(res, 403, { ok: false, error: "name taken", message: "That name is playing on another phone. Join with a new name.", drawingsLeft: world.drawingsLeft(player) });
     }
+    if (player && practice && practicing.has(player)) return practiceGenerate(req, res, body, player); // v1.9 PRACTICE
     // v1.4: a player back after a long pause takes a seat again; with 25 active humans there is none (never 26).
     if (player && world.players[player] && typeof world.seat === "function" && !world.seat(player)) {
       return json(res, 400, { ok: false, error: "the game is full", message: "The game is full right now.", drawingsLeft: world.drawingsLeft(player) });
