@@ -243,7 +243,7 @@ test("solo expert round: fly ~15 s, shoot the boss ~15 s, land, open the chests 
   const landed = h.dbg().playT;
   assert.strictEqual(h.p(me).entity.type, "person");
   for (const c of h.dbg().chests) {
-    walkTo(h, me, h.dbg().landing, 3); // every chest is a dry straight walk from the pad (v1.4: up to 98 m out)
+    walkTo(h, me, h.dbg().landing, 3); // every chest is a dry straight walk from the pad (v1.7: up to 172 m out)
     walkTo(h, me, c, 2);
     const verb = c.kind === "buried" ? "dig" : "drill";
     h.input(me, verb, true);
@@ -568,12 +568,13 @@ test("walkers slide along the shore (most head-on walks into the sea keep moving
     const dryAt = (x, z) => Terrain.height(x, z, isl.seed) > 0.3 && Math.hypot(x, z) < isl.size / 2 - 5;
     // Shore points: march out from the pad along 60 rays to the first water; stand 1 m inside it and walk straight at
     // the sea (up to 30° off the ray) for 2 s.
-    const L = h.dbg().landing;
+    // v1.7: the rays scale with the island (440 m on the 840 m island; 220 on the old 420 m one).
+    const L = h.dbg().landing, far = (isl.size / 420) * 220;
     for (let i = 0; i < 60; i++) {
       const ang = (i / 60) * Math.PI * 2, dx = Math.cos(ang), dz = Math.sin(ang);
       let r = 0;
-      while (r < 220 && dryAt(L.x + dx * r, L.z + dz * r)) r += 0.5;
-      if (r >= 220 || r < 3) continue;
+      while (r < far && dryAt(L.x + dx * r, L.z + dz * r)) r += 0.5;
+      if (r >= far || r < 3) continue;
       const x = L.x + dx * (r - 1), z = L.z + dz * (r - 1);
       const yaw = Math.atan2(-dx, -dz) + ((i % 7) - 3) * 0.17;
       tried++;
@@ -604,8 +605,8 @@ test("25 explorers open all 32 chests in 1-3 minutes after landing (v1.4: most o
   const t0 = h.dbg().playT;
   const chests = h.dbg().chests, pad = h.dbg().landing, seed = h.dbg().island.seed;
   assert.strictEqual(chests.length, chestCount(25));
-  // Every chest is a dry straight walk from the pad, not always from another chest (v1.4: up to 162 m out): with a
-  // lagoon on the straight line, walk back to the pad first.
+  // Every chest is a dry straight walk from the pad, not always from another chest (v1.7: up to 284 m out on the 840 m
+  // island): with a lagoon on the straight line, walk back to the pad first.
   const Terrain = require("../../terrain");
   const wet = (a, b) => { const k = Math.ceil(dist2(a, b) / 2); for (let i = 1; i < k; i++) if (Terrain.height(a.x + ((b.x - a.x) * i) / k, a.z + ((b.z - a.z) * i) / k, seed) <= 0.3) return true; return false; };
   // Each one heads to the nearest chest still closed (or open but not collected) and works it.

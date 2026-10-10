@@ -1,0 +1,39 @@
+PASS lobby waits for START; autostart; START only from the lobby (14 ms) lobby held 90 s; autostart after 5 s
+PASS 4:00 cap, assists at 3:00, most points wins, stars, scoreboard 10 s → a fresh lobby (owner 11:31) (116 ms) assists 180.03 s, end 240.03 s, winner ana ★1
+PASS solo expert round: fly ~15 s, shoot the boss ~15 s, land, open the chests → round ends early (46 ms) boss 401 m (22 s at cruise), reached 0:12, boss down 0:29 (16.5 s of fire, 1200 hp), landed 0:45, all 3 chests 1:40, score 5500
+PASS a plain entity only moves; refused verbs toast what to draw, at most once per 8 s per verb (9 ms) 3 refusal toasts in 8 s for 2 verbs
+PASS full redraws replace the entity; land needs legs, dig a shovel, drill a drill (4 ms) entity verbs: ship [shoot land] → [boost]; car [drill drive takeoff]
+PASS boss: any weapon hurts it, HP scales with players, it shoots back (8 ms) 72 dps from one gun → solo 17 s of steady fire; 25 players 5 s all firing
+PASS space (v1.4): boss ~400 m, planet 350 m beyond, rocks dense around the boss, 25 spawn slots ≥ 35 m apart (4 ms) boss 401 m, planet 350 m beyond, 340 rocks, 198 within 360 m of the boss (317× denser), 25 distinct spawns
+PASS chests: two kinds, count scales with players, each a dry straight walk from the pad (78 ms) 25 players → 32 chests (16 buried, 16 in rocks), farthest 263 m from the pad; 480 chests on 30 islands all a dry walk from the pad, all 25 bays dry
+PASS bots are fillers: the boss's HP counts a bot as half a player, the chests count humans only (v1.4) (8 ms) 1+24 bots → 1: 5520 hp, 16 chests; 3+22 bots → 3: 5880 hp, 17 chests; 25+0 bots → 25: 9840 hp, 32 chests; 1+0 bots → 1: 1200 hp, 16 chests; "Bot 3" joins as bot3b
+PASS speed (owner, 10 Oct 10:00): cruise ~20 s to the boss, holding BOOST ~15 s, the planet ~16 s further at cruise (13 ms) to the boss: cruise 21.0 s, holding BOOST 15.3 s, FORWARD + BOOST 13.2 s; boss → landing range at cruise 15.8 s
+PASS bots never start a fight: their bullets pass through humans and bots; they shoot back for 10 s at a human who hit them (19 ms) pass-through ok; bot1 shot back after 0.5 s; grudge ends after 10 s; a bot kill pays 0
+PASS bots fly to the boss and shoot it whenever it is in range and in front; they never land (827 ms) first bot hit at 0:10, 24 bots alone killed the 5520 hp boss at 0:28 (24 bots dealt damage), none landed
+PASS a human's shots at the boss fly through the bots in the way; a bot's final blow pays the top human +1000 (16 ms) 2 s of fire through a bot in the way: boss -1739+ hp, bot unhurt, no grudge; 💥 The swarm brought the boss down! ana did the most damage: +1000. LAND ON THE PLANET
+PASS walkers slide along the shore (most head-on walks into the sea keep moving) and never end up in the water (305 ms) 165/180 head-on walks into the sea slid along the shore (> 2 m in 2 s), 0 of 10800 steps on the water
+PASS 25 explorers open all 32 chests in 1-3 minutes after landing (v1.4: most of the round is on the planet) (6689 ms) 32 chests in 190.6 s from touchdown (scripted, one crowd, no fighting)
+PASS planet movement per type: person walks, car/bike fast and no jump, quadruped runs, blob bounces (22 ms) person 12 m/s jump, car 28.8 m/s, bike 26.4 m/s, quadruped 19.2 m/s jump, blob 13.2 m/s jump bounce
+PASS scoring: chest +1500, boss last hit +1000 (stealable), kill +200, killed -50, steal half a chest within 15 s (17 ms) cy last hit +1000 (stolen from bob), ana chest +1500 → killed at 5 s: bob +950, ana -800; at 16 s: +200 / -50
+PASS v1.6 island aim (M5): a rival 6 m away dies downhill, uphill and on the flat; with nobody in the narrow cone a shot follows the ground (3090 ms) downhill dy -1.81 m pitch -16.8° in 0.03 s; uphill dy 1.81 m pitch 16.8° in 0.03 s; flat dy 0.10 m pitch 0.9° in 0.03 s; no rival in the cone: uphill behind 16.4°, uphill aside 16.4°, downhill behind -16.3°, downhill aside -16.3°
+PASS parked ships can be wrecked (+150, kill feed); the owner must redraw a ship (one drawing) to take off (6 ms) 300 hp parked ship wrecked in 3.2 s of fire (+150 to bob, kill feed + toast); redraw repairs it
+PASS hints point at the drawing first, then at the button (26 ms) part ladder at 6.0, 16.0, 31.0 s; then the button ladder with a ghost box
+PASS v1.2: the drill is a planet skill: no ship gets it, a ship never drills the boss, pressing it says where it works (2 ms) ship verbs [shoot], boss hp 1200/1200 after 2 s pressed on it, "DRILL · not here: only on the planet"
+PASS v1.3 mischief: EMP, ink bomb and tractor hit the nearest human rival in reach (never a bot, never one landing or spawn-shielded), with cooldowns (4 ms) EMP → bob (5 s), ink → bob (4 s), tractor past landing bob → cy (pulled 38.1 m in 1.6 s); bots, shields and misses respected
+PASS v1.3 mischief: a mine stuns, costs 30 and hurts; a mine kill is a kill (+200 / -50, kill feed); a shield eats it (3 ms) mine: -30, 30 damage, 1.5 s stun; mine kill → ana 200, bob 0; shield eats it
+PASS v1.3 mischief: a decoy soaks a rival's shots and the boss's fire; the shooter learns they were fooled (4 ms) bob popped ana's decoy in 0.43 s (bob told he was fooled, ana told who); the boss shot a parked decoy down in 4.9 s
+PASS v1.3 mischief: a rock hit while being pulled hurts, credited to the puller; a pull kill is a kill (1 ms) pulled into a rock: 30 damage credited to ana, a kill (+200), kill feed 🧲
+PASS v1.6 auto-land (owner 12:07): a plain ship flying into the open planet lands, no legs, no LAND button, no LAND hint (38 ms) circled 50 m off for 32 s: no hint, no landing; flew in from 30 m: touched down after 1.50 s (3.00 m off the surface), bay -43,-22.6; bob's LAND button with no legs lands in range
+PASS names and caps: a second device gets name2, the same device its ship back; 'constructor' is a name; 25 players at most (v1.3); floods are cut (6 ms) ana2 for a second device; 25 humans max; 20 flare presses → 6 queued → 1 flare
+PASS drawing: while the draw sheet is open the ship hovers and nothing can hurt it, for at most 30 s; never stuck: a pad with no way to turn gets a steer stick (11 ms) hover 3.0 m/s, immune to shots and EMP, ends on release or after 30 s; auto steer stick at 0.03,0.51 0.26×0.46
+PASS explorers never step out onto water: every bay on 300 islands leaves them on dry land (633 ms) 300 landings, 0 in the water
+PASS v1.4 countdown: START plays a 3-2-1 (tick.countdown 3, 2, 1); nothing moves or fires, bots wait; a joiner counts at GO (7 ms) countdown 3-2-1 then GO at 3.03 s; boss 1920 → 2280 HP after bob joined mid-countdown
+PASS v1.4 late hints: from 3:00 every human missing a gate skill gets one big DRAW X card (part first, then button); nothing is granted (222 ms) bob: DRAW A GUN; cy: DRAW A SHOOT BUTTON; ana on the island: DRAW A SHOVEL AND A DRILL
+PASS v1.4 seats: humans and bots never exceed 25; a human takes the newest bot's seat; an idle human back in a room of 25 humans is refused (4 ms) 25 bots → 1 human + 24 bots → 25 humans; a 26th refused
+PASS tick size with 25 players stays under 8 KB (1624 ms) max tick 6046 B over 3000 ticks (25 players, 200 s), world 13374 B, step 0.270 ms
+
+33/33 passed at 2026-10-10T10:41:26.860Z
+real 13.91
+user 14.48
+sys 0.21
+exit 0

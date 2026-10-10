@@ -1,0 +1,22 @@
+ok  ladder timings: 6s riddle, +10s sketch, +15s answer with ghost
+ok  riddles and sketches per gate
+ok  v1.1: a missing skill points at the drawing (no ghost), then the button ladder starts over
+ok  weapon gate traces the weapon the player has
+ok  leaving the gate pauses the stuck time
+ok  assists jump straight to the answer, once
+ok  assists after earlier steps still give the answer
+ok  hasControl stops it for good
+ok  no duplicates; gates and players are independent; reset restarts
+ok  a long gap between active ticks does not skip steps
+ok  ghost box avoids buttons and stays inside 0..1 for 20 random layouts
+ok  ghost prefers the lower half, opposite the stick
+ok  ghost on a full pad still returns a box inside 0..1
+ok  budget: counts, limits, per-world separation, reset
+ok  budget defaults come from Contract.TUNING.drawings
+ok  late hint (v1.4, no free skills at 3:00): one big DRAW X card for a missing part or button
+ok  late cards and the ladder never give the same answer twice (v1.4 gaveAnswer / answered)
+
+17 tests passed
+real 0.03
+user 0.03
+sys 0.00

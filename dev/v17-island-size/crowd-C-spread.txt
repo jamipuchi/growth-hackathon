@@ -1,0 +1,9 @@
+
+== crowd (spread): 25 humans (10 experts), 0 bots, seeds 1-4 ==
+seed bossDown (fight) landed(first/med/last) end            chests  planet share (expert / regular / all)  lost  deaths
+1    0:18 ( 10 s)  0:34 / 0:39 / 0:40   chests@2:11    32/32   74% / 70% / 72%                  0     0   (hp 9840, count 25)
+2    0:18 ( 10 s)  0:34 / 0:39 / 0:39   chests@1:55    32/32   70% / 66% / 68%                  0     0   (hp 9840, count 25)
+3    0:19 ( 10 s)  0:34 / 0:39 / 0:39   chests@2:03    32/32   72% / 68% / 70%                  0     0   (hp 9840, count 25)
+4    0:19 ( 10 s)  0:34 / 0:39 / 0:39   chests@1:55    32/32   70% / 66% / 68%                  0     0   (hp 9840, count 25)
+
+mean planet share 69% in 12.3 s at 2026-10-10T10:31:57.216Z

@@ -44,6 +44,11 @@
     //     chest open at 2:09-2:20 when each human takes the chest nearest to them, 3:01-3:59 when the crowd bunches on
     //     one chest at a time: ≈ 3:00 for a real room in between, 52-74% (≈ 63%) of the round on the planet.
     //     First-timers only (no experts), spread out: 2:43-3:14, 59-65% on the planet.
+    // v1.7 island 420 → 840 m (owner, 10 Oct 12:22; terrain.js): chests spread across it (16 up to 172 m from the pad, 32
+    // up to 284 m) and explorers 1.5× faster (walkSpeed 8 → 12). balance-sim, seeds 1-6 (v1.6 auto-landing, both
+    // islands): expert every chest open 2:54-3:12 → 3:00-3:19; regular 14-16 → 13-15 of 16 at the 4:00 cap (first
+    // chest 1:28-1:31 either way). crowd-sim, 25 humans (10 experts), seeds 1-4: spread out 1:28-1:46 → 1:39-2:05,
+    // bunched 2:09-3:23 → 3:05-4:00 (one bunched seed 30/32 at the cap), 62% → 67% (spread) of the round on the planet.
     // Bots never land, so they never open a chest: the chests are the humans' alone.
     worldRadius: 2200,
     bossDistance: 400,
@@ -92,11 +97,13 @@
     planet: { offset: 350, radius: 40, landRange: 25, landingSeconds: 3, takeoffSeconds: 2, parkedShipHp: 300 },
     // Chests: count = clamp(chestsBase + ceil(players × chestsPerPlayer), 3, chestsMax), players = humans + botWeight ×
     // bots (v1.4: humans only): 16 for one human, 19 for 5, 22 for 10, 32 for 25 (render.js draws at most 32). Half
-    // buried (DIG), half in rocks (DRILL). chestSpread grows by chestSpreadPerChest per chest (16 chests: up to 98 m
-    // from the pad; 32: 162 m). Planet movement per entity type: walkSpeed × speeds[type]; jumps only for the types in
-    // jumpers.
-    island: { chests: 3, chestsBase: 15, chestsPerPlayer: 0.65, chestsMax: 32, chestSpread: 34, chestSpreadPerChest: 4,
-      walkSpeed: 8, runMultiplier: 2, jumpSpeed: 9, gravity: 24, digSeconds: 4, drillSeconds: 4.5, pickupRange: 3, explorerDrawSeconds: 15,
+    // buried (DIG), half in rocks (DRILL). chestSpread grows by chestSpreadPerChest per chest (v1.7, 840 m island: 16
+    // chests up to 172 m from the pad, 22 up to 214 m, 32 up to 284 m: a full room covers most of the island). Planet
+    // movement per entity type: walkSpeed × speeds[type] (× runMultiplier while running: BOOST on the planet); jumps only
+    // for the types in jumpers. v1.7: walkSpeed 8 → 12 (run 24 m/s, car 29 / 58 m/s), chestSpread 34 → 60,
+    // chestSpreadPerChest 4 → 7 (terrain.js ISLAND_SIZE 420 → 840).
+    island: { chests: 3, chestsBase: 15, chestsPerPlayer: 0.65, chestsMax: 32, chestSpread: 60, chestSpreadPerChest: 7,
+      walkSpeed: 12, runMultiplier: 2, jumpSpeed: 9, gravity: 24, digSeconds: 4, drillSeconds: 4.5, pickupRange: 3, explorerDrawSeconds: 15,
       speeds: { person: 1, quadruped: 1.6, car: 2.4, bike: 2.2, blob: 1.1 }, jumpers: ["person", "quadruped", "blob"] },
     // Ruthless (PLAN.md section 0): killing a player within stealSeconds after they opened a chest steals stealShare of
     // its points. Refused verbs explain themselves at most once per refusalToastSeconds per verb.

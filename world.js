@@ -200,7 +200,13 @@ function ghostBox(layout, action) {
 // onRoundReset(round, names) (v1.5, owner 10 Oct 11:31 "every round starts from scratch"): called at every new lobby after
 // the first, before any message of the new round goes out, with the new round number and every player's name: server.js
 // forgets the drawings, their URLs, specs, Sol's controller HTML and Astra's caches there.
-function createWorld({ broadcast = () => {}, random = Math.random, autoStart = false, wireAnimations = null, autostartSeconds = ROUND.autostartSeconds, onRoundReset = null } = {}) {
+// v1.7 readyGate (owner, 10 Oct 12:26: "all players and can start whenever (only the ready ones get in)"; server.js turns it
+// on): READY = a finished ship drawing (its entity accepted) and a controller (its layout accepted). START needs at least
+// one ready human; only the ready players enter the round (p.inRound), the rest WAIT: off the tick's players (no ship, no
+// score, untouchable), listed in tick.waiting, and their drawings, controller and budget are kept for the next round
+// (onRoundReset only gets the names of those who played). ENDLESS: a waiting player enters as soon as they are ready.
+// Off (tests, tools): everybody plays, as before.
+function createWorld({ broadcast = () => {}, random = Math.random, autoStart = false, wireAnimations = null, autostartSeconds = ROUND.autostartSeconds, onRoundReset = null, readyGate = false } = {}) {
   const players = Object.create(null);
   // Hints run on the simulation clock so fast-forward tests see the same ladder as a live round.
   const hints = Rules.createHints({ now: () => Math.round(S.t * 1000) });
@@ -218,7 +224,12 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   const announce = (text, big = false) => send({ type: "announce", text, big });
   // Broadcast world updates leave out `entities` (about 2 KB each with anims); `entity` messages carry the changes.
   const sendWorld = () => { worldDirty = false; lastWorldAt = S.t; send(worldMessage({ entities: false })); };
-  const active = () => Object.values(players).filter((p) => p.bot || Date.now() - p.lastSeen < INACTIVE_MS);
+  // present: everybody holding a seat; active: who is in the game now (v1.7 readyGate: out of the lobby, only the round's players)
+  const present = () => Object.values(players).filter((p) => p.bot || Date.now() - p.lastSeen < INACTIVE_MS);
+  const active = () => present().filter((p) => !readyGate || S.phase === "lobby" || p.inRound);
+  const readyNow = (p) => !!p.bot || (!!p.drawn.space && !!p.layout); // v1.7: ship drawing + controller accepted
+  const waitingList = () => (readyGate && S.phase !== "lobby" ? present().filter((p) => !p.inRound && !p.bot) : []);
+  const readyCount = () => present().filter((p) => !p.bot && readyNow(p)).length; // ready humans (the TV's START · n READY)
   const assists = () => S.assists;
   const islandFeet = (x, z) => Math.max(0, Terrain.height(x, z, island.seed));
   const dry = (x, z) => Terrain.height(x, z, island.seed) > 0.3 && Math.hypot(x, z) < island.size / 2 - 5;
@@ -283,9 +294,11 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   };
   function buildIsland(count = chestCount(S.playerCount)) {
     island = { seed: Math.floor(rand(1, 100000)), size: Terrain.ISLAND_SIZE };
-    // Landing spot: dry and low enough near the middle, with room for the chests around it.
+    // Landing spot: dry and low enough near the middle, with room for the chests around it. v1.7: the search rings scale
+    // with the island (840 m: 40 to 320 m out every 20 m; 20 to 160 every 10 on the old 420 m island).
     let spot = null;
-    for (let r = 20; !spot && r < 160; r += 10) {
+    const k = island.size / 420;
+    for (let r = 20 * k; !spot && r < 160 * k; r += 10 * k) {
       for (let a = 0; a < 12 && !spot; a++) {
         const ang = rand(0, Math.PI * 2);
         const x = Math.cos(ang) * r, z = Math.sin(ang) * r, h = Terrain.height(x, z, island.seed);
@@ -502,7 +515,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       if (Object.keys(players).length >= MAX_RECORDS) return null;
       // At most MAX_PLAYERS in the round, humans and bots together: a new human takes the place of the newest bot (bots
       // are fillers); 25 humans: the game is full. A bot never takes a seat a human could have.
-      const live = active();
+      const live = present(); // v1.7: waiting players hold seats too
       if (live.length >= MAX_PLAYERS) {
         const filler = bot ? null : [...live].reverse().find((q) => q.bot);
         if (!filler) return null;
@@ -531,7 +544,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     // 25 active humans already there is no seat (v1.4: never 26): null, as for a new name (join: "the game is full").
     const back = players[name];
     if (!back.bot && Date.now() - back.lastSeen >= INACTIVE_MS) {
-      const live = active();
+      const live = present();
       if (live.length >= MAX_PLAYERS) {
         const filler = [...live].reverse().find((q) => q.bot);
         if (!filler) return null;
@@ -668,20 +681,26 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   // message of the new round can carry an old drawing.
   function newRound() {
     S.round++; S.phase = "lobby"; S.phaseT = 0; S.playT = 0; S.assists = false; S.result = null;
+    // v1.7 readyGate: only who played the round that ended starts from scratch; a player who WAITED keeps their drawings,
+    // controller and drawing budget for this round (they are ready at once).
+    const played = (p) => !readyGate || !!p.bot || !!p.inRound;
     if (S.round > 1 && typeof onRoundReset === "function") {
-      try { onRoundReset(S.round, Object.keys(players)); } catch (err) { console.log(`round reset hook failed: ${(err && err.message) || err}`); }
+      try { onRoundReset(S.round, Object.keys(players).filter((n) => played(players[n]))); } catch (err) { console.log(`round reset hook failed: ${(err && err.message) || err}`); }
     }
     S.playerCount = scaledCount(active());
     buildWorld();
+    const kept = Object.values(players).filter((p) => !played(p)).map((p) => [p.name, budget.left(p.name)]);
     hints.reset(); budget.reset(); parked = [];
+    for (const [name, left] of kept) for (const w of ["space", "planet"]) for (let i = (Number(T.drawings[w]) || 0) - left[w]; i > 0; i--) budget.spend(name, w);
     for (const p of Object.values(players)) {
+      const fresh = played(p);
       const hadDrawing = !!(p.drawn.space || p.drawn.planet || p.layout);
-      Object.assign(p, { drawn: { space: null, planet: null }, layout: null, bayIndex: null, hitBy: Object.create(null), run: null, lastChest: null, hitAcc: 0 });
+      Object.assign(p, { ...(fresh ? { drawn: { space: null, planet: null }, layout: null } : {}), bayIndex: null, hitBy: Object.create(null), run: null, lastChest: null, hitAcc: 0, inRound: false });
       spawnAt(p);
       Object.assign(p, { ready: p.bot, hints: {}, keys: {}, axes: {}, drawingUntil: 0, pressed: [], cd: {}, invisibleFor: 0, shieldEnergy: 1, boostEnergy: 1, boostLocked: false, shieldLocked: false, lastChest: null, refusedAt: {}, tractor: null, empFor: 0, inkFor: 0, late: {}, lateAt: -Infinity });
       // assists from the last round are gone, and so is the drawn entity: the plain ship (bots: the dev kit) goes to every
       // screen ("fresh": always sent when the player had drawn anything, so no screen keeps a drawn model)
-      setMode(p, "space", hadDrawing ? "fresh" : true);
+      setMode(p, "space", fresh && hadDrawing ? "fresh" : true);
     }
     sendWorld();
   }
@@ -694,8 +713,15 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   // asks for it on every POST /start (v1.4); without it (world.start() in tests, --autostart) play starts at once.
   function start({ countdown = false } = {}) {
     if (S.phase !== "lobby") return false;
-    S.playerCount = scaledCount(active());
-    const hp = bossHp(hpCount(active()));
+    // v1.7 readyGate: at least one ready human, and only the ready players are in this round (the rest wait for the next)
+    if (readyGate) {
+      if (!readyCount()) return false;
+      const here = new Set(present());
+      for (const p of Object.values(players)) p.inRound = here.has(p) && readyNow(p);
+    }
+    const roster = active().filter((p) => !readyGate || p.inRound);
+    S.playerCount = scaledCount(roster);
+    const hp = bossHp(hpCount(roster));
     Object.assign(boss, { hp, maxHp: hp });
     buildIsland(chestCount(S.playerCount));
     const wait = countdown ? Math.max(0, Number(ROUND.countdownSeconds) || 0) : 0;
@@ -1596,6 +1622,10 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     } else {
       S.playT += dt;
       if (!endless.on && S.phase === "playing" && S.playT >= ROUND.assistsAt) startAssists();
+      // v1.7 readyGate + ENDLESS: a waiting player who is ready now enters at once (in space, with a spawn shield)
+      if (readyGate && endless.on) {
+        for (const p of waitingList()) if (readyNow(p)) { p.inRound = true; spawnAt(p); Object.assign(p, { pressed: [], hitBy: {}, run: null, hitAcc: 0 }); list.push(p); announce(`${p.name} joined the game`); }
+      }
       simulate(list, dt);
       if (endless.on) { if (S.phase === "playing") endless.step(dt); } // v1.6 ENDLESS: no clock (endless.js)
       else if (S.phase !== "scoreboard" && S.playT >= ROUND.maxSeconds) endRound("time");
@@ -1673,7 +1703,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   // The session leaderboard: stars (rounds won), then total points; players still here only.
   function leaderboard() {
     // v1.3: humans first (bots are fillers), each group by stars, then points.
-    return active().map((p) => ({ name: p.name, bot: !!p.bot, stars: (session[p.name] || {}).stars || 0, total: (session[p.name] || {}).total || 0 }))
+    return present().map((p) => ({ name: p.name, bot: !!p.bot, stars: (session[p.name] || {}).stars || 0, total: (session[p.name] || {}).total || 0 }))
       .sort((a, b) => a.bot - b.bot || b.stars - a.stars || b.total - a.total).map(({ bot, ...row }) => row);
   }
 
@@ -1682,6 +1712,14 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   function countdownField() {
     if (S.phase !== "countdown") return {};
     return { countdown: Math.max(1, Math.ceil((Number(ROUND.countdownSeconds) || 0) - S.phaseT - 1e-9)) };
+  }
+
+  // v1.7 readyGate: out of the lobby, the players waiting for the next round (not in tick.players): name, colour, ready
+  // (ship + controller done) and their drawings left. Absent when nobody waits, keeping ticks small.
+  function waitingField() {
+    const list = waitingList();
+    if (!list.length) return {};
+    return { waiting: list.map((p) => ({ name: p.name, color: p.color, ready: readyNow(p), drawingsLeft: budget.left(p.name) })) };
   }
 
   function clock() {
@@ -1694,7 +1732,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   // Only the flags that are on, to keep ticks small: a missing flag means false.
   function flags(p) {
     const all = {
-      boost: p.boosting, shield: p.shielding, stun: p.stun > 0, dead: p.dead, invisible: p.invisibleFor > 0, drilling: p.drilling, digging: p.digging, ready: p.ready && S.phase === "lobby", bot: p.bot,
+      boost: p.boosting, shield: p.shielding, stun: p.stun > 0, dead: p.dead, invisible: p.invisibleFor > 0, drilling: p.drilling, digging: p.digging, ready: (readyGate ? readyNow(p) : p.ready) && S.phase === "lobby", bot: p.bot,
       landing: p.landingFor > 0, takingOff: p.takeoffFor > 0, spawnShield: p.spawnShield > 0,
       emp: p.empFor > 0, inked: p.inkFor > 0, tractored: !!(p.tractor && p.tractor.until > S.t), drawing: p.drawingUntil > S.t,
     };
@@ -1709,6 +1747,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       left: (S.phase === "playing" || S.phase === "assists") && !endless.on ? r2(Math.max(0, ROUND.maxSeconds - S.playT)) : 0,
       ...countdownField(),
       ...endless.fields(), // v1.6 ENDLESS: mode "endless" (absent in the demo); left 0 = no cap
+      ...waitingField(), // v1.7 readyGate: who waits for the next round (absent when nobody does)
       players: ordered().map((p) => { // humans first, then bots
         const out = {
           name: p.name, color: p.color, mode: p.mode, x: r1(p.pos.x), y: r1(p.pos.y), z: r1(p.pos.z),
@@ -1753,6 +1792,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     // v1.6 ENDLESS (endless.js): the switch (lobby only, false otherwise), the host's END (false unless an endless
     // session is in play), and whether it is on.
     setEndless, endSession,
+    // v1.7 readyGate: ready humans now (START needs one), and whether a player is waiting out this round
+    readyCount, readyGate: !!readyGate, isWaiting: (name) => waitingList().some((p) => p.name === Contract.cleanName(name)),
     get endless() { return endless.on; },
     get phase() { return S.phase; },
     get round() { return S.round; },

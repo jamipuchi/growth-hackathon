@@ -1,0 +1,12 @@
+1 humans + 24 bots (count 1, boss 5520 hp), 200 islands: 16 chests (min 16)
+  fallback pads 0, chests in water 0
+  farthest chest from the pad: median 166 m, max 172 m; mean distance median 94 m; pad 40 m from the island centre (max 120)
+  nearest-first tour of every chest: p10 842 m, median 967 m, p90 1120 m
+10 humans + 15 bots (count 10, boss 7140 hp), 200 islands: 22 chests (min 22)
+  fallback pads 0, chests in water 0
+  farthest chest from the pad: median 208 m, max 214 m; mean distance median 114 m; pad 40 m from the island centre (max 120)
+  nearest-first tour of every chest: p10 1284 m, median 1440 m, p90 1657 m
+25 humans + 0 bots (count 25, boss 9840 hp), 200 islands: 32 chests (min 32)
+  fallback pads 0, chests in water 0
+  farthest chest from the pad: median 278 m, max 284 m; mean distance median 148 m; pad 40 m from the island centre (max 120)
+  nearest-first tour of every chest: p10 2039 m, median 2301 m, p90 2592 m
