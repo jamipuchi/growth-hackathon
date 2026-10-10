@@ -1,0 +1,12 @@
+before-main tv: n=30 meanLuma=87.8 min=59.8 max=111.1 swing=51.4 frameDelta mean=4.52 max=13.71 | perPixelDelta mean=19.88 p99=47.9 | hottest cell row5 col4 (of 6x8) delta=39.8; px>40 per frame avg=16.14%
+before-main phone: n=30 meanLuma=129.0 min=86.7 max=192.7 swing=106.0 frameDelta mean=23.33 max=71.10 | perPixelDelta mean=25.65 p99=47.6 | hottest cell row4 col5 (of 6x8) delta=40.3; px>40 per frame avg=21.82%
+before-main phone-steady: n=30 meanLuma=167.6 min=90.3 max=207.8 swing=117.5 frameDelta mean=15.73 max=42.49 | perPixelDelta mean=17.17 p99=27.4 | hottest cell row5 col0 (of 6x8) delta=25.8; px>40 per frame avg=11.80%
+after-main tv: n=30 meanLuma=93.8 min=91.9 max=96.1 swing=4.2 frameDelta mean=0.52 max=1.42 | perPixelDelta mean=4.74 p99=22.7 | hottest cell row1 col1 (of 6x8) delta=13.7; px>40 per frame avg=1.27%
+after-main phone: n=30 meanLuma=106.6 min=97.0 max=121.0 swing=24.0 frameDelta mean=0.91 max=3.52 | perPixelDelta mean=17.07 p99=37.2 | hottest cell row4 col6 (of 6x8) delta=30.9; px>40 per frame avg=12.08%
+after-main phone-steady: n=30 meanLuma=118.9 min=113.3 max=130.2 swing=16.9 frameDelta mean=1.16 max=8.64 | perPixelDelta mean=12.68 p99=30.1 | hottest cell row2 col1 (of 6x8) delta=23.4; px>40 per frame avg=6.55%
+before-freeze tv: n=30 meanLuma=100.6 min=76.5 max=124.1 swing=47.7 frameDelta mean=8.53 max=24.05 | perPixelDelta mean=14.72 p99=42.2 | hottest cell row5 col2 (of 6x8) delta=35.6; px>40 per frame avg=10.40%
+before-freeze phone: n=30 meanLuma=128.5 min=81.3 max=183.0 swing=101.7 frameDelta mean=18.79 max=52.83 | perPixelDelta mean=26.37 p99=45.0 | hottest cell row5 col2 (of 6x8) delta=39.3; px>40 per frame avg=21.39%
+before-freeze phone-steady: n=30 meanLuma=162.0 min=101.8 max=196.5 swing=94.6 frameDelta mean=12.60 max=34.96 | perPixelDelta mean=15.06 p99=25.1 | hottest cell row4 col2 (of 6x8) delta=22.7; px>40 per frame avg=7.34%
+after-freeze tv: n=30 meanLuma=78.7 min=70.1 max=84.6 swing=14.5 frameDelta mean=0.95 max=3.48 | perPixelDelta mean=8.87 p99=36.6 | hottest cell row4 col3 (of 6x8) delta=26.5; px>40 per frame avg=4.22%
+after-freeze phone: n=30 meanLuma=95.9 min=85.2 max=106.5 swing=21.3 frameDelta mean=0.93 max=2.32 | perPixelDelta mean=9.84 p99=33.3 | hottest cell row2 col0 (of 6x8) delta=32.6; px>40 per frame avg=5.93%
+after-freeze phone-steady: n=30 meanLuma=78.2 min=72.7 max=86.3 swing=13.7 frameDelta mean=0.65 max=1.34 | perPixelDelta mean=8.75 p99=23.4 | hottest cell row2 col7 (of 6x8) delta=17.7; px>40 per frame avg=3.80%
