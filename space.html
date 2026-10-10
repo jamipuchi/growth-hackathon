@@ -883,16 +883,21 @@ async function refreshInfo() {
     const r = await fetch("/info", { cache: "no-store" });
     if (!r.ok) return;
     const info = await r.json();
-    const url = info && typeof info.controllerUrl === "string" ? info.controllerUrl : "";
+    // ?http: phones get the plain-http page (no certificate warning; demo default). Otherwise the server's HTTPS page.
+    const url = PREFER_HTTP && info && typeof info.lanUrl === "string" ? `${info.lanUrl}/controller.html`
+      : info && typeof info.controllerUrl === "string" ? info.controllerUrl : "";
     let host = "";
     try { host = new URL(url).hostname; } catch (e) { return; }
     if (!LOCAL_HOST.test(host) || !local) showJoin(url); // a code that points at localhost is useless to a phone
   } catch (e) { /* an old server: keep what is there */ }
 }
+const PREFER_HTTP = new URLSearchParams(location.search).has("http");
 if (override) showJoin(override);
-else if (!local) showJoin(`${location.protocol}//${location.host}/controller.html`);
+else if (!local && !PREFER_HTTP) showJoin(`${location.protocol}//${location.host}/controller.html`);
 else showJoinHint();
 refreshInfo();
+// The laptop's LAN address can change mid-session (new Wi-Fi / hotspot): re-ask every 5 s so the QR follows it live.
+setInterval(refreshInfo, 5000);
 
 // ---- state ----
 const hudEl = $("hud");
