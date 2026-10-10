@@ -1,0 +1,173 @@
+{
+  "swimmer": {
+    "bytes": 374704,
+    "sha256": "80a75c9cec3ce818fd03f0d86756572acc586690e251e8f8db445081a0365551",
+    "triangles": 2356,
+    "drawCalls": 1,
+    "textures": 0,
+    "bones": 6,
+    "maxInfluences": 2,
+    "clips": {
+      "dart": {
+        "duration": 0.8,
+        "loop": false,
+        "rootMotion": "external",
+        "tracks": "rotation_only",
+        "samples": 25,
+        "channels": 6
+      },
+      "die": {
+        "duration": 1.4,
+        "loop": false,
+        "rootMotion": "external",
+        "tracks": "rotation_only",
+        "samples": 43,
+        "channels": 6
+      },
+      "hit": {
+        "duration": 0.5,
+        "loop": false,
+        "rootMotion": "external",
+        "tracks": "rotation_only",
+        "samples": 16,
+        "channels": 6
+      },
+      "swim": {
+        "duration": 1.4,
+        "loop": true,
+        "rootMotion": "external",
+        "tracks": "rotation_only",
+        "samples": 43,
+        "channels": 6
+      }
+    },
+    "checks": {
+      "embedded": true,
+      "legalNames": true,
+      "oneMeshMaterial": true,
+      "exactHierarchy": true,
+      "sockets": true,
+      "budget": true,
+      "weights": true,
+      "finite": true,
+      "exactClips": true,
+      "rotationOnly": true,
+      "thirtyFPS": true,
+      "loopEndpoints": true
+    }
+  },
+  "crawler": {
+    "bytes": 683948,
+    "sha256": "cebed5c9998b91d195706733fd5dd49122c56f4a6632ba812381366ff3d41cf3",
+    "triangles": 4956,
+    "drawCalls": 1,
+    "textures": 0,
+    "bones": 17,
+    "maxInfluences": 1,
+    "clips": {
+      "die": {
+        "duration": 1.4,
+        "loop": false,
+        "rootMotion": "external",
+        "tracks": "rotation_only",
+        "samples": 43,
+        "channels": 17
+      },
+      "hit": {
+        "duration": 0.5,
+        "loop": false,
+        "rootMotion": "external",
+        "tracks": "rotation_only",
+        "samples": 16,
+        "channels": 17
+      },
+      "idle": {
+        "duration": 2.4,
+        "loop": true,
+        "rootMotion": "external",
+        "tracks": "rotation_only",
+        "samples": 73,
+        "channels": 17
+      }
+    },
+    "checks": {
+      "embedded": true,
+      "legalNames": true,
+      "oneMeshMaterial": true,
+      "exactHierarchy": true,
+      "sockets": true,
+      "budget": true,
+      "weights": true,
+      "finite": true,
+      "exactClips": true,
+      "rotationOnly": true,
+      "thirtyFPS": true,
+      "loopEndpoints": true
+    }
+  },
+  "serpent": {
+    "bytes": 380660,
+    "sha256": "63f042bad91436d3137059821aa2de4578c130d9db2cf8b2f4e85f18eecc0dff",
+    "triangles": 2340,
+    "drawCalls": 1,
+    "textures": 0,
+    "bones": 8,
+    "maxInfluences": 2,
+    "clips": {
+      "coil": {
+        "duration": 2.4,
+        "loop": true,
+        "rootMotion": "external",
+        "tracks": "rotation_only",
+        "samples": 73,
+        "channels": 8
+      },
+      "die": {
+        "duration": 1.4,
+        "loop": false,
+        "rootMotion": "external",
+        "tracks": "rotation_only",
+        "samples": 43,
+        "channels": 8
+      },
+      "hit": {
+        "duration": 0.5,
+        "loop": false,
+        "rootMotion": "external",
+        "tracks": "rotation_only",
+        "samples": 16,
+        "channels": 8
+      },
+      "slither": {
+        "duration": 1.8,
+        "loop": true,
+        "rootMotion": "external",
+        "tracks": "rotation_only",
+        "samples": 55,
+        "channels": 8
+      },
+      "strike": {
+        "duration": 0.9,
+        "loop": false,
+        "rootMotion": "external",
+        "tracks": "rotation_only",
+        "samples": 28,
+        "channels": 8
+      }
+    },
+    "checks": {
+      "embedded": true,
+      "legalNames": true,
+      "oneMeshMaterial": true,
+      "exactHierarchy": true,
+      "sockets": true,
+      "budget": true,
+      "weights": true,
+      "finite": true,
+      "exactClips": true,
+      "rotationOnly": true,
+      "thirtyFPS": true,
+      "loopEndpoints": true
+    }
+  }
+}

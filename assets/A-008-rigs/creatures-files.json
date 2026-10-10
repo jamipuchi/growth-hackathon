@@ -1,0 +1,186 @@
+{
+  "serpent_source.blend": {
+    "bytes": 202216,
+    "sha256": "1a8577e646f731e4acbd0be378be1220209a30447609d241a7c2be26c65cd766"
+  },
+  "creatures-phone-flyer.png": {
+    "bytes": 51306,
+    "sha256": "079d239413d36c4b9c4564456700b2eb1a8d4a33b1e06d0ca8d8c6dd1bfdc7dc"
+  },
+  "creatures-sheet-flyer-5.png": {
+    "bytes": 79976,
+    "sha256": "3318673c1e9de1b8a675f664497128df1fa502e2d8f48a011a13d29d900c1c0e"
+  },
+  "generate_aquatic_crawler.py": {
+    "bytes": 19226,
+    "sha256": "f36d5c8c1d8489fabfee1d4423f1edf5a1be3185907148fa45cf30a7d00b974f"
+  },
+  "creatures-sheet-quadruped-5.png": {
+    "bytes": 210093,
+    "sha256": "14d793af94839bae523af6e44316e5503e5df7d206fe4b4114af79d41093a19e"
+  },
+  "creatures-sheet-crawler-0.png": {
+    "bytes": 232134,
+    "sha256": "b16c12e18ec57c9176799ff97f62538c52f98ad41f656c0eadd01a75397ef559"
+  },
+  "creatures-phone-portrait.png": {
+    "bytes": 67126,
+    "sha256": "c79188305ee3415d89925f88c0236d3f38931a9529206453f1cfbc73ebb4783c"
+  },
+  "creatures-phone-crawler.png": {
+    "bytes": 59240,
+    "sha256": "0fc6d541e5f18d18a33fa88559a79fa9a2d16a3f1cedc76aebbb7a340b8189bb"
+  },
+  "creatures-sheet-quadruped-0.png": {
+    "bytes": 212477,
+    "sha256": "1f05287f90fc4846fa47440a369cc5d44401ee6e035713bf1120bdb83e899e52"
+  },
+  "creatures-browser-chrome.json": {
+    "bytes": 23177,
+    "sha256": "294bcb4679270572bb4305b271f5b3c24773e10262152840f06bd5522238d9ea"
+  },
+  "creatures-browser-webkit.json": {
+    "bytes": 23185,
+    "sha256": "18b3c071dca23fd2ac3d68974b45e34c98d83e24c6deee146439d0de308e64b5"
+  },
+  "creatures-phone-quadruped.png": {
+    "bytes": 58245,
+    "sha256": "e7df39161e766fd12ad47999866236d326817b9cbc0a97807bbd1307d76bbd07"
+  },
+  "generate_quadruped_flyer.py": {
+    "bytes": 28412,
+    "sha256": "a9b36234aa472323e6915341a63b884db21c4bfe9c92621f1938083e9baa1d3a"
+  },
+  "creatures-preview.html": {
+    "bytes": 9375,
+    "sha256": "2cafdd4fad51d96b8a9ba730b4d8a1780de5dedc0c71772c47ff40999603a0cb"
+  },
+  "creatures-progress.md": {
+    "bytes": 947,
+    "sha256": "a57dd9140f6ac9f9fb82f7fb53956736ab83d1ea531d7d886e628dd2b1f2c54f"
+  },
+  "crawler_source.blend": {
+    "bytes": 283914,
+    "sha256": "3b460d273bf81d2ef17df92f345a98baeab3c2c04dc5dd306b693df078a9bb46"
+  },
+  "creatures-sheet-flyer-0.png": {
+    "bytes": 153006,
+    "sha256": "bc5be9bd72c19e6f24ed260aec8a8cdc1db85688e99e945726ce8e7d705c6663"
+  },
+  "creatures-console-chrome.txt": {
+    "bytes": 44,
+    "sha256": "67ade61a1847a48b0a6c91ab3f8536fc7e9953739987f7aed69181881cc73968"
+  },
+  "creatures-console-webkit.txt": {
+    "bytes": 44,
+    "sha256": "67ade61a1847a48b0a6c91ab3f8536fc7e9953739987f7aed69181881cc73968"
+  },
+  "creatures-phone-swimmer.png": {
+    "bytes": 52430,
+    "sha256": "2d7729d0b8d6f76902789005895e336133d8a16fdfe36b78b314f62725e107be"
+  },
+  "serpent-clips.json": {
+    "bytes": 2081,
+    "sha256": "28ad9566262c81a4d0ed3bca0cf3e38d288e756ded7ec31a2b75ce26e89dfd34"
+  },
+  "creatures-sheet-swimmer-0.png": {
+    "bytes": 184076,
+    "sha256": "649c4eb4293aa29682c1b7347256c2d30b53f9c6f8ac92c87c7d63384ae80203"
+  },
+  "quadruped.glb": {
+    "bytes": 742356,
+    "sha256": "58fb1e3c772171378f7d7061d7132d911fc0c645616e9601ac8730abf3308251"
+  },
+  "creatures.js": {
+    "bytes": 8886,
+    "sha256": "cfe384c764c315a44a7338c285b6c87e78d01bcfa337c6174c19a2b1b6ec4b51"
+  },
+  "swimmer_source.blend": {
+    "bytes": 184750,
+    "sha256": "de90d136688b5cdb20109b24cee648a491b7d35e0a9446ca58cbddc927faabff"
+  },
+  "serpent.glb": {
+    "bytes": 380660,
+    "sha256": "63f042bad91436d3137059821aa2de4578c130d9db2cf8b2f4e85f18eecc0dff"
+  },
+  "validate_creatures.py": {
+    "bytes": 4827,
+    "sha256": "df90eb7ae6410bb88f8a16a2eb14bf901cbdab7b22a2ecfe0d55487ddad29790"
+  },
+  "creatures-sheet-serpent-0.png": {
+    "bytes": 189012,
+    "sha256": "44b1151f0d10492215b5362ba3e0d90c1087b8a44a940e82fb149699687b9c3a"
+  },
+  "creatures-gallery.png": {
+    "bytes": 118045,
+    "sha256": "488ba809051165d32bd3884b1e9297e0508780558b6d32b8fee02a4c9440f7e1"
+  },
+  "creatures-verify.html": {
+    "bytes": 7498,
+    "sha256": "b4686b2adf897ec88889b6214f799869b9b7bb9f2cada5af363190fb437e0d2c"
+  },
+  "quadruped-flyer-build.log": {
+    "bytes": 1495,
+    "sha256": "3c1c7d6b7eb87a1757ed2271b9a31eab40f0ecabae4b250dafa4bf350ec08b76"
+  },
+  "swimmer-clips.json": {
+    "bytes": 1796,
+    "sha256": "6a96bf61004ec9c84fe9c04b24fedb7ed9c98357ecf267f77e73a3ddffd9ecf6"
+  },
+  "CREATURES.md": {
+    "bytes": 7269,
+    "sha256": "c91dc20b12dd0e843ef0c3bb657ba7ac06dd9fc6440d19d3d3521c0d4cf4d440"
+  },
+  "flyer-clips.json": {
+    "bytes": 1969,
+    "sha256": "37ab94603ad437d9e47bd9f3d4b9cf6ade02d8baf7f861ceaec3feab14a431fc"
+  },
+  "crawler.glb": {
+    "bytes": 683948,
+    "sha256": "cebed5c9998b91d195706733fd5dd49122c56f4a6632ba812381366ff3d41cf3"
+  },
+  "quadruped-clips.json": {
+    "bytes": 3141,
+    "sha256": "2356deb5b688dc19269d4ba3bd9ba716d6a040a4b91dd7b662b47cf28729d4c7"
+  },
+  "swimmer.glb": {
+    "bytes": 374704,
+    "sha256": "80a75c9cec3ce818fd03f0d86756572acc586690e251e8f8db445081a0365551"
+  },
+  "crawler-clips.json": {
+    "bytes": 2733,
+    "sha256": "7faae57d9983cdc0ba1a558f618816352dd9388a32cdcfd8786e3527106f4053"
+  },
+  "quadruped_source.blend": {
+    "bytes": 411814,
+    "sha256": "62045d1ee7cf12b94d2b18ecc6afaa091036984eacc19b1143d8516b2d36a830"
+  },
+  "creatures-validation.json": {
+    "bytes": 8119,
+    "sha256": "15d3b5cbb46475ed6992afc1f503f172b270a68f2e3f2c3bf5205f793535eda7"
+  },
+  "flyer.glb": {
+    "bytes": 443184,
+    "sha256": "9b767d032afb97e9c5f99567a97636c5655d040eb79958f195683cd74c095a16"
+  },
+  "quadruped-flyer-progress.md": {
+    "bytes": 2181,
+    "sha256": "c55de395de28ca772b3e7b93a0d293cfc2b4a3c9ee4845e4ebff13026b1d76a8"
+  },
+  "quadruped-flyer-validation.json": {
+    "bytes": 3876,
+    "sha256": "e12cc312b024239b2624dc61ed66fec451b349577948155eb62cc6eb14fe180f"
+  },
+  "flyer_source.blend": {
+    "bytes": 225825,
+    "sha256": "a82c048854d6790a0eab0746f33894610de9fb305c7ba6f8dffeb8c1072f3a60"
+  },
+  "creatures-phone-serpent.png": {
+    "bytes": 55730,
+    "sha256": "793fafad7155fa3c8a5ac9a5d1ecac49de04986d7db75b736e68dce5a126dea5"
+  },
+  "creatures-retarget-check.js": {
+    "bytes": 8222,
+    "sha256": "6b16e51f2fc99d35656c72cf57f3e6bdca971d7fe76f72d0d80c18edc5ca2458"
+  }
+}

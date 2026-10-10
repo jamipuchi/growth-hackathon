@@ -1,0 +1,233 @@
+{
+  "pass": true,
+  "checks": [
+    {
+      "name": "glb_header",
+      "pass": true
+    },
+    {
+      "name": "lowercase_node_names",
+      "pass": true
+    },
+    {
+      "name": "required_nodes",
+      "pass": true
+    },
+    {
+      "name": "three_meshes_three_primitives",
+      "pass": true
+    },
+    {
+      "name": "three_materials_zero_textures",
+      "pass": true
+    },
+    {
+      "name": "embedded_no_decoders",
+      "pass": true
+    },
+    {
+      "name": "opaque_frontside_materials",
+      "pass": true
+    },
+    {
+      "name": "no_skin_animation_or_cameras",
+      "pass": true
+    },
+    {
+      "name": "car_body_finite_attributes",
+      "pass": true
+    },
+    {
+      "name": "car_body_triangles_and_indices",
+      "pass": true
+    },
+    {
+      "name": "car_body_unit_normals",
+      "pass": true
+    },
+    {
+      "name": "car_body_nondegenerate_outward_winding",
+      "pass": true
+    },
+    {
+      "name": "car_body_opaque_vertex_paint",
+      "pass": true
+    },
+    {
+      "name": "car_lights_finite_attributes",
+      "pass": true
+    },
+    {
+      "name": "car_lights_triangles_and_indices",
+      "pass": true
+    },
+    {
+      "name": "car_lights_unit_normals",
+      "pass": true
+    },
+    {
+      "name": "car_lights_nondegenerate_outward_winding",
+      "pass": true
+    },
+    {
+      "name": "car_lights_opaque_vertex_paint",
+      "pass": true
+    },
+    {
+      "name": "car_wheels_finite_attributes",
+      "pass": true
+    },
+    {
+      "name": "car_wheels_triangles_and_indices",
+      "pass": true
+    },
+    {
+      "name": "car_wheels_unit_normals",
+      "pass": true
+    },
+    {
+      "name": "car_wheels_nondegenerate_outward_winding",
+      "pass": true
+    },
+    {
+      "name": "car_wheels_opaque_vertex_paint",
+      "pass": true
+    },
+    {
+      "name": "triangle_budget",
+      "pass": true,
+      "detail": {
+        "car_body": 1864,
+        "car_lights": 112,
+        "car_wheels": 2800
+      }
+    },
+    {
+      "name": "four_metre_scale_base_origin",
+      "pass": true,
+      "detail": [
+        2.675999879837036,
+        2.0939998626708984,
+        4.019000053405762
+      ]
+    },
+    {
+      "name": "manifest_actual_bounds",
+      "pass": true
+    },
+    {
+      "name": "manifest_actual_counts",
+      "pass": true
+    },
+    {
+      "name": "wheel_fl_empty_position_x_axis",
+      "pass": true
+    },
+    {
+      "name": "wheel_fr_empty_position_x_axis",
+      "pass": true
+    },
+    {
+      "name": "wheel_bl_empty_position_x_axis",
+      "pass": true
+    },
+    {
+      "name": "wheel_br_empty_position_x_axis",
+      "pass": true
+    },
+    {
+      "name": "socket_seat_position_orientation",
+      "pass": true
+    },
+    {
+      "name": "socket_roof_position_orientation",
+      "pass": true
+    },
+    {
+      "name": "socket_front_position_orientation",
+      "pass": true
+    },
+    {
+      "name": "socket_back_position_orientation",
+      "pass": true
+    },
+    {
+      "name": "wheel_ids_exact_valid",
+      "pass": true
+    },
+    {
+      "name": "wheel_triangle_ids_constant",
+      "pass": true
+    },
+    {
+      "name": "wheel_fl_same_triangle_cost",
+      "pass": true
+    },
+    {
+      "name": "wheel_fr_same_triangle_cost",
+      "pass": true
+    },
+    {
+      "name": "wheel_bl_same_triangle_cost",
+      "pass": true
+    },
+    {
+      "name": "wheel_br_same_triangle_cost",
+      "pass": true
+    },
+    {
+      "name": "prototype_matches_wheel_1",
+      "pass": true
+    },
+    {
+      "name": "prototype_matches_wheel_2",
+      "pass": true
+    },
+    {
+      "name": "prototype_matches_wheel_3",
+      "pass": true
+    },
+    {
+      "name": "wheel_center_height_matches_radius",
+      "pass": true
+    },
+    {
+      "name": "declared_hash_and_bytes",
+      "pass": true
+    }
+  ],
+  "checked_at": "2026-10-10T11:10:19.509178+00:00",
+  "triangles": 4776,
+  "triangles_by_mesh": {
+    "car_body": 1864,
+    "car_lights": 112,
+    "car_wheels": 2800
+  },
+  "triangles_per_wheel": 700,
+  "draw_calls": 3,
+  "textures": 0,
+  "bounds": {
+    "min": [
+      -1.337999939918518,
+      0.0,
+      -2.0190000534057617
+    ],
+    "max": [
+      1.337999939918518,
+      2.0939998626708984,
+      2.0
+    ],
+    "size": [
+      2.675999879837036,
+      2.0939998626708984,
+      4.019000053405762
+    ]
+  },
+  "bytes": 420120,
+  "sha256": "e0775cab48a7d73cc165567c206ec7cdede4f186b0d8517f8e06aa805ff99a7c",
+  "max_wheel_normal_component_delta": 5.4955482482910156e-05,
+  "limitations": [
+    "Static binary/geometry checks only; runtime GLTFLoader, animation, rendering and phone performance belong to separate browser review.",
+    "Wheel pivots are empty controls; raw car_wheels geometry is static until car.js replaces it with an instanced batch."
+  ]
+}

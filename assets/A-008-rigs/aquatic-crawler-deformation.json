@@ -1,0 +1,272 @@
+{
+  "swimmer": {
+    "checks": {
+      "restHasNoActiveAction": true,
+      "restBoneIdentity": true,
+      "oneArmatureModifier": true,
+      "allClipFramesFinite": true,
+      "noCollapsedEdges": true,
+      "noExplodingEdges": true,
+      "exactSocketParents": true,
+      "socketRestPositions": true
+    },
+    "clips": {
+      "swim": {
+        "sampledFrames": 43,
+        "finite": true,
+        "minEdgeRatio": 0.853808992504038,
+        "maxEdgeRatio": 1.143073493954357,
+        "sweptBounds": {
+          "min": [
+            -0.9108697175979614,
+            -0.6023491024971008,
+            -1.4199248552322388
+          ],
+          "max": [
+            0.9110375642776489,
+            0.8430342078208923,
+            1.487653136253357
+          ]
+        }
+      },
+      "dart": {
+        "sampledFrames": 25,
+        "finite": true,
+        "minEdgeRatio": 0.8343850071815475,
+        "maxEdgeRatio": 1.1603193485856937,
+        "sweptBounds": {
+          "min": [
+            -0.9270344972610474,
+            -0.5199999809265137,
+            -1.4181911945343018
+          ],
+          "max": [
+            0.9128268361091614,
+            0.925869345664978,
+            1.4825273752212524
+          ]
+        }
+      },
+      "hit": {
+        "sampledFrames": 16,
+        "finite": true,
+        "minEdgeRatio": 0.774739992425301,
+        "maxEdgeRatio": 1.2203561757370702,
+        "sweptBounds": {
+          "min": [
+            -0.8430477380752563,
+            -0.6008294224739075,
+            -1.4194144010543823
+          ],
+          "max": [
+            0.8645132780075073,
+            0.9596735239028931,
+            1.587321162223816
+          ]
+        }
+      },
+      "die": {
+        "sampledFrames": 43,
+        "finite": true,
+        "minEdgeRatio": 0.8270769169482172,
+        "maxEdgeRatio": 1.169859576069436,
+        "sweptBounds": {
+          "min": [
+            -0.8299999833106995,
+            -0.7504285573959351,
+            -1.4181911945343018
+          ],
+          "max": [
+            0.8435144424438477,
+            0.9021658897399902,
+            1.4811367988586426
+          ]
+        }
+      }
+    },
+    "limitations": [
+      "Blender source deformation sampled at every authored frame; exported GLB is independently audited and browser-tested by the parent.",
+      "No physical-device performance measurement."
+    ]
+  },
+  "crawler": {
+    "checks": {
+      "restHasNoActiveAction": true,
+      "restBoneIdentity": true,
+      "oneArmatureModifier": true,
+      "allClipFramesFinite": true,
+      "noCollapsedEdges": true,
+      "noExplodingEdges": true,
+      "exactSocketParents": true,
+      "socketRestPositions": true
+    },
+    "clips": {
+      "idle": {
+        "sampledFrames": 73,
+        "finite": true,
+        "minEdgeRatio": 0.9999813122716554,
+        "maxEdgeRatio": 1.0000140807483893,
+        "sweptBounds": {
+          "min": [
+            -1.1273174285888672,
+            -0.028478845953941345,
+            -1.1683059930801392
+          ],
+          "max": [
+            1.1342127323150635,
+            1.1839649677276611,
+            1.1197278499603271
+          ]
+        }
+      },
+      "hit": {
+        "sampledFrames": 16,
+        "finite": true,
+        "minEdgeRatio": 0.9999871801663743,
+        "maxEdgeRatio": 1.0000137489129928,
+        "sweptBounds": {
+          "min": [
+            -1.134995460510254,
+            -0.2360050231218338,
+            -1.1522551774978638
+          ],
+          "max": [
+            1.226776123046875,
+            1.1944843530654907,
+            1.1071689128875732
+          ]
+        }
+      },
+      "die": {
+        "sampledFrames": 43,
+        "finite": true,
+        "minEdgeRatio": 0.9999838961911541,
+        "maxEdgeRatio": 1.0000140323211497,
+        "sweptBounds": {
+          "min": [
+            -1.1122524738311768,
+            -0.6861115097999573,
+            -1.3187687397003174
+          ],
+          "max": [
+            1.3528263568878174,
+            2.1348795890808105,
+            1.1368067264556885
+          ]
+        }
+      }
+    },
+    "limitations": [
+      "Blender source deformation sampled at every authored frame; exported GLB is independently audited and browser-tested by the parent.",
+      "No physical-device performance measurement."
+    ]
+  },
+  "serpent": {
+    "checks": {
+      "restHasNoActiveAction": true,
+      "restBoneIdentity": true,
+      "oneArmatureModifier": true,
+      "allClipFramesFinite": true,
+      "noCollapsedEdges": true,
+      "noExplodingEdges": true,
+      "exactSocketParents": true,
+      "socketRestPositions": true
+    },
+    "clips": {
+      "slither": {
+        "sampledFrames": 55,
+        "finite": true,
+        "minEdgeRatio": 0.7520471489450874,
+        "maxEdgeRatio": 1.2435719313612532,
+        "sweptBounds": {
+          "min": [
+            -0.9214410185813904,
+            -0.21439287066459656,
+            -1.5283669233322144
+          ],
+          "max": [
+            0.9214410185813904,
+            0.2800000011920929,
+            1.34525465965271
+          ]
+        }
+      },
+      "strike": {
+        "sampledFrames": 28,
+        "finite": true,
+        "minEdgeRatio": 0.7691940589474565,
+        "maxEdgeRatio": 1.2238789871479954,
+        "sweptBounds": {
+          "min": [
+            -0.7092716097831726,
+            -0.2404128909111023,
+            -1.5316129922866821
+          ],
+          "max": [
+            0.38863348960876465,
+            0.4656834602355957,
+            1.450135588645935
+          ]
+        }
+      },
+      "coil": {
+        "sampledFrames": 73,
+        "finite": true,
+        "minEdgeRatio": 0.5231420312165139,
+        "maxEdgeRatio": 1.4500136012068392,
+        "sweptBounds": {
+          "min": [
+            -0.27975034713745117,
+            -0.21439287066459656,
+            -1.528154730796814
+          ],
+          "max": [
+            1.3984336853027344,
+            0.2800000011920929,
+            0.09137511253356934
+          ]
+        }
+      },
+      "hit": {
+        "sampledFrames": 16,
+        "finite": true,
+        "minEdgeRatio": 0.8574731356021834,
+        "maxEdgeRatio": 1.1408333982758763,
+        "sweptBounds": {
+          "min": [
+            -0.3036094605922699,
+            -0.2224513590335846,
+            -1.5285532474517822
+          ],
+          "max": [
+            0.31118375062942505,
+            0.28338897228240967,
+            1.4500021934509277
+          ]
+        }
+      },
+      "die": {
+        "sampledFrames": 43,
+        "finite": true,
+        "minEdgeRatio": 0.8043999478151898,
+        "maxEdgeRatio": 1.1846340454634658,
+        "sweptBounds": {
+          "min": [
+            -0.30401232838630676,
+            -0.2797207236289978,
+            -1.528154730796814
+          ],
+          "max": [
+            0.62507563829422,
+            1.4886902570724487,
+            1.4500683546066284
+          ]
+        }
+      }
+    },
+    "limitations": [
+      "Blender source deformation sampled at every authored frame; exported GLB is independently audited and browser-tested by the parent.",
+      "No physical-device performance measurement."
+    ]
+  }
+}

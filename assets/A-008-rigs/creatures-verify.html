@@ -1,0 +1,60 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>A-008 creature verification</title><link rel="icon" href="data:,"><style>body{background:#17212c;color:white;font:14px monospace}pre{white-space:pre-wrap}canvas{max-width:100%}</style><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script><pre id="status">Verifying creature exports…</pre><script type="module">
+import * as THREE from 'three';
+import {CREATURE_TYPES,loadCreatureRig,createCreature,retargetCreatureClips} from './creatures.js';
+import {checkRetargetBases} from './creatures-retarget-check.js';
+const ACTIVE_TYPES=CREATURE_TYPES.filter(t=>!new URLSearchParams(location.search).has('types')||new URLSearchParams(location.search).get('types').split(',').includes(t));
+const report={three:THREE.REVISION,environment:{userAgent:navigator.userAgent,viewport:[innerWidth,innerHeight],devicePixelRatio},checks:{},types:{}};
+window.creatureVerification={report,done:false};
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setSize(640,480);renderer.setPixelRatio(1);document.body.append(renderer.domElement);
+const camera=new THREE.PerspectiveCamera(45,4/3,.01,100);camera.position.set(4,3,-6);camera.lookAt(0,.7,0);
+const scene=new THREE.Scene();scene.add(new THREE.HemisphereLight(0xffffff,0x303030,3));
+const check=(n,v)=>{report.checks[n]=!!v;if(!v)throw new Error(n);};
+function sample(a){a.object3d.updateMatrixWorld(true);const box=new THREE.Box3(),v=new THREE.Vector3();let vertices=0;
+ a.object3d.traverse(o=>{if(!o.isMesh)return;if(o.isSkinnedMesh)o.skeleton.update();for(let i=0;i<o.geometry.attributes.position.count;i++){o.getVertexPosition(i,v).applyMatrix4(o.matrixWorld);if(!v.toArray().every(Number.isFinite))throw new Error('Nonfinite vertex');box.expandByPoint(v);vertices++;}});
+ for(const o of Object.values(a.sockets))if(!o.matrixWorld.elements.every(Number.isFinite))throw new Error('Nonfinite socket');return{box,vertices};}
+function seek(a,name,t){a.play(name,{fade:0,loop:false,restart:true});a.mixer.setTime(t);a.object3d.updateMatrixWorld(true);}
+try{
+ for(const type of ACTIVE_TYPES){
+  const source=await loadCreatureRig(type),again=await loadCreatureRig(type);check(`${type}.cachedSource`,source===again);
+  const base=await createCreature({type,animation:null}),baseRest=sample(base),mesh=[];base.object3d.traverse(o=>{if(o.isSkinnedMesh)mesh.push(o);});
+  const expected=source.metadata.bones;check(`${type}.boneNames`,base.bones.size===expected.length&&expected.every(n=>base.bones.has(n)));
+  check(`${type}.oneSkinnedMesh`,mesh.length===1);check(`${type}.rotationOnly`,base.clips.every(c=>c.tracks.length===expected.length&&c.tracks.every(t=>t.name.endsWith('.quaternion'))));
+  const basePositions=Object.fromEntries([...base.bones].map(([n,b])=>[n,b.position.clone()]));
+  const overrides=Object.fromEntries(expected.map((n,i)=>[n,i%2?.7:1.4]));
+  const variants=[await createCreature({type,limbScale:.7,animation:null}),base,await createCreature({type,limbScale:1.4,animation:null}),await createCreature({type,limbScales:overrides,animation:null})];
+  check(`${type}.independentBones`,variants.every(a=>a===base||a.bones.get(expected[0])!==base.bones.get(expected[0])));
+  check(`${type}.independentInverses`,variants.every(a=>{let other;a.object3d.traverse(o=>{if(o.isSkinnedMesh)other=o;});return a===base||other.skeleton.boneInverses[0]!==mesh[0].skeleton.boneInverses[0];}));
+  if(type==='quadruped'||type==='crawler')check(`${type}.groundedRestOrigins`,variants.every(a=>Math.abs(sample(a).box.min.y)<1e-5));
+  check(`${type}.baseUnaffectedByResize`,sample(base).box.min.distanceTo(baseRest.box.min)<1e-6&&sample(base).box.max.distanceTo(baseRest.box.max)<1e-6);
+  let frameSamples=0,vertexPoses=0,finite=true,maxDiagonal=0;const dimensions={};
+  for(let i=0;i<variants.length;i++){
+   const a=variants[i],id=i===3?'asymmetric':String(a.limbScale);dimensions[id]={restSize:sample(a).box.getSize(new THREE.Vector3()).toArray(),clips:{}};
+   for(const [n,b]of a.bones)if(b.parent.isBone){const desired=basePositions[n].clone();desired.y*=a.limbScales[b.parent.name];if(b.position.distanceTo(desired)>1e-6)throw new Error(`${type} segment offset ${n}`);}
+   for(const clip of a.clips){
+    a.play(clip.name,{fade:0,loop:false,restart:true});let localMax=0;
+    for(let f=0;f<=Math.round(clip.duration*30);f++){a.action.reset().play();a.mixer.setTime(f/30);a.object3d.updateMatrixWorld(true);for(const b of a.bones.values())finite&&=b.matrixWorld.elements.every(Number.isFinite);frameSamples++;}
+    for(const phase of [0,.125,.25,.375,.5,.625,.75,.875,1]){seek(a,clip.name,phase*clip.duration);const dim=sample(a).box.getSize(new THREE.Vector3()).length();localMax=Math.max(localMax,dim);maxDiagonal=Math.max(maxDiagonal,dim);vertexPoses++;}
+    dimensions[id].clips[clip.name]={maxDiagonal:localMax};
+   }
+   a.mixer.stopAllAction();
+  }
+  check(`${type}.allPosesFinite`,finite&&maxDiagonal<25);check(`${type}.segmentLengths`,true);
+  const rotated=await createCreature({type,animation:null});rotated.object3d.rotation.set(.15,.8,-.1);rotated.object3d.position.set(2,3,4);
+  const converted=await retargetCreatureClips(type,rotated.object3d);
+  check(`${type}.rootOrientationIndependent`,converted.every((c,i)=>c.tracks.every((t,j)=>t.values.every((v,k)=>Math.abs(v-rotated.clips[i].tracks[j].values[k])<1e-5))));
+  rotated.play('hit',{fade:0});rotated.update(5);rotated.play('hit',{fade:0});rotated.update(.03);check(`${type}.oneShotReplay`,rotated.action.isRunning()&&rotated.action.time<.031);rotated.dispose();let threw=false;try{rotated.play('hit');}catch{threw=true;}check(`${type}.disposedRejectsPlay`,threw);
+  base.play(base.clips[0].name,{fade:0});base.update(.1);scene.add(base.object3d);renderer.render(scene,camera);const costs={calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,gpuTextures:renderer.info.memory.textures,authoredTextures:0,boneTextureBytes:mesh[0].skeleton.boneTexture.image.data.byteLength};
+  report.currentCosts={type,...costs};check(`${type}.renderBudget`,costs.calls===1&&costs.triangles<=5000&&costs.gpuTextures===1);scene.remove(base.object3d);
+  const retargetBases=await checkRetargetBases(type);check(`${type}.differentRestBases`,retargetBases.pass);
+  report.types[type]={costs,frameSamples,vertexPoses,maxDiagonal,dimensions,retargetBases};
+  variants.forEach(a=>a.dispose());check(`${type}.boneTextureReleased`,renderer.info.memory.textures===0);
+  document.querySelector('#status').textContent=`Verified ${type}\n${JSON.stringify(report.checks,null,2)}`;
+  await new Promise(resolve=>requestAnimationFrame(resolve));
+ }
+ const expectReject=async(fn)=>{try{await fn();return false;}catch{return true;}};
+ check('invalidType',await expectReject(()=>createCreature({type:'invalid'})));
+ check('invalidScale',await expectReject(()=>createCreature({limbScale:0})));
+ check('invalidBone',await expectReject(()=>createCreature({limbScales:{fake:1}})));
+ report.pass=Object.values(report.checks).every(Boolean);document.querySelector('#status').textContent=JSON.stringify(report,null,2);
+}catch(e){report.pass=false;report.error=e.stack;document.querySelector('#status').textContent=e.stack;console.error(e);}finally{window.creatureVerification.done=true;}
+</script></html>

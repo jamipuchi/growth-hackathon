@@ -1,0 +1,142 @@
+{
+  "fps": 30,
+  "license": "CC0-1.0",
+  "bones": [
+    "hips",
+    "spine_1",
+    "spine_2",
+    "neck",
+    "head",
+    "tail_1",
+    "tail_2",
+    "front_l_upper",
+    "front_l_lower",
+    "front_l_foot",
+    "back_l_upper",
+    "back_l_lower",
+    "back_l_foot",
+    "front_r_upper",
+    "front_r_lower",
+    "front_r_foot",
+    "back_r_upper",
+    "back_r_lower",
+    "back_r_foot"
+  ],
+  "parents": {
+    "hips": null,
+    "spine_1": "hips",
+    "spine_2": "spine_1",
+    "neck": "spine_2",
+    "head": "neck",
+    "tail_1": "hips",
+    "tail_2": "tail_1",
+    "front_l_upper": "spine_2",
+    "front_l_lower": "front_l_upper",
+    "front_l_foot": "front_l_lower",
+    "back_l_upper": "hips",
+    "back_l_lower": "back_l_upper",
+    "back_l_foot": "back_l_lower",
+    "front_r_upper": "spine_2",
+    "front_r_lower": "front_r_upper",
+    "front_r_foot": "front_r_lower",
+    "back_r_upper": "hips",
+    "back_r_lower": "back_r_upper",
+    "back_r_foot": "back_r_lower"
+  },
+  "sockets": {
+    "mouth": "head",
+    "seat": "spine_2",
+    "tail": "tail_2"
+  },
+  "bounds": {
+    "min": [
+      -0.5349999666213989,
+      0.0,
+      -1.5630000829696655
+    ],
+    "max": [
+      0.5349999666213989,
+      1.6206294298171997,
+      1.2556564807891846
+    ]
+  },
+  "limbScaleRange": [
+    0.7,
+    1.4
+  ],
+  "triangles": 4344,
+  "materials": 1,
+  "textures": 0,
+  "origin": "between_feet",
+  "forward": "-Z",
+  "up": "Y",
+  "referenceHeight": 1.6206294298171997,
+  "clips": {
+    "idle": {
+      "duration": 2.4,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "walk": {
+      "duration": 1.2,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "gallop": {
+      "duration": 0.8,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "jump": {
+      "duration": 1.0,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "sit": {
+      "duration": 2.4,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "bite": {
+      "duration": 0.7,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "dig": {
+      "duration": 1.2,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "roar": {
+      "duration": 1.6,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "hit": {
+      "duration": 0.5,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "die": {
+      "duration": 1.4,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    }
+  },
+  "limitations": [
+    "Root translation, gravity and ground contact are external.",
+    "Sit, jump and die require gameplay root/ground placement; no position or scale tracks are authored.",
+    "Bite/roar use neck/head gestures: the fixed contract has no jaw bone.",
+    "Rigid segment weights make a neutral retargeting reference, not a final continuous animal skin."
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "type": "serpent",
+  "fps": 30,
+  "bones": [
+    "spine_1",
+    "spine_2",
+    "spine_3",
+    "spine_4",
+    "spine_5",
+    "spine_6",
+    "spine_7",
+    "spine_8"
+  ],
+  "hierarchy": {
+    "spine_1": null,
+    "spine_2": "spine_1",
+    "spine_3": "spine_2",
+    "spine_4": "spine_3",
+    "spine_5": "spine_4",
+    "spine_6": "spine_5",
+    "spine_7": "spine_6",
+    "spine_8": "spine_7"
+  },
+  "boneLengths": {
+    "spine_1": 0.3599999632769142,
+    "spine_2": 0.3600000046690305,
+    "spine_3": 0.3600000046690305,
+    "spine_4": 0.3600000046690305,
+    "spine_5": 0.35999998397297295,
+    "spine_6": 0.3600000046690305,
+    "spine_7": 0.3600000046690305,
+    "spine_8": 0.3600000046690305
+  },
+  "socketParents": {
+    "mouth": "spine_1",
+    "tail": "spine_8"
+  },
+  "socketPositions": {
+    "mouth": [
+      0,
+      -0.055,
+      -1.53
+    ],
+    "tail": [
+      0,
+      0,
+      1.46
+    ]
+  },
+  "clips": {
+    "slither": {
+      "duration": 1.8,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "strike": {
+      "duration": 0.9,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "coil": {
+      "duration": 2.4,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "hit": {
+      "duration": 0.5,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "die": {
+      "duration": 1.4,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    }
+  },
+  "referenceBounds": {
+    "min": [
+      -0.27975034713745117,
+      -0.21439287066459656,
+      -1.528154730796814
+    ],
+    "max": [
+      0.27975034713745117,
+      0.2800000011920929,
+      1.4500000476837158
+    ]
+  },
+  "origin": "centre of longitudinal reference; Y=0 at body centre",
+  "limbScaleRange": [
+    0.7,
+    1.4
+  ],
+  "notes": [
+    "Locomotion, ground contact and root paths belong to game integration.",
+    "Continuous weighted body rings keep the skin connected during bending."
+  ]
+}

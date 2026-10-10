@@ -1,0 +1,221 @@
+{
+  "version": 1,
+  "license": "CC0-1.0",
+  "source": "Original deterministic geometry and vertex paint; no external meshes, textures or images.",
+  "axes": {
+    "up": "+Y",
+    "forward": "-Z",
+    "origin": "center of base; rest geometry touches y=0"
+  },
+  "bounds": {
+    "min": [
+      -1.337999939918518,
+      0.0,
+      -2.0190000534057617
+    ],
+    "max": [
+      1.337999939918518,
+      2.0939998626708984,
+      2.0
+    ]
+  },
+  "size": [
+    2.675999879837036,
+    2.0939998626708984,
+    4.019000053405762
+  ],
+  "triangles": 4776,
+  "triangles_by_mesh": {
+    "car_body": 1864,
+    "car_lights": 112,
+    "car_wheels": 2800
+  },
+  "triangles_per_wheel": 700,
+  "raw_glb_draw_calls": 3,
+  "helper_draw_calls": 3,
+  "textures": 0,
+  "materials": 3,
+  "wheel_positions": {
+    "wheel_fl": [
+      -1.02,
+      0.5519999861717224,
+      -1.25
+    ],
+    "wheel_fr": [
+      1.02,
+      0.5519999861717224,
+      -1.25
+    ],
+    "wheel_bl": [
+      -1.02,
+      0.5519999861717224,
+      1.2
+    ],
+    "wheel_br": [
+      1.02,
+      0.5519999861717224,
+      1.2
+    ]
+  },
+  "wheel_radius": 0.5519999861717224,
+  "wheel_max_radial_extent": 0.5540399525188092,
+  "wheel_id_uv_x": [
+    0.125,
+    0.375,
+    0.625,
+    0.875
+  ],
+  "sockets": {
+    "seat": [
+      -0.38,
+      1.005,
+      0.36
+    ],
+    "roof": [
+      0,
+      2.14,
+      0.44
+    ],
+    "front": [
+      0,
+      0.85,
+      -2.04
+    ],
+    "back": [
+      0,
+      0.85,
+      2.04
+    ]
+  },
+  "raw_wheel_contract": "Four named empty pivots plus merged static car_wheels mesh. car.js replaces merged wheels with one four-instance batch; syncWheels applies empty-pivot transforms.",
+  "sha256": "e0775cab48a7d73cc165567c206ec7cdede4f186b0d8517f8e06aa805ff99a7c",
+  "bytes": 420120,
+  "parts": {
+    "body": [
+      "lower_hull",
+      "hood",
+      "hood_center_stripe",
+      "hood_back_vent",
+      "vent_bar",
+      "vent_bar",
+      "vent_bar",
+      "vent_bar",
+      "vent_bar",
+      "front_bumper",
+      "front_bumper_top",
+      "rear_bumper",
+      "rear_deck",
+      "rear_storage_recess",
+      "rear_cargo_case",
+      "cargo_strap",
+      "cargo_strap",
+      "cab_floor",
+      "fender",
+      "fender_piping",
+      "fender",
+      "fender_piping",
+      "side_sill",
+      "side_step",
+      "side_stripe",
+      "side_grab_bar",
+      "roll_cage_front",
+      "roll_cage_rear",
+      "roof_rail",
+      "cage_teal_wrap",
+      "seat_base",
+      "seat_back",
+      "seat_back_pad",
+      "seat_headrest",
+      "seat_harness",
+      "seat_harness",
+      "headlight_bezel",
+      "tail_bezel",
+      "tow_hook",
+      "fender",
+      "fender_piping",
+      "fender",
+      "fender_piping",
+      "side_sill",
+      "side_step",
+      "side_stripe",
+      "side_grab_bar",
+      "roll_cage_front",
+      "roll_cage_rear",
+      "roof_rail",
+      "cage_teal_wrap",
+      "seat_base",
+      "seat_back",
+      "seat_back_pad",
+      "seat_headrest",
+      "seat_harness",
+      "seat_harness",
+      "headlight_bezel",
+      "tail_bezel",
+      "tow_hook",
+      "roof_crossbar",
+      "roof_crossbar",
+      "sun_visor",
+      "roof_badge",
+      "dash",
+      "dash_gauge",
+      "dash_center_switches",
+      "dash_switch",
+      "dash_switch",
+      "dash_switch",
+      "steering_rim",
+      "steering_rim",
+      "steering_rim",
+      "steering_rim",
+      "steering_rim",
+      "steering_rim",
+      "steering_rim",
+      "steering_rim",
+      "steering_rim",
+      "steering_rim",
+      "steering_spoke",
+      "steering_column",
+      "steering_hub"
+    ],
+    "lights": [
+      "headlamp",
+      "tail_lamp",
+      "headlamp",
+      "tail_lamp"
+    ],
+    "wheel": [
+      "tire_carcass",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "tread_lug",
+      "alloy_rim",
+      "hub_cap",
+      "rim_spoke",
+      "rim_spoke",
+      "rim_spoke",
+      "rim_spoke",
+      "rim_spoke",
+      "axle_cap",
+      "alloy_rim",
+      "hub_cap",
+      "rim_spoke",
+      "rim_spoke",
+      "rim_spoke",
+      "rim_spoke",
+      "rim_spoke",
+      "axle_cap"
+    ]
+  }
+}

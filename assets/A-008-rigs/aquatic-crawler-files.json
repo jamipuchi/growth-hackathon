@@ -1,0 +1,94 @@
+{
+  "aquatic-crawler-build-crawler.log": {
+    "bytes": 977,
+    "sha256": "f98e31a61dd262bf320f63d51423b53abd4353d8d9e7568992db081bd0408b33"
+  },
+  "aquatic-crawler-build.log": {
+    "bytes": 1854,
+    "sha256": "85aaabae90304925f8adfaa802c0ada2b39e02098e8af458e22a387b88040fe5"
+  },
+  "aquatic-crawler-crawler-hit.png": {
+    "bytes": 372165,
+    "sha256": "5e6109e4e1ac8eacde2444dd3410d2aaa5482a1b55ab497459fffc8975471b79"
+  },
+  "aquatic-crawler-crawler-rest.png": {
+    "bytes": 371219,
+    "sha256": "6179df9d969dac0cf49b0831ce5fc08988600c253050568514c5da094c903073"
+  },
+  "aquatic-crawler-deformation.json": {
+    "bytes": 7145,
+    "sha256": "36c939c223e6e2c1476f5da186f03f7ee5507aae81b09c27009826a962f1369b"
+  },
+  "aquatic-crawler-progress.md": {
+    "bytes": 3280,
+    "sha256": "784f542994db0a4aa70deada5b866e8ebf120faaca1c2e30085e1cbae528b8ad"
+  },
+  "aquatic-crawler-review.log": {
+    "bytes": 1961,
+    "sha256": "583d025046d7fcc4ec043d0ecb70cace6bf054fc56a154c52951434cc7638976"
+  },
+  "aquatic-crawler-review.py": {
+    "bytes": 5329,
+    "sha256": "c415aa9999b54bbd1e548446c5373679819395046aa14252bb4c74b4338b85bf"
+  },
+  "aquatic-crawler-serpent-coil.png": {
+    "bytes": 340320,
+    "sha256": "818396a55ba2348ddee2f182a839081fe9819f49d721e0ec16e8949b6d4a4591"
+  },
+  "aquatic-crawler-serpent-rest.png": {
+    "bytes": 340507,
+    "sha256": "410fc5ab6dca30275fc40305f626fca7475b8694a8127dd130f32a9c1f4c970e"
+  },
+  "aquatic-crawler-swimmer-rest.png": {
+    "bytes": 349236,
+    "sha256": "3493a2742cc8038e4bf7b942f0750774d09f6b06bed571a3d64014d5e1157c94"
+  },
+  "aquatic-crawler-swimmer-swim.png": {
+    "bytes": 349299,
+    "sha256": "7afa45957a2a80f53ca719cf89b4b4063776875af2e95e02a886b5264b6e3aa9"
+  },
+  "aquatic-crawler-validation.json": {
+    "bytes": 3974,
+    "sha256": "4b97949b1971eeb8dc291e2e2f9b100da6490975e83a41b70fcc5b97024a8e2a"
+  },
+  "crawler-clips.json": {
+    "bytes": 2733,
+    "sha256": "7faae57d9983cdc0ba1a558f618816352dd9388a32cdcfd8786e3527106f4053"
+  },
+  "crawler.glb": {
+    "bytes": 683948,
+    "sha256": "cebed5c9998b91d195706733fd5dd49122c56f4a6632ba812381366ff3d41cf3"
+  },
+  "crawler_source.blend": {
+    "bytes": 283914,
+    "sha256": "3b460d273bf81d2ef17df92f345a98baeab3c2c04dc5dd306b693df078a9bb46"
+  },
+  "generate_aquatic_crawler.py": {
+    "bytes": 19226,
+    "sha256": "f36d5c8c1d8489fabfee1d4423f1edf5a1be3185907148fa45cf30a7d00b974f"
+  },
+  "serpent-clips.json": {
+    "bytes": 2081,
+    "sha256": "28ad9566262c81a4d0ed3bca0cf3e38d288e756ded7ec31a2b75ce26e89dfd34"
+  },
+  "serpent.glb": {
+    "bytes": 380660,
+    "sha256": "63f042bad91436d3137059821aa2de4578c130d9db2cf8b2f4e85f18eecc0dff"
+  },
+  "serpent_source.blend": {
+    "bytes": 202216,
+    "sha256": "1a8577e646f731e4acbd0be378be1220209a30447609d241a7c2be26c65cd766"
+  },
+  "swimmer-clips.json": {
+    "bytes": 1796,
+    "sha256": "6a96bf61004ec9c84fe9c04b24fedb7ed9c98357ecf267f77e73a3ddffd9ecf6"
+  },
+  "swimmer.glb": {
+    "bytes": 374704,
+    "sha256": "80a75c9cec3ce818fd03f0d86756572acc586690e251e8f8db445081a0365551"
+  },
+  "swimmer_source.blend": {
+    "bytes": 184750,
+    "sha256": "de90d136688b5cdb20109b24cee648a491b7d35e0a9446ca58cbddc927faabff"
+  }
+}
