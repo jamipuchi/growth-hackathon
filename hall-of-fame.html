@@ -17,7 +17,13 @@
   view is rendered in turn and copied into its own 2D canvas, only while it is on screen.
   v1.9 demo (owner 13:41): ?mock=1 or the MOCK toggle shows hall-mock/hall.json instead (16 real sample drawings and their
   specs, ranked; built by dev/v19-demo/hall-build-mock.mjs). Mock mode makes no API call: no /hall polling, no judging.
+  v1.9.1 (owner 14:25, "shows hall of fame after finishing the seconds"): ?embed=1 is the TV's full-screen hall after each
+  round (space.html hallAuto frames it): no page chrome (no back, judge, mock or filter buttons), bigger type for the sofa,
+  faster polling while judging, and a slow auto-scroll when the list is taller than the screen. Without ?mock=1 it picks
+  by itself: the live hall, or the mock with a small EXAMPLES label while this session's archive is empty or every
+  judgment failed (it switches back as soon as a drawing is scored).
 -->
+<script>if (/[?&]embed=1(&|$)/.test(location.search)) document.documentElement.classList.add("embed");</script>
 <style>
   :root {
     --navy: #0d0b2e; --ink: #120a2e; --shadow: #0a0830;
@@ -155,6 +161,26 @@
   #empty .h { font-size: 2.4rem; }
   #empty p { margin-top: .8rem; font: 600 1.1rem/1.4 var(--fb); color: rgb(255 255 255 / .75); }
 
+  /* ---- v1.9.1 ?embed=1: the TV's full-screen hall after a round (space.html), read from the sofa ---- */
+  #examples { display: none; position: absolute; right: 1.6rem; top: 1.5rem; z-index: 3; font: 800 .85rem/1 var(--fb); letter-spacing: .16em; text-transform: uppercase;
+              color: #fff; padding: .4rem .75rem; border-radius: 1rem; background: rgb(255 59 92 / .85); border: .12rem solid #fff; }
+  html.embed body.mockmode #examples { display: block; }
+  html.embed { font-size: clamp(12px, min(1.12vw, 2vh), 34px); scrollbar-width: none; }
+  html.embed::-webkit-scrollbar { display: none; }
+  html.embed body { overflow-y: auto; }
+  html.embed main { max-width: none; padding: 1.1rem 2.2rem 3rem; }
+  html.embed header { grid-template-columns: 1fr; margin-bottom: .8rem; }
+  html.embed .back, html.embed #judgeBtn, html.embed #mockBtn, html.embed .tabs { display: none !important; }
+  html.embed .title .gt { font-size: 5.4rem; }
+  html.embed .title .sub { font-size: 1.15rem; }
+  html.embed .bar { justify-content: center; margin-bottom: 2.4rem; }
+  html.embed #status { flex: 0 1 46rem; }
+  html.embed #statusText { font-size: 1.6rem; }
+  html.embed #list { grid-template-columns: repeat(auto-fill, minmax(36rem, 1fr)); }
+  html.embed .row .name { font-size: 1.55rem; }
+  html.embed .row .comment { font-size: 1rem; }
+  html.embed #empty { display: none; }
+
   @keyframes pop { from { opacity: 0; transform: translateY(1rem) scale(.94); } to { opacity: 1; transform: none; } }
   @keyframes blink { 50% { opacity: .2; } }
   @media (prefers-reduced-motion: reduce) { .card, .row { animation: none; } }
@@ -169,6 +195,7 @@
 </head>
 <body>
 <main>
+  <div id="examples" title="Sample drawings: this session has no scored drawings yet">Examples</div>
   <header>
     <a class="back" href="/space.html" id="back">◀ Back</a>
     <div class="title">
@@ -213,6 +240,13 @@ let data = null, filter = "all", pollTimer = 0;
 // v1.9 demo (owner 13:41): ?mock=1 (or the MOCK toggle) shows hall-mock/hall.json, a pre-built ranked hall of real sample
 // drawings and their specs (dev/v19-demo/hall-build-mock.mjs). Mock mode never calls the API: no /hall polling, no judging.
 let mockMode = params.get("mock") === "1", modeGen = 0;
+// v1.9.1: ?embed=1 is the TV's full-screen hall (space.html); AUTO (embed without ?mock=1) shows the live hall, or the mock
+// with EXAMPLES while the session has no drawings or every judgment failed (nothing scored, nothing left to judge).
+const EMBED = params.get("embed") === "1";
+const AUTO = EMBED && !mockMode;
+const allFailed = (j) => !!j && j.total > 0 && !j.running && !j.judged && !j.unjudged && !j.pending;
+const wantExamples = (d) => !d || !Array.isArray(d.entries) || !d.entries.length || allFailed(d.judging);
+let autoTimer = 0;
 
 // ---- 3D: one renderer, many views ------------------------------------------------------------------------------
 // Every turntable is a 2D canvas; the shared WebGL canvas renders one view at a time (viewport in its bottom-left
@@ -534,10 +568,28 @@ async function poll() {
   try {
     const res = await fetch("/hall", { cache: "no-store" });
     if (g !== modeGen) return; // switched to the mock meanwhile
-    if (res.ok) { data = await res.json(); render(); showStatus(); }
-    else $("statusText").textContent = "The hall is offline";
+    if (res.ok) {
+      const d = await res.json();
+      if (g !== modeGen) return;
+      if (AUTO && wantExamples(d)) { setMock(true); return; } // v1.9.1: the TV's hall shows the examples instead
+      data = d; render(); showStatus();
+    } else $("statusText").textContent = "The hall is offline";
   } catch { if (g !== modeGen) return; $("statusText").textContent = "Reconnecting…"; }
-  pollTimer = setTimeout(poll, data && data.judging && data.judging.running ? 1500 : 5000);
+  const running = data && data.judging && data.judging.running;
+  pollTimer = setTimeout(poll, EMBED ? (running ? 1000 : 3000) : running ? 1500 : 5000);
+}
+// v1.9.1 AUTO in the examples: keeps asking /hall and goes live as soon as this session has a drawing to show
+async function autoCheck() {
+  clearTimeout(autoTimer);
+  if (!AUTO || !mockMode) return;
+  const g = modeGen;
+  try {
+    const res = await fetch("/hall", { cache: "no-store" });
+    const d = res.ok ? await res.json() : null;
+    if (g !== modeGen) return;
+    if (d && !wantExamples(d)) { setMock(false); return; }
+  } catch { /* the next check */ }
+  if (g === modeGen) autoTimer = setTimeout(autoCheck, 3000);
 }
 
 let mockData = null;
@@ -558,6 +610,7 @@ function setMock(on) {
   mockMode = !!on;
   modeGen++;
   clearTimeout(pollTimer);
+  clearTimeout(autoTimer);
   document.body.classList.toggle("mockmode", mockMode);
   $("mockBtn").setAttribute("aria-pressed", String(mockMode));
   const url = new URL(location.href);
@@ -569,7 +622,8 @@ function setMock(on) {
   $("statusText").textContent = "Loading…";
   $("progFill").style.width = "0%";
   $("empty").classList.add("off");
-  if (mockMode) loadMock(); else poll();
+  if (mockMode) { loadMock(); if (AUTO) autoTimer = setTimeout(autoCheck, 3000); } else poll();
+  if (EMBED) scrollHome();
 }
 
 async function judge() {
@@ -592,6 +646,30 @@ for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("c
 });
 $("back").addEventListener("click", (ev) => { if (history.length > 1 && document.referrer && new URL(document.referrer).origin === location.origin) { ev.preventDefault(); history.back(); } });
 $("mockBtn").addEventListener("click", () => setMock(!mockMode));
+
+// ---- v1.9.1 ?embed=1: nobody scrolls a TV, so a list taller than the screen scrolls by itself: 7 s at the top, down at
+// about 2 rem a second, 5 s at the bottom, back to the top. New rows (judging moves them) never jump the view.
+let scrollY0 = 0, scrollHold = 0;
+function scrollHome() { scrollY0 = 0; scrollHold = performance.now() + 7000; window.scrollTo(0, 0); }
+if (EMBED) {
+  scrollHold = performance.now() + 7000;
+  let last = performance.now();
+  const step = (now) => {
+    requestAnimationFrame(step);
+    const dt = Math.min(0.1, (now - last) / 1000);
+    last = now;
+    const max = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+    if (max < 8) { if (scrollY0) { scrollY0 = 0; window.scrollTo(0, 0); } return; }
+    if (now < scrollHold) return;
+    if (scrollY0 >= max) { scrollHome(); return; } // held at the bottom: back to the top
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    scrollY0 = Math.min(max, scrollY0 + rem * 2 * dt);
+    window.scrollTo(0, scrollY0);
+    if (scrollY0 >= max) scrollHold = now + 5000;
+  };
+  requestAnimationFrame(step);
+}
+
 if (mockMode) setMock(true); else if (params.get("judge") === "1") judge(); else poll();
 loadMods(); // the 3D builders load while the list arrives
 </script>

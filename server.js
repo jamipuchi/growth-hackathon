@@ -78,7 +78,7 @@ const BOTS = botsArg > 0 ? Math.max(0, Math.min(25, Number(process.argv[botsArg 
 const autoArg = process.argv.indexOf("--autostart");
 const AUTOSTART = autoArg > 0 && Number.isFinite(Number(process.argv[autoArg + 1])) ? Math.max(0, Number(process.argv[autoArg + 1])) : null;
 const argNum = (flag, fallback) => { const i = process.argv.indexOf(flag); return i > 0 && Number.isFinite(Number(process.argv[i + 1])) ? Number(process.argv[i + 1]) : fallback; };
-const MINUTES_AT_START = Contract.ROUND_MINUTES.includes(argNum("--minutes", 1)) ? argNum("--minutes", 1) : 1; // v1.9 demo default: 1 minute
+const MINUTES_AT_START = Contract.ROUND_MINUTES.includes(argNum("--minutes", 2)) ? argNum("--minutes", 2) : 2; // demo default: 2 minutes (owner 14:37; v1.9 had 1)
 const START_AFTER_AT_START = Contract.LOBBY_WAITS.includes(argNum("--start-after", 30)) ? argNum("--start-after", 30) : 30; // 0 = off
 // v1.6 ENDLESS (owner, 10 Oct 11:53): --endless or ENDLESS=1 starts the server in the endless free-for-all (endless.js).
 const ENDLESS_AT_START = (() => { try { return require("./endless").fromEnv(); } catch { return false; } })();
@@ -443,7 +443,7 @@ function freshRound(round, names) {
 }
 
 // v1.7 readyGate (owner 12:26): only the ready players (ship + controller) enter a round; START needs one of them.
-// v1.9 (owner 13:41): 1-minute rounds by default and the lobby auto-start 30 s after the first READY player; the TV lobby
+// v1.9 (owner 13:41): selectable round length (2 minutes by default since owner 14:37, 1 in v1.9) and the lobby auto-start 30 s after the first READY player; the TV lobby
 // changes both (POST /mode { minutes, startAfter }), remembered for the session. --minutes N / --start-after S at launch.
 const world = createWorld({ broadcast, autoStart: true, wireAnimations, autostartSeconds: AUTOSTART, onRoundReset: freshRound, readyGate: true, minutes: MINUTES_AT_START, startAfter: START_AFTER_AT_START,
   onStart: () => endAllPractice("start") }); // v1.9 PRACTICE: everybody back in the lobby before the 3-2-1
@@ -451,6 +451,24 @@ for (let i = 1; i <= BOTS; i++) world.addBot(`bot${i}`);
 // v1.6 ENDLESS: guarded, so a world.js without the endless hooks still runs (the demo).
 const canEndless = () => typeof world.setEndless === "function" && typeof world.endSession === "function";
 if (ENDLESS_AT_START && canEndless()) world.setEndless(true);
+// v1.9.1 (owner, 10 Oct 14:25: "make sure 1.9.1 shows hall of fame after finishing the seconds"): a round's end (time up,
+// every chest open, or the host's END) starts judging the session's drawings by itself, exactly as POST /hall/judge does
+// (idempotent: a running judge goes on; cached by the PNG's hash; the 60-call cap stays). The TV shows the hall full screen
+// after the podium (space.html hallAuto) and its scores fill in while this runs. Watches world.phase: world.js is untouched.
+let hallPhase = world.phase;
+const hallWatch = setInterval(() => {
+  const now = world.phase, was = hallPhase;
+  if (now === was) return;
+  hallPhase = now;
+  if (now !== "scoreboard") return;
+  const H = loadHall();
+  if (!H) return;
+  try {
+    const j = H.judge();
+    console.log(`hall: round ${world.round} over (${was} → results): judging ${j.pending} of ${j.total} drawing(s)${j.mock ? " (mock scores)" : ""}, ${j.calls}/${j.maxCalls} calls used`);
+  } catch (err) { logOnce("hall auto-judge failed", err); }
+}, 250);
+if (hallWatch.unref) hallWatch.unref();
 
 setInterval(() => {
   if (!streams.size) return;

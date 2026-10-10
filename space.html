@@ -471,6 +471,14 @@
           background: rgb(10 6 30 / .82); border-radius: .5rem; z-index: 50; }
   body.help #keys { display: block; }
 
+  /* v1.9.1 (owner 14:25): the HALL OF FAME full screen after every round (hallAuto): hall-of-fame.html?embed=1 in a frame over
+     everything; a tap anywhere (or Enter / Esc) closes it, and so does the next round's 3-2-1. The frame takes no input. */
+  #hallOver { position: fixed; inset: 0; z-index: 90; display: none; cursor: pointer; background: #05030f; }
+  #hallOver.on { display: block; animation: fadeIn .6s ease-out both; }
+  #hallOver iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; pointer-events: none; background: #05030f; }
+  #hallHint { position: absolute; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 2; padding: .4rem 1.4rem .5rem; font-size: 1.25rem; white-space: nowrap; pointer-events: none; }
+  #hallHint b { color: var(--gold); font-weight: inherit; }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; transition-duration: .001ms !important; }
   }
@@ -583,6 +591,8 @@
   <button id="restartBtn" class="sk" type="button"><span id="restartLabel" class="h" data-copy="restart.idle"></span></button>
   <div id="keys" class="tx" data-copy="help"></div>
 </div>
+<!-- v1.9.1: the HALL OF FAME after every round (hallAuto below) -->
+<div id="hallOver" role="dialog" aria-label="Hall of Fame"><div id="hallHint" class="sk navy h"></div></div>
 
 <script type="module">
 // ONE table with every string a player can read on this page. The HTML is filled from it (data-copy) and the code below
@@ -591,6 +601,8 @@ const COPY = {
   title: "Space Party",
   brand: "SPACE PARTY",
   hall: "★ HALL OF FAME", // v1.6: the host's button (lobby and results) → hall-of-fame.html
+  // v1.9.1: the full-screen hall after every round (hallAuto): the line at its bottom
+  hallAuto: { hint: "TAP OR ENTER TO CLOSE", next: "NEXT ROUND IN {n} · TAP OR ENTER TO CLOSE" },
   // v1.9 (owner 13:41): the round length and the lobby auto-start beside START
   length: { round: "ROUND · MIN", auto: "AUTO-START", min: "{m}", secs: "{s} S", off: "OFF", toast: "{m}-MINUTE ROUNDS", toastWait: "AUTO-START {s} S AFTER THE FIRST READY PLAYER",
     toastWaitOff: "AUTO-START OFF · PRESS START", startingIn: "STARTING IN {n}", startingInReady: "STARTING IN {n} · {r} READY", lobbyOnly: "PICK THE LENGTH IN THE LOBBY" },
@@ -883,16 +895,21 @@ async function refreshInfo() {
     const r = await fetch("/info", { cache: "no-store" });
     if (!r.ok) return;
     const info = await r.json();
-    const url = info && typeof info.controllerUrl === "string" ? info.controllerUrl : "";
+    // ?http: phones get the plain-http page (no certificate warning; demo default). Otherwise the server's HTTPS page.
+    const url = PREFER_HTTP && info && typeof info.lanUrl === "string" ? `${info.lanUrl}/controller.html`
+      : info && typeof info.controllerUrl === "string" ? info.controllerUrl : "";
     let host = "";
     try { host = new URL(url).hostname; } catch (e) { return; }
     if (!LOCAL_HOST.test(host) || !local) showJoin(url); // a code that points at localhost is useless to a phone
   } catch (e) { /* an old server: keep what is there */ }
 }
+const PREFER_HTTP = new URLSearchParams(location.search).has("http");
 if (override) showJoin(override);
-else if (!local) showJoin(`${location.protocol}//${location.host}/controller.html`);
+else if (!local && !PREFER_HTTP) showJoin(`${location.protocol}//${location.host}/controller.html`);
 else showJoinHint();
 refreshInfo();
+// The laptop's LAN address can change mid-session (new Wi-Fi / hotspot): re-ask every 5 s so the QR follows it live.
+setInterval(refreshInfo, 5000);
 
 // ---- state ----
 const hudEl = $("hud");
@@ -2005,6 +2022,69 @@ $("hallBtn").addEventListener("click", () => {
   });
 });
 $("hallBtn").addEventListener("keyup", (e) => { if (e.key === " ") e.preventDefault(); });
+
+// ================= v1.9.1 HALL OF FAME after every round (owner 10 Oct 14:25: "make sure 1.9.1 shows hall of fame after finishing the seconds") =================
+// A round's end starts judging on the server by itself (server.js hallWatch). Here, once the results' podium ceremony is over
+// (every step shown, then HALL_HOLD_MS to take it in: about 8 s into a three-place ceremony; 2.5 s after results that show
+// at once: no ceremony, a page opened late, the host's Enter), the hall covers the whole screen: hall-of-fame.html?embed=1&judge=1
+// in a frame, the live hall with its scores filling in ("JUDGING n/m"), or the examples (EXAMPLES label) when nothing of
+// this session can be ranked. The lobby carries on underneath (the line at the bottom shows its NEXT ROUND IN n). It closes on
+// a tap, Enter or Esc, and by itself when the next round's 3-2-1 (or play) starts. Results left before the hall came open it in
+// the lobby. Once per round; never for a mock screen (__bigscreen.hall(on) opens / closes it); ?nohall turns it off.
+const HALL_AUTO = !params.has("nohall");
+const HALL_HOLD_MS = 2500;
+const hallAuto = { open: false, round: null, shownFor: null, doneAt: 0 };
+function hallHint() {
+  const n = tick && tick.phase === "lobby" && Number.isFinite(tick.startIn) ? tick.startIn : null;
+  setHtml($("hallHint"), esc(n != null ? fmt(COPY.hallAuto.next, { n }) : COPY.hallAuto.hint));
+}
+function hallOpen() {
+  const H = hallAuto;
+  H.shownFor = H.round;
+  if (H.open) return;
+  H.open = true;
+  const box = $("hallOver");
+  const f = document.createElement("iframe");
+  f.title = "Hall of Fame";
+  f.tabIndex = -1;
+  f.src = "/hall-of-fame.html?embed=1&judge=1";
+  box.prepend(f);
+  hallHint();
+  box.classList.add("on");
+  sfxPlay("star", { volume: 0.7 });
+}
+function hallClose() {
+  if (!hallAuto.open) return;
+  hallAuto.open = false;
+  const box = $("hallOver");
+  box.classList.remove("on");
+  for (const f of box.querySelectorAll("iframe")) { f.src = "about:blank"; f.remove(); } // its WebGL context goes with it
+}
+function hallAutoTick() {
+  const H = hallAuto;
+  const between = phase === "lobby" || phase === "scoreboard";
+  if (H.open) { if (!between || view === "play") hallClose(); else hallHint(); return; }
+  if (!HALL_AUTO || mocked) { H.round = null; H.doneAt = 0; return; }
+  if (!between) { H.round = H.shownFor; return; } // the next round began before the hall came: skip it
+  if (view === "results" && cer && cer.key >= 0) {
+    if (H.round !== cer.key) { H.round = cer.key; H.doneAt = 0; }
+    if (H.shownFor === H.round) return;
+    if (!Object.keys(cer.plan).every((k) => cer.done[k])) { H.doneAt = 0; return; } // the ceremony is still on
+    if (!H.doneAt) H.doneAt = performance.now();
+    if (performance.now() - H.doneAt >= HALL_HOLD_MS) hallOpen();
+  } else if (view === "lobby" && phase === "lobby" && H.round != null && H.shownFor !== H.round) hallOpen();
+}
+setInterval(hallAutoTick, 250);
+$("hallOver").addEventListener("click", () => { sfxUnlock(); sfxPlay("click"); hallClose(); });
+// Enter / Esc / Space close it and do nothing else (Enter would START in the lobby): this runs before the page's keys.
+addEventListener("keydown", (e) => {
+  if (!hallAuto.open || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key !== "Enter" && e.key !== "Escape" && e.key !== " ") return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  if (!e.repeat) { sfxPlay("click"); hallClose(); }
+}, true);
+window.__bigscreen.hall = (on = true) => { if (on) hallOpen(); else hallClose(); return hallAuto.open; };
 
 // ================= RESTART (v1.6.1, owner 10 Oct 12:31: "a button to restart it from space.html") =================
 // The host's small RESTART, bottom left on the lobby, the play and the results (or R twice within 3 s). The first tap arms it
