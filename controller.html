@@ -1349,7 +1349,7 @@ const S = {
   ctlPending: false,         // a sandbox is being fetched / mounted (the legend waits for it)
   cool: {},                  // action -> performance.now() when that skill is ready again
   held: {},                  // sticks held right now (sandbox): axis -> true
-  net: { phase: null },      // from the newest tick, on every screen (the renderer may be paused)
+  net: { phase: null, mode: null },   // from the newest tick, on every screen (the renderer may be paused); mode: mine there
   round: (() => { const r = store.get("round"); return Number.isFinite(r) ? r : null; })(),   // v1.5: the round my drawings belong to
   waiting: false,            // v1.7: I am not in this round (tick.waiting lists me): I keep drawing for the next one
   waitedIn: (() => { const r = store.get("waitedIn"); return Number.isFinite(r) ? r : null; })(),   // v1.7: the round I waited out (its end keeps my drawings)
@@ -3133,6 +3133,7 @@ function freshRound() {
   images.clear();
   S.left = { space: C.TUNING.drawings.space, planet: C.TUNING.drawings.planet }; hudCache.leftWorld = null;
   S.explorerAsked = false; S.wrecked = false; S.resultKind = null; S.legendPending = false;
+  S.lastMode = null;     // v1.6.1: the old round's "planet" is not this round's (the explorer prompt, world(), the counters: back in space)
   clearGhost(); clearSketch();
   hitRect = null;
   $("hits").replaceChildren(); controls.length = 0;               // no layout: no controls and no ink left on the play screen
@@ -3145,6 +3146,7 @@ function onNetTick(m) {
   const me = m.players && m.players.find((p) => p.name === S.player);
   if (me && me.drawingsLeft) setLeft(me.drawingsLeft);
   S.net.phase = m.phase;
+  S.net.mode = (me && me.mode) || null;
   S.endless = m.mode === "endless"; // v1.6 ENDLESS (tick.mode, absent in the demo)
   // v1.7 (owner 12:26): tick.waiting lists who is not in this round; my drawings then carry over to the next one
   const wait = Array.isArray(m.waiting) ? m.waiting.find((w) => w && w.name === S.player) || null : null;
@@ -3325,7 +3327,10 @@ function updateHud() {
   const shotAlpha = h.transition && typeof h.overlayAlpha === "number" ? Math.round(h.overlayAlpha * 100) / 100 : null;
   if (hudCache.shotAlpha !== shotAlpha) { hudCache.shotAlpha = shotAlpha; $("area").classList.toggle("shot", shotAlpha !== null); $("area").style.opacity = shotAlpha === null ? "" : shotAlpha; }
   // after touchdown ("planet", no longer landing, the shot over) the phone asks for the explorer, once per landing
-  const mode = me ? me.mode : null;
+  // v1.6.1 (owner 12:44, round 2 asked for the explorer in the lobby): hud().me is the renderer's last frame, frozen while the draw
+  // screen paused it, so the first read back on the play screen after a new round's ship drawing was the old round's "planet". Only a
+  // mode the newest tick agrees with counts (the tick is never behind the frame).
+  const mode = me && (!S.net.mode || S.net.mode === me.mode) ? me.mode : null;
   if (mode === "space" && !S.endless) S.explorerAsked = false; // v1.6 ENDLESS: asked once per game, not at every landing
   if (mode === "planet" && !locked && !h.transition && !S.explorerAsked && S.lastMode !== null && h.phase !== "scoreboard") { S.explorerAsked = true; openExplorer(); }
   if (mode) S.lastMode = mode;
