@@ -16,7 +16,10 @@
 //   kind "ship" | "explorer": one vision call (same request style, strict JSON) reads the drawn entity →
 //   { ok: true, entity: { type, rig, verbs, unlocked: [{verb, part}], parts: [{name, x, y}], source, anims } }.
 //   Skills come ONLY from drawn parts (PLAN.md "Unlockable skills"); verbs = Verbs.entityVerbs(type, drawn skills).
-//   ASTRA_MOCK=1, no key, a timeout or a failed call: the generous dev kit (Verbs.DEV_KIT, source "devkit").
+//   ASTRA_MOCK=1 or no key (development only): the generous dev kit (Verbs.DEV_KIT, source "devkit").
+//   v1.5 (QA M1): a timeout or a failed call read nothing, so it unlocks nothing: a plain entity with only its type's
+//   innate skills (source "fallback"), and the answer says so: { ok: true, entity, fallback: true, free: true,
+//   failed: "timeout" | "error" }. server.js spends no drawing for it and the phone offers a retry. Never cached.
 //   Keeps the drawing at controllers/<player>-<kind>.png (finished only).
 //
 // looksLike (every answer the model gave): what the drawing really is, "controller" | "entity" | "nothing".
@@ -170,6 +173,7 @@ function promptFor(kind, source, region, opts = {}) {
   const control = [
     "Controls:",
     "- A circle with a smaller circle or knob inside, a D-pad cross, a circle with arrows inside, or four arrows around one point is ONE control of type \"stick\" whose rectangle covers the whole cluster; its action is \"steer\" if it is on the left half of the image, else \"move\".",
+    "- An empty circle or ring with nothing written or drawn inside (the game tells players: circle = MOVE) is also ONE control of type \"stick\": \"steer\" if it is on the left half of the image, else \"move\".",
     "- A single arrow on its own (or alone inside its own circle) is a \"button\" with action left, right, up or down.",
     "- A box, circle or shape with a word or an icon in it is a \"button\" (a drawn on/off switch or slider is a \"toggle\"). A word written just under, over or next to a shape, or joined to it by an arrow, is that shape's label, not a separate control.",
     "- label: the written word exactly, in UPPERCASE (FIRE, LAND, PEW, DIG...). Use \"\" if no word is written.",
@@ -610,12 +614,17 @@ function startEntry(hash, kind, image, region, source, extra) {
       return { ok: true, reading, ms: Date.now() - t0, outcome: outcomeOf(reading) };
     } catch (err) {
       const ms = Date.now() - t0;
-      // An entity always comes back: the dev kit keeps the game playable without a key or when the call fails.
-      if (ENTITY_KINDS[kind] && !entry.superseded) return { ok: true, reading: { value: devKitEntity(kind), looksLike: null, thing: null, wrong: false }, ms, outcome: `${entry.timedOut ? "timeout" : `error: ${err && err.message}`} → dev kit` };
+      const noKey = /^no OPENAI_API_KEY/.test(String(err && err.message));
+      // An entity always comes back. Without a key (development) the dev kit keeps the game playable; a timeout or a
+      // failed call (v1.5, QA M1) gets the plain entity: nothing read means nothing unlocked, and it is not charged.
+      if (ENTITY_KINDS[kind] && !entry.superseded) {
+        const why = entry.timedOut ? "timeout" : `error: ${err && err.message}`;
+        if (noKey) return { ok: true, reading: { value: devKitEntity(kind), looksLike: null, thing: null, wrong: false }, ms, outcome: `${why} → dev kit` };
+        return { ok: true, reading: { value: plainEntity(kind), looksLike: null, thing: null, wrong: false, failed: entry.timedOut ? "timeout" : "error" }, ms, outcome: `${why} → plain entity, free` };
+      }
       if (err && err.final && !entry.superseded) return { ok: false, error: err.message, looksLike: err.looksLike, ms, outcome: `error: ${err.message}` };
       // No answer in time (or no key): the drawing's own ink regions, the button the game asked for, else nothing
       // (a fallback layout the player never drew would be charged and sit under the wrong ink).
-      const noKey = /^no OPENAI_API_KEY/.test(String(err && err.message));
       if ((entry.timedOut || noKey) && !entry.superseded) {
         const why = entry.timedOut ? "timeout" : "no key";
         const fromInk = kind === "controller" ? regionsLayout(extra.inkRegions) : null;
@@ -703,12 +712,19 @@ function entityAnswer(kind, value) {
   return { ...entity, anims };
 }
 
-// The generous development kit: every gate skill (ASTRA_MOCK=1, no key, a timeout or a failed call).
+// The generous development kit: every gate skill (ASTRA_MOCK=1 or no key: development only).
 function devKitEntity(kind) {
   const { type, world } = ENTITY_KINDS[kind];
   const unlocked = Verbs.DEV_KIT[world].map((u) => ({ ...u }));
   return finishEntity(type, unlocked, unlocked.map((u, i) => ({ name: u.part, x: round3(0.2 + 0.1 * i), y: 0.5 })), "devkit");
 }
+// v1.5 (QA M1): the entity when the drawing could not be read (a timeout, a failed call): only what its type does by
+// itself (a plain ship flies, a person walks and jumps), source "fallback". A slow answer is never a gameplay advantage.
+function plainEntity(kind) {
+  return finishEntity(ENTITY_KINDS[kind].type, [], [], "fallback");
+}
+// Development (no network answers at all): ASTRA_MOCK=1 or no key. Only then does a failure get the dev kit.
+const devMode = () => process.env.ASTRA_MOCK === "1" || !apiKey();
 
 // The refusal for a drawing of the wrong kind: what it looks like, in words the phone can show.
 function wrongKindError(kind, reading) {
@@ -838,15 +854,18 @@ function specWithin(specP) {
 
 // A finished ship / explorer always comes back (owner, v1.3: "make sure the entity creation works"): the only entity
 // answers with ok: false are the wrong-kind refusals ("looks like a controller", "nothing to read"), "superseded" (a
-// newer call from the same player) and a malformed request. An exception anywhere → the generous dev kit.
+// newer call from the same player) and a malformed request. An exception anywhere → the plain entity, free (v1.5, QA
+// M1; the dev kit in development).
 async function generate(body, opts = {}) {
   try {
     return await generateOnce(body, opts);
   } catch (err) {
     const kind = body && body.kind;
     if (!ENTITY_KINDS[kind]) throw err;
-    console.log(`astra ${kind} ${Contract.cleanName(body.player) || "-"} failed (${err && err.message}) → dev kit`);
-    return { ok: true, entity: entityAnswer(kind, devKitEntity(kind)) };
+    const dev = devMode();
+    console.log(`astra ${kind} ${Contract.cleanName(body.player) || "-"} failed (${err && err.message}) → ${dev ? "dev kit" : "plain entity, free"}`);
+    if (dev) return { ok: true, entity: entityAnswer(kind, devKitEntity(kind)) };
+    return { ok: true, entity: entityAnswer(kind, plainEntity(kind)), fallback: true, free: true, failed: "error" };
   }
 }
 
@@ -931,7 +950,8 @@ async function generateOnce(body, opts = {}) {
   log(kind, player, hit, result.ms, answer.ok || !result.ok ? result.outcome : `${result.outcome} → refused (${answer.error})`, body.speculative);
   // A speculative ship / explorer is not kept (the drawing on disk is the finished one; controllers keep theirs).
   // A refused ship / explorer is not kept either: the drawing on disk stays the last accepted one.
-  if (result.error !== "superseded" && !(ENTITY_KINDS[kind] && (body.speculative || !answer.ok))) save(player, kind, image, answer);
+  // v1.5: nor is one that could not be read (answer.fallback).
+  if (result.error !== "superseded" && !(ENTITY_KINDS[kind] && (body.speculative || !answer.ok || answer.fallback))) save(player, kind, image, answer);
   return answer;
 }
 
@@ -967,9 +987,11 @@ function answerOf(kind, result, anyway, { region, expect } = {}) {
   if (!value && kind === "button" && expect) {
     try { value = finishLayout([{ type: "button", action: expect, label: "", ...region }], "model"); } catch {}
   }
-  if (!value && ENTITY_KINDS[kind]) value = devKitEntity(kind);
+  // v1.5 (QA M1): an entity nobody could read unlocks nothing (the plain entity) and costs nothing (free: true).
+  let failed = ENTITY_KINDS[kind] && reading.failed ? reading.failed : null;
+  if (!value && ENTITY_KINDS[kind]) { value = devMode() ? devKitEntity(kind) : plainEntity(kind); if (value.source === "fallback") failed = failed || "error"; }
   if (!value) return { ok: false, error: "unreadable button", ...looks };
-  if (ENTITY_KINDS[kind]) return { ok: true, entity: entityAnswer(kind, value), ...looks };
+  if (ENTITY_KINDS[kind]) return { ok: true, entity: entityAnswer(kind, value), ...looks, ...(failed ? { fallback: true, free: true, failed } : {}) };
   return { ok: true, layout: structuredClone(value), ...looks };
 }
 
@@ -1041,7 +1063,7 @@ const _internals = {
   },
   state: () => ({ cache: cache.size, inflight: inflight.size, slots: slots.size, pads: pads.size, defaultTierOnly: defaultTierOnly() }),
   padOf: (player) => (pads.get(Contract.cleanName(player)) || []).map((c) => ({ ...c })),
-  TIMEOUT_MS, MOCK_MS, HEDGE_MS, SCHEMAS, ACTIONS, ENTITY_KINDS, MAX_OUTPUT_TOKENS, LOOKS, THINGS, entityFromModel, devKitEntity,
+  TIMEOUT_MS, MOCK_MS, HEDGE_MS, SCHEMAS, ACTIONS, ENTITY_KINDS, MAX_OUTPUT_TOKENS, LOOKS, THINGS, entityFromModel, devKitEntity, plainEntity,
   entityPrompt, buildRequest, promptFor, extractText, parseJson, cleanControl, layoutFromModel, readAnswer, mockLayout,
   cleanRegion, sha1, wrongKindError, hedged, regionsLayout, modelId, REGION_VERBS,
   entityAnswer, cardFor, mockButtonAction, MOCK_BUTTONS,

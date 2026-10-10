@@ -132,20 +132,16 @@ function wireAnimations(type, verbs) {
 
 // v1.3 (owner: "make sure the entity creation works"): a finished ship / explorer drawing never fails silently. When
 // Astra cannot answer at all (not loaded, threw, a timeout or an error it did not turn into an entity itself) the
-// player still gets a usable entity: the generous dev kit (every gate skill, source "devkit"), wearing their drawing.
+// player still gets a usable entity, wearing their drawing. v1.5 (QA M1): nothing was read, so nothing is unlocked:
+// the plain entity (only its type's innate skills, source "fallback"), and it is free (fallback: true, free: true: no
+// drawing spent, the phone says so and offers TRY AGAIN). Astra answers its own timeouts / failures the same way.
 // Refusals (a controller drawn in the ship step, a blank page) and bad requests keep their plain message.
 const ENTITY_NO_FALLBACK = /^(looks like|nothing to read|no drawings left|slow down|superseded|kind is|player required|image must|image too large|region too small|join first|name taken)/;
 function fallbackEntity(kind) {
-  const world = kind === "ship" ? "space" : "planet";
   const type = kind === "ship" ? "ship" : "person";
-  const kit = (Verbs.DEV_KIT[world] || []).map((u) => ({ verb: u.verb, part: u.part }));
-  const verbs = Verbs.entityVerbs(type, kit.map((u) => u.verb));
-  const unlocked = kit.filter((u) => verbs.includes(u.verb));
-  const entity = {
-    type, rig: Verbs.RIG_OF[type] || "blob", verbs, unlocked,
-    parts: unlocked.map((u, i) => ({ name: u.part, x: Math.round((0.2 + 0.08 * i) * 1000) / 1000, y: 0.5 })),
-    source: "devkit",
-  };
+  const unlocked = [];
+  const verbs = Verbs.entityVerbs(type, []);
+  const entity = { type, rig: Verbs.RIG_OF[type] || "blob", verbs, unlocked, parts: [], source: "fallback" };
   if (typeof Verbs.cardOf === "function") entity.card = Verbs.cardOf(type, unlocked);
   const anims = wireAnimations(entity.rig, verbs);
   if (anims) entity.anims = anims;
@@ -469,6 +465,9 @@ function plainMessage(kind, error) {
   if (e === "slow down" || e === "superseded") return "";
   if (e === "no drawings left") return "No drawings left for this world.";
   if (e === "timeout") return "That took too long. Tap Done to try again.";
+  // v1.5 (QA M1): the entity could not be read, the plain one stands in, nothing spent
+  if (e === "fallback timeout") return "That took too long. Try again: this did not use a drawing.";
+  if (e === "fallback error") return "Sol could not read it, try again: this did not use a drawing.";
   if (e === "generation unavailable") return "The drawing reader is offline. Try again in a moment.";
   if (e === "looks like a controller") return what === "ship" ? "This looks like a controller. Did you mean to draw your ship?" : "This looks like a controller. Draw what explores the planet here.";
   if (e === "looks like a ship") return kind === "button" ? "That looks like a ship. Draw one button here." : "That looks like your ship. Draw your buttons here.";
@@ -482,6 +481,38 @@ function plainMessage(kind, error) {
   m = /^no skill called "(.{1,16})"$/.exec(e);
   if (m) return `We don't know "${m[1]}". Try a word like FIRE, BOOST or LAND.`;
   return "We couldn't read that. Try again.";
+}
+
+// v1.5 (QA N1): the drawn steering circle. A controller the reader gave no way to turn (no steer stick, no LEFT / RIGHT)
+// used to get world.js's steer stick in the roomiest empty spot, away from the circle the player drew. Before that, look
+// at the drawing's own ink blobs (inkRegions from the phone, fractions of the same image as the layout): an unused round
+// blob (the phone found a closed ring), else an unused about-square blob on the left half, becomes the steer stick right
+// there (auto: true, ink: true; at least a thumb's size around its middle when that overlaps nothing). Unused = not
+// covered by a control the reader found. Nothing usable: the layout as it was (withSteer then adds one, auto: true).
+const TURN_ACTIONS = new Set(["steer", "left", "right"]);
+function steerFromInk(layout, inkRegions) {
+  if (!layout || !Array.isArray(layout.buttons) || !Array.isArray(inkRegions) || layout.buttons.length >= 16) return layout;
+  if (layout.buttons.some((b) => TURN_ACTIONS.has(Contract.normaliseAction(b.action)))) return layout;
+  const num = (v) => Math.min(1, Math.max(0, Number(v) || 0));
+  const r3 = (v) => Math.round(v * 1000) / 1000;
+  const area = (a) => a.w * a.h;
+  const overlap = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+  const used = (r) => layout.buttons.some((b) => overlap(r, b) > 0.3 * Math.min(area(r), area(b)));
+  const blobs = inkRegions.slice(0, 40).filter((r) => r && typeof r === "object").map((r) => {
+    const x = num(r.x), y = num(r.y);
+    return { x, y, w: Math.min(num(r.w), 1 - x), h: Math.min(num(r.h), 1 - y), round: r.round === true };
+  }).filter((r) => r.w >= 0.04 && r.h >= 0.06 && !used(r));
+  const mid = (r) => r.x + r.w / 2;
+  const round = blobs.filter((r) => r.round).sort((a, b) => (mid(a) < 0.5) - (mid(b) < 0.5) || area(a) - area(b)).pop();
+  const square = blobs.filter((r) => mid(r) < 0.5 && r.h >= 0.15 && r.w / r.h >= 0.25 && r.w / r.h <= 1 && area(r) >= 0.012).sort((a, b) => area(a) - area(b)).pop();
+  const pick = round || square;
+  if (!pick) return layout;
+  // a small circle still gets a stick a thumb can use (centred on the circle), unless the bigger box would cover a button
+  const cx = pick.x + pick.w / 2, cy = pick.y + pick.h / 2, w = Math.max(pick.w, 0.16), h = Math.max(pick.h, 0.28);
+  const big = { x: Math.min(Math.max(0, cx - w / 2), 1 - w), y: Math.min(Math.max(0, cy - h / 2), 1 - h), w, h };
+  const box = layout.buttons.some((b) => overlap(big, b) > 0) ? pick : big;
+  const stick = { type: "stick", action: "steer", label: "", x: r3(box.x), y: r3(box.y), w: r3(Math.min(box.w, 1 - box.x)), h: r3(Math.min(box.h, 1 - box.y)), auto: true, ink: true };
+  return { ...layout, buttons: [...layout.buttons, stick] };
 }
 
 const speculativeAt = Object.create(null); // player → recent speculative call times
@@ -577,14 +608,17 @@ async function handlePost(req, res, url) {
     }
     // A finished ship / explorer always comes back as an entity (fallbackEntity), unless it was refused.
     if (finished && player && DRAWING_KINDS[body.kind] && !(result && result.ok) && !ENTITY_NO_FALLBACK.test(String((result && result.error) || ""))) {
-      logOnce(`generate ${body.kind} fell back to the dev kit`, (result && result.error) || "no answer");
+      logOnce(`generate ${body.kind} fell back to the plain entity`, (result && result.error) || "no answer");
       status = 200;
-      result = { ok: true, entity: fallbackEntity(body.kind), fallback: true };
+      result = { ok: true, entity: fallbackEntity(body.kind), fallback: true, free: true, failed: result && result.error === "timeout" ? "timeout" : "error" };
     }
-    if (result && result.ok && finished && player && !world.spendDrawing(player, where)) result = { ok: false, error: "no drawings left" };
+    // v1.5 (QA M1): a drawing nobody could read (fallback, free) costs nothing; the phone offers TRY AGAIN.
+    const free = !!(result && result.ok && result.fallback && result.free && DRAWING_KINDS[body.kind]);
+    if (result && result.ok && finished && player && !free && !world.spendDrawing(player, where)) result = { ok: false, error: "no drawings left" };
     if (result && result.ok && player && (body.kind === "controller" || body.kind === "button") && result.layout) {
-      // Never stuck: a controller with no way to turn gets a steer stick (auto: true) where there is room.
-      if (body.kind === "controller") result = { ...result, layout: withSteer(result.layout) };
+      // Never stuck: a controller with no way to turn gets a steer stick (auto: true) where there is room. v1.5 (QA N1):
+      // first where the player drew it: an unused circle in the drawing (steerFromInk), so the hit area sits on the ink.
+      if (body.kind === "controller") result = { ...result, layout: withSteer(steerFromInk(result.layout, body.inkRegions)) };
       // The whole pad (the drawn controller plus added buttons) as HTML, now; Sol's own version follows.
       const padLayout = mergeLayout(world.layoutOf(player), result.layout, body.kind);
       if (finished) world.setLayout(player, result.layout, body.kind);
@@ -595,7 +629,15 @@ async function handlePost(req, res, url) {
       result = { ...result, ...extra };
       if (finished) broadcast({ type: "generated", player, kind: body.kind, layout: result.layout, ...extra });
     }
-    if (result && result.ok && finished && player && DRAWING_KINDS[body.kind] && result.entity) {
+    // v1.5 (QA M1): an unread redraw never takes away a drawing that was read: the player keeps that entity (kept: true)
+    // and nothing changes; only a player with no read drawing for that world yet gets the plain entity (never stuck).
+    const p0 = player && world.players[player];
+    const read0 = p0 && p0.drawn && p0.drawn[body.kind === "ship" ? "space" : "planet"];
+    if (free && finished && read0 && read0.source !== "fallback" && result.entity) {
+      const type = read0.type || result.entity.type, verbs = Verbs.entityVerbs(type, (read0.unlocked || []).map((u) => u.verb));
+      const kept = { type, rig: Verbs.RIG_OF[type] || "blob", verbs, unlocked: read0.unlocked || [], parts: read0.parts || [], source: read0.source, card: read0.card };
+      result = { ...result, entity: drawnEntity(player, kept), kept: true };
+    } else if (result && result.ok && finished && player && DRAWING_KINDS[body.kind] && result.entity) {
       // A full redraw: the drawn parts replace that world's entity and its skills (world.setEntity), now if the
       // player drives one, else at the next mode switch (an explorer drawn in space shows up on landing). The drawn
       // look rides along as `image`.
@@ -613,6 +655,7 @@ async function handlePost(req, res, url) {
       if (image && body.kind === "ship" && p && p.mode === "planet") broadcast(world.worldMessage({ entities: false }));
     }
     if (result && !result.ok) result = { ...result, message: plainMessage(body.kind, result.error) };
+    else if (free) result = { ...result, message: plainMessage(body.kind, result.failed === "timeout" ? "fallback timeout" : "fallback error") };
     return json(res, status, player && result ? { ...result, drawingsLeft: world.drawingsLeft(player) } : result);
   }
   if (url.pathname === "/controller-html") {

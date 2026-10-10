@@ -1029,6 +1029,7 @@ const COPY = {
     sub: { ship: "Your drawing is becoming a 3D ship", controller: "Finding your buttons", explorer: "Your drawing is becoming a 3D explorer", planetController: "Finding your buttons" },
     failed: "THAT DID NOT WORK", retry: "TRY AGAIN", redo: "DRAW IT AGAIN", back: "BACK", backGame: "BACK TO THE GAME ▶", newName: "PICK A NEW NAME",
     free: "This did not use a drawing",
+    plain: { ship: "USE A PLAIN SHIP", explorer: "USE A PLAIN EXPLORER" },   // v1.5 (QA M1): the unread drawing as a plain entity (it only moves)
   },
   errors: {
     generic: "Something went wrong. Try again",
@@ -1037,6 +1038,8 @@ const COPY = {
     noDrawings: "No drawings left {where} this round",
     unreadable: "Could not read that button. Draw it bigger and try again",
     nothing: "Nothing to read there. Draw bigger and darker, then try again",
+    solSlow: "That took too long. Try again: this did not use a drawing",       // v1.5 (QA M1): an entity read timed out (free)
+    solFailed: "We could not read it. Try again: this did not use a drawing",
   },
   wrong: {
     toController: "This looks like a controller. Did you mean to draw your {what}?",
@@ -1047,7 +1050,8 @@ const COPY = {
   result: {
     ship: { title: "YOUR SHIP!", card: "YOUR SHIP CAN:", next: "NEXT: DRAW YOUR CONTROLLER ▶", back: "BACK TO THE GAME ▶", redraw: "REDRAW SHIP", building: "BUILDING YOUR 3D SHIP…" },
     explorer: { title: "YOUR EXPLORER!", card: "YOUR EXPLORER CAN:", next: "NEXT ▶", back: "BACK TO THE GAME ▶", redraw: "REDRAW EXPLORER", building: "BUILDING YOUR 3D EXPLORER…" },
-    controller: { title: "YOUR CONTROLLER!", next: "PLAY ▶", redraw: "REDRAW CONTROLLER", allWork: "Every button works with your {what}", more: "🔒 +{n} more need a drawing on your {what}" },
+    controller: { title: "YOUR CONTROLLER!", next: "PLAY ▶", redraw: "REDRAW CONTROLLER", allWork: "Every button works with your {what}", more: "🔒 +{n} more need a drawing on your {what}",
+      added: "ADDED", addedLine: "We added a STEER circle so you can turn: draw a circle to place your own" },
     uses: "· uses 1 drawing",
     sentence: "Your {what} can: {list}",
     lockedHead: "🔒 DRAW IT TO UNLOCK",
@@ -2094,6 +2098,13 @@ async function commit({ anyway = false } = {}) {
   if (!anyway && isWrong(kind, res)) { hideGen(); return showWrong(kind, res); }
   const ok = res.ok && (KINDS[kind].entity ? !!res.entity : !!res.layout && !C.CHECKS.layout(res.layout).length);
   if (!ok) return showGenError(res.ok ? { ok: false, error: "bad answer", message: COPY.errors.generic } : res);
+  // v1.5 (QA M1): the drawing could not be read (a timeout, a failed call): nothing was unlocked and nothing spent. Say so and offer
+  // TRY AGAIN (the same drawing, free). The second button keeps the plain entity the server stood in (a first drawing) or, on a redraw
+  // (kept: the ship already read stays), goes back to the drawing.
+  if (KINDS[kind].entity && res.fallback && res.free) {
+    const message = res.failed === "timeout" ? COPY.errors.solSlow : COPY.errors.solFailed;
+    return showGenError({ ...res, ok: false, error: "unread", message }, res.kept ? null : { kind, res, d });
+  }
   hideGen();
   onCommitted(kind, res, d);
 }
@@ -2160,30 +2171,38 @@ function showGen(kind, image) {
   setText($("genErr"), ""); $("genActions").classList.add("hidden");
 }
 // A failed answer: what went wrong in plain words, that it cost nothing, and the one thing to do next (failureKind).
-let genMode = "retry";
-function showGenError(res) {
+let genMode = "retry", genPlain = null;   // genPlain (v1.5): { kind, res, d } when BACK can keep the plain entity of an unread drawing
+function showGenError(res, plain = null) {
   clearTimeout(genTimer);
   genMode = failureKind(res);
+  genPlain = plain && plain.res && plain.res.entity ? plain : null;
   stopProgress();
   $("gen").classList.remove("hidden"); $("genSpin").classList.add("hidden"); $("genPic").classList.add("hidden");
   $("genTitle").textContent = COPY.gen.failed;
   const unsure = res && (res.error === "client timeout" || res.error === "network");   // the server may still have spent it
-  setText($("genSub"), genMode === "none" || genMode === "rename" || unsure ? "" : COPY.gen.free);
+  const said = res && res.error === "unread";       // the message already says it did not use a drawing
+  setText($("genSub"), genMode === "none" || genMode === "rename" || unsure || said ? "" : COPY.gen.free);
   setText($("genErr"), (res && res.message) || COPY.errors.generic);
   $("genRetry").textContent = genMode === "redo" ? COPY.gen.redo : genMode === "rename" ? COPY.gen.newName : COPY.gen.retry;
   $("genRetry").classList.toggle("hidden", genMode === "none");
-  $("genBack").textContent = genMode === "none" ? COPY.gen.backGame : COPY.gen.back;
+  $("genBack").textContent = genPlain ? COPY.gen.plain[genPlain.kind === "ship" ? "ship" : "explorer"] : genMode === "none" ? COPY.gen.backGame : COPY.gen.back;
   $("genActions").classList.remove("hidden");
 }
 function hideGen() { clearTimeout(genTimer); stopProgress(); $("gen").classList.add("hidden"); }
 $("genRetry").onclick = () => {
   hideGen();
+  genPlain = null;
   if (genMode === "rename") { store.set("player", null); show("join"); setStep("join"); $("name").value = ""; return; }   // join under a new name; the drawings stay
   if (genMode !== "redo") return commit();            // the same drawing again (it was the network or the reader, not the drawing)
   resetDrawing();                                     // a fresh drawing; in photo mode the camera opens at once (this tap is the gesture)
   if (DR.mode === "photo") $("camInput").click();
 };
-$("genBack").onclick = () => { hideGen(); if (genMode === "none") backToGame(); };   // back to the drawing (nothing was lost), or to the game
+$("genBack").onclick = () => {     // back to the drawing (nothing was lost), or to the game; v1.5: or keep the plain entity (genPlain)
+  hideGen();
+  const plain = genPlain; genPlain = null;
+  if (plain) return onCommitted(plain.kind, plain.res, plain.d);
+  if (genMode === "none") backToGame();
+};
 
 // ---- the wrong kind of drawing ----
 function showWrong(kind, res) {
@@ -2353,8 +2372,10 @@ function buildCtrlPreview(kind, layout, ink) {
   const stage = document.createElement("div"); stage.className = "cstage"; stage.style.paddingTop = (100 / playAspect()).toFixed(2) + "%";   // the drawing has the play area's shape
   if (ink) { const img = new Image(); img.alt = ""; img.src = ink; stage.append(img); }
   const locked = [];
+  let added = false;      // v1.5 (QA N1): a steer stick the game added (auto) away from the ink says so; one on the drawn circle (ink) does not
   for (const b of layout.buttons) {
-    const info = lockInfo(b.action, ent), name = controlName(b);
+    const info = lockInfo(b.action, ent), extra = b.auto && !b.ink, name = controlName(b) + (extra ? ` (${COPY.result.controller.added})` : "");
+    if (extra) added = true;
     const box = document.createElement("div");
     box.className = "cbox" + (b.type === "stick" ? " stick" : "") + (info ? " lock" : "");
     Object.assign(box.style, { left: b.x * 100 + "%", top: b.y * 100 + "%", width: b.w * 100 + "%", height: b.h * 100 + "%" });
@@ -2368,6 +2389,7 @@ function buildCtrlPreview(kind, layout, ink) {
   const lines = locked.length > 2 ? [locked[0], tpl(COPY.result.controller.more, { n: locked.length - 1, what })] : locked;
   for (const t of lines) { const li = document.createElement("li"); li.textContent = t; list.append(li); }
   if (!locked.length) { const li = document.createElement("li"); li.className = "ok"; li.textContent = "✓ " + tpl(COPY.result.controller.allWork, { what }); list.append(li); }
+  if (added) { const li = document.createElement("li"); li.textContent = COPY.result.controller.addedLine; list.append(li); }
   setText($("unlockTip"), "");
 }
 
@@ -2739,6 +2761,29 @@ function adoptPad(pad, { mount = true } = {}) {
 async function fetchPad() {
   try { const r = await post("/controller-html", { player: S.player }); return r && r.ok ? padOf(r) : null; } catch { return null; }
 }
+// v1.5 (QA M4): Sol's own HTML can finish while no stream of mine listens (the result card before PLAY, the gap before the game's stream
+// opens, a reconnect, a sleeping phone): its one `generated` kind "html" is then lost and the template stayed for good. While the pad is
+// still the template, ask the server for the pad as it is now and take Sol's version, but only for this very pad (padKey): a late answer
+// for an older pad never replaces a redraw. A final template (Sol failed, nothing pending) is not asked again for the same pad.
+const padKey = (pad) => {
+  const L = pad && pad.padLayout;
+  if (L && Array.isArray(L.buttons)) return JSON.stringify(L.buttons.map((b) => [C.normaliseAction(b.action), b.x, b.y, b.w, b.h]));
+  return pad ? padActions(pad).join(",") : "";
+};
+let padCheck = null, padCheckAt = 0, padSettled = "";
+function refreshPad({ force = false } = {}) {
+  if (!S.player || !S.pad || S.pad.source === "model" || padCheck) return;
+  const want = padKey(S.pad), now = performance.now();
+  if (padSettled === want || (!force && now - padCheckAt < 1500)) return;
+  padCheckAt = now;
+  padCheck = post("/controller-html", { player: S.player }, { timeoutMs: 8000 }).catch(() => null).then((r) => {
+    padCheck = null;
+    const pad = r && r.ok ? padOf(r) : null;
+    if (!pad || !S.pad || S.pad.source === "model" || padKey(S.pad) !== want || padKey(pad) !== want) return;
+    if (pad.source === "model") adoptPad(pad);            // mounts at once on the play screen (swapped in place, never under a held finger)
+    else if (!r.pending) padSettled = want;
+  });
+}
 
 let ctlRun = 0;      // the newest ensureCtl run wins
 let padTemplate = null;   // { sig, html }: the template document of the newest pad; the frame falls back to it when Sol's own HTML fails
@@ -2758,6 +2803,7 @@ async function ensureCtl() {
     }
     if (!S.pad || S.pad.bad) return dropCtl();
     mountPad(mod);
+    if (S.pad.source !== "model") refreshPad({ force: true });   // v1.5 (QA M4): Sol's own version may be done already (missed while away)
   } finally {
     if (run === ctlRun) { S.ctlPending = false; maybeLegend(); }
   }
@@ -2932,6 +2978,7 @@ function onGenerated(m) {
   if (!m || m.player !== S.player) return;
   const pad = padOf(m);
   if (!pad || (S.pad && S.pad.html === pad.html)) return;
+  if (m.kind === "html" && S.pad && padKey(pad) !== padKey(S.pad)) return;   // v1.5: Sol's version of an older pad (a redraw replaced it)
   adoptPad(pad);
 }
 
@@ -3008,9 +3055,11 @@ function openEarlyStream() {
   const es = earlyEs;
   es.onmessage = (ev) => {
     if (earlyEs !== es || gameWired) return;
-    let m; try { m = JSON.parse(ev.data); } catch { return; }       // only the ticks are used here
+    let m; try { m = JSON.parse(ev.data); } catch { return; }       // the ticks, and (v1.5, QA M4) my pad: Sol's own HTML often lands here
     if (m && m.type === "tick") onNetTick(m);
+    else if (m && m.type === "generated") onGenerated(m);        // while I read the result card; kept in S.pad, mounted at PLAY
   };
+  es.onopen = () => { if (earlyEs === es && !gameWired) refreshPad(); };   // a (re)connect: anything sent while it was down
 }
 function closeEarlyStream() { gameWired = true; if (earlyEs) { try { earlyEs.close(); } catch {} earlyEs = null; } }
 let gameWired = false;
@@ -3066,9 +3115,12 @@ function wireGame(game) {
   // drawingsLeft is not part of hud().me in every build, so read it from the tick too (setLeft does nothing unless it changed). The tick also
   // keeps the round phase for the "drawing" input, which must follow the screens even while the renderer is paused.
   closeEarlyStream();       // v1.5: the game's own stream takes over from the one opened at JOIN
+  // v1.5 (QA M4): Sol's HTML that finished between the two streams (the game's may still be connecting) is fetched, now and once more soon.
+  refreshPad({ force: true }); setTimeout(() => refreshPad({ force: true }), 3000);
   game.on("tick", onNetTick);
   game.on("entity", (m) => { if (m.player === S.player && m.entity) setEntity(m.entity); });
   game.on("world", (m) => {
+    refreshPad();           // v1.5 (QA M4): a world message also follows every (re)connect of the game's stream (throttled, template only)
     if (m.entities && m.entities[S.player]) setEntity(m.entities[S.player]);
     const parked = (m.island && Array.isArray(m.island.parked) && m.island.parked.find((c) => c.player === S.player)) || null;
     S.wrecked = !!(parked && parked.wrecked);       // my ship on the pad was wrecked: it needs a new ship drawing to take off
@@ -3850,7 +3902,7 @@ $("expDefault").onclick = () => { $("explorer").classList.add("hidden"); syncDra
 // ============================================================================================================
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) { releaseAll(); stopHud(); }
-  else if (S.screen === "play") startHud();
+  else { if (S.screen === "play") startHud(); refreshPad(); }   // v1.5 (QA M4): Sol's controller may have arrived while the phone slept
   syncRendering();     // paused while hidden or while the opaque draw screen is up
 });
 let resizeTimer = 0;
