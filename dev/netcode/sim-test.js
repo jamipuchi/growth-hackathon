@@ -1260,6 +1260,225 @@ test("v1.4 seats: humans and bots never exceed 25; a human takes the newest bot'
   return `25 bots → 1 human + 24 bots → 25 humans; a 26th refused`;
 });
 
+// ---- v1.8 loot (owner, 10 Oct 13:00 / 13:02; contract.js TUNING.loot) ---------------------------------------------------
+
+const L = T.loot;
+// A started round with ana (dev kit ship) hovering (BACK held) with nothing within `clear` m; bob plain, unless asked.
+function lootRound(seed, { bob = false, clear = 90 } = {}) {
+  const h = harness(seed);
+  h.w.join("ana"); h.w.setEntity("ana", "ship", devKit("ship"));
+  if (bob) h.w.join("bob");
+  h.w.start();
+  const ana = h.p("ana");
+  ana.pos = { x: 0, y: 0, z: 0 }; ana.yaw = 0; ana.pitch = 0; ana.spawnShield = 0;
+  h.input("ana", "back", true);
+  const rocks = h.dbg().rocks;
+  for (let i = rocks.length - 1; i >= 0; i--) if (Math.hypot(rocks[i].pos.x, rocks[i].pos.y, rocks[i].pos.z) < clear) rocks.splice(i, 1);
+  if (bob) { const b = h.p("bob"); b.pos = { x: 30, y: 0, z: 0 }; b.yaw = 0; b.pitch = 0; b.spawnShield = 0; h.input("bob", "back", true); }
+  return h;
+}
+const ownBullets = (h, name) => h.dbg().bullets.filter((b) => b.owner === name);
+function grab(h, name, kind) {
+  const from = h.steps, k = h.w.spawnPickup(kind, h.p(name).pos);
+  h.step();
+  assert(!h.dbg().pickups.includes(k), `${kind} collected at once`);
+  const toast = h.toasts(name, from).find((t) => t.pickup === kind);
+  assert(toast, `${name} got a ${kind} toast`);
+  return toast;
+}
+
+test("v1.8 loot: a destroyed crystal drops a pickup; a ship flying through it collects it (toast, sparkle fx, quiet feed line)", () => {
+  const h = lootRound(81);
+  const was = L.dropChance.crystal;
+  L.dropChance.crystal = 1;
+  try {
+    const ana = h.p("ana");
+    const rock = { id: 99999, pos: { x: 0, y: 0, z: -40 }, size: 3, type: "crystal", health: 2 };
+    h.dbg().rocks.push(rock);
+    h.input("ana", "shoot", true);
+    h.until("the crystal breaks", () => !h.dbg().rocks.includes(rock), 3);
+    h.input("ana", "shoot", false);
+    const [k] = h.dbg().pickups;
+    assert(k && Contract.LOOT_KINDS.includes(k.kind), "one pickup where the crystal was");
+    assert(dist(k.pos, rock.pos) < 3, "it floats where the rock was");
+    assert.strictEqual(ana.score, SCORING.crystal);
+    h.step(); h.step();
+    const seen = h.lastTick.pickups.find((x) => x[0] === k.id);
+    assert(seen && Contract.LOOT_KINDS[seen[1]] === k.kind && seen.length === 5, "tick.pickups carries [id, kind, x, y, z]");
+    assert(h.w.worldMessage().pickups.some((x) => x[0] === k.id), "and so does the world message");
+    const from = h.steps;
+    h.input("ana", "back", false); // cruise into it
+    h.until("ana collects it", () => !h.dbg().pickups.includes(k), 5);
+    const fx = h.msgs.filter((x) => x.at >= from && x.m.type === "fx" && x.m.kind === "pickup").map((x) => x.m);
+    assert(fx.length === 1 && fx[0].player === "ana" && fx[0].item === k.kind && fx[0].color === L.kinds[k.kind].color, "one sparkle fx for ana");
+    const toast = h.toasts("ana", from).find((t) => t.pickup === k.kind);
+    assert(toast && toast.kind === "info" && toast.text.startsWith(L.kinds[k.kind].icon), `ana's toast: ${toast && toast.text}`);
+    const line = h.msgs.find((x) => x.at >= from && x.m.type === "announce" && x.m.quiet);
+    assert(line && !line.m.big && line.m.text.includes("ana"), "a quiet feed line for the TV");
+    return `crystal → ${k.kind}, collected after ${((h.steps - from) / Contract.SIM_HZ).toFixed(2)} s: "${toast.text}"`;
+  } finally { L.dropChance.crystal = was; }
+});
+
+test("v1.8 loot: drop table (stone 25%, crystal 60%, crystals favour uncommon/rare), drift, 20 s life, 24 alive at most, magnet pull", () => {
+  const { rollLoot } = require("../../world");
+  const rnd = mulberry32(7), tiers = (type) => {
+    const n = { common: 0, uncommon: 0, rare: 0 };
+    for (let i = 0; i < 20000; i++) n[L.kinds[rollLoot(type, rnd)].tier]++;
+    return n;
+  };
+  const s = tiers("stone"), c = tiers("crystal");
+  assert(s.common > s.uncommon && s.uncommon > s.rare, `stone mostly common ${JSON.stringify(s)}`);
+  assert(c.uncommon + c.rare > 3 * (s.uncommon + s.rare) / 2 && c.rare > 3 * s.rare, `crystals favour uncommon and rare ${JSON.stringify(c)}`);
+  const h = lootRound(82);
+  const far = { x: 300, y: 0, z: 300 };
+  const k = h.w.spawnPickup("gems", far);
+  h.wait(2);
+  const drift = dist(k.pos, far);
+  assert(drift > 1 && drift < 3, `drifts a little (${drift.toFixed(2)} m in 2 s)`);
+  for (let i = 0; i < 30; i++) h.w.spawnPickup("gems", { x: 300 + i * 10, y: 0, z: 300 });
+  assert.strictEqual(h.dbg().pickups.length, L.max, "at most 24 alive: the oldest make room");
+  assert(!h.dbg().pickups.includes(k), "the oldest went first");
+  h.wait(L.life + 0.1);
+  assert.strictEqual(h.dbg().pickups.length, 0, "gone after 20 s");
+  // magnet: 11 m off the side is pulled in; 20 m is not (12 m range)
+  const ana = h.p("ana");
+  const near = h.w.spawnPickup("gems", { x: ana.pos.x + 11, y: ana.pos.y, z: ana.pos.z });
+  const out = h.w.spawnPickup("gems", { x: ana.pos.x - 20, y: ana.pos.y, z: ana.pos.z });
+  h.wait(1);
+  assert(!h.dbg().pickups.includes(near) && h.dbg().pickups.includes(out), "pulled from 11 m, not from 20 m");
+  return `stone ${JSON.stringify(s)}, crystal ${JSON.stringify(c)} of 20000; drift ${drift.toFixed(1)} m / 2 s`;
+});
+
+test("v1.8 loot: REPAIR, SHIELD bubble (stacks to 12 s, rams and hits bounce), BOOST, GEMS, +1 DRAWING, WARP", () => {
+  const h = lootRound(83, { bob: true });
+  const ana = h.p("ana");
+  ana.hp = 30; grab(h, "ana", "repair"); assert.strictEqual(ana.hp, 30 + L.kinds.repair.hp);
+  ana.hp = 90; grab(h, "ana", "repair"); assert.strictEqual(ana.hp, T.shipHp, "never above full");
+  ana.boostEnergy = 0.05; ana.boostLocked = true; grab(h, "ana", "boost");
+  assert(ana.boostEnergy === 1 && !ana.boostLocked, "a full tank");
+  const s0 = ana.score; const gems = grab(h, "ana", "gems");
+  assert.strictEqual(ana.score - s0, L.kinds.gems.points); assert.strictEqual(gems.text, "💎 +75");
+  const full = grab(h, "ana", "draw");
+  assert(/FULL/.test(full.text) && ana.score - s0 === L.kinds.gems.points + L.kinds.draw.fullPoints, `a full budget pays points: ${full.text}`);
+  h.w.spendDrawing("ana", "space"); h.w.spendDrawing("ana", "space");
+  grab(h, "ana", "draw");
+  assert.strictEqual(h.w.drawingsLeft("ana").space, T.drawings.space - 1, "+1 drawing in space");
+  const sh = grab(h, "ana", "shield");
+  assert.strictEqual(sh.text, "🛡️ +SHIELD · 6s"); assert.strictEqual(sh.seconds, 6);
+  grab(h, "ana", "shield"); grab(h, "ana", "shield");
+  h.step(); h.step();
+  const f = h.lastTick.players.find((p) => p.name === "ana").flags;
+  assert(f.shield && f.bubble > 11 && f.bubble <= 12, `stacks to 12 s (${f.bubble})`);
+  assert(!ana.shielding, "not a held shield: it can still shoot");
+  const rock = { id: 99998, pos: { ...ana.pos }, size: 2, type: "stone", health: 1 };
+  const sc = ana.score; h.dbg().rocks.push(rock); h.step();
+  assert(!h.dbg().rocks.includes(rock) && ana.stun <= 0 && ana.score === sc, "a ram bounces off the bubble");
+  h.w.setEntity("bob", "ship", devKit("ship"));
+  const bob = h.p("bob"); bob.pos = { x: 0, y: 0, z: 30 }; bob.yaw = 0;
+  h.input("bob", "shoot", true); h.wait(1); h.input("bob", "shoot", false);
+  assert.strictEqual(ana.hp, T.shipHp, "bob's shots bounce off the bubble");
+  h.wait(12);
+  assert(!h.lastTick.players.find((p) => p.name === "ana").flags.bubble, "the bubble ends");
+  const at = { ...ana.pos };
+  const w = grab(h, "ana", "warp");
+  const moved = dist(at, ana.pos);
+  assert(moved >= 10 && moved <= L.kinds.warp.distance + 1 && ana.pos.z < at.z, `warped ${moved.toFixed(1)} m ahead (${w.text})`);
+  assert(h.dbg().rocks.every((r) => dist(r.pos, ana.pos) >= r.size + L.kinds.warp.clear), "clear of every rock");
+  return `repair, boost, gems ${gems.text}, ${full.text}, shield ${f.bubble} s, warp ${moved.toFixed(0)} m`;
+});
+
+test("v1.8 loot: RAPID FIRE doubles a drawn gun's fire rate (a plain ship still cannot shoot); one timed slot; OVERDRIVE and MAGNET", () => {
+  const h = lootRound(84, { bob: true });
+  const ana = h.p("ana"), bob = h.p("bob");
+  const fired = (name, seconds) => { const ids = new Set(); h.input(name, "shoot", true); h.wait(seconds, () => ownBullets(h, name).forEach((b) => ids.add(b.id))); h.input(name, "shoot", false); h.wait(T.bulletLife + 0.2); return ids.size; };
+  const normal = fired("ana", 2);
+  const toast = grab(h, "ana", "rapid");
+  assert.strictEqual(toast.text, "🔥 RAPID FIRE · 8s");
+  const rapid = fired("ana", 2);
+  assert(rapid >= 1.8 * normal, `rapid fire ${rapid} shots in 2 s vs ${normal}`);
+  grab(h, "bob", "rapid");
+  assert.strictEqual(fired("bob", 1), 0, "no drawn gun: still no shots");
+  // one timed slot: OVERDRIVE replaces RAPID FIRE; a plain ship boosts with a full tank, no exhaust drawn
+  grab(h, "bob", "overdrive");
+  h.input("bob", "back", false);
+  h.step(); h.step();
+  const fb = h.lastTick.players.find((p) => p.name === "bob").flags;
+  assert(fb.powerup && fb.powerup.kind === "overdrive" && fb.powerup.left > 7.5 && fb.boost, `bob in OVERDRIVE ${JSON.stringify(fb)}`);
+  const z0 = bob.pos.z; h.wait(1);
+  const speed = z0 - bob.pos.z;
+  assert(Math.abs(speed - T.cruiseSpeed * T.boostMultiplier) < 1.5 && bob.boostEnergy === 1, `boost speed ${speed.toFixed(1)} m/s, tank full`);
+  h.wait(7.2);
+  assert(!bob.power && !h.lastTick.players.find((p) => p.name === "bob").flags.powerup, "over after 8 s");
+  // MAGNET ×4: a pickup 40 m away comes in
+  grab(h, "ana", "magnet");
+  assert(ana.power.kind === "magnet", "MAGNET replaced RAPID FIRE");
+  const g = h.w.spawnPickup("gems", { x: ana.pos.x + 40, y: ana.pos.y, z: ana.pos.z });
+  h.wait(1.5);
+  assert(!h.dbg().pickups.includes(g), "MAGNET pulls from 40 m");
+  return `${normal} → ${rapid} shots / 2 s; overdrive ${speed.toFixed(1)} m/s`;
+});
+
+test("v1.8 loot: MEGA BLAST's next shot hits the boss for 312 and blasts rivals nearby; HOMING curves a near miss in; GHOST lets rival shots through", () => {
+  const h = lootRound(85, { bob: true });
+  const ana = h.p("ana"), bob = h.p("bob"), b = h.dbg().boss;
+  b.hp = b.maxHp = 5000;
+  ana.pos = { x: b.pos.x, y: b.pos.y, z: b.pos.z + b.radius + 20 };
+  bob.pos = { x: b.pos.x + 10, y: b.pos.y, z: b.pos.z + b.radius + 4 };
+  const toast = grab(h, "ana", "mega");
+  assert.strictEqual(toast.text, "💥 MEGA BLAST · next shot");
+  const one = () => { h.input("ana", "shoot", true); h.step(); h.input("ana", "shoot", false); h.wait(0.4); };
+  const d0 = b.damageBy.ana || 0, hp0 = bob.hp;
+  one();
+  const mega = (b.damageBy.ana || 0) - d0;
+  assert.strictEqual(mega, T.bulletDamage + L.kinds.mega.bossDamage, `the mega shot dealt ${mega}`);
+  assert(!ana.power, "spent");
+  assert(hp0 - bob.hp >= L.kinds.mega.damage, `bob ${Math.round(Math.hypot(10, 4))} m from the impact lost ${hp0 - bob.hp}`);
+  const d1 = b.damageBy.ana; one();
+  assert.strictEqual(b.damageBy.ana - d1, T.bulletDamage, "the next shot is a normal one");
+  // HOMING: bob 80 m ahead, 9 m to the side, far from the boss: a plain shot misses, a homing one hits
+  const h2 = lootRound(86, { bob: true });
+  const a2 = h2.p("ana"), b2 = h2.p("bob");
+  b2.pos = { x: 9, y: 0, z: -80 };
+  const shot = () => { h2.input("ana", "shoot", true); h2.step(); h2.input("ana", "shoot", false); h2.wait(1); };
+  shot();
+  assert.strictEqual(b2.hp, T.shipHp, "a plain shot misses");
+  grab(h2, "ana", "homing");
+  b2.pos = { x: 9, y: 0, z: -80 }; a2.pos = { x: 0, y: 0, z: 0 };
+  shot();
+  assert.strictEqual(b2.hp, T.shipHp - T.bulletDamage, "the homing shot curves into bob");
+  // GHOST: bob's shots pass through ana (not used up), until it ends
+  h2.w.setEntity("bob", "ship", devKit("ship"));
+  grab(h2, "ana", "ghost");
+  a2.pos = { x: 0, y: 0, z: 0 }; b2.pos = { x: 0, y: 0, z: 30 }; b2.yaw = 0; b2.pitch = 0; a2.hp = T.shipHp;
+  h2.input("bob", "shoot", true); h2.wait(1.5);
+  assert.strictEqual(a2.hp, T.shipHp, "rival shots pass through a ghost");
+  assert(ownBullets(h2, "bob").some((x) => x.pos.z < a2.pos.z - 5), "and fly on past");
+  h2.wait(4);
+  assert(a2.hp < T.shipHp, "after 5 s they hit again");
+  return `mega ${mega} to the boss, bob -${hp0 - bob.hp}; homing hit at 9 m off the line; ghost 5 s`;
+});
+
+test("v1.8 loot: a tick with 25 players, 24 pickups and 12 power-ups on stays under 8 KB", () => {
+  const room = (powered) => {
+    const h = harness(87);
+    h.w.join("ana"); h.w.setEntity("ana", "ship", devKit("ship"));
+    for (let i = 1; i <= 24; i++) h.w.addBot(`bot${i}`);
+    h.w.start();
+    h.input("ana", "shoot", true);
+    let max = 0;
+    h.wait(30, () => {
+      const live = h.dbg().pickups.length;
+      for (let i = live; i < L.max; i++) h.w.spawnPickup(Contract.LOOT_KINDS[i % 12], { x: 1500 + i * 9, y: 300, z: 1500 });
+      Object.values(h.w.players).slice(0, powered).forEach((p) => { if (!p.power) p.power = { kind: "overdrive", until: h.dbg().t + 8, seconds: 8 }; });
+      if (h.lastTick) max = Math.max(max, Buffer.byteLength(JSON.stringify(h.lastTick)));
+    });
+    return max;
+  };
+  const half = room(12), all = room(25);
+  assert(half < 8192, `max tick ${half} B`);
+  return `max tick ${half} B with ${L.max} pickups and 12 power-ups (${all} B if all 25 had one)`;
+});
+
 // ---- Network budget ------------------------------------------------------------------------------------------------
 
 test("tick size with 25 players stays under 8 KB", () => {

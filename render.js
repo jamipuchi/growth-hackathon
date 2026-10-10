@@ -2626,6 +2626,170 @@ class MischiefLayer {
   }
 }
 
+// v1.8 loot (world.js, contract.js TUNING.loot; owner 10 Oct 13:00 / 13:02): shot rocks drop pickups that float in space.
+//   tick.pickups [[id, kind, x, y, z]]  kind = an index into Contract.LOOT_KINDS. Each is a chunky glowing badge facing the camera
+//                                       (Fortnite-style: the kind's colour, a white glyph: red cross REPAIR, orange flame BOOST, gold
+//                                       gem, cyan SHIELD, magenta chevrons OVERDRIVE, orange-red triple shot RAPID FIRE, blue magnet,
+//                                       purple pencil +1 DRAWING, green crosshair HOMING, white-hot star MEGA BLAST, pale GHOST, teal
+//                                       WARP rings) that bobs, slowly spins like a coin, pops in, and blinks in its last 4 s. ONE
+//                                       instanced draw for all of them (a canvas atlas); their halos ride the scene's glow batch.
+//   flags.powerup { kind, left }        an aura in the power-up's colour round that ship on every screen (GHOST flickers);
+//   flags.bubble                        the SHIELD pickup's bubble is drawn by the ship's shield (flags.shield is on with it).
+//   bullets [.., power] (row index 9)   MEGA BLAST's shot glows big and white-hot, HOMING shots get a green halo.
+//   fx pickup / warp                    a sparkle burst and a ring in the kind's colour / a teal blink at both ends of the dash.
+const LOOT = TUNING.loot || { kinds: {}, life: 20 };
+const LOOT_KINDS = Contract.LOOT_KINDS || Object.keys(LOOT.kinds);
+const LOOT_COLS = LOOT_KINDS.map((k) => new THREE.Color(LOOT.kinds[k].color ?? 0xffffff));
+const LOOT_CAP = 32, LOOT_COLS_N = 4; // instances; atlas columns (4 x 3 cells of 128 px)
+const LOOT_VERT = /* glsl */ `
+  attribute vec3 iPos; attribute vec4 iData; // size, atlas cell, coin squash, alpha
+  uniform float uCols; uniform float uRows;
+  varying vec2 vUv; varying float vA;
+  void main() {
+    vec4 mv = modelViewMatrix * vec4(iPos, 1.0);
+    if (iData.w < 0.01 || mv.z > 0.0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
+    mv.xy += vec2(position.x * iData.z, position.y) * iData.x;
+    gl_Position = projectionMatrix * mv;
+    float c = mod(iData.y, uCols), r = floor(iData.y / uCols);
+    vUv = vec2((c + uv.x) / uCols, 1.0 - (r + 1.0 - uv.y) / uRows);
+    vA = iData.w;
+  }`;
+const LOOT_FRAG = /* glsl */ `
+  uniform sampler2D uMap; varying vec2 vUv; varying float vA;
+  void main() { vec4 t = texture2D(uMap, vUv); if (t.a < 0.02) discard; gl_FragColor = vec4(t.rgb * 1.35, t.a * vA); }`;
+
+// The icon atlas: one 128 px badge per kind (a dark rim, the kind's colour with a bright top, a white glyph with a dark outline).
+function lootAtlas() {
+  const S = 128, rows = Math.ceil(LOOT_KINDS.length / LOOT_COLS_N);
+  const cv = document.createElement("canvas");
+  cv.width = S * LOOT_COLS_N; cv.height = S * rows;
+  const g = cv.getContext("2d");
+  const hex = (n) => "#" + (n >>> 0).toString(16).padStart(6, "0");
+  const glyph = {
+    repair: () => { g.beginPath(); for (const [x, y, w, h] of [[-9, -27, 18, 54], [-27, -9, 54, 18]]) g.rect(x, y, w, h); },
+    boost: () => { g.beginPath(); g.moveTo(0, -30); g.bezierCurveTo(22, -6, 22, 26, 0, 28); g.bezierCurveTo(-22, 26, -22, -6, 0, -30); g.moveTo(0, -2); g.bezierCurveTo(9, 8, 9, 20, 0, 22); g.bezierCurveTo(-9, 20, -9, 8, 0, -2); },
+    gems: () => { g.beginPath(); g.moveTo(-26, -8); g.lineTo(-14, -24); g.lineTo(14, -24); g.lineTo(26, -8); g.lineTo(0, 28); g.closePath(); },
+    shield: () => { g.beginPath(); g.moveTo(0, -30); g.lineTo(25, -20); g.quadraticCurveTo(24, 16, 0, 30); g.quadraticCurveTo(-24, 16, -25, -20); g.closePath(); },
+    overdrive: () => { g.beginPath(); for (const o of [-14, 8]) { g.moveTo(o - 8, -24); g.lineTo(o + 14, 0); g.lineTo(o - 8, 24); g.lineTo(o - 1, 24 - 24); } },
+    rapid: () => { g.beginPath(); for (const o of [-18, 0, 18]) { g.moveTo(o - 6, 26); g.lineTo(o - 6, -12); g.quadraticCurveTo(o, -30, o + 6, -12); g.lineTo(o + 6, 26); g.closePath(); } },
+    magnet: () => { g.beginPath(); g.moveTo(-24, -26); g.lineTo(-24, 4); g.arc(0, 4, 24, Math.PI, 0, true); g.lineTo(24, -26); g.lineTo(11, -26); g.lineTo(11, 4); g.arc(0, 4, 11, 0, Math.PI, false); g.lineTo(-11, -26); g.closePath(); },
+    draw: () => { g.save(); g.rotate(-Math.PI / 4); g.beginPath(); g.rect(-8, -28, 16, 40); g.moveTo(-8, 14); g.lineTo(0, 30); g.lineTo(8, 14); g.closePath(); g.restore(); },
+    homing: () => { g.beginPath(); g.arc(0, 0, 21, 0, Math.PI * 2); g.moveTo(10, 0); g.arc(0, 0, 10, 0, Math.PI * 2, true); for (const [x, y, w, h] of [[-4, -36, 8, 13], [-4, 23, 8, 13], [-36, -4, 13, 8], [23, -4, 13, 8]]) g.rect(x, y, w, h); g.moveTo(4, 0); g.arc(0, 0, 4, 0, Math.PI * 2); },
+    mega: () => { g.beginPath(); for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2 - Math.PI / 2, r = i % 2 ? 13 : 31; g.lineTo(Math.cos(a) * r, Math.sin(a) * r); } g.closePath(); },
+    ghost: () => { g.beginPath(); g.moveTo(-22, 26); g.lineTo(-22, -4); g.arc(0, -4, 22, Math.PI, 0); g.lineTo(22, 26); for (let i = 0; i < 4; i++) g.lineTo(22 - (i + 0.5) * 11, i % 2 ? 26 : 18), g.lineTo(22 - (i + 1) * 11, 26); g.closePath(); g.moveTo(-3, -6); g.arc(-8, -6, 5, 0, Math.PI * 2, true); g.moveTo(13, -6); g.arc(8, -6, 5, 0, Math.PI * 2, true); },
+    warp: () => { g.beginPath(); g.arc(0, 0, 28, 0, Math.PI * 2); g.arc(0, 0, 20, 0, Math.PI * 2, true); g.moveTo(13, 0); g.arc(0, 0, 13, 0, Math.PI * 2); g.arc(0, 0, 6, 0, Math.PI * 2, true); },
+  };
+  LOOT_KINDS.forEach((k, i) => {
+    const cx = (i % LOOT_COLS_N) * S + S / 2, cy = Math.floor(i / LOOT_COLS_N) * S + S / 2, col = LOOT.kinds[k].color ?? 0xffffff;
+    g.save();
+    g.translate(cx, cy);
+    // the badge: a rounded hexagon, dark rim, the kind's colour lit from above
+    const hexPath = (r) => { g.beginPath(); for (let j = 0; j < 6; j++) { const a = (j / 6) * Math.PI * 2 + Math.PI / 6; g.lineTo(Math.cos(a) * r, Math.sin(a) * r); } g.closePath(); };
+    g.lineJoin = "round";
+    hexPath(58); g.fillStyle = "rgba(10,12,40,0.92)"; g.fill();
+    const grd = g.createLinearGradient(0, -52, 0, 52);
+    grd.addColorStop(0, "#ffffff"); grd.addColorStop(0.18, hex(col)); grd.addColorStop(1, hex(new THREE.Color(col).multiplyScalar(0.45).getHex()));
+    hexPath(50); g.fillStyle = grd; g.fill();
+    g.lineWidth = 4; g.strokeStyle = "rgba(255,255,255,0.85)"; hexPath(50); g.stroke();
+    // the glyph: white with a dark outline (readable on any colour)
+    (glyph[k] || glyph.gems)();
+    g.lineWidth = 9; g.strokeStyle = "rgba(8,10,30,0.9)"; g.stroke();
+    g.fillStyle = "#ffffff"; g.fill(k === "boost" || k === "ghost" ? "evenodd" : "nonzero"); // holes: the flame's core, the ghost's eyes
+    g.restore();
+  });
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 2;
+  return { tex, rows };
+}
+
+class LootLayer {
+  constructor(world) {
+    this.world = world;
+    this.phone = world.phone;
+    this.frame = 0;
+    const base = new THREE.PlaneGeometry(1, 1), g = new THREE.InstancedBufferGeometry();
+    g.index = base.index;
+    g.setAttribute("position", base.getAttribute("position"));
+    g.setAttribute("uv", base.getAttribute("uv"));
+    this.pos = new Float32Array(LOOT_CAP * 3);
+    this.data = new Float32Array(LOOT_CAP * 4);
+    this.aPos = new THREE.InstancedBufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage);
+    this.aData = new THREE.InstancedBufferAttribute(this.data, 4).setUsage(THREE.DynamicDrawUsage);
+    g.setAttribute("iPos", this.aPos);
+    g.setAttribute("iData", this.aData);
+    g.instanceCount = 0;
+    this.geometry = g;
+    let atlas = null;
+    try { atlas = lootAtlas(); } catch (e) { entWarn("loot atlas", e); }
+    this.material = new THREE.ShaderMaterial({
+      vertexShader: LOOT_VERT, fragmentShader: LOOT_FRAG,
+      uniforms: { uMap: { value: atlas ? atlas.tex : null }, uCols: { value: LOOT_COLS_N }, uRows: { value: atlas ? atlas.rows : 3 } },
+      transparent: true, depthWrite: false, toneMapped: false, fog: false,
+    });
+    this.mesh = new THREE.Mesh(g, this.material);
+    this.mesh.frustumCulled = false;
+    this.mesh.renderOrder = 15;
+    this.mesh.visible = !!atlas;
+    world.scene.add(this.mesh);
+    this.seen = new Map(); // pickup id → { t0, stamp }
+  }
+  clear() { this.seen.clear(); this.geometry.instanceCount = 0; }
+  update(dt, t, snap, ctx, camera) {
+    const glow = this.world.glow, cp = camera.position, list = snap.pickups || SNAP_NONE;
+    this.frame++;
+    let n = 0;
+    for (let i = 0; i < list.length && n < LOOT_CAP; i++) {
+      const q = list[i], kind = q[1] | 0, c = LOOT_COLS[kind] || LOOT_COLS[0];
+      let s = this.seen.get(q[0]);
+      if (!s) { s = { t0: t, stamp: 0 }; this.seen.set(q[0], s); }
+      s.stamp = this.frame;
+      const age = t - s.t0, pop = entPop(clamp(age / 0.45, 0, 1));
+      const left = (LOOT.life || 20) - age, blink = left < 4 ? (Math.sin(t * (left < 1.5 ? 28 : 14)) > -0.2 ? 1 : 0.25) : 1;
+      const d = Math.hypot(q[2] - cp.x, q[3] - cp.y, q[4] - cp.z);
+      const size = Math.max(2.6, d * 0.022) * pop; // readable on the TV from far away, chunky up close
+      const y = q[3] + Math.sin(t * 2.1 + q[0]) * 0.35;
+      const spin = Math.cos(t * 1.6 + q[0] * 0.7);
+      const j = n * 3, k4 = n * 4;
+      this.pos[j] = q[2]; this.pos[j + 1] = y; this.pos[j + 2] = q[4];
+      this.data[k4] = size; this.data[k4 + 1] = kind; this.data[k4 + 2] = Math.max(0.28, Math.abs(spin)); this.data[k4 + 3] = blink;
+      n++;
+      // the halo (the scene's one glow draw): a soft one in the kind's colour, pulsing, and a small white-hot core
+      const pulse = 0.8 + 0.2 * Math.sin(t * 4 + q[0]);
+      glow.add(q[2], y, q[4], size * 2.6 * pulse, c.r * 1.4, c.g * 1.4, c.b * 1.4, 0.5 * blink);
+      glow.add(q[2], y, q[4], size * 1.2, 0.9, 0.9, 0.9, 0.25 * blink);
+    }
+    this.geometry.instanceCount = n;
+    this.mesh.visible = n > 0 && !!this.material.uniforms.uMap.value; // no pickups: no draw call at all
+    if (n) { this.aPos.needsUpdate = true; this.aData.needsUpdate = true; }
+    for (const [id, s] of this.seen) if (s.stamp !== this.frame) this.seen.delete(id);
+    // Auras: a ship with a timed power-up glows in its colour (GHOST flickers pale); every screen sees who is powered up.
+    for (const p of snap.players) {
+      const pu = p.flags && p.flags.powerup;
+      if (!pu || p.mode !== "space" || p.flags.dead || p.flags.landing || (p.flags.invisible && p.name !== ctx.me)) continue;
+      const ki = LOOT_KINDS.indexOf(pu.kind), c = LOOT_COLS[ki] || LOOT_COLS[0];
+      const d = Math.hypot(p.x - cp.x, p.y - cp.y, p.z - cp.z), end = pu.left < 2 ? 0.5 + 0.5 * Math.sin(t * 20) : 1;
+      const ghost = pu.kind === "ghost", wob = ghost ? 0.55 + 0.45 * Math.sin(t * 13 + p.x) : 0.85 + 0.15 * Math.sin(t * 6);
+      glow.add(p.x, p.y, p.z, Math.max(9, d * 0.035) * wob, c.r * 1.3, c.g * 1.3, c.b * 1.3, 0.42 * end);
+      if (!ghost) glow.add(p.x, p.y, p.z, Math.max(4.5, d * 0.016), c.r * 2, c.g * 2, c.b * 2, 0.3 * end);
+    }
+  }
+  // fx: a pickup taken (the sparkle) or a WARP dash (a teal blink at each end).
+  fx(m, pos, c) {
+    const P = this.world.particles, rings = this.world.rings, ph = this.phone;
+    if (m.kind === "warp") {
+      P.burst(pos, c, ph ? 14 : 24, 14, 0.5, 1.2, 0.1, { boost: 3, drag: 2.2 });
+      rings.spawn(pos, 0x2dd4bf, 7, 0.45);
+      return;
+    }
+    const ki = LOOT_KINDS.indexOf(m.item), col = LOOT_COLS[ki] || c;
+    P.burst(pos, col, ph ? 22 : 40, 12, 0.7, 1.1, 0.05, { boost: 3.2, drag: 2 });
+    P.burst(pos, new THREE.Color(0xfff6d0), ph ? 10 : 18, 7, 0.55, 0.6, 0.05, { boost: 4, drag: 1.4, grav: -3 });
+    rings.spawn(pos, col.getHex(), 6, 0.5);
+  }
+  dispose() { this.geometry.dispose(); this.material.uniforms.uMap.value?.dispose(); this.material.dispose(); this.mesh.removeFromParent(); }
+}
+
 class SpaceWorld {
   constructor(renderer, { phone, big }) {
     this.phone = phone;
@@ -2696,6 +2860,7 @@ class SpaceWorld {
     this.streaks = new StreakBatch(256);
     scene.add(this.streaks.mesh);
     this.mischief = new MischiefLayer(this, "space"); // mines, decoys, emp / ink / tractor looks (adds to the streaks before updateShots ends them)
+    this.loot = new LootLayer(this); // v1.8: the floating pickups (one instanced draw), power-up auras, the pickup sparkle
     this.shotCol = new THREE.Color();
     this.ships = new Map();
     this.rockIndex = [];
@@ -3032,6 +3197,7 @@ class SpaceWorld {
     this.shieldMat.uniforms.uTime.value = t;
     // Mischief: mines, decoys, emp sparks, ink, tractor beams (their streaks join the batch before updateShots closes it).
     this.mischief.update(dt, t, snap, ctx, camera);
+    try { this.loot.update(dt, t, snap, ctx, camera); } catch (e) { entWarn("loot", e); } // v1.8 pickups and power-up auras (glows before updateShots)
     // Bullets and the boss's shots: laser streaks along their motion, each with a glow.
     this.updateShots(snap, camera);
     // Flares: bright bursts with a real light on the nearest one.
@@ -3082,6 +3248,9 @@ class SpaceWorld {
       if (l > 1e-4) S.add(b[1], b[2], b[3], dx / l, dy / l, dz / l, Math.max(5, d * 0.03), wid, col.r * 4.5, col.g * 4.5, col.b * 4.5, 1, 0);
       else S.add(b[1], b[2], b[3], 0, 0, -1, wid, wid, col.r * 4.5, col.g * 4.5, col.b * 4.5, 1, 0);
       g.add(b[1], b[2], b[3], Math.max(1.2, d * 0.008), col.r * 1.6, col.g * 1.6, col.b * 1.6, 0.7);
+      // v1.8 loot (row index 9 = the tick's power bits): MEGA BLAST's shot white-hot and big, a HOMING shot a green halo
+      if (b[9] & 2) { g.add(b[1], b[2], b[3], Math.max(5, d * 0.03), 3, 2.8, 2, 0.9); g.add(b[1], b[2], b[3], Math.max(2.4, d * 0.014), 4, 4, 4, 1); }
+      else if (b[9] & 1) g.add(b[1], b[2], b[3], Math.max(2.4, d * 0.014), 0.5, 1.9, 0.35, 0.6);
     }
     const B = this.boss && !this.boss.dead ? this.boss.data : null;
     for (const s of snap.bossShots) {
@@ -3172,6 +3341,7 @@ class SpaceWorld {
     const c = new THREE.Color(m.color ?? 0xffffff);
     const size = m.size || 1;
     const P = this.particles, F = this.efx;
+    if (m.kind === "pickup" || m.kind === "warp") { this.loot.fx(m, pos, c); return; } // v1.8 loot: the sparkle / the dash blink
     if (m.kind === "flare") this.nebulaFlare?.(pos, clamp(size / TUNING.flare.radius, 0.15, 1)); // the A-003 cloud lights up round it (a teleport's small flare a little)
     const mischief = m.kind === "emp" || m.kind === "inkbomb" || m.kind === "tractor" || m.kind === "mine" || m.kind === "decoy";
     if (F.ok && !mischief && m.kind !== "crack") {
@@ -3264,6 +3434,7 @@ class SpaceWorld {
   clearForRound() {
     this.particles.clear();
     this.mischief.clear();
+    this.loot.clear(); // v1.8 loot
     this.efx.clear(); // A-010: every effect, bubble and pending boss blast of the last round goes
     worldSound.reset();
     this.skyFailed = false; // world-assets: a new round may retry A-011's nebula sky after a failed load
@@ -3405,7 +3576,7 @@ const SYNTH_MAP = {
   emp: ["zap", 1], ink: ["zap", 0.7], tractor: ["zap", 0.55], mine: ["explosion", 1.3], death: ["explosionBig", 1], kill: ["chest", 1.3],
   respawn: ["pop", 1.3], crack: ["explosion", 0.75], shield: ["boost", 0.8], "ui-tap": ["click", 1], "countdown-go": ["start", 1],
   "explosion-large": ["explosionBig", 1], "explosion-small": ["explosion", 1.2], "explosion-medium": ["explosion", 1],
-  steal: ["chest", 0.8], hitmark: ["click", 1.6],
+  steal: ["chest", 0.8], hitmark: ["click", 1.6], pickup: ["pop", 1.6], powerup: ["chest", 1.2], // v1.8 loot
 };
 const sfxLoader = () => import("./sfx.js");
 const inertLoop = Object.freeze({ stop() {}, setPan() {}, setVolume() {} });
@@ -4058,6 +4229,20 @@ class WorldSound {
         else this.mischiefAt("mine", "mine", p, mode, { v: 0.9, ref: 70 });
         break;
       case "decoy": this.mischiefAt("decoy", "scan", p, mode, { v: 0.45, ref: 70, pitch: 1.4 }); break;
+      // v1.8 loot: MY grab at full volume (a timed power-up gets the rising "powerup", the rest the "pickup" bling), others' by distance;
+      // a WARP sends an fx at both ends of the dash: one zip
+      case "pickup": {
+        const kinds = (typeof LOOT !== "undefined" && LOOT.kinds) || {}; // (the Node sound tests run this block without the rest)
+        const name = kinds[m.item] && kinds[m.item].timed ? "powerup" : "pickup";
+        if (this.game && this.game.player && m.player === this.game.player && this.game.screen === "phone") sfx.play(name, { volume: 1 });
+        else this.at(name, p.x, p.y, p.z, mode, { v: 0.6, ref: 60 });
+        break;
+      }
+      case "warp": {
+        const now = performance.now();
+        if (now - (this.warpAt || 0) > 200) { this.warpAt = now; this.at("scan", p.x, p.y, p.z, mode, { v: 0.6, ref: 70, pitch: 1.8 }); }
+        break;
+      }
       default: break;
     }
   }
@@ -5527,8 +5712,9 @@ class Snapshots {
     // name and the bullet / shot rows, all reused. Every reader takes a sample within its frame (game.lastSnap: projectPlayers and
     // hud() read the latest one; WorldSound, CameraRig and the worlds keep names and numbers, never a player object or a row).
     // Decoys stay fresh arrays: MischiefLayer keeps a vanished decoy's row (v.q) 0.4 s to fade it out where it was.
-    this.out = { players: [], bullets: [], bossShots: [], flares: SNAP_NONE, mines: SNAP_NONE, decoys: SNAP_NONE, phase: undefined };
-    this.empty = { players: [], bullets: [], bossShots: [], flares: [], mines: [], decoys: [] };
+    this.out = { players: [], bullets: [], bossShots: [], flares: SNAP_NONE, mines: SNAP_NONE, decoys: SNAP_NONE, pickups: SNAP_NONE, phase: undefined };
+    this.empty = { players: [], bullets: [], bossShots: [], flares: [], mines: [], decoys: [], pickups: [] };
+    this.rowsP = []; this.listP = []; // v1.8 loot: interpolated pickup rows [id, kind, x, y, z] (reused)
     this.pool = new Map(); // name → the reused interpolated player object
     this.rowsB = []; this.rowsN = []; this.rowsS = []; // bullet rows with a direction, new bullet rows, boss-shot rows
     this.prune = 0;
@@ -5548,10 +5734,10 @@ class Snapshots {
         out.push(r);
         continue;
       }
-      const r = rows[n] || (rows[n] = [0, 0, 0, 0, 0, 0, 0, 0, 0]);
+      const r = rows[n] || (rows[n] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
       n++;
       r[0] = q[0]; r[1] = lerp(p[1], q[1], u); r[2] = lerp(p[2], q[2], u); r[3] = lerp(p[3], q[3], u); r[4] = q[4]; r[5] = q[5] || 0;
-      r[6] = q[1] - p[1]; r[7] = q[2] - p[2]; r[8] = q[3] - p[3];
+      r[6] = q[1] - p[1]; r[7] = q[2] - p[2]; r[8] = q[3] - p[3]; r[9] = q[6] || 0; // v1.8: the bullet's power bits (homing 1, mega 2)
       out.push(r);
     }
     return out;
@@ -5567,13 +5753,14 @@ class Snapshots {
     // Ignore out-of-order ticks.
     if (this.list.length && t <= this.list[this.list.length - 1].t) return;
     // 30 ticks kept; the entry that falls off the end (2 s old, no reader) is reused with its four maps: no garbage per tick (v1.5).
-    const entry = this.list.length >= 30 ? this.list.shift() : { t: 0, tick: null, players: new Map(), bullets: new Map(), shots: new Map(), decoys: new Map() };
+    const entry = this.list.length >= 30 ? this.list.shift() : { t: 0, tick: null, players: new Map(), bullets: new Map(), shots: new Map(), decoys: new Map(), pickups: new Map() };
     entry.t = t;
     entry.tick = tick;
     entry.players.clear(); for (const p of tick.players) entry.players.set(p.name, p);
     entry.bullets.clear(); for (const b of tick.bullets) entry.bullets.set(b[0], b);
     entry.shots.clear(); for (const b of tick.bossShots) entry.shots.set(b[0], b);
     entry.decoys.clear(); if (tick.decoys) for (const d of tick.decoys) entry.decoys.set(d[0], d);
+    entry.pickups.clear(); if (tick.pickups) for (const k of tick.pickups) entry.pickups.set(k[0], k); // v1.8 loot
     this.list.push(entry);
     this.latest = tick;
     this.latestAt = local;
@@ -5618,6 +5805,19 @@ class Snapshots {
     }) : SNAP_NONE;
     out.flares = b.tick.flares;
     out.mines = b.tick.mines || SNAP_NONE;
+    // v1.8 loot: pickups [id, kind, x, y, z] drift and fly to the ship that pulls them: interpolated into reused rows
+    const pl = b.tick.pickups;
+    if (pl && pl.length) {
+      const L2 = this.listP, R = this.rowsP;
+      L2.length = 0;
+      for (let i = 0; i < pl.length; i++) {
+        const q = pl[i], p = a.pickups.get(q[0]), r = R[i] || (R[i] = [0, 0, 0, 0, 0]);
+        r[0] = q[0]; r[1] = q[1];
+        r[2] = p ? lerp(p[2], q[2], u) : q[2]; r[3] = p ? lerp(p[3], q[3], u) : q[3]; r[4] = p ? lerp(p[4], q[4], u) : q[4];
+        L2.push(r);
+      }
+      out.pickups = L2;
+    } else out.pickups = SNAP_NONE;
     out.phase = b.tick.phase;
     return out;
   }
@@ -6274,6 +6474,18 @@ class Perf {
 
 // ---------------------------------------------------------------------------------------------------------------
 // HUD model (game.hud()).
+// v1.8 loot: me.powerup = { kind, label, icon, color, left, seconds, text: "🔥 RAPID FIRE · 5s" } while a timed power-up runs (null
+// otherwise; MEGA BLAST's text says "next shot"), me.bubble = seconds left of a SHIELD pickup's bubble (0 when none): the page's
+// countdown chip. (The pickup itself: the toast, and game.on("pickup") on the collector's screen.)
+function hudLoot(flags) {
+  const pu = flags && flags.powerup, def = pu && TUNING.loot && TUNING.loot.kinds[pu.kind];
+  const left = pu ? Math.max(0, Number(pu.left) || 0) : 0;
+  return {
+    powerup: def ? { kind: pu.kind, label: def.label, icon: def.icon, color: def.color, left, seconds: def.seconds,
+      text: `${def.icon} ${def.label} · ${pu.kind === "mega" ? "next shot" : `${Math.ceil(left)}s`}` } : null,
+    bubble: (flags && Number(flags.bubble)) || 0,
+  };
+}
 function formatClock(s) {
   s = Math.max(0, Math.floor(s));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -6290,7 +6502,7 @@ function computeHud(game) {
   const meP = snap.players.find((p) => p.name === meName) || null;
   const meEntity = (meName && entities.get(meName)) || null;
   const me = meP ? { name: meP.name, color: meP.color, mode: meP.mode, hp: meP.hp, maxHp: TUNING.shipHp, score: meP.score, shieldEnergy: meP.shieldEnergy, boostEnergy: meP.boostEnergy, flags: meP.flags,
-    respawnIn: meP.respawnIn ?? null, drawingsLeft: meP.drawingsLeft || null, entity: meEntity } : null;
+    respawnIn: meP.respawnIn ?? null, drawingsLeft: meP.drawingsLeft || null, entity: meEntity, ...hudLoot(meP.flags) } : null;
   const boss = world?.targets?.find((t) => t.kind === "boss");
   const bossAlive = boss && !boss.dead;
   const H = HUD_COPY;
@@ -6386,6 +6598,26 @@ export function startGame({ canvas, screen = "big", view, player = null, winJing
   const showPerf = params.has("perf");
   const listeners = {};
   const emit = (ev, data) => { const l = listeners[ev]; if (l) for (let i = 0, n = l.length; i < n; i++) { try { l[i](data); } catch (e) { console.error(e); } } }; // like forEach: one added meanwhile waits for the next emit
+  // v1.8 loot: MY pickup (the fx names its collector): a quick vignette flash in the kind's colour over the canvas (pointer-events
+  // none, one reused element) and a `pickup` event for the page ({ kind, label, icon, color, seconds?, timed }; its HUD may show a
+  // badge or a countdown from me.flags.powerup). The toast with the text comes on its own.
+  let flashEl = null;
+  function pickupFlash(m) {
+    const def = (TUNING.loot && TUNING.loot.kinds[m.item]) || null;
+    if (!def) return;
+    emit("pickup", { kind: m.item, label: def.label, icon: def.icon, color: def.color, seconds: def.seconds, timed: !!def.timed });
+    try {
+      if (!flashEl) { // fixed over the viewport (never touches the page's own layout or containing blocks)
+        flashEl = document.createElement("div");
+        flashEl.setAttribute("aria-hidden", "true");
+        flashEl.style.cssText = "position:fixed;inset:0;pointer-events:none;opacity:0;z-index:2;mix-blend-mode:screen;";
+        document.body.appendChild(flashEl);
+      }
+      const hex = "#" + (def.color >>> 0).toString(16).padStart(6, "0");
+      flashEl.style.background = `radial-gradient(ellipse at center, transparent 45%, ${hex}cc 100%)`;
+      if (flashEl.animate) flashEl.animate([{ opacity: 0.95 }, { opacity: 0 }], { duration: def.timed ? 700 : 450, easing: "ease-out" });
+    } catch { /* a flash is never worth an error */ }
+  }
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: !phone, powerPreference: "high-performance", stencil: false });
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -6595,6 +6827,7 @@ export function startGame({ canvas, screen = "big", view, player = null, winJing
         (m.mode === "planet" ? game.island : game.space).fx(m);
         rig.note(m);
         emit("fx", m);
+        if (m.kind === "pickup" && game.player && m.player === game.player) pickupFlash(m); // v1.8 loot: MY grab
         break;
       case "toast":
         if (phone && m.player !== game.player) break;
@@ -7070,6 +7303,7 @@ export function startGame({ canvas, screen = "big", view, player = null, winJing
     dispose() {
       disposed = true;
       white.remove();
+      if (flashEl) flashEl.remove(); // v1.8 loot
       cancelAnimationFrame(raf);
       clearInterval(perfTimer);
       clearInterval(warmCheck);

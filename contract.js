@@ -108,7 +108,46 @@
     // Ruthless (PLAN.md section 0): killing a player within stealSeconds after they opened a chest steals stealShare of
     // its points. Refused verbs explain themselves at most once per refusalToastSeconds per verb.
     stealSeconds: 15, stealShare: 0.5, refusalToastSeconds: 8,
+    // v1.8 loot (owner, 10 Oct 13:00: "the small rocks in space you can shoot, there might be some extra life or shields
+    // or some other things there"; 13:02: "boost, etc.", "come up with nice skills"). A space rock destroyed by a shot or a
+    // blast (not a ram) drops ONE pickup with dropChance[type]; its tier is rolled from tiers[type] (crystals favour
+    // uncommon and rare), then a kind of that tier (weight 1 each unless set). It floats where the rock was for `life` s,
+    // drifting at `drift` m/s, at most `max` alive (a new one replaces the oldest). The first living ship within
+    // collectRange m takes it; within magnetRange m (× kinds.magnet.radius under MAGNET) it flies to the nearest ship at
+    // pullSpeed m/s (faster than a boosting ship). Bots (none by default) collect too. Space only: explorers never meet one.
+    // Instant kinds (no `seconds`, or shield) apply and stack with anything: repair +hp (≤ shipHp), shield a bubble of
+    // `seconds` that stacks up to maxSeconds (blocks every hit, rock rams and mines like a held SHIELD, but the ship can
+    // still shoot), boost a full tank, gems +points, draw +1 drawing in the player's world now (≤ TUNING.drawings; full:
+    // +fullPoints instead), warp an instant dash `distance` m ahead to a spot `clear` m clear of rocks, the boss and the
+    // planet. Timed kinds (timed: true) are ONE slot per player (a new one replaces the old; death clears it), applied at
+    // once, no button: overdrive (boosting without a drain for `seconds`, even with no drawn exhaust; BACK still brakes),
+    // rapid (fire rate × fireRate, only for a drawn weapon), magnet (pull range × radius), homing (space shots turn toward
+    // the best-aligned target within `cone` rad and `range` m, at most turnRate rad/s; players and the boss count double
+    // over rocks), mega (the NEXT space shot explodes on impact or at the end of its life: `damage` to rival ships within
+    // `radius` m, destroys the rocks there and deals bossDamage to the boss; unused after `seconds` it is gone), ghost
+    // (rival shots, blasts and mines pass through for `seconds`; the boss still hits).
+    // Colours (render.js icons, fx and HUD flash): red repair, cyan shield, orange boost, gold gems, purple draw.
+    loot: {
+      dropChance: { stone: 0.25, crystal: 0.6 },
+      tiers: { stone: { common: 0.6, uncommon: 0.32, rare: 0.08 }, crystal: { common: 0.2, uncommon: 0.45, rare: 0.35 } },
+      life: 20, max: 24, drift: 1, collectRange: 6, magnetRange: 12, pullSpeed: 45,
+      kinds: {
+        repair: { tier: "common", label: "REPAIR", icon: "❤️", color: 0xff4d5e, hp: 40 },
+        boost: { tier: "common", label: "BOOST", icon: "⛽", color: 0xff9f1c },
+        gems: { tier: "common", label: "GEMS", icon: "💎", color: 0xffd23f, points: 75 },
+        shield: { tier: "uncommon", label: "SHIELD", icon: "🛡️", color: 0x22d3ee, seconds: 6, maxSeconds: 12 },
+        overdrive: { tier: "uncommon", label: "OVERDRIVE", icon: "🚀", color: 0xff3df0, timed: true, seconds: 8 },
+        rapid: { tier: "uncommon", label: "RAPID FIRE", icon: "🔥", color: 0xff5a1f, timed: true, seconds: 8, fireRate: 2 },
+        magnet: { tier: "uncommon", label: "MAGNET", icon: "🧲", color: 0x3b82f6, timed: true, seconds: 10, radius: 4 },
+        draw: { tier: "uncommon", label: "+1 DRAWING", icon: "✏️", color: 0xb15cff, fullPoints: 25 },
+        homing: { tier: "rare", label: "HOMING", icon: "🎯", color: 0x7cff4f, timed: true, seconds: 8, cone: 0.35, range: 180, turnRate: 2.5 },
+        mega: { tier: "rare", label: "MEGA BLAST", icon: "💥", color: 0xfff1a8, timed: true, seconds: 20, radius: 18, damage: 60, bossDamage: 300 },
+        ghost: { tier: "rare", label: "GHOST", icon: "👻", color: 0xd8dcff, timed: true, seconds: 5 },
+        warp: { tier: "rare", label: "WARP", icon: "🌀", color: 0x2dd4bf, distance: 40, clear: 8 },
+      },
+    },
   };
+  const LOOT_KINDS = Object.keys(TUNING.loot.kinds); // v1.8: a stable order (render.js icon atlas index)
 
   const ROCK_TYPES = {
     stone: { health: 1 },
@@ -186,9 +225,11 @@
    *              phase,                                              // v1.4: as tick.phase (a world message goes out
    *                                                                  // on every phase change: START, GO, 3:00, the end)
    *              countdown?,                                         // v1.4: only in phase "countdown", as tick.countdown
-   *              mode? }                                             // v1.6: "endless" while the ENDLESS free-for-all is
+   *              mode?,                                              // v1.6: "endless" while the ENDLESS free-for-all is
    *                                                                  // on (endless.js; absent in the demo). Then: no
    *                                                                  // clock, result.reason "host" when the host ends it
+   *              pickups? }                                          // v1.8 loot: as tick.pickups (a screen that connects
+   *                                                                  // sees the floating pickups at once)
    *            Sent on connect and whenever any of it changes.
    *
    * tick       { type, t, round, phase, clock, left,                     // clock: lobby = seconds to autostart (0 with no
@@ -210,14 +251,30 @@
    *                                                                      // world.island.parked entry after touchdown)
    *                          flags: { boost, shield, stun, dead, invisible, drilling, digging, ready, bot,
    *                                   landing, takingOff, spawnShield,
-   *                                   emp, inked, tractored, drawing },  // flags list only what is on; landing/takingOff:
+   *                                   emp, inked, tractored, drawing,
+   *                                   bubble, powerup },                 // v1.8 loot: bubble = seconds left of a SHIELD
+   *                                                                      // pickup's bubble (shield is on with it);
+   *                                                                      // powerup = { kind, left } the timed power-up
+   *                                                                      // running (kind: overdrive | rapid | magnet |
+   *                                                                      // homing | mega | ghost; left s of TUNING.loot.
+   *                                                                      // kinds[kind].seconds; mega: until the next
+   *                                                                      // shot, or gone at 0); boost is on
+   *                                                                      // all through OVERDRIVE.
+   *                                                                      // flags list only what is on; landing/takingOff:
    *                                                                      // the predefined animation plays, no control.
    *                                                                      // v1.3: emp / inked while that mischief runs on
    *                                                                      // the player's phone, tractored while pulled.
    *                                                                      // drawing: the phone's draw sheet is open (input
    *                                                                      // action "drawing"): hovering, protected, ≤ 30 s
    *                          action, slot, startedAt }],                 // last verb + animation slot + server ms
-   *              bullets: [[id, x, y, z, color, mode]],                   // mode 0 = space, 1 = planet (island x, z, height y)
+   *              bullets: [[id, x, y, z, color, mode, power?]],           // mode 0 = space, 1 = planet (island x, z, height y);
+   *                                                                      // v1.8 power (only when set): bits 1 = homing,
+   *                                                                      // 2 = mega (draw it bigger: it explodes)
+   *              pickups: [[id, kind, x, y, z]],                         // v1.8 loot: the floating pickups (space, at most
+   *                                                                      // TUNING.loot.max); kind = an index into
+   *                                                                      // LOOT_KINDS (TUNING.loot.kinds[name]: label,
+   *                                                                      // icon, colour). Tuples like bullets: 24 of
+   *                                                                      // them and 25 power-ups fit the 8 KB tick
    *              bossShots: [[id, x, y, z]],
    *              flares: [[x, y, z, radius, secondsLeft]],                // the newest 16
    *              mines: [[id, x, y, z, mode, color]],                     // v1.3: mines (newest 16), mode as bullets;
@@ -239,15 +296,27 @@
    * fx         { type, kind, mode, pos: { x, y, z }, color, size }       // kind: explode, blast, spark, flare, scan,
    *                                                                      // drill, crack, land, dig, treasure, hit, respawn;
    *                                                                      // v1.3: emp, inkbomb, tractor, mine (dropped or
-   *                                                                      // hit), decoy (appears). Unknown kinds: a burst
-   * announce   { type, text, big }                                       // kill feed, boss down, winner. A kill is
+   *                                                                      // hit), decoy (appears). Unknown kinds: a burst.
+   *                                                                      // v1.8 pickup: { ..., kind: "pickup", item,
+   *                                                                      // player } a pickup was collected at pos (item
+   *                                                                      // = its kind, color = its colour, player = who:
+   *                                                                      // their phone flashes the HUD); warp (an
+   *                                                                      // instant dash: at the start, then the end)
+   * announce   { type, text, big, quiet? }                               // kill feed, boss down, winner. A kill is
    *                                                                      // "killer ✕ victim", plus 💣 / 🧲 for a mischief
-   *                                                                      // kill; mischief lines start with ⚡ 🦑 🧲 💣 🎭
+   *                                                                      // kill; mischief lines start with ⚡ 🦑 🧲 💣 🎭.
+   *                                                                      // v1.8 quiet: true = a minor feed line (a pickup
+   *                                                                      // collected: "✨ ana · 🔥 RAPID FIRE"), the TV
+   *                                                                      // shows it small; never big
    * toast      { type, player, text, sketch, ghost, kind, verb, need, gate }  // one player only. Hints are riddles first:
    *                                                                      // kind "hint" (ladder) | "refused" (a verb the
    *                                                                      // entity has not unlocked; verb set) | "info".
    *                                                                      // need: "part" (draw it on the entity) | "button";
    *                                                                      // gate: weapon | land | dig | drill (hints only).
+   *                                                                      // v1.8 loot: a collect sends the collector kind
+   *                                                                      // "info" with pickup (its kind), text ("🔥 RAPID
+   *                                                                      // FIRE · 8s", "💎 +75") and seconds (timed
+   *                                                                      // kinds and shield)
    *                                                                      // On death the victim gets kind "info" with
    *                                                                      // killer (name | null): "Destroyed by bob · back
    *                                                                      // in 3 s"
@@ -478,7 +547,9 @@
    *   game.setView(view)      game.setPlayer(name)      game.dispose()
    *   game.on(event, cb)      events: world, tick, fx, announce, toast, generated, hud
    *   game.hud() → { phase, clock, objective, objectiveText, bar, status, me, radar, scores, tier }
-   *     me:    { name, mode, hp, score, shieldEnergy, boostEnergy, flags } | null
+   *     me:    { name, mode, hp, score, shieldEnergy, boostEnergy, flags, powerup, bubble } | null   // v1.8 loot: powerup =
+   *            { kind, label, icon, color, left, seconds, text } | null (the countdown chip), bubble = s of a SHIELD pickup
+   *   game.on("pickup", cb)   v1.8 loot: MY pickup ({ kind, label, icon, color, seconds?, timed }), as the screen flashes
    *     radar: [{ kind: "you"|"player"|"boss"|"target"|"objective", dx, dz, dy }]   // relative to me, metres
    *   It owns the /events connection, interpolation, adaptive quality and the perf overlay (?perf) and POST /perf.
    */
@@ -504,8 +575,12 @@
     check(errors, Array.isArray(m.leaderboard) && m.leaderboard.every((r) => isStr(r.name) && isNum(r.stars) && isNum(r.total)), "world: leaderboard");
     check(errors, m.result === null || (m.result && Array.isArray(m.result.scores)), "world: result");
     check(errors, m.mode === undefined || m.mode === "endless", "world: mode is absent or \"endless\""); // v1.6
+    check(errors, checkPickups(m.pickups), "world: pickups are absent or [[id, kind, x, y, z]]"); // v1.8
     return errors;
   }
+  // v1.8 loot: absent (old servers) or a list of [id, kind (an index into LOOT_KINDS), x, y, z]
+  const checkPickups = (list) => list === undefined || (Array.isArray(list) && list.length <= TUNING.loot.max &&
+    list.every((k) => Array.isArray(k) && k.length === 5 && k.every(isNum) && Number.isInteger(k[1]) && k[1] >= 0 && k[1] < LOOT_KINDS.length));
 
   function checkTick(m, errors = []) {
     check(errors, m.type === "tick", "tick: type");
@@ -524,6 +599,12 @@
     check(errors, (m.mines === undefined || Array.isArray(m.mines)) && (m.decoys === undefined || Array.isArray(m.decoys)), "tick: mines, decoys");
     check(errors, m.mode === undefined || m.mode === "endless", "tick: mode is absent or \"endless\""); // v1.6
     check(errors, m.waiting === undefined || (Array.isArray(m.waiting) && m.waiting.every((w) => w && isStr(w.name))), "tick: waiting is absent or a list of { name }"); // v1.7
+    check(errors, checkPickups(m.pickups), "tick: pickups are absent or [[id, kind, x, y, z]]"); // v1.8
+    (m.players || []).forEach((p, i) => { // v1.8: the timed power-up and the SHIELD pickup's bubble
+      const pu = p.flags && p.flags.powerup;
+      check(errors, pu === undefined || (LOOT_KINDS.includes(pu.kind) && TUNING.loot.kinds[pu.kind].timed && isNum(pu.left) && pu.left >= 0), `tick: players[${i}].flags.powerup is { kind, left }`);
+      check(errors, !p.flags || p.flags.bubble === undefined || (isNum(p.flags.bubble) && p.flags.bubble > 0 && p.flags.shield === true), `tick: players[${i}].flags.bubble is seconds, with shield on`);
+    });
     return errors;
   }
 
@@ -586,7 +667,7 @@
   const cleanName = (name) => String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20);
 
   const Contract = {
-    SIM_HZ, TICK_HZ, PERF_POST_SECONDS, PHASES, ROUND, TUNING, ROCK_TYPES, ROCK_TYPE_NAMES, SCORING, COLORS,
+    SIM_HZ, TICK_HZ, PERF_POST_SECONDS, PHASES, ROUND, TUNING, ROCK_TYPES, ROCK_TYPE_NAMES, SCORING, COLORS, LOOT_KINDS,
     MOVES, STICKS, META_ACTIONS, ALIASES, OBJECTIVES, CHECKS, CHEST_KINDS, MISCHIEF_KINDS, normaliseAction, cleanName,
   };
   root.Contract = Contract;

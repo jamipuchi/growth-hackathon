@@ -21,6 +21,8 @@ export const SOUNDS = [
   "steal", "hitmark",
   // v1.5: the TV's lobby hangar, the results podium and the lobby ambience loop (TV only: built on first play)
   "card-pop", "podium", "fanfare", "star", "ambience",
+  // v1.8 loot: grabbing a pickup in space (instant: repair, shield, boost, gems, +1 drawing, warp) and a timed power-up
+  "pickup", "powerup",
 ];
 
 // Sounds with a seamless loop variant: the held actions, and the TV lobby's ambience. loop() on any other name repeats its
@@ -814,7 +816,44 @@ function star(sr) {
   return finish(out, sr, { release: 0.35, lp: 7500 });
 }
 
+function pickup(sr) {
+  // the grab: a bright two-note "bling" (B5 then E6, a fourth up), a quick upward sparkle run on top and a tiny airy
+  // swish under it; short and light so a few in a row stay friendly
+  const n = round(sr * 0.5), out = new Float32Array(n), nz = noise("pickup");
+  bell(out, sr, 0, 987.77, 0.6, 0.06, SOFT_BELL);
+  bell(out, sr, 0.06, 1318.5, 0.75, 0.12, SOFT_BELL);
+  [2093, 2637, 3136, 3951].forEach((f, k) => bell(out, sr, 0.09 + 0.03 * k, f, 0.16, 0.05, [[1, 1, 1]]));
+  const bp = svf(sr), sw = round(sr * 0.12);
+  for (let i = 0; i < sw; i++) {
+    const u = i / sw;
+    if ((i & 3) === 0) bp.set(1500 + 3500 * u, 1.2);
+    bp.run(nz());
+    out[i] += bp.bp * 0.25 * sin(PI * u);
+  }
+  reverb(out, sr, 0.15, 0.4);
+  return finish(out, sr, { release: 0.08, lp: 7500 });
+}
+
+function powerup(sr) {
+  // a power-up kicks in: a rising square-ish sweep (an octave and a fifth in 0.28 s, a little vibrato as it lands), a
+  // major arpeggio of bells on top (C6 E6 G6 C7) and a saturated low "vroom" under it so phones hear it as weight
+  const n = round(sr * 0.75), out = new Float32Array(n);
+  let ph = 0, lph = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / sr, u = min(1, t / 0.28);
+    const f = 330 * pow(3, smooth01(u)) * (1 + 0.012 * sin(TAU * 7 * t) * u);
+    ph += f / sr;
+    lph += (90 + 90 * smooth01(u)) / sr;
+    const env = min(1, t / 0.01) * (t < 0.3 ? 1 : exp(-(t - 0.3) / 0.12));
+    out[i] = (tanh(1.6 * sin(TAU * ph)) * 0.35 + 0.15 * tri(ph * 2)) * env + tanh(2.2 * sin(TAU * lph)) * 0.3 * env;
+  }
+  [[1046.5, 0.12], [1318.5, 0.18], [1568, 0.24], [2093, 0.3]].forEach(([f, t], k) => bell(out, sr, t, f, 0.3 + 0.06 * k, 0.12, SOFT_BELL));
+  reverb(out, sr, 0.2, 0.6);
+  return finish(out, sr, { release: 0.12, lp: 7000 });
+}
+
 const RECIPES = {
+  pickup, powerup, // v1.8 loot
   laser, boost, shield, drill, dig, land, takeoff, chest, kill, emp, ink, tractor, mine, hint, countdown, win,
   hit, crack, scan, flare, death, respawn, steal, hitmark, podium, fanfare, star,
   "ui-tap": uiTap, "countdown-go": countdownGo, "card-pop": cardPop,
@@ -1001,6 +1040,7 @@ const LEVEL = {
   respawn: 0.2, tractor: 0.18, drill: 0.18, dig: 0.19, crack: 0.18, scan: 0.16, flare: 0.17, laser: 0.13, hit: 0.12,
   "ui-tap": 0.09, hint: 0.13, steal: 0.24, hitmark: 0.11, "loop:drill": 0.12, "loop:dig": 0.14, "loop:tractor": 0.12, "loop:boost": 0.15, "loop:shield": 0.08,
   "card-pop": 0.16, podium: 0.2, fanfare: 0.3, star: 0.2, ambience: 0.06, "loop:ambience": 0.06, // v1.5 TV: the ambience sits under everything
+  pickup: 0.17, powerup: 0.22, // v1.8 loot
 };
 function loudness(x, sr) {
   const hpa = exp((-TAU * 250) / sr), lpa = 1 - exp((-TAU * 6000) / sr), w = min(x.length, round(sr * 0.1));
@@ -1018,7 +1058,7 @@ function loudness(x, sr) {
   return sqrt(best / w);
 }
 // Random pitch spread per play (+-) so a burst of the same sound does not phase into a machine-gun comb.
-const VARY = { laser: 0.05, hit: 0.06, hitmark: 0.04, "ui-tap": 0.03, dig: 0.05, "explosion-small": 0.05, "explosion-medium": 0.04, "explosion-large": 0.03, land: 0.04, crack: 0.05, "card-pop": 0.04 };
+const VARY = { pickup: 0.04, laser: 0.05, hit: 0.06, hitmark: 0.04, "ui-tap": 0.03, dig: 0.05, "explosion-small": 0.05, "explosion-medium": 0.04, "explosion-large": 0.03, land: 0.04, crack: 0.05, "card-pop": 0.04 };
 // Loops start with a short spin-up (the playback rate rises) and wind down when stopped.
 const SPIN = { drill: 0.7, boost: 0.8, tractor: 0.85, shield: 0.92 };
 
@@ -1027,7 +1067,7 @@ const SPIN = { drill: 0.7, boost: 0.8, tractor: 0.85, shield: 0.92 };
 const ORDER = [
   "ui-tap", "laser", "hit", "hitmark", "explosion-small", "explosion-medium", "countdown", "countdown-go", "boost", "shield", "chest", "kill", "steal",
   "land", "dig", "drill", "takeoff", "emp", "ink", "tractor", "mine", "hint", "win", "explosion-large", "crack", "scan", "flare",
-  "death", "respawn",
+  "death", "respawn", "pickup", "powerup",
 ].concat(LOOPS.filter((n) => n !== "ambience").map((n) => "loop:" + n));
 
 const clamp01 = (v) => (v > 1 ? 1 : v > 0 ? v : 0);

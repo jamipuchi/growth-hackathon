@@ -83,6 +83,30 @@ const TICK_MAX_PROPS = 16; // the newest mines, decoys and flares in a tick (25 
 const TRACTOR_ROCK_DAMAGE = 30;                 // a rock hit while being pulled (or 0.5 s after) hurts, credited to the puller
 const DECOY_OFFSET = { space: 6, planet: 2.5 };
 const MISCHIEF_ICON = { mine: "💣", tractor: "🧲", emp: "⚡", inkbomb: "🦑", decoy: "🎭" };
+// v1.8 loot (owner, 10 Oct 13:00 / 13:02; contract.js TUNING.loot): shot rocks drop pickups, ships fly through them.
+const LOOT = T.loot;
+const LOOT_TIERS = ["common", "uncommon", "rare"];
+// The loot's own dice, seeded from the round's seed: drops never shift the world's random() sequence (seeded tests, bots).
+// The kind a rock of that type drops (pure): a tier from TUNING.loot.tiers[type], then a kind of that tier by weight.
+function rollLoot(type, random = Math.random) {
+  const tiers = LOOT.tiers[type] || LOOT.tiers.stone;
+  let roll = random() * LOOT_TIERS.reduce((sum, t) => sum + (tiers[t] || 0), 0), tier = LOOT_TIERS[0];
+  for (const t of LOOT_TIERS) if ((roll -= tiers[t] || 0) < 0) { tier = t; break; }
+  const kinds = Contract.LOOT_KINDS.filter((k) => LOOT.kinds[k].tier === tier);
+  const weight = (k) => LOOT.kinds[k].weight ?? 1;
+  let pick = random() * kinds.reduce((sum, k) => sum + weight(k), 0);
+  for (const k of kinds) if ((pick -= weight(k)) < 0) return k;
+  return kinds[0] || "gems";
+}
+function seededRandom(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 const HOLD = ["shoot", "boost", "shield", "drill", "dig"];
 const PRESS = ["blast", "flare", "scan", "land", "takeoff", "jump", "invisible", "teleport", "heal", "drive", ...Verbs.MISCHIEF];
 const V1_VERBS = new Set([...HOLD, ...PRESS]);
@@ -215,6 +239,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   const S = { round: 0, phase: "lobby", phaseT: 0, playT: 0, t: 0, seed: 1, playerCount: 1, assists: false, result: null };
   const session = Object.create(null); // name → { stars, total }: the evening's leaderboard
   let rocks = [], bullets = [], bossShots = [], flares = [], mines = [], decoys = [];
+  let pickups = [], lootRandom = Math.random; // v1.8 loot: { id, kind, pos, vel, until }
   let boss, planet, planetAt, nebula, island, landing, chests, parked = [], revealUntil = Object.create(null);
   let nextId = 1, worldDirty = false, lastWorldAt = -1, lastRevealed = "";
 
@@ -343,6 +368,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     planet = null;
     rocks = Array.from({ length: T.rockCount }, () => spawnRock());
     bullets = []; bossShots = []; flares = []; mines = []; decoys = []; revealUntil = Object.create(null);
+    pickups = []; lootRandom = seededRandom(S.seed ^ 0x5bd1e995); // v1.8 loot
     buildIsland();
   }
 
@@ -532,6 +558,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
         drawn: { space: null, planet: null }, refusedAt: {}, lastChest: null, hitBy: Object.create(null), run: null, vel: v3(),
         device: null, tractor: null, empFor: 0, inkFor: 0, drawingUntil: 0, bayIndex: null, hitSentAt: -Infinity,
         late: {}, lateAt: -Infinity, // v1.4 late hints sent this round ("gate:need") and when the last one went out
+        power: null, bubbleFor: 0, // v1.8 loot: the timed power-up { kind, until, seconds } and the SHIELD pickup's bubble (s)
         lastSeen: Date.now(), // before spawnAt: slotOf only counts active players
       };
       players[name] = p;
@@ -697,7 +724,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       const hadDrawing = !!(p.drawn.space || p.drawn.planet || p.layout);
       Object.assign(p, { ...(fresh ? { drawn: { space: null, planet: null }, layout: null } : {}), bayIndex: null, hitBy: Object.create(null), run: null, lastChest: null, hitAcc: 0, inRound: false });
       spawnAt(p);
-      Object.assign(p, { ready: p.bot, hints: {}, keys: {}, axes: {}, drawingUntil: 0, pressed: [], cd: {}, invisibleFor: 0, shieldEnergy: 1, boostEnergy: 1, boostLocked: false, shieldLocked: false, lastChest: null, refusedAt: {}, tractor: null, empFor: 0, inkFor: 0, late: {}, lateAt: -Infinity });
+      Object.assign(p, { ready: p.bot, hints: {}, keys: {}, axes: {}, drawingUntil: 0, pressed: [], cd: {}, invisibleFor: 0, shieldEnergy: 1, boostEnergy: 1, boostLocked: false, shieldLocked: false, lastChest: null, refusedAt: {}, tractor: null, empFor: 0, inkFor: 0, late: {}, lateAt: -Infinity, power: null, bubbleFor: 0 });
       // assists from the last round are gone, and so is the drawn entity: the plain ship (bots: the dev kit) goes to every
       // screen ("fresh": always sent when the player had drawn anything, so no screen keeps a drawn model)
       setMode(p, "space", fresh && hadDrawing ? "fresh" : true);
@@ -726,7 +753,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     buildIsland(chestCount(S.playerCount));
     const wait = countdown ? Math.max(0, Number(ROUND.countdownSeconds) || 0) : 0;
     S.phase = wait > 0 ? "countdown" : "playing"; S.phaseT = 0; S.playT = 0;
-    for (const p of Object.values(players)) { spawnAt(p); Object.assign(p, { pressed: [], score: 0, lastChest: null, hitBy: {}, run: null, botBoost: false, hitAcc: 0 }); }
+    for (const p of Object.values(players)) { spawnAt(p); Object.assign(p, { pressed: [], score: 0, lastChest: null, hitBy: {}, run: null, botBoost: false, hitAcc: 0, power: null, bubbleFor: 0 }); }
+    pickups = []; // v1.8 loot
     endless.reset(); // v1.6 ENDLESS: the boss, chest, recharge and leader timers start again
     // v1.4: the kill feed only (not big): every screen shows its own big 3-2-1 from the phase, so a banner would cover it.
     if (wait > 0) announce(`Round ${S.round} starts in ${Math.round(wait)}…`);
@@ -850,6 +878,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   function moveShip(p, dt) {
     p.boosting = energy(p, !!p.keys.boost, "boostEnergy", "boostLocked", T.boost, dt);
     p.shielding = energy(p, !!p.keys.shield, "shieldEnergy", "shieldLocked", T.shield, dt);
+    // v1.8 OVERDRIVE: boosting all the time with a full tank (no exhaust needed); BACK and the draw sheet still slow it
+    if (powered(p, "overdrive")) { p.boostEnergy = 1; p.boostLocked = false; p.boosting = !p.keys.back && !(p.drawingUntil > S.t); }
     if (p.stun > 0) { p.stun -= dt; p.vel = v3(); return; }
     // Drawing: hover on (BACK held, about 3 m/s), no turning.
     const s = p.drawingUntil > S.t ? { turn: 0, pitch: 0, thrust: -1, strafeX: 0, strafeY: 0 } : controls(p);
@@ -889,8 +919,12 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     // A human's shot that is on its way to the boss flies through the bots in the swarm (stray hits would start
     // revenge fights the human never asked for); aimed anywhere else it hurts them.
     const atBoss = space && !p.bot && !boss.dead && onLine({ pos: from }, forward, boss.pos, boss.radius);
-    bullets.push({ id: nextId++, mode: p.mode, pos: from, dir: forward, owner: p.name, color: p.color, life: VERB.shoot.life, damage: VERB.shoot.damage, atBoss });
-    p.fireCd = p.bot ? BOT_FIRE_COOLDOWN : VERB.shoot.cooldown;
+    // v1.8 loot: HOMING shots steer (bit 1), the MEGA BLAST is the next space shot (bit 2), RAPID FIRE halves the cooldown
+    const mega = space && powered(p, "mega");
+    const power = (space && powered(p, "homing") ? 1 : 0) | (mega ? 2 : 0);
+    bullets.push({ id: nextId++, mode: p.mode, pos: from, dir: forward, owner: p.name, color: p.color, life: VERB.shoot.life, damage: VERB.shoot.damage, atBoss, power });
+    if (mega) p.power = null; // spent
+    p.fireCd = (p.bot ? BOT_FIRE_COOLDOWN : VERB.shoot.cooldown) / (powered(p, "rapid") ? LOOT.kinds.rapid.fireRate : 1);
   }
 
   // The pitch of an explorer's shot (v1.6, M5). It may aim at a rival on the island (alive, visible, not shielded by a
@@ -932,6 +966,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     // Finding #15: a destroyed rock is gone for the round, never replaced: a new rock id makes every screen rebuild its
     // whole rock field (render.js setRocks), and a field of TUNING.rockCount rocks lasts a 4:00 round.
     rocks = rocks.filter((r) => r !== rock);
+    dropLoot(rock); // v1.8: a shot rock may leave a pickup where it was
     if (type.blastRadius) for (const q of active()) if (q.mode === "space" && dist(q.pos, rock.pos) < type.blastRadius) hurt(q, type.blastDamage, null);
     // Splitters (not in play in v1) are the one exception: their halves are new rocks (a rebuild on every screen).
     if (type.splitInto) for (let i = 0; i < type.splitInto; i++) rocks.push(spawnRock("stone", add(rock.pos, randomPoint(rock.size, rock.size + 2)), rock.size / 2));
@@ -963,15 +998,17 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   // (mine, tractor) or "boss"; src: where the hit came from (the hit marker), default the attacker's position.
   function hurt(p, amount, by, how = null, src = null) {
     if (p.dead || invulnerable(p)) return;
+    if (ghostTo(p, by) && players[by]) return; // v1.8 GHOST: rivals' shots, blasts and mines pass through
     // A bot remembers the humans who hit it: it shoots back at them for BOT_REVENGE_SECONDS (botThink).
     if (p.bot && by && players[by] && !players[by].bot) p.hitBy[by] = S.t;
-    if (p.shielding) { fx("spark", p.pos, p.color, 2, p.mode); return; }
+    if (p.shielding || p.bubbleFor > 0) { fx("spark", p.pos, p.color, 2, p.mode); return; } // v1.8: or a SHIELD pickup's bubble
     p.hp -= amount;
     fx("hit", p.pos, 0xf97316, 1, p.mode);
     const attacker = by && by !== p.name ? players[by] : null;
     hitNotice(p, amount, attacker ? attacker.name : how === "boss" ? "boss" : null, src || (attacker && attacker.mode === p.mode ? attacker.pos : null));
     if (p.hp > 0) return;
     p.hp = 0; p.dead = true; p.deadFor = 0; p.drilling = false; p.digging = false; p.tractor = null;
+    p.power = null; p.bubbleFor = 0; // v1.8: death ends the power-up and the bubble
     fx("explode", p.pos, p.color, p.mode === "space" ? 8 : 3, p.mode);
     const killer = attacker;
     addScore(p, SCORING.killed); // dying costs points however it happens (never below 0)
@@ -1047,26 +1084,34 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
 
   function updateBullets(dt) {
     bullets = bullets.filter((b) => {
-      const from = b.pos;
-      b.pos = add(b.pos, b.dir, VERB.shoot.speed * dt);
-      b.life -= dt;
-      const decoy = decoys.length && !b.atBoss && players[b.owner] && !players[b.owner].bot ? decoyHit(b, from) : null;
-      if (decoy) { hitDecoy(decoy, b.damage, b.owner); return false; }
-      if (b.mode === "planet") {
-        const hit = active().find((q) => q.name !== b.owner && q.mode === "planet" && !q.dead && canHurt(b.owner, q) && segDist(add(q.pos, v3(0, EXPLORER_CHEST, 0)), from, b.pos) < EXPLORER_RADIUS + 0.3);
-        if (hit) { hurt(hit, b.damage, b.owner); return false; }
-        const car = parkedHit(from, b.pos, b.owner);
-        if (car) { hitParked(car, b.damage, b.owner); return false; }
-        if (b.pos.y < Terrain.height(b.pos.x, b.pos.z, island.seed)) return false; // into a hill
-        return b.life > 0;
-      }
-      if (!boss.dead && dist(b.pos, boss.pos) < boss.radius + 0.5) { hitBoss(b.damage, b.owner, b.pos); return false; }
-      const rock = rocks.find((r) => dist(r.pos, b.pos) < r.size + 0.5);
-      if (rock) { damageRock(rock, b.owner); return false; }
-      const ship = active().find((q) => q.name !== b.owner && q.mode === "space" && !q.dead && !(b.atBoss && q.bot) && canHurt(b.owner, q) && segDist(q.pos, from, b.pos) < SHIP_RADIUS + 0.5);
-      if (ship) { hurt(ship, b.damage, b.owner); return false; }
-      return b.life > 0;
+      const keep = moveBullet(b, dt);
+      if (!keep && b.power & 2) megaBlast(b); // v1.8 MEGA BLAST: explodes on impact, or where its life ends
+      return keep;
     });
+  }
+  // v1.8 GHOST: a rival's shot passes through (the boss's do not)
+  const ghostTo = (q, owner) => !!owner && owner !== q.name && powered(q, "ghost");
+  function moveBullet(b, dt) {
+    const from = b.pos;
+    if (b.power & 1 && b.mode === "space") homeIn(b, dt); // v1.8 HOMING
+    b.pos = add(b.pos, b.dir, VERB.shoot.speed * dt);
+    b.life -= dt;
+    const decoy = decoys.length && !b.atBoss && players[b.owner] && !players[b.owner].bot ? decoyHit(b, from) : null;
+    if (decoy) { hitDecoy(decoy, b.damage, b.owner); return false; }
+    if (b.mode === "planet") {
+      const hit = active().find((q) => q.name !== b.owner && q.mode === "planet" && !q.dead && !ghostTo(q, b.owner) && canHurt(b.owner, q) && segDist(add(q.pos, v3(0, EXPLORER_CHEST, 0)), from, b.pos) < EXPLORER_RADIUS + 0.3);
+      if (hit) { hurt(hit, b.damage, b.owner); return false; }
+      const car = parkedHit(from, b.pos, b.owner);
+      if (car) { hitParked(car, b.damage, b.owner); return false; }
+      if (b.pos.y < Terrain.height(b.pos.x, b.pos.z, island.seed)) return false; // into a hill
+      return b.life > 0;
+    }
+    if (!boss.dead && dist(b.pos, boss.pos) < boss.radius + 0.5) { hitBoss(b.damage, b.owner, b.pos); return false; }
+    const rock = rocks.find((r) => dist(r.pos, b.pos) < r.size + 0.5);
+    if (rock) { damageRock(rock, b.owner); return false; }
+    const ship = active().find((q) => q.name !== b.owner && q.mode === "space" && !q.dead && !(b.atBoss && q.bot) && !ghostTo(q, b.owner) && canHurt(b.owner, q) && segDist(q.pos, from, b.pos) < SHIP_RADIUS + 0.5);
+    if (ship) { hurt(ship, b.damage, b.owner); return false; }
+    return b.life > 0;
   }
 
   // The boss shoots back at a random ship within shotRange, faster the more ships there are (contract TUNING.boss).
@@ -1097,11 +1142,12 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
 
   function rockCollisions(p) {
     if (p.stun > 0 || p.dead || p.mode !== "space" || invulnerable(p)) return; // spawn shield, drawing, landing: pass through
-    const rock = rocks.find((r) => dist(r.pos, p.pos) < r.size + (p.shielding ? 4 : SHIP_RADIUS));
+    const shielded = p.shielding || p.bubbleFor > 0; // v1.8: a SHIELD pickup's bubble rams like a held SHIELD
+    const rock = rocks.find((r) => dist(r.pos, p.pos) < r.size + (shielded ? 4 : SHIP_RADIUS));
     if (!rock) return;
-    fx("explode", rock.pos, p.shielding ? p.color : 0xf97316, rock.size);
-    if (!p.shielding) { p.stun = T.stunSeconds; addScore(p, SCORING.hitByRock); }
-    if (!p.shielding && p.tractor && p.tractor.until + 0.5 > S.t) { const by = p.tractor.by; p.tractor = null; hurt(p, TRACTOR_ROCK_DAMAGE, by, "tractor"); }
+    fx("explode", rock.pos, shielded ? p.color : 0xf97316, rock.size);
+    if (!shielded) { p.stun = T.stunSeconds; addScore(p, SCORING.hitByRock); }
+    if (!shielded && p.tractor && p.tractor.until + 0.5 > S.t) { const by = p.tractor.by; p.tractor = null; hurt(p, TRACTOR_ROCK_DAMAGE, by, "tractor"); }
     rocks = rocks.filter((r) => r !== rock); // gone for the round (finding #15)
     worldDirty = true;
   }
@@ -1172,7 +1218,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     const turn = still ? 0 : clamp((k.right ? 1 : 0) - (k.left ? 1 : 0) + steer.x, -1, 1);
     const fwd = still ? 0 : clamp((k.forward || k.up ? 1 : 0) - (k.back || k.down ? 1 : 0) + steer.y + move.y, -1, 1);
     const side = still ? 0 : clamp((k.straferight ? 1 : 0) - (k.strafeleft ? 1 : 0) + move.x, -1, 1);
-    p.boosting = !!k.boost;
+    p.boosting = !!k.boost || powered(p, "overdrive"); // v1.8 OVERDRIVE runs on the island too
     p.shielding = energy(p, !!k.shield, "shieldEnergy", "shieldLocked", T.shield, dt);
     p.boostEnergy = Math.min(1, p.boostEnergy + T.boost.rechargePerSecond * dt);
     p.yaw = wrap(p.yaw - turn * T.turnRate * dt);
@@ -1394,10 +1440,10 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     mines = mines.filter((m) => {
       if (m.until <= S.t) return false;
       if (m.armedAt > S.t) return true;
-      const q = active().find((q) => q.name !== m.owner && q.mode === m.mode && !q.bot && !q.dead && !invulnerable(q) && gap(q, m) < MINE_RADIUS[m.mode]);
+      const q = active().find((q) => q.name !== m.owner && q.mode === m.mode && !q.bot && !q.dead && !invulnerable(q) && !ghostTo(q, m.owner) && gap(q, m) < MINE_RADIUS[m.mode]);
       if (!q) return true;
       fx("explode", m.pos, m.color, m.mode === "space" ? 4 : 2, m.mode);
-      if (q.shielding) { fx("spark", q.pos, q.color, 2, q.mode); return false; }
+      if (q.shielding || q.bubbleFor > 0) { fx("spark", q.pos, q.color, 2, q.mode); return false; }
       q.stun = Math.max(q.stun, T.stunSeconds);
       const lost = Math.abs(addScore(q, SCORING.mineHit)); // what the score floor actually let it take (never -0)
       strike(q, "mine", players[m.owner] || { name: m.owner, color: m.color }, { seconds: T.stunSeconds, points: lost }, `${q.name} hit ${m.owner}'s mine${lost ? ` (-${lost})` : ""}`);
@@ -1450,6 +1496,127 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     send({ type: "mischief", kind: "decoy", player: shooter.name, from: d.owner, seconds: 0 });
     send({ type: "mischief", kind: "decoy", player: d.owner, from: d.owner, victim: shooter.name, seconds: 0 });
     announce(`${MISCHIEF_ICON.decoy} ${shooter.name} shot ${d.owner}'s decoy`);
+  }
+
+  // ---- Loot (v1.8, owner 10 Oct 13:00 / 13:02; contract.js TUNING.loot) ------------------------------------------
+  // A rock destroyed by a shot or a blast may leave ONE pickup where it was (stone 25%, crystal 60%; crystals favour the
+  // uncommon and rare kinds). It floats and drifts for TUNING.loot.life s; the first living ship within collectRange m
+  // takes it, and within magnetRange m it flies to the nearest ship. Instant kinds apply and stack; the timed ones are one
+  // slot per player (p.power: a new one replaces the old). The collector's phone gets a toast, every screen an fx
+  // "pickup" (the sparkle) and the TV a quiet feed line.
+
+  const powered = (p, kind) => !!p.power && p.power.kind === kind && p.power.until > S.t;
+
+  function dropLoot(rock) {
+    if (lootRandom() >= (LOOT.dropChance[rock.type] || 0)) return null;
+    return spawnPickup(rollLoot(rock.type, lootRandom), rock.pos);
+  }
+
+  function spawnPickup(kind, at) {
+    if (!LOOT.kinds[kind] || !at) return null;
+    if (pickups.length >= LOOT.max) pickups.shift(); // the oldest makes room
+    const dir = norm({ x: lootRandom() * 2 - 1, y: lootRandom() - 0.5, z: lootRandom() * 2 - 1 });
+    const k = { id: nextId++, kind, pos: { x: at.x, y: at.y, z: at.z }, vel: add(v3(), dir, LOOT.drift), until: S.t + LOOT.life };
+    pickups.push(k);
+    return k;
+  }
+
+  // [id, kindIndex (Contract.LOOT_KINDS), x, y, z]: tuples like bullets and mines (24 pickups must fit the tick budget)
+  const pickupList = () => pickups.map((k) => [k.id, Contract.LOOT_KINDS.indexOf(k.kind), r1(k.pos.x), r1(k.pos.y), r1(k.pos.z)]);
+
+  // Expire, drift or fly to the nearest ship in its magnet range, and get collected.
+  function updatePickups(list, dt) {
+    if (!pickups.length) return;
+    const ships = list.filter((q) => q.mode === "space" && !q.dead && !(q.landingFor > 0) && !(q.takeoffFor > 0));
+    pickups = pickups.filter((k) => {
+      if (k.until <= S.t) return false;
+      let best = null, bestD = Infinity;
+      for (const q of ships) {
+        const d = dist(q.pos, k.pos);
+        if (d < bestD && d <= LOOT.magnetRange * (powered(q, "magnet") ? LOOT.kinds.magnet.radius : 1)) { best = q; bestD = d; }
+      }
+      if (!best) { k.pos = add(k.pos, k.vel, dt); return true; }
+      if (bestD > LOOT.collectRange) {
+        k.pos = add(k.pos, sub(best.pos, k.pos), Math.min(1, (LOOT.pullSpeed * dt) / bestD));
+        if (dist(best.pos, k.pos) > LOOT.collectRange) return true;
+      }
+      collect(best, k);
+      return false;
+    });
+  }
+
+  function collect(p, k) {
+    const cfg = LOOT.kinds[k.kind];
+    let text = `${cfg.icon} ${cfg.label}`, seconds = 0;
+    if (k.kind === "repair") { p.hp = Math.min(T.shipHp, p.hp + cfg.hp); text = `${cfg.icon} +${cfg.hp} HP`; }
+    else if (k.kind === "shield") { p.bubbleFor = Math.min(cfg.maxSeconds, (p.bubbleFor || 0) + cfg.seconds); seconds = cfg.seconds; text = `${cfg.icon} +SHIELD · ${cfg.seconds}s`; }
+    else if (k.kind === "boost") { p.boostEnergy = 1; p.boostLocked = false; text = `${cfg.icon} BOOST FULL`; }
+    else if (k.kind === "gems") { addScore(p, cfg.points); text = `${cfg.icon} +${cfg.points}`; }
+    else if (k.kind === "draw") {
+      // +1 drawing in the world the player is in, up to the budget's maximum; a full budget pays a few points instead
+      if (!p.bot && budget.refund(p.name, p.mode === "planet" ? "planet" : "space")) text = `${cfg.icon} +1 DRAWING`;
+      else { addScore(p, cfg.fullPoints); text = `${cfg.icon} DRAWINGS FULL · +${cfg.fullPoints}`; }
+    } else if (k.kind === "warp") text = warp(p) ? `${cfg.icon} WARP` : `${cfg.icon} WARP · no room ahead`;
+    else if (cfg.timed) {
+      p.power = { kind: k.kind, until: S.t + cfg.seconds, seconds: cfg.seconds };
+      seconds = cfg.seconds;
+      text = k.kind === "mega" ? `${cfg.icon} ${cfg.label} · next shot` : `${cfg.icon} ${cfg.label} · ${cfg.seconds}s`;
+    }
+    send({ type: "fx", kind: "pickup", mode: "space", pos: { x: r2(k.pos.x), y: r2(k.pos.y), z: r2(k.pos.z) }, color: cfg.color, size: 3, item: k.kind, player: p.name });
+    if (p.bot) return;
+    send({ type: "toast", player: p.name, kind: "info", verb: null, text, sketch: null, ghost: null, pickup: k.kind, ...(seconds ? { seconds } : {}) });
+    send({ type: "announce", text: `✨ ${p.name} · ${cfg.icon} ${cfg.label}`, big: false, quiet: true });
+  }
+
+  // WARP: an instant dash ahead, to the farthest spot (40 m down to 10 m) clear of rocks, the boss and the planet.
+  function warp(p) {
+    const cfg = LOOT.kinds.warp, { forward } = basis(p.yaw, p.pitch);
+    for (let d = cfg.distance; d >= cfg.distance / 4; d -= 5) {
+      const to = add(p.pos, forward, d);
+      if (len(to) > T.worldRadius) continue;
+      if (!boss.dead && dist(to, boss.pos) < boss.radius + SHIP_RADIUS + cfg.clear) continue;
+      if (planet && dist(to, planet) < planet.radius + SHIP_RADIUS + cfg.clear) continue;
+      if (rocks.some((r) => dist(r.pos, to) < r.size + SHIP_RADIUS + cfg.clear)) continue;
+      fx("warp", p.pos, p.color, 4);
+      p.pos = to;
+      fx("warp", to, p.color, 4);
+      return true;
+    }
+    return false;
+  }
+
+  // HOMING: a shot turns (at most turnRate rad/s) toward the best-lined-up target ahead within the cone and range: a
+  // rival ship, a rival's decoy or the boss count double over a rock.
+  function homeIn(b, dt) {
+    const cfg = LOOT.kinds.homing, cosCone = Math.cos(cfg.cone);
+    let want = null, bestScore = Infinity;
+    const consider = (c, weight) => {
+      const v = sub(c, b.pos), l = len(v);
+      if (l < 0.5 || l > cfg.range) return;
+      const cos = dot(v, b.dir) / l;
+      if (cos < cosCone) return;
+      const score = (1 - cos) * weight;
+      if (score < bestScore) { bestScore = score; want = { x: v.x / l, y: v.y / l, z: v.z / l }; }
+    };
+    if (!boss.dead) consider(boss.pos, 0.5);
+    for (const q of active()) if (q.name !== b.owner && q.mode === "space" && !q.dead && q.invisibleFor <= 0 && !ghostTo(q, b.owner) && canHurt(b.owner, q)) consider(q.pos, 0.5);
+    for (const d of decoys) if (d.mode === "space" && d.owner !== b.owner) consider(d.pos, 0.5);
+    for (const r of rocks) consider(r.pos, 1);
+    if (!want) return;
+    const ang = Math.acos(clamp(dot(want, b.dir), -1, 1)), turn = cfg.turnRate * dt;
+    b.dir = ang <= turn ? want : norm(add(b.dir, sub(want, b.dir), turn / ang));
+  }
+
+  // MEGA BLAST: the shot explodes where it hits (or where its life ends): rival ships within the radius are hurt, rocks
+  // there are destroyed (they may drop loot), the boss takes bossDamage.
+  function megaBlast(b) {
+    const cfg = LOOT.kinds.mega, at = { ...b.pos }, owner = b.owner;
+    fx("blast", at, cfg.color, cfg.radius);
+    fx("explode", at, b.color, cfg.radius * 0.6);
+    for (const rock of rocks.filter((r) => dist(r.pos, at) < cfg.radius + r.size)) damageRock(rock, owner, rock.health);
+    if (!boss.dead && dist(boss.pos, at) < cfg.radius + boss.radius) hitBoss(cfg.bossDamage, owner, null);
+    for (const q of active()) if (q.name !== owner && q.mode === "space" && !q.dead && canHurt(owner, q) && dist(q.pos, at) < cfg.radius) hurt(q, cfg.damage, owner, null, at);
+    for (const d of decoys.filter((x) => x.mode === "space" && x.owner !== owner && dist(x.pos, at) < cfg.radius)) hitDecoy(d, cfg.damage, owner);
   }
 
   // ---- Hints (PLAN.md section 4, rules.js): riddle at 6 s stuck, faint sketch 10 s later, the answer with a ghost
@@ -1642,6 +1809,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       p.empFor = Math.max(0, p.empFor - dt); p.inkFor = Math.max(0, p.inkFor - dt);
       if (p.tractor && p.tractor.until + 0.5 <= S.t) p.tractor = null;
       p.spawnShield = Math.max(0, p.spawnShield - dt);
+      p.bubbleFor = Math.max(0, (p.bubbleFor || 0) - dt); // v1.8 loot
+      if (p.power && p.power.until <= S.t) p.power = null;
       if (p.dead) {
         p.pressed = []; p.drilling = false; p.digging = false;
         p.deadFor += dt;
@@ -1669,6 +1838,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     updateMines();
     updateDecoys(dt);
     for (const p of list) rockCollisions(p);
+    updatePickups(list, dt); // v1.8 loot
     flares = flares.filter((f) => f.until > S.t);
     for (const p of list) updateHints(p);
   }
@@ -1695,6 +1865,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       leaderboard: leaderboard(),
       phase: S.phase, ...countdownField(), // v1.4: a screen that connects mid-countdown counts down at once
       ...endless.fields(), // v1.6: mode "endless" while it is on, absent in the demo
+      pickups: pickupList(), // v1.8 loot
     };
     if (entities) m.entities = Object.fromEntries(ordered().filter((p) => p.entity).map((p) => [p.name, p.entity]));
     return m;
@@ -1736,8 +1907,12 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       landing: p.landingFor > 0, takingOff: p.takeoffFor > 0, spawnShield: p.spawnShield > 0,
       emp: p.empFor > 0, inked: p.inkFor > 0, tractored: !!(p.tractor && p.tractor.until > S.t), drawing: p.drawingUntil > S.t,
     };
+    if (p.bubbleFor > 0) all.shield = true; // v1.8: the SHIELD pickup's bubble shows as a shield on every screen
     const out = {};
     for (const k in all) if (all[k]) out[k] = true;
+    // v1.8 loot: seconds left of the bubble, and the timed power-up for the HUD countdown and the ship's aura
+    if (p.bubbleFor > 0) out.bubble = Math.max(0.1, r1(p.bubbleFor));
+    if (p.power && p.power.until > S.t) out.powerup = { kind: p.power.kind, left: r1(Math.max(0, p.power.until - S.t)) }; // of TUNING.loot.kinds[kind].seconds
     return out;
   }
 
@@ -1763,11 +1938,12 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
         if ((p.landingFor > 0 || p.takeoffFor > 0) && landing) { const b = bay(p); out.bay = [r1(b.x), r1(b.z)]; } // = its parked entry
         return out;
       }),
-      bullets: bullets.slice(-TICK_MAX_BULLETS).map((b) => [b.id, r1(b.pos.x), r1(b.pos.y), r1(b.pos.z), b.color, b.mode === "planet" ? 1 : 0]),
+      bullets: bullets.slice(-TICK_MAX_BULLETS).map((b) => { const row = [b.id, r1(b.pos.x), r1(b.pos.y), r1(b.pos.z), b.color, b.mode === "planet" ? 1 : 0]; if (b.power) row.push(b.power); return row; }),
       bossShots: bossShots.map((s) => [s.id, r1(s.pos.x), r1(s.pos.y), r1(s.pos.z)]),
       flares: flares.slice(-TICK_MAX_PROPS).map((f) => [r1(f.pos.x), r1(f.pos.y), r1(f.pos.z), f.radius, r1(f.until - S.t)]),
       mines: mines.slice(-TICK_MAX_PROPS).map((m) => [m.id, r1(m.pos.x), r1(m.pos.y), r1(m.pos.z), m.mode === "planet" ? 1 : 0, m.color]),
       decoys: decoys.slice(-TICK_MAX_PROPS).map((d) => [d.id, r1(d.pos.x), r1(d.pos.y), r1(d.pos.z), r2(d.yaw), d.color, d.owner, d.mode === "planet" ? 1 : 0]),
+      pickups: pickupList(), // v1.8 loot
     };
   }
 
@@ -1798,8 +1974,10 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     get phase() { return S.phase; },
     get round() { return S.round; },
     get countdown() { return countdownField().countdown; }, // v1.4: whole seconds left in phase "countdown", else undefined
-    debug: () => ({ ...S, boss, planet, landing, chests, island, parked, rocks, bullets, bossShots, mines, decoys, endless: endless.debug() }),
+    debug: () => ({ ...S, boss, planet, landing, chests, island, parked, rocks, bullets, bossShots, mines, decoys, pickups, endless: endless.debug() }),
+    // v1.8 loot: drop a pickup of that kind at a space position (tests, tools); returns it, or null for an unknown kind
+    spawnPickup: (kind, at) => spawnPickup(kind, at),
   };
 }
 
-module.exports = { createWorld, ghostBox, hasControl, mergeLayout, withSteer, chestCount, bossHp, DEFAULT_LAYOUT, VERB };
+module.exports = { createWorld, ghostBox, hasControl, mergeLayout, withSteer, chestCount, bossHp, DEFAULT_LAYOUT, VERB, rollLoot };
