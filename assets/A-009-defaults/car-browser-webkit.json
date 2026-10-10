@@ -1,0 +1,79 @@
+{
+  "three": "160",
+  "environment": {
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+    "viewport": [
+      390,
+      844
+    ],
+    "devicePixelRatio": 3
+  },
+  "checks": {
+    "threeCallsDeclared": true,
+    "triBudget": true,
+    "fourNamedWheels": true,
+    "sockets": true,
+    "instancedWheels": true,
+    "independentInstances": true,
+    "actualRawBudget": true,
+    "actualRuntimeBudget": true,
+    "noImageTextures": true,
+    "staticAppearancePreserved": true,
+    "speedToWheelRadians": true,
+    "onlyFrontSteers": true,
+    "independentPhases": true,
+    "parentTransformInvariant": true,
+    "externalPivotSynced": true,
+    "rearSteerRejected": true,
+    "nanRejected": true,
+    "idempotentDispose": true,
+    "resourcesReleased": true
+  },
+  "stats": {
+    "triangles": 4776,
+    "calls": 3,
+    "meshDrawCalls": 3,
+    "trianglesPerWheel": 700,
+    "wheels": 4,
+    "materials": 3,
+    "textures": 0,
+    "rawGlbDrawCalls": 3,
+    "wheelRadius": 0.5519999861717224,
+    "speed": 0,
+    "steer": 0,
+    "wheelPoses": {
+      "fl": {
+        "spin": 0,
+        "steer": 0
+      },
+      "fr": {
+        "spin": 0,
+        "steer": 0
+      },
+      "bl": {
+        "spin": 0,
+        "steer": 0
+      },
+      "br": {
+        "spin": 0,
+        "steer": 0
+      }
+    },
+    "disposed": false
+  },
+  "raw": {
+    "calls": 3,
+    "triangles": 4776
+  },
+  "runtime": {
+    "calls": 3,
+    "triangles": 4776
+  },
+  "rawToBatchPixels": {
+    "maxDifference": 0,
+    "meanDifference": 0,
+    "channelsOver2": 0
+  },
+  "maxMatrixError": 2.8396484275106104e-8,
+  "pass": true
+}

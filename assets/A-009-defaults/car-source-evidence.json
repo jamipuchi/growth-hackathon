@@ -1,0 +1,45 @@
+{
+  "recorded_at": "2026-10-10T11:17:09.602054+00:00",
+  "source": "Original deterministic geometry and vertex paint; no external source assets.",
+  "files": {
+    "car.glb": {
+      "bytes": 420120,
+      "sha256": "e0775cab48a7d73cc165567c206ec7cdede4f186b0d8517f8e06aa805ff99a7c"
+    },
+    "car_source.blend": {
+      "bytes": 186643,
+      "sha256": "1a294fe6e45181c3c2be7a3f259b844f3eb719b3e523d02869e1350a9305b7f2"
+    },
+    "generate_car.py": {
+      "bytes": 15768,
+      "sha256": "41fddb4786a20b487e5fa47391d0a148a9825036dce6b2fd99e68275c6c09593"
+    },
+    "car.js": {
+      "bytes": 12422,
+      "sha256": "66cbbc7a9d8fc75aeef2307906504e45c3da5bd8af54a89606aaca216710315d"
+    },
+    "car-preview.html": {
+      "bytes": 13594,
+      "sha256": "dfc7663a3b3941b4efde9097160545d029aea26f278ad765e0d81871ad2e5038"
+    },
+    "car-validate.py": {
+      "bytes": 7791,
+      "sha256": "dad4b7ee6b38dc847c60f0a217a1ab626ef7283455d601b7033247848f6be927"
+    },
+    "car-manifest.json": {
+      "bytes": 4319,
+      "sha256": "8e6a69e5aa66f601bcc0e286f2928d90a9be5161ed07ca8a4d9a905e2a699764"
+    },
+    "car-validation.json": {
+      "bytes": 4765,
+      "sha256": "bb82b4af145f0d6044f39b829a0d368ad3637736155df22eb6910bf55e7bf147"
+    }
+  },
+  "preserved_existing_files": {
+    "ship.glb": "1ddcb301aed073387135359fcf95b58ee2c95a4b984bbb25fa7e1ac12d3cdcbc",
+    "explorer.glb": "fd380c1450b6e7eb0be0ca143e4cc63052652b9d67cd4437c24b0ef131b357ec",
+    "defaults.js": "77bfc8f8ec6ea1ac6bf616812b62683e3042d623703d8c3dde5703fb1d94ad2e",
+    "generate.py": "38bae8d8b4940aabba9d6b6faa3fffe3afc26a94a0961fa79845b3aa53043ccd",
+    "README.md": "3740f2b92db184f3db76659dcba1eaae86fea49c03f7797d8b3d915f3586b7c8"
+  }
+}

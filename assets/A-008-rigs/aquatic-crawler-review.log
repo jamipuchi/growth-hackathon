@@ -1,0 +1,15 @@
+00:01.107  blend            | Read blend: "/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/swimmer_source.blend"
+00:03.466  render           | Saved: '/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/aquatic-crawler-swimmer-rest.png'
+00:05.805  render           | Saved: '/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/aquatic-crawler-swimmer-swim.png'
+swimmer {"restHasNoActiveAction": true, "restBoneIdentity": true, "oneArmatureModifier": true, "allClipFramesFinite": true, "noCollapsedEdges": true, "noExplodingEdges": true, "exactSocketParents": true, "socketRestPositions": true}
+00:05.807  blend            | Read blend: "/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/crawler_source.blend"
+00:08.606  render           | Saved: '/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/aquatic-crawler-crawler-rest.png'
+00:10.769  render           | Saved: '/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/aquatic-crawler-crawler-hit.png'
+crawler {"restHasNoActiveAction": true, "restBoneIdentity": true, "oneArmatureModifier": true, "allClipFramesFinite": true, "noCollapsedEdges": true, "noExplodingEdges": true, "exactSocketParents": true, "socketRestPositions": true}
+00:10.771  blend            | Read blend: "/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/serpent_source.blend"
+00:13.284  render           | Saved: '/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/aquatic-crawler-serpent-rest.png'
+00:15.525  render           | Saved: '/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/aquatic-crawler-serpent-coil.png'
+serpent {"restHasNoActiveAction": true, "restBoneIdentity": true, "oneArmatureModifier": true, "allClipFramesFinite": true, "noCollapsedEdges": true, "noExplodingEdges": true, "exactSocketParents": true, "socketRestPositions": true}
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

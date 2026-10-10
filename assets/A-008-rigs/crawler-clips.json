@@ -1,0 +1,124 @@
+{
+  "type": "crawler",
+  "fps": 30,
+  "bones": [
+    "body",
+    "leg_1_upper",
+    "leg_1_lower",
+    "leg_2_upper",
+    "leg_2_lower",
+    "leg_3_upper",
+    "leg_3_lower",
+    "leg_4_upper",
+    "leg_4_lower",
+    "leg_5_upper",
+    "leg_5_lower",
+    "leg_6_upper",
+    "leg_6_lower",
+    "leg_7_upper",
+    "leg_7_lower",
+    "leg_8_upper",
+    "leg_8_lower"
+  ],
+  "hierarchy": {
+    "body": null,
+    "leg_1_upper": "body",
+    "leg_1_lower": "leg_1_upper",
+    "leg_2_upper": "body",
+    "leg_2_lower": "leg_2_upper",
+    "leg_3_upper": "body",
+    "leg_3_lower": "leg_3_upper",
+    "leg_4_upper": "body",
+    "leg_4_lower": "leg_4_upper",
+    "leg_5_upper": "body",
+    "leg_5_lower": "leg_5_upper",
+    "leg_6_upper": "body",
+    "leg_6_lower": "leg_6_upper",
+    "leg_7_upper": "body",
+    "leg_7_lower": "leg_7_upper",
+    "leg_8_upper": "body",
+    "leg_8_lower": "leg_8_upper"
+  },
+  "boneLengths": {
+    "body": 0.30000000596046444,
+    "leg_1_upper": 0.5567090711841652,
+    "leg_1_lower": 0.5252856287928334,
+    "leg_2_upper": 0.4615463119598191,
+    "leg_2_lower": 0.5069763167428027,
+    "leg_3_upper": 0.4615463079241566,
+    "leg_3_lower": 0.5069763167428027,
+    "leg_4_upper": 0.5383539795705521,
+    "leg_4_lower": 0.528606647454763,
+    "leg_5_upper": 0.5567090711841652,
+    "leg_5_lower": 0.5252856287928334,
+    "leg_6_upper": 0.4615463119598191,
+    "leg_6_lower": 0.5069763167428027,
+    "leg_7_upper": 0.4615463079241566,
+    "leg_7_lower": 0.5069763167428027,
+    "leg_8_upper": 0.5383539795705521,
+    "leg_8_lower": 0.528606647454763
+  },
+  "socketParents": {
+    "mouth": "body",
+    "back": "body",
+    "front": "body"
+  },
+  "socketPositions": {
+    "mouth": [
+      0,
+      0.565,
+      -0.93
+    ],
+    "back": [
+      0,
+      1.035,
+      0.18
+    ],
+    "front": [
+      0,
+      0.64,
+      -1.02
+    ]
+  },
+  "clips": {
+    "idle": {
+      "duration": 2.4,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "hit": {
+      "duration": 0.5,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "die": {
+      "duration": 1.4,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    }
+  },
+  "referenceBounds": {
+    "min": [
+      -1.1122524738311768,
+      0.0,
+      -1.1481479406356812
+    ],
+    "max": [
+      1.1122524738311768,
+      1.1749999523162842,
+      1.0981478691101074
+    ]
+  },
+  "origin": "ground midpoint between feet",
+  "limbScaleRange": [
+    0.7,
+    1.4
+  ],
+  "notes": [
+    "Locomotion, ground contact and root paths belong to game integration.",
+    "Crawler walking is procedural IK; idle, hit and die are the only authored clips."
+  ]
+}

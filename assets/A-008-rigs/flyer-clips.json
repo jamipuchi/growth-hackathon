@@ -1,0 +1,95 @@
+{
+  "fps": 30,
+  "license": "CC0-1.0",
+  "bones": [
+    "body",
+    "neck",
+    "head",
+    "wing_l_1",
+    "wing_l_2",
+    "wing_r_1",
+    "wing_r_2",
+    "tail"
+  ],
+  "parents": {
+    "body": null,
+    "neck": "body",
+    "head": "neck",
+    "wing_l_1": "body",
+    "wing_l_2": "wing_l_1",
+    "wing_r_1": "body",
+    "wing_r_2": "wing_r_1",
+    "tail": "body"
+  },
+  "sockets": {
+    "seat": "body",
+    "nose": "head",
+    "claws": "body"
+  },
+  "bounds": {
+    "min": [
+      -1.562897801399231,
+      -0.3959999978542328,
+      -1.1640000343322754
+    ],
+    "max": [
+      1.562897801399231,
+      0.5099999904632568,
+      1.0149999856948853
+    ]
+  },
+  "limbScaleRange": [
+    0.7,
+    1.4
+  ],
+  "triangles": 3088,
+  "materials": 1,
+  "textures": 0,
+  "origin": "body_center",
+  "forward": "-Z",
+  "up": "Y",
+  "referenceHeight": 0.9059999883174896,
+  "clips": {
+    "flap": {
+      "duration": 0.8,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "glide": {
+      "duration": 2.4,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "dive": {
+      "duration": 1.2,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "land": {
+      "duration": 1.2,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "hit": {
+      "duration": 0.5,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "die": {
+      "duration": 1.4,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    }
+  },
+  "limitations": [
+    "Root flight path, gravity and landing height are external; all tracks are rotation only.",
+    "Claws are rigidly body-weighted because the contract provides no leg/claw bones.",
+    "Land/die require gameplay ground placement; rigid toy wing segments are neutral retargeting references."
+  ]
+}

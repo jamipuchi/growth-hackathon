@@ -1,0 +1,28 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>A-009 car verification</title><link rel="icon" href="data:,"><style>body{background:#182332;color:white;font:13px monospace}pre{white-space:pre-wrap}</style><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script><pre id="status">Verifying car…</pre><script type="module">
+import * as THREE from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {createDefaultCar} from './car.js';
+const report={three:THREE.REVISION,environment:{userAgent:navigator.userAgent,viewport:[innerWidth,innerHeight],devicePixelRatio},checks:{}};window.carVerification={report,done:false};
+const check=(k,v)=>{report.checks[k]=!!v;if(!v)throw new Error(k);};
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setSize(640,480);document.body.append(renderer.domElement);
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(38,4/3,.05,100);scene.add(new THREE.HemisphereLight(0xffffff,0x303040,3));const light=new THREE.DirectionalLight(0xffffff,2);light.position.set(-4,6,-4);scene.add(light);camera.position.set(5,4,-7);camera.lookAt(0,1,0);
+try{
+ const raw=(await new GLTFLoader().loadAsync('./car.glb')).scene,car=await createDefaultCar(),other=await createDefaultCar();
+ report.stats=car.getStats();check('threeCallsDeclared',report.stats.calls===3);check('triBudget',report.stats.triangles<=5000);check('fourNamedWheels',Object.values(car.wheels).length===4&&Object.entries(car.wheels).every(([k,n])=>n.name==='wheel_'+k));check('sockets',['seat','roof','front','back'].every(n=>car.sockets[n]?.name==='socket_'+n));
+ check('instancedWheels',car.wheelMesh.isInstancedMesh&&car.wheelMesh.count===4);check('independentInstances',car.wheelMesh.geometry!==other.wheelMesh.geometry&&car.wheels.fl!==other.wheels.fl);
+ const draw=(root)=>{scene.add(root);renderer.render(scene,camera);const counts={calls:renderer.info.render.calls,triangles:renderer.info.render.triangles};scene.remove(root);return counts;};
+ report.raw=draw(raw);report.runtime=draw(car.object3d);check('actualRawBudget',report.raw.calls===3&&report.raw.triangles===report.stats.triangles);check('actualRuntimeBudget',report.runtime.calls===3&&report.runtime.triangles===report.stats.triangles);
+ check('noImageTextures',renderer.info.memory.textures===0);
+ const target=new THREE.WebGLRenderTarget(512,384,{depthBuffer:true}),read=(root)=>{scene.add(root);renderer.setRenderTarget(target);renderer.render(scene,camera);const p=new Uint8Array(512*384*4);renderer.readRenderTargetPixels(target,0,0,512,384,p);scene.remove(root);return p;};
+ const before=read(raw),after=read(car.object3d);let max=0,sum=0,over2=0;for(let i=0;i<before.length;i++){const d=Math.abs(before[i]-after[i]);max=Math.max(max,d);sum+=d;if(d>2)over2++;}report.rawToBatchPixels={maxDifference:max,meanDifference:sum/before.length,channelsOver2:over2};check('staticAppearancePreserved',over2===0);renderer.setRenderTarget(null);target.dispose();
+ car.setWheel('fl',{spin:.3});car.setWheel('fr',{spin:1.2});car.setWheel('bl',{spin:2.1});car.setWheel('br',{spin:-.4});
+ car.setMotion({speed:3,steer:.4});const posesBefore=car.getStats().wheelPoses;car.update(.1);const posesAfter=car.getStats().wheelPoses;
+ check('speedToWheelRadians',Object.keys(posesAfter).every(k=>Math.abs((posesAfter[k].spin-posesBefore[k].spin)+.3/report.stats.wheelRadius)<1e-6));
+ check('onlyFrontSteers',posesAfter.fl.steer===.4&&posesAfter.fr.steer===.4&&posesAfter.bl.steer===0&&posesAfter.br.steer===0);check('independentPhases',Math.abs(posesAfter.fr.spin-posesAfter.fl.spin-.9)<1e-6);
+ const matrix=new THREE.Matrix4(),expected=new THREE.Matrix4(),root=car.object3d.getObjectByName('default_car');
+ car.object3d.position.set(3,2,-1);car.object3d.rotation.set(.1,.6,-.2);car.object3d.scale.setScalar(1.3);car.syncWheels();let maxMatrixError=0;
+ Object.values(car.wheels).forEach((p,i)=>{car.wheelMesh.getMatrixAt(i,matrix);expected.copy(root.matrixWorld).invert().multiply(p.matrixWorld);matrix.elements.forEach((v,j)=>maxMatrixError=Math.max(maxMatrixError,Math.abs(v-expected.elements[j])));});report.maxMatrixError=maxMatrixError;check('parentTransformInvariant',maxMatrixError<1e-6);
+ car.wheels.bl.position.y+=.1;car.syncWheels();car.wheelMesh.getMatrixAt(2,matrix);check('externalPivotSynced',Math.abs(matrix.elements[13]-car.wheels.bl.position.y)<1e-6);
+ let rejected=false;try{car.setWheel('br',{steer:.2});}catch{rejected=true;}check('rearSteerRejected',rejected);rejected=false;try{car.update(NaN);}catch{rejected=true;}check('nanRejected',rejected);
+ const rawG=new Set(),rawM=new Set();raw.traverse(o=>{if(o.isMesh){rawG.add(o.geometry);rawM.add(o.material);}});rawG.forEach(g=>g.dispose());rawM.forEach(m=>m.dispose());car.dispose();other.dispose();car.dispose();check('idempotentDispose',car.getStats().disposed&&car.update(.1)===false);check('resourcesReleased',renderer.info.memory.geometries===0&&renderer.info.memory.textures===0);
+ report.pass=Object.values(report.checks).every(Boolean);document.querySelector('#status').textContent=JSON.stringify(report,null,2);
+}catch(e){report.pass=false;report.error=e.stack;document.querySelector('#status').textContent=e.stack;console.error(e);}finally{window.carVerification.done=true;}
+</script></html>

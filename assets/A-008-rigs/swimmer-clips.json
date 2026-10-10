@@ -1,0 +1,91 @@
+{
+  "type": "swimmer",
+  "fps": 30,
+  "bones": [
+    "spine_1",
+    "spine_2",
+    "spine_3",
+    "spine_4",
+    "spine_5",
+    "spine_6"
+  ],
+  "hierarchy": {
+    "spine_1": null,
+    "spine_2": "spine_1",
+    "spine_3": "spine_2",
+    "spine_4": "spine_3",
+    "spine_5": "spine_4",
+    "spine_6": "spine_5"
+  },
+  "boneLengths": {
+    "spine_1": 0.4499999841054278,
+    "spine_2": 0.45000001721911925,
+    "spine_3": 0.4499999841054278,
+    "spine_4": 0.4499999841054278,
+    "spine_5": 0.4499999841054278,
+    "spine_6": 0.4500000503328083
+  },
+  "socketParents": {
+    "mouth": "spine_1",
+    "seat": "spine_3"
+  },
+  "socketPositions": {
+    "mouth": [
+      0,
+      -0.1,
+      -1.43
+    ],
+    "seat": [
+      0,
+      0.38,
+      -0.16
+    ]
+  },
+  "clips": {
+    "swim": {
+      "duration": 1.4,
+      "loop": true,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "dart": {
+      "duration": 0.8,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "hit": {
+      "duration": 0.5,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    },
+    "die": {
+      "duration": 1.4,
+      "loop": false,
+      "rootMotion": "external",
+      "tracks": "rotation_only"
+    }
+  },
+  "referenceBounds": {
+    "min": [
+      -0.8299999833106995,
+      -0.5199999809265137,
+      -1.4181911945343018
+    ],
+    "max": [
+      0.8299999833106995,
+      0.8199999928474426,
+      1.4800000190734863
+    ]
+  },
+  "origin": "centre of longitudinal reference; Y=0 at body centre",
+  "limbScaleRange": [
+    0.7,
+    1.4
+  ],
+  "notes": [
+    "Locomotion, ground contact and root paths belong to game integration.",
+    "Continuous weighted body rings keep the skin connected during bending."
+  ]
+}

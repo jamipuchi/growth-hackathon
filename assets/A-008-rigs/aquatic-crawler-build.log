@@ -1,0 +1,30 @@
+/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/generate_aquatic_crawler.py:275: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat=bpy.data.materials.new(kind+'_neutral_toy');mat.use_nodes=True;mat.use_backface_culling=True
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+13:01:03 | INFO: Starting glTF 2.0 export
+13:01:03 | INFO: Extracting primitive: swimmer_geometry
+13:01:03 | INFO: Primitives created: 1
+13:01:03 | INFO: Finished glTF 2.0 export in 0.06967711448669434 s
+
+Info: Saved as "swimmer_source.blend"
+CREATURE_EXPORTED swimmer 2356 triangles 6 bones 4 clips
+/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/generate_aquatic_crawler.py:275: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat=bpy.data.materials.new(kind+'_neutral_toy');mat.use_nodes=True;mat.use_backface_culling=True
+13:01:04 | INFO: Starting glTF 2.0 export
+13:01:04 | INFO: Extracting primitive: crawler_geometry
+13:01:04 | INFO: Primitives created: 1
+13:01:05 | INFO: Finished glTF 2.0 export in 0.07808184623718262 s
+
+Info: Saved as "crawler_source.blend"
+CREATURE_EXPORTED crawler 5052 triangles 17 bones 3 clips
+13:01:05 | INFO: Starting glTF 2.0 export
+13:01:05 | INFO: Extracting primitive: serpent_geometry
+13:01:05 | INFO: Primitives created: 1
+13:01:05 | INFO: Finished glTF 2.0 export in 0.051347970962524414 s
+
+Info: Saved as "serpent_source.blend"
+CREATURE_EXPORTED serpent 2340 triangles 8 bones 5 clips
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

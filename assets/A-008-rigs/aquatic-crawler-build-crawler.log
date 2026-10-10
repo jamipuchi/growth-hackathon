@@ -1,0 +1,14 @@
+/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/generate_aquatic_crawler.py:275: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat=bpy.data.materials.new(kind+'_neutral_toy');mat.use_nodes=True;mat.use_backface_culling=True
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+13:03:02 | INFO: Starting glTF 2.0 export
+13:03:02 | INFO: Extracting primitive: crawler_geometry
+13:03:02 | INFO: Primitives created: 1
+13:03:02 | INFO: Finished glTF 2.0 export in 0.11560416221618652 s
+
+Info: Saved as "crawler_source.blend"
+CREATURE_EXPORTED crawler 4956 triangles 17 bones 3 clips
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

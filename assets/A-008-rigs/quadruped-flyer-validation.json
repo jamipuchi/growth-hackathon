@@ -1,0 +1,169 @@
+{
+  "quadruped": {
+    "pass": true,
+    "file": "quadruped.glb",
+    "bytes": 742356,
+    "sha256": "58fb1e3c772171378f7d7061d7132d911fc0c645616e9601ac8730abf3308251",
+    "triangles": 4344,
+    "vertices": 9652,
+    "bones": 19,
+    "skinnedMeshes": 1,
+    "primitives": 1,
+    "materials": 1,
+    "textures": 0,
+    "maxInfluences": 1,
+    "clips": {
+      "bite": {
+        "duration": 0.7,
+        "tracks": 19,
+        "loop": false,
+        "maxLoopQuaternionDifference": null
+      },
+      "die": {
+        "duration": 1.4,
+        "tracks": 19,
+        "loop": false,
+        "maxLoopQuaternionDifference": null
+      },
+      "dig": {
+        "duration": 1.2,
+        "tracks": 19,
+        "loop": true,
+        "maxLoopQuaternionDifference": 0
+      },
+      "gallop": {
+        "duration": 0.8,
+        "tracks": 19,
+        "loop": true,
+        "maxLoopQuaternionDifference": 0
+      },
+      "hit": {
+        "duration": 0.5,
+        "tracks": 19,
+        "loop": false,
+        "maxLoopQuaternionDifference": null
+      },
+      "idle": {
+        "duration": 2.4,
+        "tracks": 19,
+        "loop": true,
+        "maxLoopQuaternionDifference": 0
+      },
+      "jump": {
+        "duration": 1.0,
+        "tracks": 19,
+        "loop": false,
+        "maxLoopQuaternionDifference": null
+      },
+      "roar": {
+        "duration": 1.6,
+        "tracks": 19,
+        "loop": false,
+        "maxLoopQuaternionDifference": null
+      },
+      "sit": {
+        "duration": 2.4,
+        "tracks": 19,
+        "loop": true,
+        "maxLoopQuaternionDifference": 0
+      },
+      "walk": {
+        "duration": 1.2,
+        "tracks": 19,
+        "loop": true,
+        "maxLoopQuaternionDifference": 0
+      }
+    },
+    "geometryFinite": true,
+    "normalsUnit": true,
+    "indicesValid": true,
+    "weightsNormalized": true,
+    "hierarchyExact": true,
+    "socketsPresent": true,
+    "onlyRotationTracks": true,
+    "bounds": {
+      "min": [
+        -0.5349999666213989,
+        0.0,
+        -1.5630000829696655
+      ],
+      "max": [
+        0.5349999666213989,
+        1.6206294298171997,
+        1.2556564807891846
+      ]
+    }
+  },
+  "flyer": {
+    "pass": true,
+    "file": "flyer.glb",
+    "bytes": 443184,
+    "sha256": "9b767d032afb97e9c5f99567a97636c5655d040eb79958f195683cd74c095a16",
+    "triangles": 3088,
+    "vertices": 6762,
+    "bones": 8,
+    "skinnedMeshes": 1,
+    "primitives": 1,
+    "materials": 1,
+    "textures": 0,
+    "maxInfluences": 1,
+    "clips": {
+      "die": {
+        "duration": 1.4,
+        "tracks": 8,
+        "loop": false,
+        "maxLoopQuaternionDifference": null
+      },
+      "dive": {
+        "duration": 1.2,
+        "tracks": 8,
+        "loop": false,
+        "maxLoopQuaternionDifference": null
+      },
+      "flap": {
+        "duration": 0.8,
+        "tracks": 8,
+        "loop": true,
+        "maxLoopQuaternionDifference": 0
+      },
+      "glide": {
+        "duration": 2.4,
+        "tracks": 8,
+        "loop": true,
+        "maxLoopQuaternionDifference": 0
+      },
+      "hit": {
+        "duration": 0.5,
+        "tracks": 8,
+        "loop": false,
+        "maxLoopQuaternionDifference": null
+      },
+      "land": {
+        "duration": 1.2,
+        "tracks": 8,
+        "loop": false,
+        "maxLoopQuaternionDifference": null
+      }
+    },
+    "geometryFinite": true,
+    "normalsUnit": true,
+    "indicesValid": true,
+    "weightsNormalized": true,
+    "hierarchyExact": true,
+    "socketsPresent": true,
+    "onlyRotationTracks": true,
+    "bounds": {
+      "min": [
+        -1.562897801399231,
+        -0.3959999978542328,
+        -1.1640000343322754
+      ],
+      "max": [
+        1.562897801399231,
+        0.5099999904632568,
+        1.0149999856948853
+      ]
+    }
+  },
+  "scope": "Blender export and binary/static validation only; parent owns browser, visual and proportion checks."
+}

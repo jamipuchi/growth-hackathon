@@ -1,0 +1,24 @@
+/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/generate_quadruped_flyer.py:67: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  self.material.use_nodes = True
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+13:01:31 | INFO: Starting glTF 2.0 export
+13:01:31 | INFO: Extracting primitive: Sphere
+13:01:31 | INFO: Primitives created: 1
+13:01:31 | INFO: Finished glTF 2.0 export in 0.25118088722229004 s
+/Users/jaumepuig/Documents/growth-hackathon/assets/A-008-rigs/generate_quadruped_flyer.py:67: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  self.material.use_nodes = True
+
+Info: Saved as "quadruped_source.blend"
+QUADRUPED_EXPORTED 4344 triangles 10 clips
+13:01:31 | INFO: Starting glTF 2.0 export
+13:01:31 | INFO: Extracting primitive: Sphere.042
+13:01:31 | INFO: Primitives created: 1
+13:01:32 | INFO: Finished glTF 2.0 export in 0.0914311408996582 s
+
+Info: Saved as "flyer_source.blend"
+FLYER_EXPORTED 3088 triangles 6 clips
+QUADRUPED_FLYER_STATIC_PASS {"quadruped": {"triangles": 4344, "bytes": 742356}, "flyer": {"triangles": 3088, "bytes": 443184}}
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

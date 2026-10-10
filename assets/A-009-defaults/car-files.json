@@ -1,0 +1,90 @@
+{
+  "car-console-chrome.txt": {
+    "bytes": 44,
+    "sha256": "67ade61a1847a48b0a6c91ab3f8536fc7e9953739987f7aed69181881cc73968"
+  },
+  "car-console-webkit.txt": {
+    "bytes": 44,
+    "sha256": "67ade61a1847a48b0a6c91ab3f8536fc7e9953739987f7aed69181881cc73968"
+  },
+  "car-front.png": {
+    "bytes": 114009,
+    "sha256": "081dc3132e50486a0fab1092188874c51d9a66927e68422c5f6df603ebc39c59"
+  },
+  "car-browser-webkit.json": {
+    "bytes": 1699,
+    "sha256": "68b38c99f044b8d0b29a0b506b47861b97a81ddd007233f6a03da705081e97f6"
+  },
+  "car-browser-chrome.json": {
+    "bytes": 1691,
+    "sha256": "c4ccbdaa0d8c8496c76ea3e7768b77e94487f9c4ed439e9b3d3ba6ebbe8625f7"
+  },
+  "car-verify.html": {
+    "bytes": 5510,
+    "sha256": "2adae75b1cfa90cb6b4c69e604dcb889813ab8c819c610e82f179de228428c14"
+  },
+  "generate_car.py": {
+    "bytes": 15768,
+    "sha256": "41fddb4786a20b487e5fa47391d0a148a9825036dce6b2fd99e68275c6c09593"
+  },
+  "car.glb": {
+    "bytes": 420120,
+    "sha256": "e0775cab48a7d73cc165567c206ec7cdede4f186b0d8517f8e06aa805ff99a7c"
+  },
+  "car-preview.html": {
+    "bytes": 13594,
+    "sha256": "dfc7663a3b3941b4efde9097160545d029aea26f278ad765e0d81871ad2e5038"
+  },
+  "car-phone-portrait.png": {
+    "bytes": 94091,
+    "sha256": "442f2c5b107dcb73ef8e4f0cecf2ef0b44fc155c0806a8120be5b36ffdf35323"
+  },
+  "car-roof.png": {
+    "bytes": 101805,
+    "sha256": "0f08e65ab79a580470fb6648a40cfc23e8d4ca38216014599cf29ac37e22e2ef"
+  },
+  "car-README.md": {
+    "bytes": 10995,
+    "sha256": "a8706a3a0bf0140a9d87339b5b0488e57f15e50d0af11902d29dc2c4d3144445"
+  },
+  "car-validate.py": {
+    "bytes": 7791,
+    "sha256": "dad4b7ee6b38dc847c60f0a217a1ab626ef7283455d601b7033247848f6be927"
+  },
+  "car-rear.png": {
+    "bytes": 115072,
+    "sha256": "428a6b3f478f5a31d6fd7badcb771964acf658cd35b865a4b5b99aec1b7540e9"
+  },
+  "car-steering.png": {
+    "bytes": 144511,
+    "sha256": "192d2124460c303d6f79a183a8e51837e7537bbf1eb46e0ba2ce1d9c8405b32d"
+  },
+  "car-progress.md": {
+    "bytes": 2055,
+    "sha256": "1c6f8c856022060997c3ebf085ae259ea35b9a7acd4c88ad35d39f4bf07077a0"
+  },
+  "car_source.blend": {
+    "bytes": 186643,
+    "sha256": "1a294fe6e45181c3c2be7a3f259b844f3eb719b3e523d02869e1350a9305b7f2"
+  },
+  "car-hero.png": {
+    "bytes": 142488,
+    "sha256": "13e007584cacaf6f87718b443b0cf9866673a89751f09cb21ca7e9378840b449"
+  },
+  "car-validation.json": {
+    "bytes": 4765,
+    "sha256": "bb82b4af145f0d6044f39b829a0d368ad3637736155df22eb6910bf55e7bf147"
+  },
+  "car.js": {
+    "bytes": 12422,
+    "sha256": "66cbbc7a9d8fc75aeef2307906504e45c3da5bd8af54a89606aaca216710315d"
+  },
+  "car-manifest.json": {
+    "bytes": 4319,
+    "sha256": "8e6a69e5aa66f601bcc0e286f2928d90a9be5161ed07ca8a4d9a905e2a699764"
+  },
+  "car-phone-landscape.png": {
+    "bytes": 95388,
+    "sha256": "6125697142edc6278bff5d6b1732bc064fac73951f98cf16129273435751eb40"
+  }
+}

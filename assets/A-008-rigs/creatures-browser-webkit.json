@@ -1,0 +1,855 @@
+{
+  "three": "160",
+  "environment": {
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+    "viewport": [
+      390,
+      844
+    ],
+    "devicePixelRatio": 3
+  },
+  "checks": {
+    "quadruped.cachedSource": true,
+    "quadruped.boneNames": true,
+    "quadruped.oneSkinnedMesh": true,
+    "quadruped.rotationOnly": true,
+    "quadruped.independentBones": true,
+    "quadruped.independentInverses": true,
+    "quadruped.groundedRestOrigins": true,
+    "quadruped.baseUnaffectedByResize": true,
+    "quadruped.allPosesFinite": true,
+    "quadruped.segmentLengths": true,
+    "quadruped.rootOrientationIndependent": true,
+    "quadruped.oneShotReplay": true,
+    "quadruped.disposedRejectsPlay": true,
+    "quadruped.renderBudget": true,
+    "quadruped.differentRestBases": true,
+    "quadruped.boneTextureReleased": true,
+    "flyer.cachedSource": true,
+    "flyer.boneNames": true,
+    "flyer.oneSkinnedMesh": true,
+    "flyer.rotationOnly": true,
+    "flyer.independentBones": true,
+    "flyer.independentInverses": true,
+    "flyer.baseUnaffectedByResize": true,
+    "flyer.allPosesFinite": true,
+    "flyer.segmentLengths": true,
+    "flyer.rootOrientationIndependent": true,
+    "flyer.oneShotReplay": true,
+    "flyer.disposedRejectsPlay": true,
+    "flyer.renderBudget": true,
+    "flyer.differentRestBases": true,
+    "flyer.boneTextureReleased": true,
+    "swimmer.cachedSource": true,
+    "swimmer.boneNames": true,
+    "swimmer.oneSkinnedMesh": true,
+    "swimmer.rotationOnly": true,
+    "swimmer.independentBones": true,
+    "swimmer.independentInverses": true,
+    "swimmer.baseUnaffectedByResize": true,
+    "swimmer.allPosesFinite": true,
+    "swimmer.segmentLengths": true,
+    "swimmer.rootOrientationIndependent": true,
+    "swimmer.oneShotReplay": true,
+    "swimmer.disposedRejectsPlay": true,
+    "swimmer.renderBudget": true,
+    "swimmer.differentRestBases": true,
+    "swimmer.boneTextureReleased": true,
+    "crawler.cachedSource": true,
+    "crawler.boneNames": true,
+    "crawler.oneSkinnedMesh": true,
+    "crawler.rotationOnly": true,
+    "crawler.independentBones": true,
+    "crawler.independentInverses": true,
+    "crawler.groundedRestOrigins": true,
+    "crawler.baseUnaffectedByResize": true,
+    "crawler.allPosesFinite": true,
+    "crawler.segmentLengths": true,
+    "crawler.rootOrientationIndependent": true,
+    "crawler.oneShotReplay": true,
+    "crawler.disposedRejectsPlay": true,
+    "crawler.renderBudget": true,
+    "crawler.differentRestBases": true,
+    "crawler.boneTextureReleased": true,
+    "serpent.cachedSource": true,
+    "serpent.boneNames": true,
+    "serpent.oneSkinnedMesh": true,
+    "serpent.rotationOnly": true,
+    "serpent.independentBones": true,
+    "serpent.independentInverses": true,
+    "serpent.baseUnaffectedByResize": true,
+    "serpent.allPosesFinite": true,
+    "serpent.segmentLengths": true,
+    "serpent.rootOrientationIndependent": true,
+    "serpent.oneShotReplay": true,
+    "serpent.disposedRejectsPlay": true,
+    "serpent.renderBudget": true,
+    "serpent.differentRestBases": true,
+    "serpent.boneTextureReleased": true,
+    "invalidType": true,
+    "invalidScale": true,
+    "invalidBone": true
+  },
+  "types": {
+    "quadruped": {
+      "costs": {
+        "calls": 1,
+        "triangles": 4344,
+        "gpuTextures": 1,
+        "authoredTextures": 0,
+        "boneTextureBytes": 2304
+      },
+      "frameSamples": 1624,
+      "vertexPoses": 360,
+      "maxDiagonal": 4.598797759149493,
+      "dimensions": {
+        "1": {
+          "restSize": [
+            1.0699999017851103,
+            1.6206292662749926,
+            2.8186560961168654
+          ],
+          "clips": {
+            "bite": {
+              "maxDiagonal": 3.422887627986849
+            },
+            "die": {
+              "maxDiagonal": 3.4391449490006774
+            },
+            "dig": {
+              "maxDiagonal": 3.435485759897177
+            },
+            "gallop": {
+              "maxDiagonal": 3.4419693333577537
+            },
+            "hit": {
+              "maxDiagonal": 3.4310282040886206
+            },
+            "idle": {
+              "maxDiagonal": 3.4268501786949415
+            },
+            "jump": {
+              "maxDiagonal": 3.424992144638189
+            },
+            "roar": {
+              "maxDiagonal": 3.422108062937171
+            },
+            "sit": {
+              "maxDiagonal": 3.3537421392695435
+            },
+            "walk": {
+              "maxDiagonal": 3.434472608286836
+            }
+          }
+        },
+        "0.7": {
+          "restSize": [
+            1.0399999618530273,
+            1.3245792239904404,
+            1.984787940979004
+          ],
+          "clips": {
+            "bite": {
+              "maxDiagonal": 2.6030728347854364
+            },
+            "die": {
+              "maxDiagonal": 2.6851808340242598
+            },
+            "dig": {
+              "maxDiagonal": 2.593014897006303
+            },
+            "gallop": {
+              "maxDiagonal": 2.6147072048676314
+            },
+            "hit": {
+              "maxDiagonal": 2.609258879759067
+            },
+            "idle": {
+              "maxDiagonal": 2.6038196100918043
+            },
+            "jump": {
+              "maxDiagonal": 2.611546998725268
+            },
+            "roar": {
+              "maxDiagonal": 2.602472368180932
+            },
+            "sit": {
+              "maxDiagonal": 2.560679181628054
+            },
+            "walk": {
+              "maxDiagonal": 2.6115398060986847
+            }
+          }
+        },
+        "1.4": {
+          "restSize": [
+            1.1099998950958252,
+            2.0206157863140106,
+            3.9304813146591187
+          ],
+          "clips": {
+            "bite": {
+              "maxDiagonal": 4.556716850764746
+            },
+            "die": {
+              "maxDiagonal": 4.556716850764746
+            },
+            "dig": {
+              "maxDiagonal": 4.598797759149493
+            },
+            "gallop": {
+              "maxDiagonal": 4.582942262396629
+            },
+            "hit": {
+              "maxDiagonal": 4.565406090302549
+            },
+            "idle": {
+              "maxDiagonal": 4.562101792706158
+            },
+            "jump": {
+              "maxDiagonal": 4.555573632160251
+            },
+            "roar": {
+              "maxDiagonal": 4.555573632160251
+            },
+            "sit": {
+              "maxDiagonal": 4.449098517120695
+            },
+            "walk": {
+              "maxDiagonal": 4.569843806222979
+            }
+          }
+        },
+        "asymmetric": {
+          "restSize": [
+            1.0839999914169312,
+            1.6916157305240633,
+            3.188481569290161
+          ],
+          "clips": {
+            "bite": {
+              "maxDiagonal": 3.7686910854670184
+            },
+            "die": {
+              "maxDiagonal": 3.7858775657699373
+            },
+            "dig": {
+              "maxDiagonal": 3.7328042581562046
+            },
+            "gallop": {
+              "maxDiagonal": 3.806987064622999
+            },
+            "hit": {
+              "maxDiagonal": 3.771174184256991
+            },
+            "idle": {
+              "maxDiagonal": 3.7720778294137767
+            },
+            "jump": {
+              "maxDiagonal": 3.7736712872656426
+            },
+            "roar": {
+              "maxDiagonal": 3.7675697847702594
+            },
+            "sit": {
+              "maxDiagonal": 3.6231688514691474
+            },
+            "walk": {
+              "maxDiagonal": 3.779617993614619
+            }
+          }
+        }
+      },
+      "retargetBases": {
+        "type": "quadruped",
+        "pass": true,
+        "count": 1900,
+        "maxPositionError": 2.1851255264667168e-7,
+        "maxRotationError": 3.9085379387748307e-7,
+        "tolerance": 0.0001,
+        "bones": 19,
+        "clips": 10,
+        "changedRestBases": 19,
+        "phases": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "cases": [
+          {
+            "name": "identity_actor_transforms",
+            "count": 950,
+            "maxPositionError": 2.1851255235579657e-7,
+            "maxRotationError": 3.9085379387748307e-7
+          },
+          {
+            "name": "different_actor_transforms",
+            "count": 950,
+            "maxPositionError": 2.1851255264667168e-7,
+            "maxRotationError": 2.1283115233608642e-7
+          }
+        ],
+        "coverage": "Synthetic skeleton with identity local rest quaternions; no game mesh or skin-weight validation."
+      }
+    },
+    "flyer": {
+      "costs": {
+        "calls": 1,
+        "triangles": 3088,
+        "gpuTextures": 1,
+        "authoredTextures": 0,
+        "boneTextureBytes": 1024
+      },
+      "frameSamples": 924,
+      "vertexPoses": 216,
+      "maxDiagonal": 5.378494186811014,
+      "dimensions": {
+        "1": {
+          "restSize": [
+            3.125795477069315,
+            0.905999995125536,
+            2.178999946563793
+          ],
+          "clips": {
+            "die": {
+              "maxDiagonal": 3.91656411239668
+            },
+            "dive": {
+              "maxDiagonal": 3.997119359630677
+            },
+            "flap": {
+              "maxDiagonal": 3.917418743513237
+            },
+            "glide": {
+              "maxDiagonal": 3.8353189276625423
+            },
+            "hit": {
+              "maxDiagonal": 3.918993106036264
+            },
+            "land": {
+              "maxDiagonal": 3.9054904257462235
+            }
+          }
+        },
+        "0.7": {
+          "restSize": [
+            2.328136682510376,
+            0.8504768908023833,
+            1.5284941792488098
+          ],
+          "clips": {
+            "die": {
+              "maxDiagonal": 2.9120140757539112
+            },
+            "dive": {
+              "maxDiagonal": 2.975056701557429
+            },
+            "flap": {
+              "maxDiagonal": 2.906976141113914
+            },
+            "glide": {
+              "maxDiagonal": 2.8551404267089993
+            },
+            "hit": {
+              "maxDiagonal": 2.9125743085415303
+            },
+            "land": {
+              "maxDiagonal": 2.8998361918141478
+            }
+          }
+        },
+        "1.4": {
+          "restSize": [
+            4.19507360458374,
+            0.9800307452678679,
+            3.04727840423584
+          ],
+          "clips": {
+            "die": {
+              "maxDiagonal": 5.2768370360690025
+            },
+            "dive": {
+              "maxDiagonal": 5.378494186811014
+            },
+            "flap": {
+              "maxDiagonal": 5.280957875821002
+            },
+            "glide": {
+              "maxDiagonal": 5.161435646586127
+            },
+            "hit": {
+              "maxDiagonal": 5.278288754207939
+            },
+            "land": {
+              "maxDiagonal": 5.266359584845982
+            }
+          }
+        },
+        "asymmetric": {
+          "restSize": [
+            3.327073574066162,
+            0.8680307567119597,
+            2.3649498224258423
+          ],
+          "clips": {
+            "die": {
+              "maxDiagonal": 4.1732342388623636
+            },
+            "dive": {
+              "maxDiagonal": 4.273647694367345
+            },
+            "flap": {
+              "maxDiagonal": 4.17691522391728
+            },
+            "glide": {
+              "maxDiagonal": 4.069591910313289
+            },
+            "hit": {
+              "maxDiagonal": 4.174321847439852
+            },
+            "land": {
+              "maxDiagonal": 4.161426688547428
+            }
+          }
+        }
+      },
+      "retargetBases": {
+        "type": "flyer",
+        "pass": true,
+        "count": 480,
+        "maxPositionError": 1.1332320514810235e-7,
+        "maxRotationError": 2.3276357876976306e-7,
+        "tolerance": 0.0001,
+        "bones": 8,
+        "clips": 6,
+        "changedRestBases": 8,
+        "phases": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "cases": [
+          {
+            "name": "identity_actor_transforms",
+            "count": 240,
+            "maxPositionError": 1.1332320514810235e-7,
+            "maxRotationError": 1.7881393432617193e-7
+          },
+          {
+            "name": "different_actor_transforms",
+            "count": 240,
+            "maxPositionError": 1.1332320505265454e-7,
+            "maxRotationError": 2.3276357876976306e-7
+          }
+        ],
+        "coverage": "Synthetic skeleton with identity local rest quaternions; no game mesh or skin-weight validation."
+      }
+    },
+    "swimmer": {
+      "costs": {
+        "calls": 1,
+        "triangles": 2356,
+        "gpuTextures": 1,
+        "authoredTextures": 0,
+        "boneTextureBytes": 1024
+      },
+      "frameSamples": 508,
+      "vertexPoses": 144,
+      "maxDiagonal": 4.679842883320714,
+      "dimensions": {
+        "1": {
+          "restSize": [
+            1.659999809694773,
+            1.3399998684017094,
+            2.898191135977755
+          ],
+          "clips": {
+            "dart": {
+              "maxDiagonal": 3.598709612647749
+            },
+            "die": {
+              "maxDiagonal": 3.598709612647749
+            },
+            "hit": {
+              "maxDiagonal": 3.6475305581880377
+            },
+            "swim": {
+              "maxDiagonal": 3.620480701344901
+            }
+          }
+        },
+        "0.7": {
+          "restSize": [
+            1.659999923333527,
+            1.3399999676644803,
+            2.0287337899208064
+          ],
+          "clips": {
+            "dart": {
+              "maxDiagonal": 2.9439701848311173
+            },
+            "die": {
+              "maxDiagonal": 2.9442644891813976
+            },
+            "hit": {
+              "maxDiagonal": 2.980006611930276
+            },
+            "swim": {
+              "maxDiagonal": 2.965101164273296
+            }
+          }
+        },
+        "1.4": {
+          "restSize": [
+            1.659999923333527,
+            1.3399999080598355,
+            4.057467699050903
+          ],
+          "clips": {
+            "dart": {
+              "maxDiagonal": 4.584129538735693
+            },
+            "die": {
+              "maxDiagonal": 4.584129538735693
+            },
+            "hit": {
+              "maxDiagonal": 4.679842883320714
+            },
+            "swim": {
+              "maxDiagonal": 4.602093388784916
+            }
+          }
+        },
+        "asymmetric": {
+          "restSize": [
+            1.659999923333527,
+            1.3399999676644803,
+            3.1824675798416138
+          ],
+          "clips": {
+            "dart": {
+              "maxDiagonal": 3.831357403786687
+            },
+            "die": {
+              "maxDiagonal": 3.8313614692274114
+            },
+            "hit": {
+              "maxDiagonal": 3.8893338135809605
+            },
+            "swim": {
+              "maxDiagonal": 3.8554780797381625
+            }
+          }
+        }
+      },
+      "retargetBases": {
+        "type": "swimmer",
+        "pass": true,
+        "count": 240,
+        "maxPositionError": 5.463318912273259e-7,
+        "maxRotationError": 1.4292691717483762e-7,
+        "tolerance": 0.0001,
+        "bones": 6,
+        "clips": 4,
+        "changedRestBases": 6,
+        "phases": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "cases": [
+          {
+            "name": "identity_actor_transforms",
+            "count": 120,
+            "maxPositionError": 5.463318908322941e-7,
+            "maxRotationError": 7.300048299977715e-8
+          },
+          {
+            "name": "different_actor_transforms",
+            "count": 120,
+            "maxPositionError": 5.463318912273259e-7,
+            "maxRotationError": 1.4292691717483762e-7
+          }
+        ],
+        "coverage": "Synthetic skeleton with identity local rest quaternions; no game mesh or skin-weight validation."
+      }
+    },
+    "crawler": {
+      "costs": {
+        "calls": 1,
+        "triangles": 4956,
+        "gpuTextures": 1,
+        "authoredTextures": 0,
+        "boneTextureBytes": 2304
+      },
+      "frameSamples": 528,
+      "vertexPoses": 108,
+      "maxDiagonal": 4.770372813778562,
+      "dimensions": {
+        "1": {
+          "restSize": [
+            2.2245053144677702,
+            1.1750000862526357,
+            2.2462960702012476
+          ],
+          "clips": {
+            "die": {
+              "maxDiagonal": 3.8195079125948497
+            },
+            "hit": {
+              "maxDiagonal": 3.476561856938257
+            },
+            "idle": {
+              "maxDiagonal": 3.418159070852647
+            }
+          }
+        },
+        "0.7": {
+          "restSize": [
+            1.84515380859375,
+            0.8305347710847852,
+            1.9310140609741215
+          ],
+          "clips": {
+            "die": {
+              "maxDiagonal": 3.1207092318620004
+            },
+            "hit": {
+              "maxDiagonal": 2.8764319179147004
+            },
+            "idle": {
+              "maxDiagonal": 2.832056875535239
+            }
+          }
+        },
+        "1.4": {
+          "restSize": [
+            2.7434029579162593,
+            1.6402260959148407,
+            2.6744682788848877
+          ],
+          "clips": {
+            "die": {
+              "maxDiagonal": 4.770372813778562
+            },
+            "hit": {
+              "maxDiagonal": 4.309974748828991
+            },
+            "idle": {
+              "maxDiagonal": 4.221589602403032
+            }
+          }
+        },
+        "asymmetric": {
+          "restSize": [
+            2.155403137207031,
+            1.566726103425026,
+            2.20546817779541
+          ],
+          "clips": {
+            "die": {
+              "maxDiagonal": 4.0010653526753694
+            },
+            "hit": {
+              "maxDiagonal": 3.5556600553341036
+            },
+            "idle": {
+              "maxDiagonal": 3.5015317177142764
+            }
+          }
+        }
+      },
+      "retargetBases": {
+        "type": "crawler",
+        "pass": true,
+        "count": 510,
+        "maxPositionError": 9.958673424155149e-8,
+        "maxRotationError": 2.086162567138673e-7,
+        "tolerance": 0.0001,
+        "bones": 17,
+        "clips": 3,
+        "changedRestBases": 16,
+        "phases": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "cases": [
+          {
+            "name": "identity_actor_transforms",
+            "count": 255,
+            "maxPositionError": 9.958673408001115e-8,
+            "maxRotationError": 2.086162567138673e-7
+          },
+          {
+            "name": "different_actor_transforms",
+            "count": 255,
+            "maxPositionError": 9.958673424155149e-8,
+            "maxRotationError": 1.7881393432617193e-7
+          }
+        ],
+        "coverage": "Synthetic skeleton with identity local rest quaternions; no game mesh or skin-weight validation."
+      }
+    },
+    "serpent": {
+      "costs": {
+        "calls": 1,
+        "triangles": 2340,
+        "gpuTextures": 1,
+        "authoredTextures": 0,
+        "boneTextureBytes": 1024
+      },
+      "frameSamples": 860,
+      "vertexPoses": 180,
+      "maxDiagonal": 4.236125393143622,
+      "dimensions": {
+        "1": {
+          "restSize": [
+            0.5595006559731166,
+            0.49439287994184655,
+            2.978154679308261
+          ],
+          "clips": {
+            "coil": {
+              "maxDiagonal": 2.380504276326747
+            },
+            "die": {
+              "maxDiagonal": 3.07032092746951
+            },
+            "hit": {
+              "maxDiagonal": 3.0706940131459
+            },
+            "slither": {
+              "maxDiagonal": 3.0534167399340815
+            },
+            "strike": {
+              "maxDiagonal": 3.0709164025656044
+            }
+          }
+        },
+        "0.7": {
+          "restSize": [
+            0.5595006942749025,
+            0.4943928760290146,
+            2.084708333015442
+          ],
+          "clips": {
+            "coil": {
+              "maxDiagonal": 1.8124809944319333
+            },
+            "die": {
+              "maxDiagonal": 2.2143789595519463
+            },
+            "hit": {
+              "maxDiagonal": 2.215098898466739
+            },
+            "slither": {
+              "maxDiagonal": 2.21207492253237
+            },
+            "strike": {
+              "maxDiagonal": 2.215123054059989
+            }
+          }
+        },
+        "1.4": {
+          "restSize": [
+            0.5595006942749025,
+            0.4943928760290146,
+            4.169416546821594
+          ],
+          "clips": {
+            "coil": {
+              "maxDiagonal": 3.1490073305401256
+            },
+            "die": {
+              "maxDiagonal": 4.235740747929699
+            },
+            "hit": {
+              "maxDiagonal": 4.235903989395097
+            },
+            "slither": {
+              "maxDiagonal": 4.192881177425666
+            },
+            "strike": {
+              "maxDiagonal": 4.236125393143622
+            }
+          }
+        },
+        "asymmetric": {
+          "restSize": [
+            0.5595006942749025,
+            0.4943928760290146,
+            3.3504165410995483
+          ],
+          "clips": {
+            "coil": {
+              "maxDiagonal": 2.6012786602507356
+            },
+            "die": {
+              "maxDiagonal": 3.432601978330112
+            },
+            "hit": {
+              "maxDiagonal": 3.4328372929388
+            },
+            "slither": {
+              "maxDiagonal": 3.401562886607727
+            },
+            "strike": {
+              "maxDiagonal": 3.4331382007797373
+            }
+          }
+        }
+      },
+      "retargetBases": {
+        "type": "serpent",
+        "pass": true,
+        "count": 400,
+        "maxPositionError": 3.87174878549871e-7,
+        "maxRotationError": 1.7377590819732256e-7,
+        "tolerance": 0.0001,
+        "bones": 8,
+        "clips": 5,
+        "changedRestBases": 8,
+        "phases": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "cases": [
+          {
+            "name": "identity_actor_transforms",
+            "count": 200,
+            "maxPositionError": 3.871748784502027e-7,
+            "maxRotationError": 1.7377590819732256e-7
+          },
+          {
+            "name": "different_actor_transforms",
+            "count": 200,
+            "maxPositionError": 3.87174878549871e-7,
+            "maxRotationError": 1.7120130796843858e-7
+          }
+        ],
+        "coverage": "Synthetic skeleton with identity local rest quaternions; no game mesh or skin-weight validation."
+      }
+    }
+  },
+  "currentCosts": {
+    "type": "serpent",
+    "calls": 1,
+    "triangles": 2340,
+    "gpuTextures": 1,
+    "authoredTextures": 0,
+    "boneTextureBytes": 1024
+  },
+  "pass": true
+}

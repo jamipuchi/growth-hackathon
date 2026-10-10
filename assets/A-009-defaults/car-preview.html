@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Trail buggy · Space Party</title>
+  <link rel="icon" href="data:,">
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#131b28;color:#eff5ef;font:15px/1.45 system-ui,sans-serif}canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+    header{position:fixed;z-index:2;left:30px;top:25px;pointer-events:none}.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#93c5ca;font-weight:750}h1{font-size:clamp(32px,5vw,56px);line-height:1.05;margin:10px 0 9px;letter-spacing:-.045em}header p{margin:0;color:#b9cbd2;max-width:310px;font-size:13px}.badges{display:flex;gap:7px;margin-top:17px}.badges span{background:#213644cc;border:1px solid #47666c80;border-radius:6px;padding:4px 8px;font-size:11px;color:#c9e5e5}
+    aside{position:fixed;z-index:2;right:24px;top:24px;width:260px;padding:20px;background:#101923ee;border:1px solid #48616c66;border-radius:16px;box-shadow:0 12px 50px #0003;backdrop-filter:blur(12px)}.label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:#98b6bf;font-weight:700;margin:0 0 10px}button,select{font:inherit;color:inherit;background:#243843;border:1px solid #53646c;border-radius:8px;padding:7px 10px;cursor:pointer}button:hover{background:#34505b}button.active{border-color:#74d6d5;background:#225c63}.views{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.views button{font-size:11px;padding:7px 4px}label.row{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin:18px 0 5px}output{font-variant-numeric:tabular-nums;color:#79dbd9}input[type=range]{width:100%;accent-color:#65d7d1}select{width:100%;font-size:12px}input[type=color]{width:35px;height:25px;border:0;border-radius:5px;padding:0;background:transparent;cursor:pointer}hr{height:1px;background:#3c4a5666;border:0;margin:17px 0}.hint{font-size:11px;color:#96aab5;line-height:1.5}.footer{position:fixed;z-index:2;left:30px;bottom:22px;color:#99b1bc;font-size:11px;max-width:520px}.footer strong{color:#dceced;font-weight:500}#error{color:#ffb3a0;white-space:pre-wrap}.toggle{display:flex;gap:7px}.toggle button{flex:1;font-size:12px}
+    @media(max-width:700px){header{left:17px;top:16px}header p{display:none}header h1{font-size:32px}.badges{margin-top:10px}aside{top:auto;bottom:12px;right:12px;left:12px;width:auto;padding:13px;display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;background:#101923f5}.viewsection{grid-column:1/-1;display:flex;align-items:center;gap:12px}.viewsection .label{margin:0}.views{flex:1;display:flex}.views button{flex:1}.controls .row{margin:5px 0}.divider,.hint,.colorrow{display:none!important}.toggle{grid-column:1/-1}.footer{left:17px;bottom:232px;font-size:10px;max-width:85%}aside hr{display:none}.mode{grid-column:1/-1;display:none}}
+    @media(max-height:600px){header{left:17px;top:13px}header p{display:none}header h1{font-size:28px;margin:6px 0}.eyebrow{font-size:9px}.badges{margin-top:8px;gap:5px}.badges span{font-size:9px;padding:3px 6px}aside{top:12px;bottom:12px;left:auto;right:12px;width:228px;max-height:calc(100vh - 24px);overflow:auto;padding:13px;display:block}.viewsection{display:block}.viewsection .label{margin:0 0 8px}.views{display:grid;grid-template-columns:repeat(3,1fr)}.controls .row{margin:11px 0 4px}.hint,.colorrow,.divider{display:none!important}.mode{display:block;margin-top:9px}.mode hr{display:none}.mode .label{margin-bottom:6px}.toggle{margin-top:12px}.toggle button{font-size:11px;padding:6px}.footer{left:17px;bottom:12px;max-width:calc(100% - 275px);font-size:9px}aside hr{margin:10px 0}}
+  </style>
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <header><div class="eyebrow">Space Party / Default vehicles</div><h1>Trail buggy</h1><p>A chunky expedition runabout.<br>Open cabin, generous tyres, four metres of character.</p><div class="badges"><span>4,776 triangles</span><span>3 calls</span><span>0 textures</span></div></header>
+  <aside>
+    <div class="viewsection"><span class="label">Look around</span><div class="views"><button data-view="hero" class="active">Hero</button><button data-view="front">Front</button><button data-view="rear">Rear</button><button data-view="side">Side</button><button data-view="roof">Roof</button></div></div>
+    <hr class="divider">
+    <div class="controls"><label class="row" for="speed">Wheel travel <output id="speedValue">3.0 m/s</output></label><input id="speed" type="range" min="-8" max="12" step=".1" value="3"><label class="row" for="steer">Front steering <output id="steerValue">0°</output></label><input id="steer" type="range" min="-.65" max=".65" step=".01" value="0"></div>
+    <div class="controls"><label class="row" for="phase">Front-left phase <output id="phaseValue">0°</output></label><input id="phase" type="range" min="0" max="6.283185" step=".01" value="0"><label class="row colorrow" for="tint">Body tint <input id="tint" type="color" value="#ffffff"></label></div>
+    <div class="mode"><hr><label class="label" for="mode">Geometry path</label><select id="mode"><option value="helper">Helper · animated wheel instances</option><option value="raw">Raw GLB · merged static wheels</option></select></div>
+    <p class="hint">Drag to orbit, scroll to zoom. Speed only spins the tyres; steering does not move the car or implement physics. Both paths contain the same authored geometry.</p>
+    <div class="toggle"><button id="pause">Pause wheels</button><button id="reset">Reset pose</button></div>
+  </aside>
+  <div class="footer"><strong id="status">Loading the original GLB…</strong> · <span id="viewName">Hero view</span><br><span id="details">Preview lighting and ground are separate from the car budget.</span><div id="error"></div></div>
+  <script type="module">
+    import * as THREE from 'three';
+    import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+    import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+    import {createDefaultCar} from './car.js';
+    const $=id=>document.getElementById(id);
+    const scene=new THREE.Scene();scene.background=new THREE.Color('#182735');
+    const renderer=new THREE.WebGLRenderer({canvas:$('scene'),antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
+    const camera=new THREE.PerspectiveCamera(44,innerWidth/innerHeight,.05,100);camera.position.set(5.5,3.8,-6.5);
+    const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.98,0);controls.enableDamping=true;controls.minDistance=3;controls.maxDistance=15;controls.maxPolarAngle=Math.PI*.485;
+    scene.add(new THREE.HemisphereLight('#d9f3ff','#617174',2.0));const key=new THREE.DirectionalLight('#fff2d6',3.2);key.position.set(-4,7,-5);scene.add(key);const rim=new THREE.DirectionalLight('#66bdde',1.5);rim.position.set(5,3,4);scene.add(rim);
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.MeshStandardMaterial({color:'#314752',roughness:1,metalness:0}));floor.rotation.x=-Math.PI/2;floor.position.y=-.025;scene.add(floor);
+    const contact=new THREE.Mesh(new THREE.CircleGeometry(1,64),new THREE.MeshBasicMaterial({color:'#0d1921',transparent:true,opacity:.33,depthWrite:false}));contact.rotation.x=-Math.PI/2;contact.scale.set(1.58,2.30,1);contact.position.y=-.018;scene.add(contact);
+    const views={hero:[5.5,3.8,-6.5],front:[0,2.05,-7.4],rear:[0,2.7,7.5],side:[7.8,2.6,.1],roof:[0,8,.05]};
+    const viewLabels={hero:'Hero',front:'Front',rear:'Rear',side:'Side',roof:'Roof'};
+    let car,raw,paused=false,body,rawBody,currentView='hero';const clock=new THREE.Clock();
+    function fitResponsive(){
+      camera.clearViewOffset();controls.maxDistance=15;
+      const footer=document.querySelector('.footer');footer.style.bottom='';
+      if(!car||innerWidth>=1100&&innerHeight>600)return;
+      const panel=document.querySelector('aside').getBoundingClientRect();
+      const portrait=innerWidth<=700&&innerHeight>600;
+      if(portrait)footer.style.bottom=(innerHeight-panel.top+12)+'px';
+      const title=document.querySelector('header').getBoundingClientRect();
+      const footerBounds=footer.getBoundingClientRect();
+      const left=16,right=portrait?innerWidth-16:panel.left-20;
+      const top=title.bottom+18,bottom=Math.max(top+70,footerBounds.top-16);
+      const width=Math.max(90,right-left),height=Math.max(70,bottom-top);
+      const bounds=new THREE.Box3().setFromObject(car.object3d);
+      const target=bounds.getCenter(new THREE.Vector3());
+      const direction=camera.position.clone().sub(controls.target).normalize();
+      const rightAxis=new THREE.Vector3().crossVectors(camera.up,direction).normalize();
+      const upAxis=new THREE.Vector3().crossVectors(direction,rightAxis).normalize();
+      const tanV=Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
+      const tanH=tanV*camera.aspect*(width/innerWidth),tanY=tanV*(height/innerHeight);
+      let distance=3;
+      for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){
+        const point=new THREE.Vector3(x,y,z).sub(target);
+        distance=Math.max(distance,point.dot(direction)+1.18*Math.max(Math.abs(point.dot(rightAxis))/tanH,Math.abs(point.dot(upAxis))/tanY));
+      }
+      controls.target.copy(target);camera.position.copy(target).addScaledVector(direction,distance);
+      controls.maxDistance=Math.max(15,distance*1.7);
+      camera.setViewOffset(innerWidth,innerHeight,innerWidth/2-(left+right)/2,innerHeight/2-(top+bottom)/2,innerWidth,innerHeight);
+      camera.lookAt(target);controls.update();
+    }
+    function setView(name){if(!views[name])throw new RangeError('Unknown preview view');currentView=name;camera.position.fromArray(views[name]);controls.target.set(0,.98,0);controls.update();fitResponsive();$('viewName').textContent=viewLabels[name]+' view';document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===name);b.setAttribute('aria-pressed',String(b.dataset.view===name));});}
+    function setPaused(value){paused=Boolean(value);$('pause').textContent=paused?'Resume wheels':'Pause wheels';$('pause').setAttribute('aria-pressed',String(paused));}
+    for(const button of document.querySelectorAll('[data-view]'))button.onclick=()=>setView(button.dataset.view);
+    function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();if(car)setView(currentView);}addEventListener('resize',resize);resize();
+    try{
+      car=await createDefaultCar();scene.add(car.object3d);car.setMotion({speed:3,steer:0});body=car.object3d.getObjectByName('car_body');
+      raw=(await new GLTFLoader().loadAsync(new URL('./car.glb',import.meta.url).href)).scene;raw.visible=false;rawBody=raw.getObjectByName('car_body');scene.add(raw);
+      $('status').textContent='Original car loaded · 4.02 m long · 2.68 m wide';
+      $('details').textContent='Asset: 3 mesh calls / 4,776 triangles / 0 textures. Two ground fixtures are preview only.';
+      setView(currentView);
+      $('speed').oninput=()=>{const speed=Number($('speed').value);$('speedValue').textContent=speed.toFixed(1)+' m/s';car.setMotion({speed});};
+      $('steer').oninput=()=>{const steer=Number($('steer').value);$('steerValue').textContent=Math.round(steer*180/Math.PI)+'°';car.setMotion({steer});};
+      $('phase').oninput=()=>{const spin=Number($('phase').value);$('phaseValue').textContent=Math.round(spin*180/Math.PI)+'°';car.setWheel('fl',{spin});};
+      $('tint').oninput=()=>{body.material.color.set($('tint').value);rawBody.material.color.copy(body.material.color);};
+      $('mode').onchange=()=>{const rawMode=$('mode').value==='raw';raw.visible=rawMode;car.object3d.visible=!rawMode;$('status').textContent=rawMode?'Raw GLB · complete static model · 3 calls':'Helper · four independently posed wheel pivots · 3 calls';};
+      $('pause').onclick=()=>setPaused(!paused);
+      $('reset').onclick=()=>{for(const key of ['fl','fr','bl','br'])car.setWheel(key,{spin:0,steer:0});car.setMotion({steer:0});$('steer').value=0;$('steerValue').textContent='0°';$('phase').value=0;$('phaseValue').textContent='0°';};
+      window.__carPreview={car,raw,scene,camera,renderer,controls,floor,contact,setView,setPaused,fitResponsive,getStats:()=>car.getStats()};window.__carReady=true;
+    }catch(error){$('status').textContent='Car could not load';$('error').textContent=error.stack||String(error);window.__carError=String(error);console.error(error);}
+    renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),.1);if(car&&!paused&&!raw?.visible)car.update(dt);controls.update();renderer.render(scene,camera);});
+    addEventListener('pagehide',()=>{renderer.setAnimationLoop(null);car?.dispose();if(raw){const gs=new Set(),ms=new Set();raw.traverse(o=>{if(o.geometry)gs.add(o.geometry);if(o.material)ms.add(o.material);});for(const g of gs)g.dispose();for(const m of ms)m.dispose();}floor.geometry.dispose();floor.material.dispose();contact.geometry.dispose();contact.material.dispose();controls.dispose();renderer.dispose();},{once:true});
+  </script>
+</body>
+</html>
