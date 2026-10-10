@@ -11,7 +11,8 @@
 // scenes (space and island) incl. the mischief layer (mines, decoys, emp / ink / tractor), adaptive quality (?tier=N pins it), the ?perf
 // overlay and POST /perf. contract.js and terrain.js must be loaded first (globals).
 // Drawn ships and explorers come from inflate.js through the cache above `// Space scene.` (one mesh built per frame at most); a drawn
-// SHIP whose entity carries a spec (v1.4, astra-ship.js) is built from its parts by ship3d.js instead (inflate.js when that fails).
+// SHIP whose entity carries a spec (v1.4, astra-ship.js) is built from its parts by ship3d.js instead (inflate.js when that fails), and
+// a drawn EXPLORER whose entity carries a body spec (v1.4, astra-body.js) by entity3d.js (rigged: the clips play on it).
 import * as THREE from "three";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
@@ -528,6 +529,36 @@ function entLoadShip3d() {
   }
   return entShip3dState;
 }
+// v1.4 (owner 10:12: "We're doing the character 3d modelling as well?"): a drawn PLANET entity (person, quadruped, car, bike, blob)
+// whose entity carries a body spec (entity.spec from astra-body.js: head, torso, limbs or wheels, items, colours) is built by
+// entity3d.js: a chunky model whose rigid parts ride a skeleton (the A-008 person bones, so the A-008 clips play on it; the rigs.js
+// quadruped bones with its own clips; a chassis with spinning wheel bones). It shares ship3d.js's atlas (the A-012 kit skins it
+// too) and loads the A-008 clips before its first build. Missing, failing or a spec of another type: the drawing is inflated.
+let entEntity3d = null, entEntity3dState = 0, entEntity3dPromise = null; // state: 0 not asked yet, 1 loading, 2 ready, -1 missing
+function entLoadEntity3d() {
+  if (entEntity3dState === 0) {
+    entEntity3dState = 1;
+    entLoadShip3d();
+    entEntity3dPromise = import("./entity3d.js").then(async (m) => {
+      if (!m || typeof m.buildEntity !== "function") throw new Error("no buildEntity");
+      const clips = typeof m.loadEntityClips === "function" ? m.loadEntityClips() : null;
+      await Promise.race([Promise.all([clips, entShip3dPromise]), new Promise((resolve) => setTimeout(resolve, 5000))]);
+      entEntity3d = m;
+      entEntity3dState = 2;
+      return m;
+    }).catch((e) => { console.warn("[render] entity3d.js unavailable, drawn explorers are inflated:", e?.message || e); entEntity3dState = -1; return null; });
+  }
+  return entEntity3dState;
+}
+// Which builder a spec is for: a ship spec has a hull (astra-ship.js), a body spec a planet type (astra-body.js).
+const entIsShipSpec = (spec) => !!spec && typeof spec === "object" && !!spec.hull;
+const entIsBodySpec = (spec, type) => !!spec && typeof spec === "object" && !spec.hull && typeof spec.type === "string" && (!type || spec.type === type);
+// The spec that goes with a view's drawing: the entity's own when it is of the right family (null otherwise).
+function entSpecFor(ent, type) {
+  const spec = ent && ent.spec;
+  if (!spec) return null;
+  return type === "ship" ? (entIsShipSpec(spec) ? spec : null) : (entIsBodySpec(spec, type) ? spec : null);
+}
 // A spec's identity for the cache key (computed once per spec object: messages bring new objects, the same spec hashes the same).
 const entSpecKeys = new WeakMap();
 function entSpecKey(spec) {
@@ -625,12 +656,12 @@ class DrawnCache {
   // A view's claim on a drawing. Entry states: queued → loading → loaded → ready | failed.
   acquire(url, kind, color, spec = null) {
     entLoadInflate();
-    if (spec) entLoadShip3d();
+    if (spec) { if (kind === "ship") entLoadShip3d(); else entLoadEntity3d(); }
     const sk = spec ? entSpecKey(spec) : "";
     const key = `${url}|${kind}|${this.quality}|${color}${sk ? `|${sk}` : ""}`;
     let e = this.map.get(key);
     if (!e) {
-      e = { key, url, kind, color, spec: sk ? spec : null, ship3d: false, state: "queued", users: 0, last: this.tick, prio: 1e9, wanted: -1, img: null, result: null, tries: 0, retryAt: 0, dead: false };
+      e = { key, url, kind, color, spec: sk ? spec : null, ship3d: false, entity3d: false, state: "queued", users: 0, last: this.tick, prio: 1e9, wanted: -1, img: null, result: null, tries: 0, retryAt: 0, dead: false };
       this.map.set(key, e);
     }
     e.users++;
@@ -652,7 +683,7 @@ class DrawnCache {
     let load = null, build = null;
     for (const e of this.map.values()) {
       if (e.users <= 0 || e.dead) continue;
-      if (e.state === "loaded") { if ((!e.spec || entShip3dState !== 1) && (!build || e.prio < build.prio)) build = e; } // a spec waits for ship3d.js
+      if (e.state === "loaded") { if ((!e.spec || (e.kind === "ship" ? entShip3dState : entEntity3dState) !== 1) && (!build || e.prio < build.prio)) build = e; } // a spec waits for its builder
       else if (e.state === "queued" && e.retryAt <= now && (!load || e.prio < load.prio)) load = e;
     }
     if (load && this.loading < 3) this.fetch(load);
@@ -678,11 +709,16 @@ class DrawnCache {
   build(e) {
     const t0 = performance.now();
     e.result = null;
-    if (e.spec && entShip3d) {
+    if (e.spec && e.kind === "ship" && entShip3d) {
       try {
         e.result = entShip3d.buildShip(e.spec, { drawingImage: e.img, color: e.color, quality: this.quality });
         e.ship3d = true;
       } catch (err) { entWarn("ship3d.js buildShip", err); e.result = null; }
+    } else if (e.spec && e.kind !== "ship" && entEntity3d && entIsBodySpec(e.spec, e.kind)) {
+      try {
+        e.result = entEntity3d.buildEntity(e.spec, { drawingImage: e.img, color: e.color, quality: this.quality });
+        e.entity3d = true;
+      } catch (err) { entWarn("entity3d.js buildEntity", err); e.result = null; }
     }
     try {
       if (!e.result) e.result = entInflate.inflateDrawing(e.img, { kind: e.kind, quality: this.quality, color: e.color });
@@ -759,7 +795,7 @@ class DrawnClaim {
 const entShips = new Map(), entPlanet = new Map();
 const entPlanetTypes = new Set(["person", "car", "bike", "quadruped", "blob"]);
 function entNote(player, entity) {
-  if (entity && entity.type === "ship" && entity.spec && entity.image) entSpecNote(entity.image, entity.spec);
+  if (entity && entity.spec && entity.image) entSpecNote(entity.image, entity.spec); // ship and body specs alike (by drawing hash)
   entities.set(player, entity);
   (entity.type === "ship" ? entShips : entPlanet).set(player, entity);
 }
@@ -1243,7 +1279,7 @@ class ExplorerView {
     const type = ent && entPlanetTypes.has(ent.type) ? ent.type : "person";
     const url = ent && ent.type !== "ship" && ent.image ? ent.image : "";
     if (type !== this.type) this.setType(type);
-    const e = this.claim.set(url && DRAWN.usable() ? url : "", type, this.colorHex);
+    const e = this.claim.set(url && DRAWN.usable() ? url : "", type, this.colorHex, entSpecFor(ent, type));
     if (e) {
       DRAWN.want(e, this.forced ? 0 : prio); // mine and the followed one first, then nearest first
       if (e.state === "ready") {
@@ -1267,7 +1303,10 @@ class ExplorerView {
     DRAWN.retain(e);
     if (this.shown) DRAWN.release(this.shown);
     this.shown = e;
-    this.use({ object3d: inst.object3d, sockets: inst.sockets, materials: inst.materials, wheels: inst.wheels, dispose: inst.dispose, drawn: true }, "drawn", type);
+    // entity3d.js models bring their clips (the A-008 library on a person, entity3d.js's own on an animal): the explorer plays
+    // dig / jump / run / walk / idle on them like on the default explorer, and anim.js layers its procedural motion on top.
+    this.use({ object3d: inst.object3d, sockets: inst.sockets, materials: inst.materials, wheels: inst.wheels, dispose: inst.dispose, drawn: true,
+      clips: inst.play ? inst.clips : undefined, play: inst.play, update: inst.update, entity3d: !!e.entity3d }, "drawn", type);
   }
   loadDefault() {
     this.loadingDefault = true;
@@ -1375,11 +1414,11 @@ class ExplorerView {
 // Entity preview: a small turntable of a drawing in 3D (the phone's result card, the lobby). Its own renderer, drawn only
 // while visible.
 //   const preview = createEntityPreview({ canvas, quality: "phone" });
-//   preview.show({ image, kind, color, spec? }) → Promise<{ ok, triangles, ms, ship3d? }>   image: URL, data URL, <img>, canvas, ImageBitmap;
-//       kind: "ship" | "person" | "car" | "bike" | "quadruped" | "blob"; ok is false when inflate.js (or WebGL) is missing
-//       A ship is built from its spec by ship3d.js (v1.4): `spec` when given, else the one the server keeps for that drawing (found by
-//       the drawing's hash: entity messages, then GET /ship-spec); the drawing is inflated meanwhile, and the card swaps to the built
-//       ship when the model's spec lands (a few seconds at most).
+//   preview.show({ image, kind, color, spec? }) → Promise<{ ok, triangles, ms, ship3d?, entity3d? }>   image: URL, data URL, <img>, canvas,
+//       ImageBitmap; kind: "ship" | "person" | "car" | "bike" | "quadruped" | "blob"; ok is false when inflate.js (or WebGL) is missing
+//       A ship is built from its spec by ship3d.js, an explorer from its body spec by entity3d.js (v1.4): `spec` when given, else the one
+//       the server keeps for that drawing (found by the drawing's hash: entity messages, then GET /ship-spec, which serves both kinds);
+//       the drawing is inflated meanwhile, and the card swaps to the built model when the model's spec lands (a few seconds at most).
 //   preview.clear()   preview.setVisible(bool)   preview.dispose()
 export function createEntityPreview({ canvas, quality = "phone" } = {}) {
   if (!canvas) throw new TypeError("createEntityPreview needs a canvas");
@@ -1450,6 +1489,7 @@ export function createEntityPreview({ canvas, quality = "phone" } = {}) {
       angle += dt * 0.8;
       spin.rotation.y = angle;
       if (entity.setEnginePower) entity.setEnginePower(1); // ship3d.js: the flames flicker
+      if (entity.update) entity.update(dt); // entity3d.js: the explorer breathes and looks around (its idle clip)
       tilt.rotation.x = standing ? 0.06 : 0.3 + Math.sin(angle * 0.6) * 0.04;
       tilt.rotation.z = Math.sin(angle * 0.5) * 0.04;
       const wh = entity.wheels;
@@ -1508,12 +1548,13 @@ export function createEntityPreview({ canvas, quality = "phone" } = {}) {
     const my = ++seq;
     clearTimeout(specPoll);
     entLoadInflate();
-    const isShip = kind === "ship";
+    const isShip = kind === "ship", isBody = entPlanetTypes.has(kind);
     if (isShip) entLoadShip3d();
-    const [inf, s3, found] = await Promise.all([entInflatePromise, isShip ? entShip3dPromise : null, isShip ? specOf(image, opts.spec) : null]);
+    else if (isBody) entLoadEntity3d();
+    const [inf, s3, found] = await Promise.all([entInflatePromise, isShip ? entShip3dPromise : isBody ? entEntity3dPromise : null, isShip || isBody ? specOf(image, opts.spec) : null]);
     if (!inf || disposed) return { ok: false, error: "inflate.js unavailable" };
     if (my !== seq) return latest; // a newer show() took over
-    const spec = found && found.spec && s3 ? found.spec : null;
+    const spec = found && found.spec && s3 && (isShip ? entIsShipSpec(found.spec) : entIsBodySpec(found.spec, kind)) ? found.spec : null;
     let img = null, owned = false;
     try {
       if (typeof image === "string" && /^data:/.test(image)) {
@@ -1535,7 +1576,7 @@ export function createEntityPreview({ canvas, quality = "phone" } = {}) {
     let result = null, is3d = false;
     try {
       if (spec) {
-        try { result = s3.buildShip(spec, { drawingImage: img, color: col.getHex(), quality: q }); is3d = true; } catch (err) { console.warn("[render] ship3d.js preview build failed:", err?.message || err); result = null; }
+        try { result = isShip ? s3.buildShip(spec, { drawingImage: img, color: col.getHex(), quality: q }) : s3.buildEntity(spec, { drawingImage: img, color: col.getHex(), quality: q }); is3d = true; } catch (err) { console.warn(`[render] ${isShip ? "ship3d" : "entity3d"}.js preview build failed:`, err?.message || err); result = null; }
       }
       if (!result) result = inf.inflateDrawing(img, { kind: useKind, quality: q, color: col.getHex() });
     } catch (err) {
@@ -1547,7 +1588,7 @@ export function createEntityPreview({ canvas, quality = "phone" } = {}) {
     entity = result;
     built3d = is3d;
     standing = useKind !== "ship";
-    if (isShip && found) watchSpec(my, opts, found.v, is3d ? spec : null);
+    if ((isShip || isBody) && found) watchSpec(my, opts, found.v, is3d ? spec : null);
     // Centre the drawing on the turntable and scale it to a unit sphere (the camera is fitted to that).
     const obj = result.object3d;
     obj.updateMatrixWorld(true);
@@ -1563,7 +1604,7 @@ export function createEntityPreview({ canvas, quality = "phone" } = {}) {
     fitted = "";
     draw(0);
     start();
-    return { ok: true, triangles: result.triangles, ms: result.ms, kind: useKind, wheels: result.wheels ? result.wheels.length : 0, ship3d: is3d };
+    return { ok: true, triangles: result.triangles, ms: result.ms, kind: useKind, wheels: result.wheels ? result.wheels.length : 0, ship3d: is3d && isShip, entity3d: is3d && isBody };
   }
   return {
     show(opts) { return (latest = run(opts || {})); },
@@ -2222,7 +2263,7 @@ class DecoyView {
     const ent = this.mode ? entPlanet.get(this.owner) : entShips.get(this.owner);
     const type = this.mode ? (ent && entPlanetTypes.has(ent.type) ? ent.type : "person") : "ship";
     const url = ent && ent.image ? ent.image : "";
-    const e = this.claim.set(url && DRAWN.usable() ? url : "", type, this.colorHex);
+    const e = this.claim.set(url && DRAWN.usable() ? url : "", type, this.colorHex, entSpecFor(ent, type));
     if (e) {
       DRAWN.want(e, this.lodDist);
       if (e.state === "ready" && (!this.shown || this.shown.key !== e.key)) {

@@ -1,0 +1,110 @@
+{
+  "calls": 28,
+  "log": [
+    {
+      "at": "2026-10-10T08:24:17.553Z",
+      "n": 1,
+      "note": "gpt-6.1-sol astronaut-shovel"
+    },
+    {
+      "at": "2026-10-10T08:24:19.880Z",
+      "n": 1,
+      "note": "gpt-6.1-sol astronaut-drill"
+    },
+    {
+      "at": "2026-10-10T08:24:21.581Z",
+      "n": 1,
+      "note": "gpt-6.1-sol car-cannon"
+    },
+    {
+      "at": "2026-10-10T08:24:23.718Z",
+      "n": 1,
+      "note": "gpt-6.1-sol bike-lamp"
+    },
+    {
+      "at": "2026-10-10T08:24:25.357Z",
+      "n": 1,
+      "note": "gpt-6.1-sol dog-claws"
+    },
+    {
+      "at": "2026-10-10T08:24:26.857Z",
+      "n": 1,
+      "note": "gpt-6.1-sol blob"
+    },
+    {
+      "at": "2026-10-10T08:24:28.966Z",
+      "n": 1,
+      "note": "gpt-6.1-sol color-person"
+    },
+    {
+      "at": "2026-10-10T08:24:31.542Z",
+      "n": 1,
+      "note": "gpt-6.1-sol color-robot"
+    },
+    {
+      "at": "2026-10-10T08:24:33.423Z",
+      "n": 1,
+      "note": "gpt-6.1-sol horse-saddle"
+    },
+    {
+      "at": "2026-10-10T08:24:35.546Z",
+      "n": 1,
+      "note": "gpt-6.1-sol monster-truck"
+    },
+    {
+      "at": "2026-10-10T08:32:49.500Z",
+      "n": 1,
+      "note": "gpt-6.1-sol astronaut-shovel"
+    },
+    {
+      "at": "2026-10-10T08:32:51.641Z",
+      "n": 1,
+      "note": "gpt-6.1-sol astronaut-drill"
+    },
+    {
+      "at": "2026-10-10T08:32:53.110Z",
+      "n": 1,
+      "note": "gpt-6.1-sol car-cannon"
+    },
+    {
+      "at": "2026-10-10T08:32:55.034Z",
+      "n": 1,
+      "note": "gpt-6.1-sol bike-lamp"
+    },
+    {
+      "at": "2026-10-10T08:32:56.926Z",
+      "n": 1,
+      "note": "gpt-6.1-sol dog-claws"
+    },
+    {
+      "at": "2026-10-10T08:32:58.842Z",
+      "n": 1,
+      "note": "gpt-6.1-sol blob"
+    },
+    {
+      "at": "2026-10-10T08:33:00.440Z",
+      "n": 1,
+      "note": "gpt-6.1-sol color-person"
+    },
+    {
+      "at": "2026-10-10T08:33:04.248Z",
+      "n": 1,
+      "note": "gpt-6.1-sol color-robot"
+    },
+    {
+      "at": "2026-10-10T08:33:05.877Z",
+      "n": 1,
+      "note": "gpt-6.1-sol horse-saddle"
+    },
+    {
+      "at": "2026-10-10T08:33:07.944Z",
+      "n": 1,
+      "note": "gpt-6.1-sol monster-truck"
+    },
+    {
+      "at": "2026-10-10T08:41:30.489Z",
+      "n": 8,
+      "note": "game-check.mjs: 4 explorers x (entity reading + body spec), real server"
+    }
+  ]
+}

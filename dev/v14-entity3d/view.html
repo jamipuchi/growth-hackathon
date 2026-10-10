@@ -1,0 +1,150 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>entity3d view</title>
+<style>html,body{margin:0;background:#0b0820;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+</head>
+<body>
+<script type="module">
+// view.html?spec=<url>&img=<url or empty>&color=<hex>&quality=big[&poses=idle,run,dig][&kit=1 (A-012 textures)][&panel=300]
+// The output canvas #sheet: the drawing on a white card (full height, the build stats under it), then a grid of panels:
+// rows = poses (idle 0.3, run 0.25, dig 0.55), columns = angles (3/4 front-left, pure side from +X, 3/4 back-right).
+// Each panel stands the entity on a dark ground disc with a contact shadow so floating feet show.
+import * as THREE from "three";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
+const q = new URLSearchParams(location.search);
+const P = Number(q.get("panel") || 300);
+const color = parseInt(q.get("color") || "22d3ee", 16);
+const quality = q.get("quality") || "big";
+const PHASE = { idle: 0.3, run: 0.25, walk: 0.25, dig: 0.55 };
+const poses = (q.get("poses") || "idle,run,dig").split(",").map((s) => s.trim()).filter(Boolean);
+const ANGLES = [
+  ["3/4 front-left", new THREE.Vector3(-1.0, 0.55, -1.15)], // the entity faces -Z: in front of it, on its left, a bit above
+  ["side +X", new THREE.Vector3(1, 0.06, 0)],
+  ["3/4 back-right", new THREE.Vector3(1.0, 0.55, 1.15)],
+];
+try {
+  // Dynamic imports: a missing or broken entity3d.js still ends in window.__ready = { ok: false, error }.
+  const E = await import("../../entity3d.js");
+  const spec = await (await fetch(q.get("spec"))).json();
+  let img = null;
+  if (q.get("img")) { img = new Image(); img.src = q.get("img"); await img.decode(); }
+  // &kit=1: skin with the A-012 hand-made kit first (as render.js does when it loads), else the procedural set.
+  let kitUsed = false;
+  if (q.get("kit") === "1") {
+    const [km, S] = await Promise.all([import("../../assets/A-012-ship-kit/ship-kit.js"), import("../../ship3d.js")]);
+    kitUsed = S.useShipKit(await km.loadShipKit());
+  }
+  const clipsLoaded = await E.loadEntityClips().catch(() => false);
+  const ent = E.buildEntity(spec, { drawingImage: img, color, quality });
+  ent.pose("idle", PHASE.idle);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1);
+  renderer.setSize(P, P);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  document.body.appendChild(renderer.domElement);
+
+  // draw calls and triangles for the entity alone (no ground, no lights' helpers)
+  const size = ent.size || { x: 1, y: 1.8, z: 1 };
+  const maxS = Math.max(size.x, size.y, size.z, 0.2);
+  const cam0 = new THREE.PerspectiveCamera(40, 1, 0.05, 200); cam0.position.set(0, size.y * 0.6, -maxS * 3); cam0.lookAt(0, size.y / 2, 0);
+  const solo = new THREE.Scene(); solo.add(ent.object3d);
+  renderer.info.reset(); renderer.info.autoReset = false;
+  renderer.render(solo, cam0);
+  const calls = renderer.info.render.calls, tris = renderer.info.render.triangles;
+  renderer.info.autoReset = true;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x140c35);
+  scene.add(new THREE.HemisphereLight(0xb8c8ff, 0x7a46dc, 1.25));
+  const key = new THREE.DirectionalLight(0xffeccf, 2.8); key.position.set(-4, 8, -3); scene.add(key);
+  const rim = new THREE.DirectionalLight(0xff48d2, 1.4); rim.position.set(5, 2, 6); scene.add(rim);
+  // the ground reference: a dark disc at y = 0 and a soft contact blob under the entity
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(0.8 * maxS, 64), new THREE.MeshStandardMaterial({ color: 0x2a2050, roughness: 1, metalness: 0 }));
+  ground.rotation.x = -Math.PI / 2;
+  scene.add(ground);
+  const blobCanvas = document.createElement("canvas"); blobCanvas.width = blobCanvas.height = 128;
+  const bg = blobCanvas.getContext("2d"), grad = bg.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grad.addColorStop(0, "rgba(0,0,0,0.75)"); grad.addColorStop(0.55, "rgba(0,0,0,0.4)"); grad.addColorStop(1, "rgba(0,0,0,0)");
+  bg.fillStyle = grad; bg.fillRect(0, 0, 128, 128);
+  const blobTex = new THREE.CanvasTexture(blobCanvas); blobTex.colorSpace = THREE.SRGBColorSpace;
+  const blob = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+  blob.rotation.x = -Math.PI / 2; blob.position.y = 0.003;
+  blob.scale.set(Math.max(size.x, 0.3) * 1.15, Math.max(size.z, 0.3) * 1.15, 1);
+  scene.add(blob);
+  scene.add(ent.object3d);
+
+  const rt = new THREE.WebGLRenderTarget(P, P, { type: THREE.HalfFloatType });
+  const composer = new EffectComposer(renderer, rt);
+  composer.setPixelRatio(1);
+  composer.setSize(P, P);
+  const FOV = 34;
+  const cam = new THREE.PerspectiveCamera(FOV, 1, 0.05, 400);
+  composer.addPass(new RenderPass(scene, cam));
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(P, P), 0.5, 0.5, 0.8));
+  composer.addPass(new OutputPass());
+  // framing: the bounding sphere of the entity's size (or its radius), looked at from its mid height
+  const r = Math.max(ent.radius || 0, 0.5 * Math.hypot(size.x, size.y, size.z), 0.3);
+  const dist = r / Math.sin((FOV / 2) * Math.PI / 180) * 1.08;
+  const target = new THREE.Vector3(0, size.y / 2, 0);
+
+  // the sheet: the card on the left, the panels on the right
+  const CW = 340, W = CW + ANGLES.length * P, H = poses.length * P;
+  const out = document.createElement("canvas"); out.width = W; out.height = H;
+  const g = out.getContext("2d");
+  g.fillStyle = "#140c35"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#ffffff"; g.fillRect(14, 14, CW - 28, H - 28);
+  const textH = 120;
+  if (img) { const k = Math.min((CW - 56) / img.naturalWidth, (H - 56 - textH) / img.naturalHeight); g.drawImage(img, CW / 2 - img.naturalWidth * k / 2, 28 + (H - 56 - textH) / 2 - img.naturalHeight * k / 2, img.naturalWidth * k, img.naturalHeight * k); }
+  else { g.fillStyle = "#666"; g.font = "22px sans-serif"; g.textAlign = "center"; g.fillText("(no drawing)", CW / 2, (H - textH) / 2); }
+  const names = (ent.clips || []).map((c) => c.name);
+  const f1 = (n) => (Number.isFinite(n) ? n.toFixed(2) : "?");
+  g.fillStyle = "#222"; g.font = "bold 16px sans-serif"; g.textAlign = "left";
+  const lines = [
+    `${ent.rig} · ${spec.type} · ${spec.view} view`,
+    `${ent.triangles} tris · ${calls} calls · build ${ent.ms} ms`,
+    `size ${f1(size.x)}×${f1(size.y)}×${f1(size.z)} m · r ${f1(ent.radius)}`,
+    `clips: ${clipsLoaded ? "A-008" : "built-in"} · ${names.slice(0, 6).join(", ")}${names.length > 6 ? "…" : ""}`,
+    `${quality}${kitUsed ? " · kit" : ""}`,
+  ];
+  g.font = "15px sans-serif";
+  lines.forEach((t, i) => { g.font = i === 0 ? "bold 16px sans-serif" : "14px sans-serif"; g.fillText(t, 28, H - 28 - textH + 22 + i * 21, CW - 56); });
+
+  for (let row = 0; row < poses.length; row++) {
+    const name = poses[row];
+    ent.pose(name, PHASE[name] ?? 0.5);
+    for (let col = 0; col < ANGLES.length; col++) {
+      cam.position.copy(target).add(ANGLES[col][1].clone().normalize().multiplyScalar(dist));
+      cam.lookAt(target);
+      composer.render();
+      const x = CW + col * P, y = row * P;
+      g.drawImage(renderer.domElement, 0, 0, P, P, x, y, P, P);
+      g.font = "bold 14px sans-serif"; g.textAlign = "left"; g.fillStyle = "rgba(255,255,255,0.85)";
+      g.fillText(names.length && !names.includes(name) ? `${name} (no clip)` : name, x + 8, y + 18);
+      g.font = "12px sans-serif"; g.textAlign = "right"; g.fillStyle = "rgba(255,255,255,0.55)";
+      g.fillText(ANGLES[col][0], x + P - 8, y + 18);
+      g.strokeStyle = "rgba(255,255,255,0.08)"; g.strokeRect(x + 0.5, y + 0.5, P - 1, P - 1);
+    }
+  }
+  ent.pose("idle", PHASE.idle);
+  document.body.removeChild(renderer.domElement);
+  out.id = "sheet";
+  document.body.appendChild(out);
+  window.__ready = { ok: true, kit: kitUsed, rig: ent.rig, triangles: ent.triangles, drawCalls: calls, glTriangles: tris, ms: ent.ms, size: ent.size, radius: ent.radius,
+    clips: names, clipsLoaded: !!clipsLoaded, poses };
+} catch (e) {
+  console.error(e);
+  window.__ready = { ok: false, error: String(e && e.stack || e) };
+}
+</script>
+</body>
+</html>

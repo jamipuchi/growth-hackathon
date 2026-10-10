@@ -1,0 +1,71 @@
+{
+  "v": 1,
+  "type": "bike",
+  "view": "side",
+  "facing": "right",
+  "style": "chunky",
+  "seed": 3224834556,
+  "head": {
+    "shape": "none",
+    "size": 0.08,
+    "gear": "none",
+    "face": "none",
+    "eyes": 0,
+    "snout": 0,
+    "color": "",
+    "gearColor": "",
+    "faceColor": ""
+  },
+  "torso": {
+    "shape": "slim",
+    "width": 0.06,
+    "color": "",
+    "belt": false,
+    "emblem": ""
+  },
+  "arms": {
+    "count": 0,
+    "length": 0.15,
+    "thickness": "thin",
+    "hands": "none",
+    "color": ""
+  },
+  "legs": {
+    "count": 0,
+    "length": 0.15,
+    "thickness": "thin",
+    "feet": "none",
+    "color": ""
+  },
+  "neck": 0,
+  "tail": {
+    "kind": "none",
+    "color": ""
+  },
+  "vehicle": {
+    "body": "bicycle",
+    "height": 0.38,
+    "cabin": "none",
+    "wheels": 2,
+    "wheelSize": 0.37,
+    "color": "",
+    "rider": false
+  },
+  "items": [
+    {
+      "kind": "lamp",
+      "where": "front",
+      "size": 0.15,
+      "color": "",
+      "verb": "flare"
+    }
+  ],
+  "palette": {
+    "colored": false,
+    "main": "",
+    "second": "",
+    "accent": "",
+    "skin": ""
+  },
+  "source": "model"
+}

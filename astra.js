@@ -6,7 +6,8 @@
 //     → Promise<{ ok: true, layout | entity, looksLike } | { ok: false, error, looksLike?, thing? }>
 //   signal (optional AbortSignal): the caller gave up; resolves { ok: false, error: "superseded" } and aborts the model
 //   call when no other request waits for that drawing.
-//   A ship entity also carries `spec` (v1.4, astra-ship.js): the drawing as 3D parts for ship3d.js (see "Ship spec").
+//   A ship entity also carries `spec` (v1.4, astra-ship.js): the drawing as 3D parts for ship3d.js (see "Ship spec"); an explorer
+//   entity carries its body spec the same way (v1.4, astra-body.js, for entity3d.js).
 //   kind "controller": the whole pad. kind "button": one new control; the image is that control alone (the phone crops
 //   it) and its rectangle on the pad is `region` ({x, y, w, h}, fractions). `expect` (optional verb id): the button the
 //   game asked for (a ghost box); used only when the drawing itself cannot be read. `pad` (optional, action ids): the
@@ -63,6 +64,16 @@ function shipSpecLib() {
   }
   return ShipSpecLib;
 }
+// v1.4 body spec (astra-body.js, owner 10:12: "We're doing the character 3d modelling as well?"): the drawn explorer as a body
+// plan for entity3d.js (head, torso, limbs or wheels, tools, colours). Same call, cache and late path as the ship spec.
+let BodySpecLib = null;
+function bodySpecLib() {
+  if (!BodySpecLib) {
+    try { BodySpecLib = require("./astra-body.js"); } catch (err) { console.log(`astra: astra-body.js unavailable (${err.message})`); }
+  }
+  return BodySpecLib;
+}
+const specLibFor = (kind) => (kind === "ship" ? shipSpecLib() : kind === "explorer" ? bodySpecLib() : null);
 
 const API_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_MODEL = "gpt-6.1-sol";
@@ -720,7 +731,10 @@ const VERB_IDS = new Set([...Object.keys(Verbs.VERBS), ...Verbs.MOVES]);
 // (a speculative call usually has it ready by DONE); still running, the answer goes out without one and the model's spec
 // follows through the onShipSpec listeners (server.js sends the entity again; a failed call sends one made from the
 // entity's own parts, source "entity"). ASTRA_MOCK=1 / no key / a failure: the entity's parts at once.
-//   entity.spec = astra-ship.js spec + source: "model" | "entity"   (ship entities only)
+//   entity.spec = astra-ship.js spec + source: "model" | "entity"   (ship entities)
+//   entity.spec = astra-body.js spec + source: "model" | "entity"   (explorer entities: person, quadruped, car, bike, blob)
+// The same machinery runs for both kinds (specLibFor(kind)); the cache key carries the kind. onShipSpec listeners get
+// { player, kind: "ship" | "explorer", image, spec }.
 const specCache = new Map(); // image hash → { spec (normalized, not yet reconciled), ms }
 const specInflight = new Map(); // image hash → { p: Promise<{ spec, ms } | null>, ctrl, owners: Set<token>, wanted, done }
 const specListeners = new Set();
@@ -728,22 +742,22 @@ function onShipSpec(fn) {
   if (typeof fn === "function") specListeners.add(fn);
   return () => specListeners.delete(fn);
 }
-function specRequest(image, source, useTier) {
+function specRequest(image, source, useTier, kind = "ship") {
   const tier = process.env.OPENAI_SERVICE_TIER ?? DEFAULT_TIER;
   const effort = process.env.OPENAI_REASONING_EFFORT ?? DEFAULT_EFFORT;
-  return shipSpecLib().request(image, { source, model: modelId(), tier: useTier && !defaultTierOnly() && tier ? tier : "none", effort: effort || "none", maxTokens: SPEC_OUTPUT_TOKENS });
+  return specLibFor(kind).request(image, { source, model: modelId(), tier: useTier && !defaultTierOnly() && tier ? tier : "none", effort: effort || "none", maxTokens: SPEC_OUTPUT_TOKENS });
 }
 // One spec request (the same tier fallback as askOnce).
-async function askSpecOnce(image, source, signal) {
+async function askSpecOnce(image, source, signal, kind = "ship") {
   const key = apiKey();
   if (!key) throw new Error("no OPENAI_API_KEY");
-  let req = specRequest(image, source, true);
+  let req = specRequest(image, source, true, kind);
   let res = await post(req, key, signal);
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     const tierProblem = res.status >= 400 && res.status < 500 && req.service_tier && /service[_ ]?tier|ultrafast|\btier\b/i.test(text);
     if (!tierProblem) throw new Error(`OpenAI HTTP ${res.status}`);
-    req = specRequest(image, source, false);
+    req = specRequest(image, source, false, kind);
     res = await post(req, key, signal);
     if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}`);
   }
@@ -752,13 +766,14 @@ async function askSpecOnce(image, source, signal) {
   });
   return parseJson(extractText(data));
 }
-// The model's spec of a ship drawing → Promise<{ spec, ms } | null> (null: mock, no key, no astra-ship.js, a failure).
-// owner: the request waiting for it; a spec call nobody waits for any more (every owner superseded: the player kept
-// drawing) is aborted, unless a finished answer already counts on it (the late listeners).
-function shipSpec(image, source, owner = null) {
-  const Lib = shipSpecLib();
+// The model's spec of a ship (or, kind "explorer", body) drawing → Promise<{ spec, ms } | null> (null: mock, no key, no
+// astra-ship.js / astra-body.js, a failure). owner: the request waiting for it; a spec call nobody waits for any more (every
+// owner superseded: the player kept drawing) is aborted, unless a finished answer already counts on it (the late listeners).
+const specHash = (image, kind) => sha1(`${kind === "explorer" ? "bodyspec" : "shipspec"}${image}`);
+function shipSpec(image, source, owner = null, kind = "ship") {
+  const Lib = specLibFor(kind);
   if (!Lib || process.env.ASTRA_MOCK === "1" || !apiKey()) return Promise.resolve(null);
-  const hash = sha1(`shipspec${image}`);
+  const hash = specHash(image, kind);
   if (specCache.has(hash)) return Promise.resolve(specCache.get(hash));
   const running = specInflight.get(hash);
   if (running) {
@@ -769,16 +784,17 @@ function shipSpec(image, source, owner = null) {
   const ctrl = (entry.ctrl = new AbortController());
   const timer = setTimeout(() => ctrl.abort(), SPEC_TIMEOUT_MS);
   const t0 = Date.now();
-  const p = hedged((signal) => askSpecOnce(image, source, signal), ctrl.signal, SPEC_HEDGE_MS)
+  const p = hedged((signal) => askSpecOnce(image, source, signal, kind), ctrl.signal, SPEC_HEDGE_MS)
     .then((raw) => {
       const got = { spec: Lib.normalize(raw, { seed: Lib.seedOf(hash) }), ms: Date.now() - t0 };
       specCache.set(hash, got);
       if (specCache.size > MAX_SPECS) specCache.delete(specCache.keys().next().value);
       const sp = got.spec;
-      console.log(`astra ship-spec model=${got.ms}ms ok ${sp.hull.shape} wings=${sp.wings.count} engines=${sp.engines.count}${sp.engines.flame ? "+flame" : ""} weapons=${sp.weapons.length} extras=${sp.extras.length}${sp.palette.colored ? " coloured" : ""}`);
+      if (kind === "ship") console.log(`astra ship-spec model=${got.ms}ms ok ${sp.hull.shape} wings=${sp.wings.count} engines=${sp.engines.count}${sp.engines.flame ? "+flame" : ""} weapons=${sp.weapons.length} extras=${sp.extras.length}${sp.palette.colored ? " coloured" : ""}`);
+      else console.log(`astra body-spec model=${got.ms}ms ok ${sp.type} head=${sp.head.shape}/${sp.head.gear} items=${sp.items.map((x) => x.kind).join(",") || "-"}${sp.palette.colored ? " coloured" : ""}`);
       return got;
     }, (err) => {
-      console.log(`astra ship-spec failed after ${Date.now() - t0} ms (${err && err.message})`);
+      console.log(`astra ${kind === "ship" ? "ship" : "body"}-spec failed after ${Date.now() - t0} ms (${err && err.message})`);
       return null;
     })
     .finally(() => {
@@ -792,24 +808,24 @@ function shipSpec(image, source, owner = null) {
 }
 // A request lets go of its drawing's spec call: kept (wanted) when it got an entity, aborted when it was superseded or
 // refused and nobody else waits for it ("Use it anyway" then starts a fresh one).
-function releaseSpec(image, owner, superseded) {
-  const entry = specInflight.get(sha1(`shipspec${image}`));
+function releaseSpec(image, owner, superseded, kind = "ship") {
+  const entry = specInflight.get(specHash(image, kind));
   if (!entry || !owner) return;
   entry.owners.delete(owner);
   if (!superseded) entry.wanted = true;
   else if (!entry.owners.size && !entry.wanted && !entry.done) entry.ctrl.abort();
 }
-// The spec that rides on a ship entity: the model's, reconciled with what the reading unlocked (every unlocked skill shows
-// as a part), else one built from the entity's own parts. null for other types or when astra-ship.js is missing.
+// The spec that rides on an entity: the model's, reconciled with what the reading unlocked (every unlocked skill shows as a
+// part; a body spec also takes the reading's type), else one built from the entity's own parts. null when the lib is missing.
 function specFor(entity, got, seedText) {
-  const Lib = shipSpecLib();
-  if (!Lib || !entity || entity.type !== "ship") return null;
+  const Lib = entity && (entity.type === "ship" ? shipSpecLib() : bodySpecLib());
+  if (!Lib || !entity) return null;
   try {
     const spec = got && got.spec ? Lib.reconcile(got.spec, entity) : Lib.fromEntity(entity, seedText);
     spec.source = got && got.spec ? "model" : "entity";
     return spec;
   } catch (err) {
-    console.log(`astra ship-spec: ${err.message}`);
+    console.log(`astra ${entity.type === "ship" ? "ship" : "body"}-spec: ${err.message}`);
     return null;
   }
 }
@@ -863,7 +879,8 @@ async function generateOnce(body, opts = {}) {
 
   // v1.4: a ship drawing's spec call starts now, next to the entity call (cached by image: a speculative call's spec is
   // ready by the time the player taps DONE).
-  const specP = kind === "ship" && shipSpecLib() ? shipSpec(image, source, token) : null;
+  // v1.4: an explorer drawing's body spec too (astra-body.js), the same way.
+  const specP = (kind === "ship" || kind === "explorer") && specLibFor(kind) ? shipSpec(image, source, token, kind) : null;
   const cached = cache.get(hash);
   let entry = null;
   let hit = "hit";
@@ -890,7 +907,7 @@ async function generateOnce(body, opts = {}) {
   if (entry) entry.owners.delete(token);
 
   const answer = answerOf(kind, result, body.anyway === true, { region, expect });
-  if (specP) releaseSpec(image, token, !answer.ok); // superseded or refused: its spec call stops unless someone else waits
+  if (specP) releaseSpec(image, token, !answer.ok, kind); // superseded or refused: its spec call stops unless someone else waits
   if (specP && answer.ok && answer.entity) {
     const seedText = sha1(image);
     const { got, late } = await specWithin(specP);
@@ -905,7 +922,7 @@ async function generateOnce(body, opts = {}) {
         const spec = specFor(entity, g, seedText);
         if (!spec) return;
         for (const fn of specListeners) {
-          try { fn({ player, kind, image, spec }); } catch (err) { console.log(`astra ship-spec listener: ${err.message}`); }
+          try { fn({ player, kind, image, spec }); } catch (err) { console.log(`astra ${kind === "ship" ? "ship" : "body"}-spec listener: ${err.message}`); }
         }
       });
     }

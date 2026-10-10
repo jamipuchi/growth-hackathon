@@ -39,6 +39,7 @@ const PUBLIC_FILES = new Set([
   "space.html", "controller.html", "render.js", "contract.js", "verbs.js", "terrain.js", "rigs.js",
   "transition.js", "anim.js", "anims.js", "phone-extras.js", "bigscreen-extras.js", "inflate.js", "ship3d.js",
   "ctrl-sandbox.js", "mischief-fx.js", "sfx.js", "controller.webmanifest",
+  "entity3d.js", // v1.4: drawn explorers built rigged from their body spec (render.js loads it on demand)
 ]);
 const ICONS = path.join(ROOT, "icons");
 const ICON_PATH = /^icons\/[a-z0-9][a-z0-9_.-]{0,63}\.png$/i;   // one level, no dot files, PNG only
@@ -112,15 +113,16 @@ function loadAstra() {
 // v1.4: the model's ship spec arrived after the /generate answer (that answer carried a spec made from the entity's
 // parts): keep it and send the player's ship again, so every screen rebuilds it from the model's parts.
 let lateSpecHooked = false;
-function onLateShipSpec({ player, image, spec }) {
+function onLateShipSpec({ player, kind, image, spec }) {
   const m = /^data:image\/png;base64,(.+)$/.exec(String(image || ""));
   if (!m || !spec) return;
   const v = sha1(Buffer.from(m[1], "base64")).slice(0, 10);
   noteShipSpec(v, spec);
-  const url = drawnImages[player] && drawnImages[player].ship;
+  const family = kind === "explorer" ? "explorer" : "ship"; // v1.4: an explorer's body spec comes the same way
+  const url = drawnImages[player] && drawnImages[player][family];
   if (!url || vOfUrl(url) !== v) return; // an older drawing of theirs: kept by its hash, nothing to send
   const p = world.players[player];
-  if (p && p.entity && p.entity.type === "ship") broadcast({ type: "entity", player, entity: p.entity });
+  if (p && p.entity && kindOfEntity(p.entity) === family) broadcast({ type: "entity", player, entity: p.entity });
   if (p && p.mode === "planet") broadcast(world.worldMessage({ entities: false }));
 }
 function wireAnimations(type, verbs) {
@@ -193,7 +195,7 @@ function keepDrawing(player, kind, dataUrl) {
 // Adds the drawing URL to an entity (mutating the world's own entity, so the next connect's world message has it).
 function drawnEntity(player, entity) {
   const url = entity && drawnImages[player] && drawnImages[player][kindOfEntity(entity)];
-  const spec = url && entity.type === "ship" ? shipSpecOf(url) : null; // v1.4: the parts ship3d.js builds
+  const spec = url ? shipSpecOf(url) : null; // v1.4: the parts ship3d.js (ships) or entity3d.js (explorers) builds
   if (!url || (entity.image === url && (!spec || entity.spec === spec))) return entity;
   const p = world.players[player];
   if (p && p.entity === entity) { entity.image = url; if (spec) entity.spec = spec; return entity; }
@@ -598,7 +600,7 @@ async function handlePost(req, res, url) {
       // player drives one, else at the next mode switch (an explorer drawn in space shows up on landing). The drawn
       // look rides along as `image`.
       const image = keepDrawing(player, body.kind, body.image);
-      if (image && body.kind === "ship" && result.entity.spec) noteShipSpec(vOfUrl(image), result.entity.spec);
+      if (image && result.entity.spec) noteShipSpec(vOfUrl(image), result.entity.spec); // v1.4: ship and body specs alike
       if (typeof result.entity.card !== "string" && typeof Verbs.cardOf === "function") result = { ...result, entity: { ...result.entity, card: Verbs.cardOf(result.entity.type, result.entity.unlocked) } };
       const before = world.players[player] && world.players[player].entity;
       const now = world.setEntity(player, body.kind, result.entity);

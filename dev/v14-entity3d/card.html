@@ -1,0 +1,35 @@
+<!doctype html>
+<!-- v14-entity3d: the phone's result card for an EXPLORER (render.js createEntityPreview), for a WebKit 844x390 screenshot.
+     card.html?img=<drawing URL>&kind=person: the drawing becomes a PNG data URL first, as the phone has it, so the preview
+     finds the body spec by the drawing's hash (entity messages / GET /ship-spec), exactly like the real card. -->
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>explorer card</title>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+<script src="/contract.js"></script>
+<script src="/terrain.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; background: radial-gradient(circle at 30% 40%, #3b2a8f, #120c33 70%); color: #fff; font-family: "Barlow", system-ui, sans-serif; overflow: hidden; }
+  #wrap { display: flex; height: 100%; }
+  canvas { width: 55%; height: 100%; display: block; }
+  #card { flex: 1; padding: 34px 26px; }
+  h1 { margin: 0 0 10px; font: 800 italic 40px "Barlow Condensed", system-ui, sans-serif; text-shadow: 0 3px 0 #0008; }
+  .line { font-size: 19px; margin: 6px 0; } .tag { display: inline-block; padding: 4px 10px; background: #f5b70033; border: 2px solid #f5b700; border-radius: 6px; font-weight: 800; }
+</style></head><body>
+<div id="wrap"><canvas id="c"></canvas><div id="card"><h1 id="h">YOUR EXPLORER</h1><div class="line" id="what">building…</div><div class="line"><span class="tag" id="tag"></span></div></div></div>
+<script type="module">
+import { createEntityPreview } from "/render.js";
+const q = new URLSearchParams(location.search);
+const src = q.get("img"), kind = q.get("kind") || "person";
+try {
+  const blob = await (await fetch(src)).blob();
+  const dataUrl = await new Promise((ok) => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(blob); });
+  const pv = createEntityPreview({ canvas: document.getElementById("c"), quality: "phone" });
+  const t0 = performance.now();
+  const first = await pv.show({ image: dataUrl, kind, color: 0xff7b00 });
+  document.getElementById("h").textContent = `YOUR ${kind.toUpperCase()}`;
+  document.getElementById("what").textContent = first.entity3d ? `built rigged in ${first.ms} ms · ${first.triangles} triangles` : `inflated (no body spec) · ${first.triangles} triangles`;
+  document.getElementById("tag").textContent = first.entity3d ? "3D EXPLORER" : "DRAWING";
+  await new Promise((r) => setTimeout(r, 1800));
+  window.__ready = { first, ms: Math.round(performance.now() - t0) };
+} catch (e) { window.__ready = { error: String(e && e.stack || e) }; }
+</script></body></html>

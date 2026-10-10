@@ -1,0 +1,245 @@
+{
+  "at": "2026-10-10T08:40:36.422Z",
+  "port": 8442,
+  "real": 10,
+  "players": [
+    {
+      "name": "e3dastro",
+      "file": "dev/gen-corpus/entity/E17.png",
+      "status": 200,
+      "ms": 1556,
+      "ok": true,
+      "type": "person",
+      "verbs": [
+        "dig",
+        "jump",
+        "takeoff"
+      ],
+      "image": "/drawings/e3dastro-explorer.png?v=fd9b8b6af8",
+      "spec": null,
+      "kept": {
+        "source": "model",
+        "type": "person",
+        "items": [
+          "shovel"
+        ]
+      }
+    },
+    {
+      "name": "e3dcar",
+      "file": "dev/gen-corpus/entity/E23.png",
+      "status": 200,
+      "ms": 2050,
+      "ok": true,
+      "type": "car",
+      "verbs": [
+        "shoot",
+        "drive",
+        "takeoff"
+      ],
+      "image": "/drawings/e3dcar-explorer.png?v=3eb8646d2c",
+      "spec": {
+        "source": "model",
+        "type": "car",
+        "items": [
+          "cannon"
+        ]
+      },
+      "kept": {
+        "source": "model",
+        "type": "car",
+        "items": [
+          "cannon"
+        ]
+      }
+    },
+    {
+      "name": "e3ddog",
+      "file": "dev/gen-corpus/entity/E28.png",
+      "status": 200,
+      "ms": 1907,
+      "ok": true,
+      "type": "quadruped",
+      "verbs": [
+        "dig",
+        "jump",
+        "takeoff"
+      ],
+      "image": "/drawings/e3ddog-explorer.png?v=8c55f0b8ff",
+      "spec": {
+        "source": "model",
+        "type": "quadruped",
+        "items": []
+      },
+      "kept": {
+        "source": "model",
+        "type": "quadruped",
+        "items": []
+      }
+    },
+    {
+      "name": "e3drobot",
+      "file": "dev/v14-entity3d/drawings/color-robot.png",
+      "status": 200,
+      "ms": 2071,
+      "ok": true,
+      "type": "person",
+      "verbs": [
+        "shoot",
+        "dig",
+        "jump",
+        "scan",
+        "emp",
+        "takeoff"
+      ],
+      "image": "/drawings/e3drobot-explorer.png?v=c05d9cf2d9",
+      "spec": {
+        "source": "model",
+        "type": "person",
+        "items": [
+          "blaster",
+          "shovel",
+          "lightning"
+        ]
+      },
+      "kept": {
+        "source": "model",
+        "type": "person",
+        "items": [
+          "blaster",
+          "shovel",
+          "lightning"
+        ]
+      }
+    }
+  ],
+  "tv": [
+    {
+      "name": "e3dastro",
+      "shot": "dev/v14-entity3d/shots/tv-e3dastro.png"
+    },
+    {
+      "name": "e3dcar",
+      "shot": "dev/v14-entity3d/shots/tv-e3dcar.png"
+    },
+    {
+      "name": "e3ddog",
+      "shot": "dev/v14-entity3d/shots/tv-e3ddog.png"
+    },
+    {
+      "name": "e3drobot",
+      "shot": "dev/v14-entity3d/shots/tv-e3drobot.png"
+    }
+  ],
+  "cards": [
+    {
+      "name": "e3dastro",
+      "ready": {
+        "first": {
+          "ok": true,
+          "triangles": 3858,
+          "ms": 7,
+          "kind": "person",
+          "wheels": 0,
+          "ship3d": false,
+          "entity3d": true
+        },
+        "ms": 2294
+      },
+      "shot": "dev/v14-entity3d/shots/card-e3dastro.png"
+    },
+    {
+      "name": "e3dcar",
+      "ready": {
+        "first": {
+          "ok": true,
+          "triangles": 4008,
+          "ms": 7,
+          "kind": "car",
+          "wheels": 4,
+          "ship3d": false,
+          "entity3d": true
+        },
+        "ms": 1914
+      },
+      "shot": "dev/v14-entity3d/shots/card-e3dcar.png"
+    },
+    {
+      "name": "e3ddog",
+      "ready": {
+        "first": {
+          "ok": true,
+          "triangles": 3136,
+          "ms": 5,
+          "kind": "quadruped",
+          "wheels": 0,
+          "ship3d": false,
+          "entity3d": true
+        },
+        "ms": 1909
+      },
+      "shot": "dev/v14-entity3d/shots/card-e3ddog.png"
+    },
+    {
+      "name": "e3drobot",
+      "ready": {
+        "first": {
+          "ok": true,
+          "triangles": 3778,
+          "ms": 3,
+          "kind": "person",
+          "wheels": 0,
+          "ship3d": false,
+          "entity3d": true
+        },
+        "ms": 1908
+      },
+      "shot": "dev/v14-entity3d/shots/card-e3drobot.png"
+    }
+  ],
+  "planet": {
+    "ok": true,
+    "phase": "playing",
+    "granted": [
+      "e3dastro",
+      "e3dcar",
+      "e3ddog",
+      "e3drobot"
+    ],
+    "players": {
+      "e3dastro": {
+        "ok": true,
+        "mode": "planet",
+        "landingFor": 0,
+        "type": "person"
+      },
+      "e3dcar": {
+        "ok": true,
+        "mode": "planet",
+        "landingFor": 0,
+        "type": "car"
+      },
+      "e3ddog": {
+        "ok": true,
+        "mode": "planet",
+        "landingFor": 0,
+        "type": "quadruped"
+      },
+      "e3drobot": {
+        "ok": true,
+        "mode": "planet",
+        "landingFor": 0,
+        "type": "person"
+      }
+    },
+    "ms": 3330
+  },
+  "tvErrors": [],
+  "calls": {
+    "mode": "real",
+    "real": 8,
+    "replayed": 0,
+    "missing": 0,
+    "blocked": 0
+  }
+}
