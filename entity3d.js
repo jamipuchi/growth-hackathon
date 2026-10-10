@@ -4,6 +4,7 @@
 // way ship3d.js builds ships. No model call.
 //
 //   await loadEntityClips() → bool       // the A-008 person clips (33, rotation-only); once, before the first person build
+//                                        // (v1.9: also the A-008 quadruped clips; the bool is the person clips')
 //   buildEntity(spec, { drawingImage, color = 0x22d3ee, quality: "lite"|"phone"|"big" })
 //     → { object3d, rig, sockets, wheels, bones, materials, fxMaterials, clips, radius, size: {x, y, z}, triangles, drawCalls, ms,
 //         play(name, opts), update(dt), pose(name, phase), setOpacity(a),
@@ -15,7 +16,8 @@
 // Rig: every part is RIGID and attached to one bone (one SkinnedMesh per material, one bone per vertex), so clips animate it
 // with no skinning artefacts. person = the A-008 skeleton (the same 19 bone names, parents and rest rotations, lengths from
 // the drawing), so the A-008 clips (idle, walk, run, dig, jump, swim, ...) play on it unchanged; quadruped = the rigs.js
-// quadruped bones with clips built here (idle, walk, run, gallop, jump, dig, sit, bite, hit, die); car / bike = a chassis
+// quadruped bones with clips built here (idle, walk, run, gallop, jump, dig, sit, bite, hit, die; v1.9: the A-008 quadruped's
+// walk, gallop / run, jump, dig, hit and roar retargeted in their place once loaded, see QUAD_FROM_A008); car / bike = a chassis
 // bone and one bone per wheel (wheels: [{ pivot, radius }], rear to front: spin pivot.rotation.x like inflate.js's);
 // blob = one body bone (anim.js squashes it).
 // Draw calls: 1 = every solid part (one MeshStandardMaterial on the shared ship3d.js atlas, A-012 kit when loaded, tinted by
@@ -318,9 +320,10 @@ class Rig {
 const PERSON_LOOPS = new Set("idle walk run sprint fall crouch aim block dig climb swim glide sit push kneel look read celebrate wave".split(" "));
 let PERSON_CLIPS = null, clipsPromise = null;
 // The A-008 person clips (assets/A-008-rigs/person.glb through person.js). Resolves true when loaded, false when missing.
+// v1.9: the A-008 quadruped clips (loadQuadLibrary, below) load alongside and are waited for too (false there: animals keep
+// their procedural clips; the result still says only whether the person clips are in).
 export function loadEntityClips() {
-  if (PERSON_CLIPS) return Promise.resolve(true);
-  return clipsPromise ??= import(new URL("./assets/A-008-rigs/person.js", import.meta.url).href)
+  const person = PERSON_CLIPS ? Promise.resolve(true) : (clipsPromise ??= import(new URL("./assets/A-008-rigs/person.js", import.meta.url).href)
     .then((m) => m.loadPersonRig())
     .then((gltf) => {
       // Keep only the quaternion tracks of the 19 bones (the asset is rotation-only; be safe against extras).
@@ -328,7 +331,8 @@ export function loadEntityClips() {
       PERSON_CLIPS = gltf.animations.map((c) => new THREE.AnimationClip(c.name, c.duration, c.tracks.filter((t) => t.name.endsWith(".quaternion") && names.has(t.name.slice(0, -11)))));
       return true;
     })
-    .catch((e) => { console.warn("[entity3d] A-008 person clips unavailable:", e?.message || e); clipsPromise = null; return false; });
+    .catch((e) => { console.warn("[entity3d] A-008 person clips unavailable:", e?.message || e); clipsPromise = null; return false; }));
+  return Promise.all([person, loadQuadLibrary()]).then(([ok]) => ok);
 }
 
 // Quadruped clips, built once: rotation tracks on the rigs.js quadruped bones (identity rest, so a track is the bone's
@@ -416,6 +420,49 @@ function quadClips() {
 }
 const QUAD_LOOPS = new Set(["idle", "walk", "run", "gallop", "dig", "sit"]);
 const VEH_LOOPS = new Set(["idle", "walk", "run", "dig"]);
+
+// v1.9: the A-008 quadruped library (assets/A-008-rigs/creatures.js: an authored hound, rotation-only clips at 30 fps). Every
+// animal built here has the same 19 bones and parents with IDENTITY rest rotations (only the lengths differ), and the library's
+// retarget reads rest rotations only, so ONE retarget onto a bare bone tree serves every build and instance. Its clips replace
+// the procedural ones named in QUAD_FROM_A008 ("run" plays its gallop) and add roar (anims.js's emote and celebrate ask for
+// it); the others stay procedural, and all of them while the library is missing or failed. Measured on a dog-like and a
+// horse-like build (dev/v19-assets/quad-probe.mjs): its walk / gallop / dig / hit keep the feet on the ground (the procedural
+// hit sinks 8-10 cm) and its jump tucks and reaches twice as far; its die rolls the body over at hip height (0.3-0.8 m in the air,
+// on top of anim.js's own flop roll) and its sit lifts a small animal's front paws further (0.18 m vs 0.10 m): those two stay
+// procedural.
+const QUAD_FROM_A008 = ["walk", "gallop", "jump", "dig", "hit", "roar"];
+let QUAD_A008 = null, quadLibPromise = null, QUAD_SET = null; // QUAD_A008: Map name → retargeted clip
+function loadQuadLibrary() {
+  if (QUAD_A008) return Promise.resolve(true);
+  return quadLibPromise ??= import(new URL("./assets/A-008-rigs/creatures.js", import.meta.url).href)
+    .then((m) => {
+      const root = new THREE.Group(), bones = new Map();
+      for (const [name, parent] of QUAD_BONES) { const b = new THREE.Bone(); b.name = name; bones.set(name, b); (parent ? bones.get(parent) : root).add(b); }
+      return m.retargetCreatureClips("quadruped", root);
+    })
+    .then((clips) => {
+      const names = new Set(QUAD_BONES.map((b) => b[0])), lib = new Map();
+      for (const c of clips) {
+        if (!QUAD_FROM_A008.includes(c.name)) continue;
+        const tracks = c.tracks.filter((t) => t.name.endsWith(".quaternion") && names.has(t.name.slice(0, -11)) && t.values.every(Number.isFinite));
+        if (tracks.length) lib.set(c.name, new THREE.AnimationClip(c.name, c.duration, tracks));
+      }
+      if (!lib.size) throw new Error("no usable clip");
+      QUAD_A008 = lib;
+      QUAD_SET = null;
+      return true;
+    })
+    .catch((e) => { console.warn("[entity3d] A-008 quadruped clips unavailable, animals keep the procedural ones:", e?.message || e); quadLibPromise = null; return false; });
+}
+// An animal's clips: the procedural set with the library's in place once it is in (built once, shared by every instance).
+function quadClipSet() {
+  if (!QUAD_A008) return quadClips();
+  if (QUAD_SET) return QUAD_SET;
+  const lib = QUAD_A008, gallop = lib.get("gallop");
+  const out = quadClips().map((c) => lib.get(c.name) || (c.name === "run" && gallop ? new THREE.AnimationClip("run", gallop.duration, gallop.tracks) : c));
+  for (const [name, c] of lib) if (!out.some((x) => x.name === name)) out.push(c);
+  return (QUAD_SET = out);
+}
 
 // v1.6: per-clip tool grip. A person holding a digging tool has it on a prop bone (buildPerson); every A-008 clip gets one more
 // track, the prop's rotation sampled along the clip so the tool points where that clip wants it, in the body's frame:
@@ -1544,7 +1591,7 @@ export function buildEntity(specIn, { drawingImage = null, color = 0x22d3ee, qua
     if (!propped || propped.src !== PERSON_CLIPS) propped = { src: PERSON_CLIPS, clips: propClips(rig, PERSON_CLIPS) };
     return propped.clips;
   };
-  const clipsOf = rig.kind === "person" ? personClips() : rig.kind === "quadruped" ? quadClips() : rig.kind === "car" ? vehicleClips(rig) : [];
+  const clipsOf = rig.kind === "person" ? personClips() : rig.kind === "quadruped" ? quadClipSet() : rig.kind === "car" ? vehicleClips(rig) : [];
   const loops = rig.kind === "person" ? PERSON_LOOPS : rig.kind === "car" ? VEH_LOOPS : QUAD_LOOPS;
 
   const instance = (o = {}) => {
@@ -1579,7 +1626,7 @@ export function buildEntity(specIn, { drawingImage = null, color = 0x22d3ee, qua
     }
     const wheels = wheelsOf.map((w) => ({ pivot: byName.get(w.bone), radius: w.radius, drawn: false }));
     // Animation: one mixer per instance; the clips are shared.
-    const clips = rig.kind === "person" ? personClips() : clipsOf;
+    const clips = rig.kind === "person" ? personClips() : rig.kind === "quadruped" ? quadClipSet() : clipsOf; // a library that came in later counts
     const mixer = clips.length ? new THREE.AnimationMixer(root) : null;
     const clipBy = new Map(clips.map((cl) => [cl.name, cl]));
     let current = null;
@@ -1633,4 +1680,4 @@ export function buildEntity(specIn, { drawingImage = null, color = 0x22d3ee, qua
   };
 }
 
-export const _internals = { sane, palette, quadClips, PERSON_BONES, QUAD_BONES, Rig };
+export const _internals = { sane, palette, quadClips, quadClipSet, loadQuadLibrary, PERSON_BONES, QUAD_BONES, Rig };

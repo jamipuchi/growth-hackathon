@@ -88,6 +88,9 @@ const ASSETS = {
       return D.createDefaultExplorer({ color, animation: "idle" });
     }
   },
+  // v1.9: the A-009 default car (4,776 triangles, 3 calls: body, lamps, one 4-instance wheel batch). Shared: ONE template,
+  // never shown; every car stand-in is a clone of it (defaultCarMake).
+  car: async () => (await import(assetUrl("A-009-defaults/car.js"))).createDefaultCar(),
   chest: async (state) => (await import(assetUrl("A-006-chest/chest.js"))).createChest({ state }),
   // A-004 Earth-like planet (World look: PlanetLook): built per round from the seed and the scene's sun, shown locked from the
   // start. On the phone its two 2048 x 1024 maps are shrunk to 1024 x 512 first (texture budget). Null on failure: the
@@ -134,8 +137,8 @@ function loadAsset(name, ...args) {
   const fn = ASSETS[name];
   if (!fn) return Promise.resolve(null);
   const key = name + JSON.stringify(args);
-  // Per-instance assets (ships, explorers) are not cached; shared ones (boss, rocks) are.
-  const shared = name === "boss" || name === "rocks";
+  // Per-instance assets (ships, explorers) are not cached; shared ones (boss, rocks, the car template) are.
+  const shared = name === "boss" || name === "rocks" || name === "car";
   if (shared && assetCache.has(key)) return assetCache.get(key);
   const p = fn(...args).catch((e) => {
     console.warn(`[render] asset ${name} unavailable, using placeholder:`, e?.message || e);
@@ -982,6 +985,88 @@ function entToy(type, colorHex) {
   return { object3d: root, sockets: sock, materials: [mat], wheels: out, toy: true, dispose() { root.removeFromParent(); mat.dispose(); for (const g of geos) g.dispose(); } };
 }
 
+// ---- v1.9 A-009 default car: the stand-in of a car player whose drawing is not built yet (or failed); it replaces the toy car ----
+// car.js checks the GLB and batches the four wheels into ONE InstancedMesh driven by the named pivots wheel_fl / fr / bl / br
+// (4,776 triangles, 3 calls like the toy). It is loaded once as a template (loadAsset "car", prefetched by startGame's warm); each
+// stand-in is a clone that shares the template's geometry and owns its materials (anim.js flashes and fades them, a decoy makes
+// them a hologram) and its wheel batch, the body tinted towards the player colour. drive() spins the wheels with the ground speed
+// and steers the front pair with the turn rate; a parked car uploads nothing. Bikes keep their toy (the buggy has four wheels).
+// defaultCarMake is null until the template is in: the caller shows the toy car meanwhile (ExplorerView.sync swaps it later).
+const DEFAULT_CAR = { state: 0, tpl: null }; // state: 0 not asked, 1 loading, 2 ready, -1 missing or broken (toys only)
+function defaultCarLoad() {
+  if (DEFAULT_CAR.state === 0) {
+    DEFAULT_CAR.state = 1;
+    loadAsset("car").then((car) => { DEFAULT_CAR.tpl = car; DEFAULT_CAR.state = car ? 2 : -1; });
+  }
+  return loadAsset("car"); // the same cached promise
+}
+const _carUp = new THREE.Vector3(0, 1, 0), _carSide = new THREE.Vector3(1, 0, 0), _carSteer = new THREE.Quaternion(), _carSpin = new THREE.Quaternion();
+const CAR_WHEELBASE = 2.45; // metres between the axles (car-manifest.json: front z -1.25, back z 1.2)
+function defaultCarMake(colorHex) {
+  const tpl = DEFAULT_CAR.tpl;
+  if (!tpl || DEFAULT_CAR.state !== 2) return null;
+  const root = tpl.object3d.clone(true);
+  const batch = root.getObjectByName("car_wheel_instances");
+  const pivots = ["fl", "fr", "bl", "br"].map((k) => root.getObjectByName(`wheel_${k}`));
+  // The batch's instance matrices are the pivots' local matrices: they must share a parent (they do in car.js's build).
+  if (!batch || !batch.isInstancedMesh || batch.count !== 4 || pivots.some((p) => !p || p.parent !== batch.parent)) {
+    console.warn("[render] A-009 car: unexpected hierarchy, cars without a drawing stay toys");
+    DEFAULT_CAR.state = -1;
+    return null;
+  }
+  const mats = new Map();
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    if (!mats.has(o.material)) mats.set(o.material, o.material.clone());
+    o.material = mats.get(o.material);
+  });
+  // car.js multiplies the whole body (ivory panels, slate cage, cyan piping, tan seats): a tint 15 % towards white reads as the
+  // player's colour on the ivory panels and leaves the piping a distinct darker line.
+  const body = root.getObjectByName("car_body");
+  if (body && colorHex !== undefined) body.material.color.set(colorHex).lerp(new THREE.Color(0xffffff), 0.15);
+  const sockets = {};
+  for (const k of ["seat", "roof", "front", "back"]) { const o = root.getObjectByName(`socket_${k}`); if (o) sockets[k] = o; }
+  // The toy car's other socket names (anim.js and the effects ask by name)
+  if (sockets.roof) sockets.top = sockets.roof;
+  if (sockets.front) sockets.mouth = sockets.front;
+  if (sockets.back) sockets.tail = sockets.back;
+  const rest = pivots.map((p) => p.quaternion.clone());
+  const radius = (tpl.getStats && tpl.getStats().wheelRadius) || 0.552;
+  let spin = 0, steer = 0, posed = 0; // posed: the steer angle last written into the batch
+  function pose() {
+    _carSteer.setFromAxisAngle(_carUp, steer);
+    _carSpin.setFromAxisAngle(_carSide, spin);
+    for (let i = 0; i < 4; i++) {
+      const p = pivots[i];
+      p.quaternion.copy(rest[i]);
+      if (i < 2) p.quaternion.multiply(_carSteer); // front pair: steer about Y, then spin about the axle (car.js's order)
+      p.quaternion.multiply(_carSpin);
+      p.updateMatrix();
+      batch.setMatrixAt(i, p.matrix);
+    }
+    batch.instanceMatrix.needsUpdate = true;
+  }
+  return {
+    object3d: root, sockets, materials: [...mats.values()], carDefault: true,
+    // speed: signed ground speed along the nose (m/s); turn: yaw rate (rad/s, + = left). Bicycle model: tan(steer) = wheelbase * turn
+    // / speed; at a crawl a turn on the spot shows part lock. Lock at most 0.5 rad (car.js allows 0.65).
+    drive(speed, turn, dt) {
+      if (!(dt > 0)) return;
+      const s = Number.isFinite(speed) ? speed : 0, w = Number.isFinite(turn) ? turn : 0;
+      const want = Math.abs(s) > 0.5 ? clamp(Math.atan((CAR_WHEELBASE * w) / s), -0.5, 0.5) : clamp(w * 0.4, -0.5, 0.5);
+      steer += (want - steer) * Math.min(1, dt * 8);
+      if (Math.abs(steer) < 1e-3 && want === 0) steer = 0;
+      if (s) spin = (spin - (s * dt) / radius) % ENT_TAU; // + speed rolls towards -Z (car.js: negative spin about local X)
+      if (!s && steer === posed) return; // parked and not steering: nothing to upload
+      posed = steer;
+      pose();
+    },
+    // The geometry is the template's (kept for the page's life): only this clone's materials and wheel batch are freed.
+    dispose() { root.removeFromParent(); batch.dispose(); for (const m of mats.values()) m.dispose(); },
+  };
+}
+// ---- end of the A-009 default car ----
+
 // Local engine positions (in the group's space) of a ship model: its engine sockets, else the default pair at the tail.
 const ENT_ENGINES = [v3(-0.35, 0, 1.5), v3(0.35, 0, 1.5)];
 function entEngines(model, group) {
@@ -1210,7 +1295,7 @@ class ParkedShip extends ShipModel {
   }
 }
 
-// One explorer on the island (any planet type): the A-009 / A-008 person, a drawing, or a cheerful toy; the animator
+// One explorer on the island (any planet type): the A-009 / A-008 person, a drawing, the A-009 car, or a cheerful toy; the animator
 // from anim.js (bike uses the car rig); wheels spin with the ground speed. The model is rebuilt only when its (type,
 // image URL) changes, and only while the view is among the meshes (the phone keeps at most 8).
 class ExplorerView {
@@ -1237,7 +1322,7 @@ class ExplorerView {
     this.anim = null;
     this.lastStarted = undefined;
     this.lastHp = null;
-    this.prev = { x: 0, y: 0, z: 0 };
+    this.prev = { x: 0, y: 0, z: 0, yaw: 0 };
     this.hasPrev = false;
     this.speedRef = TUNING.island.walkSpeed * TUNING.island.runMultiplier;
     this.stepOutUntil = 0;
@@ -1303,7 +1388,8 @@ class ExplorerView {
     this.waitSince = -1;
   }
   // The model for (type, drawing): a built drawing beats everything; the person keeps its place empty for up to 3 s while
-  // the drawing is on its way (the default person is heavy to build); the other types show their toy meanwhile.
+  // the drawing is on its way (the default person is heavy to build); a car shows the A-009 car meanwhile (v1.9; its toy until
+  // the template is in), the other types their toy.
   sync(t, prio, ent) {
     const type = ent && entPlanetTypes.has(ent.type) ? ent.type : "person";
     const url = ent && ent.type !== "ship" && ent.image ? ent.image : "";
@@ -1320,10 +1406,18 @@ class ExplorerView {
         if (t - this.waitSince < 3) return;
       }
     } else if (this.kind === "drawn") this.drop();
-    if (this.model && this.modelType === type) return; // a drawing or fallback of this type is on show
+    if (this.model && this.modelType === type) {
+      // v1.9: a toy car shown while the A-009 car was loading gives way to it
+      if (this.kind === "toy" && type === "car" && DEFAULT_CAR.state === 2) { const car = defaultCarMake(this.colorHex); if (car) this.use(car, "default", "car"); }
+      return; // a drawing or fallback of this type is on show
+    }
     if (type === "person") {
       if (!this.model || this.modelType !== "person") this.use(placeholderExplorer(this.colorHex), "placeholder", "person");
       if (!this.loadingDefault && this.kind !== "default") this.loadDefault();
+    } else if (type === "car") {
+      defaultCarLoad();
+      const car = defaultCarMake(this.colorHex);
+      this.use(car || entToy(type, this.colorHex), car ? "default" : "toy", type);
     } else this.use(entToy(type, this.colorHex), "toy", type);
   }
   adopt(e, type) {
@@ -1368,7 +1462,8 @@ class ExplorerView {
     const dx = this.hasPrev ? p.x - pv.x : 0, dz = this.hasPrev ? p.z - pv.z : 0;
     const speed = Math.hypot(dx, dz) * inv;
     const fwdSpeed = (dx * -Math.sin(p.yaw) + dz * -Math.cos(p.yaw)) * inv; // signed: negative when reversing
-    pv.x = p.x; pv.y = p.y; pv.z = p.z;
+    const turnRate = this.hasPrev ? Math.atan2(Math.sin(p.yaw - pv.yaw), Math.cos(p.yaw - pv.yaw)) * inv : 0; // rad/s, + = left (the A-009 car steers)
+    pv.x = p.x; pv.y = p.y; pv.z = p.z; pv.yaw = p.yaw;
     this.hasPrev = true;
     g.position.set(p.x, p.y, p.z);
     g.rotation.set(0, p.yaw, 0);
@@ -1421,7 +1516,8 @@ class ExplorerView {
     if (model) {
       if (model.update) model.update(animDt);
       const wh = model.wheels;
-      if (wh) for (let i = 0; i < wh.length; i++) wh[i].pivot.rotation.x -= (clamp(fwdSpeed, -40, 40) * dt) / wh[i].radius;
+      if (model.drive) model.drive(clamp(fwdSpeed, -40, 40), clamp(turnRate, -6, 6), dt); // the A-009 car: its wheel batch spins and steers
+      else if (wh) for (let i = 0; i < wh.length; i++) wh[i].pivot.rotation.x -= (clamp(fwdSpeed, -40, 40) * dt) / wh[i].radius;
     }
     // Hex bubble (radius 1.25 x the type's shape): A-010's batched round shield once loaded (one draw for all of them; none for an
     // invisible rival or in my own cockpit), else this mesh; a bubble nobody asks for is swept by efx.update().
@@ -2325,7 +2421,8 @@ class DecoyView {
         } catch (err) { e.state = "failed"; }
       }
     }
-    if (!this.model) this.use(this.mode ? (type === "person" ? placeholderExplorer(this.colorHex) : entToy(type, this.colorHex)) : placeholderShip(this.colorHex), "stand-in");
+    // v1.9: a car's stand-in is the A-009 car once its template is in (the toy car before that)
+    if (!this.model) this.use(this.mode ? (type === "person" ? placeholderExplorer(this.colorHex) : (type === "car" && defaultCarMake(this.colorHex)) || entToy(type, this.colorHex)) : placeholderShip(this.colorHex), "stand-in");
   }
   use(model, kind) {
     if (this.model) { this.group.remove(this.model.object3d); this.model.dispose?.(); }
@@ -7063,6 +7160,13 @@ export function startGame({ canvas, screen = "big", view, player = null, winJing
     });
     warmPlain([placeholderShip(0xffffff)], [game.space.scene, game.island.scene]); // the stand-in ship (a missing default, a shot's ensureModel)
     warmPlain([placeholderExplorer(0xffffff), ...["car", "bike", "quadruped", "blob"].map((k) => { try { return entToy(k, 0xffffff); } catch { return null; } })], [game.island.scene]);
+    // v1.9: the A-009 car template (a car player's stand-in) fetched now, and one clone compiled for the island (its wheel batch is
+    // an InstancedMesh: its own shader variant), so the first car on screen neither waits nor stalls.
+    defaultCarLoad().then((tpl) => {
+      if (!tpl || disposed) return;
+      const car = defaultCarMake(0xffffff);
+      if (car) warmPlain([car], [game.island.scene]);
+    });
     warmScene(game.space.scene);
     warmScene(game.island.scene);
     warmTransition();
