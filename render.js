@@ -47,6 +47,8 @@ const HUD_COPY = {
   rockChest: "ROCK CHEST {m} M · GET IT OPEN",
   digging: "DIGGING {pct}",
   drilling: "DRILLING {pct}",
+  digPaused: "CHEST {pct} DUG · DIG AGAIN TO FINISH",       // v1.5 (QA N3): partly open, nobody working: the progress is kept
+  drillPaused: "ROCK {pct} DRILLED · DRILL AGAIN TO FINISH",
   allOpen: "EVERY CHEST IS OPEN",
   // Used only if contract.js has no title for an objective.
   objectives: { boss: "REACH THE BOSS", destroyBoss: "DESTROY THE BOSS", planet: "LAND ON THE PLANET", openChests: "OPEN THE CHESTS", weapon: "DRAW A WEAPON" },
@@ -116,7 +118,7 @@ const ASSETS = {
     const m = await import(assetUrl("A-005-island/island.js"));
     const counts = phone ? { resolution: 110, palmCount: 110, bushCount: 50, rockCount: 40, cliffCount: 10, triangleBudget: 55000, palmDetailDistance: 40 } : {};
     const kit = await m.createIsland({ seed, size: Terrain.ISLAND_SIZE, heightAt: (x, z) => Terrain.height(x, z, seed), clearings, ...counts });
-    for (const o of [kit.water, kit.sky, kit.sunlight, kit.ambient]) if (o) o.visible = false;
+    for (const o of [kit.water, kit.sky, kit.sunlight, kit.ambient]) if (o) { o.visible = false; o.userData.noWarm = true; } // noWarm: not pre-compiled either
     return kit;
   },
   // A-010 pooled effects (explosions, sparks, flare, scan rings, hex shields, dust, dirt, gold): the module itself; each world
@@ -320,8 +322,11 @@ class Particles {
         // swap-remove
         const j = --this.n;
         if (i !== j) {
-          for (const arr of [this.p, this.v, this.c]) { arr[i * 3] = arr[j * 3]; arr[i * 3 + 1] = arr[j * 3 + 1]; arr[i * 3 + 2] = arr[j * 3 + 2]; }
-          for (const arr of [this.life, this.max, this.s0, this.s1, this.drag, this.grav]) arr[i] = arr[j];
+          const P = this.p, V = this.v, C = this.c, i3 = i * 3, j3 = j * 3; // no arrays per dying particle (iPhone GC)
+          P[i3] = P[j3]; P[i3 + 1] = P[j3 + 1]; P[i3 + 2] = P[j3 + 2];
+          V[i3] = V[j3]; V[i3 + 1] = V[j3 + 1]; V[i3 + 2] = V[j3 + 2];
+          C[i3] = C[j3]; C[i3 + 1] = C[j3 + 1]; C[i3 + 2] = C[j3 + 2];
+          this.life[i] = this.life[j]; this.max[i] = this.max[j]; this.s0[i] = this.s0[j]; this.s1[i] = this.s1[j]; this.drag[i] = this.drag[j]; this.grav[i] = this.grav[j];
         }
         i--;
         continue;
@@ -345,7 +350,7 @@ class RingPool {
     this.group = new THREE.Group();
     const geo = new THREE.RingGeometry(0.92, 1, 96, 1);
     for (let i = 0; i < count; i++) {
-      const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+      const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false, forceSinglePass: true })); // additive: one pass for both sides (one shader, no per-draw program check)
       m.visible = false;
       m.renderOrder = 11;
       this.group.add(m);
@@ -519,6 +524,8 @@ function entLoadShip3d() {
         try {
           const kitMod = await import(assetUrl("A-012-ship-kit/ship-kit.js"));
           const kit = await Promise.race([kitMod.loadShipKit(), new Promise((resolve) => setTimeout(() => resolve(null), 2500))]);
+          // Its images decoded off the main thread first (Safari would decode each png inside useShipKit's drawImage: a long frame).
+          if (kit) await Promise.race([Promise.all(Object.values(kit).map((t) => (t && t.image && typeof t.image.decode === "function" ? t.image.decode().catch(() => {}) : null))), new Promise((resolve) => setTimeout(resolve, 1500))]);
           if (kit) m.useShipKit(kit);
         } catch (e) { console.warn("[render] A-012 ship kit unavailable, procedural ship textures:", e?.message || e); }
       }
@@ -648,6 +655,10 @@ class DrawnCache {
     this.cool = 0; // frames to wait before the next build: a slow one lets the frame rate recover
     this.loading = 0;
     this.built = 0;
+    // v1.5 (iPhone 1% lows): startGame's hook, called right after a build: compiles the new model's shaders for the scene(s) it
+    // will be drawn in and sends its textures to the GPU; the model then shows 3 frames later (state "built" → "ready"),
+    // so its first frame on screen neither compiles nor uploads (Safari compiles in its GPU process meanwhile).
+    this.prepare = null;
   }
   // The phone's game view inflates at "lite" (2.6k triangles a body: up to 22 drawings share the 120k budget with the world; an old
   // inflate.js without it falls back to "phone"); the TV at "big".
@@ -682,6 +693,7 @@ class DrawnCache {
     const now = performance.now();
     let load = null, build = null;
     for (const e of this.map.values()) {
+      if (e.state === "built" && this.tick >= e.showAt) e.state = "ready"; // prepared a few frames ago: on screen from now on
       if (e.users <= 0 || e.dead) continue;
       if (e.state === "loaded") { if ((!e.spec || (e.kind === "ship" ? entShip3dState : entEntity3dState) !== 1) && (!build || e.prio < build.prio)) build = e; } // a spec waits for its builder
       else if (e.state === "queued" && e.retryAt <= now && (!load || e.prio < load.prio)) load = e;
@@ -723,6 +735,9 @@ class DrawnCache {
     try {
       if (!e.result) e.result = entInflate.inflateDrawing(e.img, { kind: e.kind, quality: this.quality, color: e.color });
       e.state = "ready";
+      if (this.prepare) {
+        try { if (this.prepare(e)) { e.state = "built"; e.showAt = this.tick + 3; } } catch (err) { entWarn("drawn prepare", err); }
+      }
     } catch (err) {
       e.state = "failed";
     }
@@ -760,6 +775,9 @@ class DrawnCache {
   }
 }
 const DRAWN = new DrawnCache();
+// startGame's pre-warm queue for content that arrives inside a group the scene already had (this round's A-004 planet in
+// PlanetLook.root): warmLater(obj, scene) compiles it for `scene` and sends its textures a step at a time. Null until startGame.
+let warmLater = null;
 // A bug in one view must not stop the frame (an exception before renderer.render freezes the screen): the loops below
 // catch per view and warn once per distinct message.
 const entWarned = new Set();
@@ -1379,7 +1397,9 @@ class ExplorerView {
       if (this.pendingStepOut) { this.pendingStepOut = false; this.anim.trigger("stepOut", {}); }
       if (this.lastStarted !== undefined && p.startedAt !== this.lastStarted && p.slot && p.slot !== "mount") this.anim.trigger(p.slot, { verb: p.action });
       if (this.lastHp !== null && p.hp < this.lastHp - 0.5) this.anim.trigger("hit", { intensity: clamp((this.lastHp - p.hp) / 20, 0.4, 1.5) });
-      animDt = this.anim.update(dt, { speed: clamp(speed / this.speedRef, 0, 1), grounded: p.y <= ground + 0.4, digging: !!p.flags.digging });
+      const st = this.animState || (this.animState = { speed: 0, grounded: false, digging: false }); // one object per view (anim.js only reads it)
+      st.speed = clamp(speed / this.speedRef, 0, 1); st.grounded = p.y <= ground + 0.4; st.digging = !!p.flags.digging;
+      animDt = this.anim.update(dt, st);
       if (!Number.isFinite(animDt)) animDt = dt;
     }
     this.lastStarted = p.startedAt;
@@ -1799,6 +1819,7 @@ const SHIELD_MAT = () => new THREE.ShaderMaterial({
       gl_FragColor = vec4(uColor * 2.2 * a2, 1.0);
     }`,
   transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+  forceSinglePass: true, // additive: one pass for both sides (one shader instead of two, no program check twice per draw)
 });
 
 // Procedural ship (fallback while A-009 loads or if it fails): chunky dart in the player colour.
@@ -1915,6 +1936,7 @@ class ShipView extends ShipModel {
       m.transparent = a < 1;
       m.opacity = a;
       m.depthWrite = a >= 1;
+      m.forceSinglePass = true; // a faded double-sided hull in one pass: one pre-warmed shader, no program check twice per draw
       m.needsUpdate = true;
     }
   }
@@ -1996,7 +2018,9 @@ class ShipView extends ShipModel {
       if (this.lastStarted !== undefined && p.startedAt !== this.lastStarted && p.slot && p.slot !== "mount") this.anim.trigger(p.slot, { verb: p.action });
       if (this.lastHp !== null && p.hp < this.lastHp - 0.5) this.anim.trigger("hit", { intensity: clamp((this.lastHp - p.hp) / 20, 0.4, 1.5) });
       const sp = this.vel.length() / (TUNING.cruiseSpeed * TUNING.boostMultiplier);
-      this.anim.update(dt, { speed: clamp(sp, 0, 1), turn: clamp((p.roll || 0) * 1.5, -1, 1), boost: !!p.flags.boost, drilling: !!p.flags.drilling, grounded: false });
+      const st = this.animState || (this.animState = { speed: 0, turn: 0, boost: false, drilling: false, grounded: false }); // one object per view (anim.js only reads it)
+      st.speed = clamp(sp, 0, 1); st.turn = clamp((p.roll || 0) * 1.5, -1, 1); st.boost = !!p.flags.boost; st.drilling = !!p.flags.drilling;
+      this.anim.update(dt, st);
     }
     this.lastStarted = p.startedAt;
     this.lastHp = p.hp;
@@ -2593,10 +2617,15 @@ class SpaceWorld {
     scene.backgroundIntensity = 1;
     this.bgTexture = bg;
     this.env = null;
+    // A zero light probe from the start, swapped for A-011's own when its sky loads: the probe count is part of every lit shader's
+    // key in three r160, so adding A-011's probe mid-game recompiled every lit material in space (v1.5, iPhone hitches).
+    this.probeStub = new THREE.LightProbe();
+    scene.add(this.probeStub);
     loadAsset("spaceEnv", { phone }).then((env) => {
       if (!env) return;
       this.env = env;
       scene.add(env.object3d);
+      this.probeStub.removeFromParent(); // same task as the add: the count never changes
       scene.background = null;
       this.bgTexture?.dispose();
       this.bgTexture = null;
@@ -2654,6 +2683,7 @@ class SpaceWorld {
     this.sawLocked = false;
     this.farRocks = true;
     this.flash = 0; // 1 right after a huge explosion (the boss dies), falling to 0 over FLASH_SECONDS: the frame loop dims bloom / exposure by it
+    this.sparkAt = -1e9; // the last A-010 hit spark (fx: the phone spawns one per 60 ms)
     this.dummy = new THREE.Object3D();
     worldSound.reset();
     this.efx = new WorldFx(this, "space"); // A-010 effects + hex shields (null-safe until it loads; fx() keeps the ad hoc bursts meanwhile)
@@ -3147,7 +3177,10 @@ class SpaceWorld {
       else if (k === "drill") F.spawn("drill", pos, F.size(pos, 1, 0.15), undefined, at);
       else if (k === "respawn") F.spawn("respawn", pos, F.size(pos, 1.1, 0.15), m.color ?? 0x22d3ee, at);
       else if (k === "land") F.spawn("scan", pos, F.size(pos, 0.9, 0.15), m.color, at); // a landing dive / a lift-off: a ping in the player's colour
-      else F.spawn("spark", pos, F.size(pos, 0.5 + size * 0.3, 0.15), m.color, at); // hit, spark
+      else if (this.phone && performance.now() - this.sparkAt < 60) P.burst(pos, c, 5, 5, 0.35, 0.4, 0.06); // hit, spark: the phone's cap (below)
+      else { this.sparkAt = performance.now(); F.spawn("spark", pos, F.size(pos, 0.5 + size * 0.3, 0.15), m.color, at); } // hit, spark
+      // (v1.5, iPhone GC: every boss hit is an fx; A-010 builds ~30 particles of fresh objects per spark, so the phone spawns one per
+      // 60 ms and the hits in between get a small burst from the pooled particles)
       return;
     }
     switch (m.kind) {
@@ -4432,6 +4465,7 @@ async function shrinkPlanetMaps(m) {
   for (const t of [maps.color, maps.data]) {
     const img = t.image;
     if (!img || !(img.width > 1024)) continue;
+    if (typeof img.decode === "function") await img.decode().catch(() => {}); // off the main thread (see loadShrunkTexture)
     const c = document.createElement("canvas");
     c.width = 1024; c.height = 512;
     const g = c.getContext("2d");
@@ -4447,7 +4481,7 @@ function loadShrunkTexture(url, w, h) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.decoding = "async";
-    img.onload = () => {
+    const draw = () => {
       try {
         const c = document.createElement("canvas");
         c.width = w; c.height = h;
@@ -4457,6 +4491,8 @@ function loadShrunkTexture(url, w, h) {
         resolve(new THREE.CanvasTexture(c));
       } catch (e) { reject(e); }
     };
+    // decode() first: Safari decodes off the main thread then, instead of inside drawImage (a 2048 jpg is a long frame on a phone)
+    img.onload = () => { if (typeof img.decode === "function") img.decode().then(draw, draw); else draw(); };
     img.onerror = () => reject(new Error("image failed to load: " + url));
     img.src = url;
   });
@@ -4553,6 +4589,7 @@ class PlanetLook {
         planet.setUnlocked(this.unlocked); // the boss may have died while it loaded (a late joiner)
         this.root.add(planet.object3d);
         this.orient();
+        warmLater?.(planet.object3d, this.space.scene); // from round 2 on root is old news to the pre-warm: its landing ring is not
       } else {
         this.proc = makePlanet(this.R, this.landRange, this.phone, this.sun);
         this.root.add(this.proc.group);
@@ -5373,12 +5410,20 @@ class Snapshots {
     const t = Number.isFinite(tick.t) ? tick.t : local;
     this.offsets.push(local - t);
     if (this.offsets.length > 45) this.offsets.shift();
-    this.offset = Math.min(...this.offsets);
-    const entry = { t, tick, players: new Map(tick.players.map((p) => [p.name, p])), bullets: new Map(tick.bullets.map((b) => [b[0], b])), shots: new Map(tick.bossShots.map((b) => [b[0], b])), decoys: new Map((tick.decoys || []).map((d) => [d[0], d])) };
+    let lo = Infinity;
+    for (let i = 0; i < this.offsets.length; i++) if (this.offsets[i] < lo) lo = this.offsets[i];
+    this.offset = lo; // Math.min(...offsets) without the spread
     // Ignore out-of-order ticks.
     if (this.list.length && t <= this.list[this.list.length - 1].t) return;
+    // 30 ticks kept; the entry that falls off the end (2 s old, no reader) is reused with its four maps: no garbage per tick (v1.5).
+    const entry = this.list.length >= 30 ? this.list.shift() : { t: 0, tick: null, players: new Map(), bullets: new Map(), shots: new Map(), decoys: new Map() };
+    entry.t = t;
+    entry.tick = tick;
+    entry.players.clear(); for (const p of tick.players) entry.players.set(p.name, p);
+    entry.bullets.clear(); for (const b of tick.bullets) entry.bullets.set(b[0], b);
+    entry.shots.clear(); for (const b of tick.bossShots) entry.shots.set(b[0], b);
+    entry.decoys.clear(); if (tick.decoys) for (const d of tick.decoys) entry.decoys.set(d[0], d);
     this.list.push(entry);
-    if (this.list.length > 30) this.list.shift();
     this.latest = tick;
     this.latestAt = local;
   }
@@ -5988,22 +6033,43 @@ const TIERS = [
 // sit at 17-18.6 ms, so 18 was a false alarm: it is 20 now). Two cases are NOT slow: a steady 30 Hz cap (iOS Low Power Mode:
 // every frame ~33 ms while the CPU is idle, p10 >= 30 and p90 <= 36 with CPU work under 8 ms) and a pinned tier (?tier=N, for
 // tests): quality stays where it is. After 5 s of headroom it steps back up (never into a tier it left less than 20 s ago).
-const STEP_DOWN_MS = 20, STEP_UP_MS = 18.8;
+// v1.5 (a real iPhone sat at tier 5 while it held 60 fps): a frame that carries a one-off job (a drawn model built, a shader
+// compiled, a texture sent, a scene switch: excuse(n) from the frame loop) counts in the stats but not in the governor's window,
+// so the burst of builds at the start of a round no longer reads as a slow phone (90 excused frames in a row at most: a job on
+// every frame is the load). The last two steps (bloom off, near rocks only) need two slow windows in a row, the climb back
+// tolerates 14 ms of CPU work, and the window lives in fixed buffers (no garbage per frame).
+const STEP_DOWN_MS = 20, STEP_UP_MS = 18.8, GOV_WIN = 60;
 class Perf {
   constructor() {
     this.dts = [];
     this.work = [];
     this.tier = 0;
-    this.sinceChange = 0;
+    this.sinceChange = 0; // judged (not excused) frames since the last change
     this.goodFor = 0;
     this.blockUntil = {};
     this.pin = null; // a tier number: no governor (tests, ?tier=N)
     this.capped = false; // the last judgement saw a steady 30 Hz cap
+    this.excused = 0; // frames still excused (excuse)
+    this.excusedRun = 0; // excused frames in a row
+    this.slowRuns = 0; // slow windows in a row before a step into the last two tiers
+    this.winDt = new Float64Array(GOV_WIN); // the governor's window: the last GOV_WIN judged frames (a ring)
+    this.winWork = new Float64Array(GOV_WIN);
+    this.winAt = 0;
+    this.sortBuf = new Float64Array(GOV_WIN);
   }
+  // The next `frames` frames carry a one-off job: they are not judged.
+  excuse(frames) { if (frames > this.excused) this.excused = frames; }
   pct(arr, q) {
     if (!arr.length) return 0;
     const s = [...arr].sort((a, b) => a - b);
     return s[Math.min(s.length - 1, Math.floor(q * s.length))];
+  }
+  // pct of a full window, without garbage (a typed array sorts numerically in place).
+  winPct(win, q) {
+    const s = this.sortBuf;
+    s.set(win);
+    s.sort();
+    return s[Math.min(GOV_WIN - 1, Math.floor(q * GOV_WIN))];
   }
   frame(dtMs, workMs, nowS) {
     if (dtMs > 250) return false; // tab was hidden or stalled: not a real frame
@@ -6011,17 +6077,23 @@ class Perf {
     this.work.push(workMs);
     if (this.dts.length > 600) { this.dts.shift(); this.work.shift(); }
     if (Number.isInteger(this.pin)) { const t = clamp(this.pin, 0, TIERS.length - 1); if (t !== this.tier) { this.tier = t; return true; } return false; }
+    if (this.excused > 0) { this.excused--; if (this.excusedRun++ < 90) return false; } else this.excusedRun = 0;
+    this.winDt[this.winAt] = dtMs;
+    this.winWork[this.winAt] = workMs;
+    this.winAt = (this.winAt + 1) % GOV_WIN;
     this.sinceChange++;
-    if (this.sinceChange < 60) return false;
-    const last = this.dts.slice(-60), lastWork = this.work.slice(-60);
-    const p90 = this.pct(last, 0.9), work90 = this.pct(lastWork, 0.9);
-    this.capped = this.pct(last, 0.1) >= 30 && p90 <= 36 && work90 < 8;
+    if (this.sinceChange < GOV_WIN) return false;
+    const p90 = this.winPct(this.winDt, 0.9), work90 = this.winPct(this.winWork, 0.9);
+    this.capped = this.winPct(this.winDt, 0.1) >= 30 && p90 <= 36 && work90 < 8;
     if (p90 > STEP_DOWN_MS && !this.capped && this.tier < TIERS.length - 1) {
+      // Into the last two tiers (bloom off, then near rocks only) only after a second slow window in a row.
+      if (this.tier + 1 >= TIERS.length - 2 && ++this.slowRuns < 2) { this.sinceChange = 0; this.goodFor = 0; return false; }
       this.blockUntil[this.tier] = nowS + 20; // don't climb back into the tier we just left for 20 s
       return this.set(this.tier + 1);
     }
-    // Step up after 5 s of headroom: CPU work under 12 ms and frames on time (vsync-capped intervals are ~16.7 ms).
-    if (p90 <= STEP_UP_MS && work90 < 12) this.goodFor += dtMs / 1000;
+    this.slowRuns = 0;
+    // Step up after 5 s of headroom: CPU work under 14 ms and frames on time (vsync-capped intervals are ~16.7 ms).
+    if (p90 <= STEP_UP_MS && work90 < 14) this.goodFor += dtMs / 1000;
     else this.goodFor = 0;
     if (this.goodFor > 5 && this.tier > 0 && !(this.blockUntil[this.tier - 1] > nowS)) return this.set(this.tier - 1);
     return false;
@@ -6030,6 +6102,7 @@ class Perf {
     this.tier = tier;
     this.sinceChange = 0;
     this.goodFor = 0;
+    this.slowRuns = 0;
     return true;
   }
   stats() {
@@ -6087,8 +6160,10 @@ function computeHud(game) {
       const d = Math.hypot(near.x - meP.x, near.z - meP.z);
       const rock = near.kind === "rock";
       objPos = { x: near.x, y: meP.y, z: near.z };
-      const working = (rock ? meP.flags.drilling : meP.flags.digging) || (near.dug > 0 && d < 4);
+      // v1.5 (QA N3): DIGGING / DRILLING only while the action flag is on; a partly open chest beside an idle player says it is paused.
+      const working = rock ? meP.flags.drilling : meP.flags.digging;
       if (working) { bar = near.dug || 0; status = (rock ? H.drilling : H.digging).replace("{pct}", pct(near.dug || 0)); }
+      else if (near.dug > 0 && d < 4) { bar = near.dug; status = (rock ? H.drillPaused : H.digPaused).replace("{pct}", pct(near.dug)); }
       else { bar = clamp(1 - d / 120, 0, 1); status = (rock ? H.rockChest : H.buriedChest).replace("{m}", Math.round(d)); }
     } else status = H.allOpen;
   } else if (bossAlive) {
@@ -6151,7 +6226,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
   const params = new URLSearchParams(location.search);
   const showPerf = params.has("perf");
   const listeners = {};
-  const emit = (ev, data) => (listeners[ev] || []).forEach((cb) => { try { cb(data); } catch (e) { console.error(e); } });
+  const emit = (ev, data) => { const l = listeners[ev]; if (l) for (let i = 0, n = l.length; i < n; i++) { try { l[i](data); } catch (e) { console.error(e); } } }; // like forEach: one added meanwhile waits for the next emit
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: !phone, powerPreference: "high-performance", stencil: false });
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -6169,6 +6244,9 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
   game.island = new IslandWorld(renderer, { phone, big });
   game.sfx = sfx; worldSound.attach(game); // World look: sound (pages call game.sfx.unlock() in their first tap)
   { const pinned = params.get("tier"); if (pinned !== null && /^\d+$/.test(pinned)) game.perf.pin = Number(pinned); } // ?tier=N pins the quality tier (tests, measurements)
+  // v1.5: a phone starts at tier 2 (pixel ratio 1.25, bloom on) and climbs after 5 s of headroom: no cascade of slow frames down
+  // from pixel ratio 2 at the start of a round on an older iPhone (the target is a steady 60 on tiers 2-3).
+  if (phone && game.perf.pin === null) game.perf.tier = 2;
   const rig = new CameraRig(camera);
   // Cockpit view (phone only; hidden in every other view, during the shots and on the TV): A-007's camera-mounted cockpit
   // once it loads (3 calls, 1,366 triangles, cockpit view only), the procedural clip-space frame (one per scene) until then
@@ -6197,6 +6275,8 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     c.object3d.visible = false;
     camera.add(c.object3d);
     fitCockpit();
+    warmJob({ obj: c.object3d, scene: game.space.scene }); // its shaders now, not at the first CAMERA toggle (the camera joins a
+    warmJob({ obj: c.object3d, scene: game.island.scene }); // scene only in cockpit view)
     for (const f of frames) { f.visible = false; f.removeFromParent(); f.geometry.dispose(); f.material.dispose(); }
   });
 
@@ -6303,7 +6383,8 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
   }
   function shotSubject(snap) {
     const subjectName = phone ? game.player : game.followed;
-    const subject = subjectName ? snap.players.find((p) => p.name === subjectName) : null;
+    let subject = null;
+    if (subjectName) for (const p of snap.players) if (p.name === subjectName) { subject = p; break; }
     if (!shot && subject && !subject.flags.dead) {
       const kind = subject.flags.landing ? "land" : subject.flags.takingOff ? "takeoff" : null;
       if (kind && `${subject.name}:${subject.startedAt}` !== lastShotKey) {
@@ -6413,50 +6494,226 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     fetch("/perf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(perfSample()) }).catch(() => {});
   }, PERF_POST_SECONDS * 1000);
 
-  // ---- pre-warm (iPhone 1% lows): load the shared assets and compile both scenes once, before play starts ----
-  let warmed = false, fxWarmed = false; // fxWarmed: the TV's second compile once A-010's lights are in (frame loop)
+  // ---- pre-warm (iPhone 1% lows): shaders compiled and textures sent before they are first seen, a little at a time ----
+  // three r160 keys a shader program on the render target too: the bloom tiers (0-3) draw a scene into the composer's target (no
+  // tone mapping, linear), tiers 4-5 straight to the screen (ACES, sRGB). The old pre-warm compiled the screen variant only, so on
+  // the bloom tiers every model still compiled at first sight and a step down to tier 4 compiled everything again. compileFor
+  // compiles BOTH variants of obj's materials as `scene` draws them (its lights, light probe and fog; obj need not be in it).
+  function compileFor(obj, scene) {
+    const rt = renderer.getRenderTarget();
+    try {
+      renderer.setRenderTarget(composer.renderTarget1);
+      renderer.compile(obj, camera, scene);
+      renderer.setRenderTarget(null);
+      renderer.compile(obj, camera, scene);
+    } catch (e) { console.warn("[render] pre-warm compile failed:", e?.message || e); }
+    renderer.setRenderTarget(rt);
+  }
+  // A texture on the GPU now (renderer.initTexture) instead of in the frame that first draws it: a 1024 atlas, the island's maps.
+  function sendTexture(tex) {
+    if (!tex || !tex.image || tex.version === 0) return; // nothing to send yet: it goes up at first sight
+    if (renderer.properties.get(tex).__version === tex.version) return; // already there
+    renderer.initTexture(tex);
+  }
+  function texturesOf(root, fn) {
+    root.traverse((o) => {
+      const mats = !o.material ? null : Array.isArray(o.material) ? o.material : [o.material];
+      if (!mats) return;
+      for (const m of mats) {
+        if (!m) continue;
+        for (const k in m) { const v = m[k]; if (v && v.isTexture && !v.isRenderTargetTexture) fn(v); }
+        const u = m.uniforms;
+        if (u) for (const k in u) { const v = u[k] && u[k].value; if (v && v.isTexture && !v.isRenderTargetTexture) fn(v); }
+      }
+    });
+  }
+  // The warm queue: one job per step on a 40 ms timer (it also runs while the phone's draw screen pauses the frame loop, and it never
+  // stalls a frame for long): compile one object for one scene, or send one texture. Each step excuses the next frames from the
+  // governor (Perf.excuse).
+  const warmQ = [], texQueued = new WeakSet(), texGone = new WeakSet();
+  const onTexGone = (ev) => texGone.add(ev.target);
+  // The warm samples stay alive for the whole session (freed in dispose): in three r160 disposing the last material that uses a
+  // program deletes the program, so a sample freed after its compile would take the compiled shaders with it, and every drawn
+  // ship leaving the mesh budget, every landing shot (transition.js frees its materials) would compile them again.
+  const keepAlive = [];
+  const inScene = (o, scene) => { for (let q = o; q; q = q.parent) if (q === scene) return true; return false; };
+  let warmTimer = 0;
+  function warmJob(job) {
+    warmQ.push(job);
+    if (!warmTimer && !disposed) warmTimer = setTimeout(warmStep, 40);
+  }
+  function warmStep() {
+    warmTimer = 0;
+    if (disposed) return;
+    if (lost) { warmTimer = setTimeout(warmStep, 500); return; } // a lost WebGL context: wait (three would throw mid-compile)
+    const job = warmQ.shift();
+    if (job) {
+      try {
+        if (job.skip && job.skip()) { /* its model was freed meanwhile */ }
+        else if (job.tex) { if (!texGone.has(job.tex)) sendTexture(job.tex); }
+        else if (!job.attached || inScene(job.obj, job.scene)) { job.before?.(); compileFor(job.obj, job.scene); } // a scene object gone meanwhile: skipped
+      } catch (e) { /* drawn (and compiled) at first sight instead */ }
+      try { job.done?.(); } catch { /* already freed */ }
+      game.perf.excuse(2);
+    }
+    if (warmQ.length && !warmTimer) warmTimer = setTimeout(warmStep, 40);
+  }
+  function queueTextures(root) {
+    texturesOf(root, (tex) => { if (tex.version > 0 && !texQueued.has(tex)) { texQueued.add(tex); tex.addEventListener("dispose", onTexGone); warmJob({ tex }); } });
+  }
+  // A scene whose lights, light probe or fog changed since its last pre-warm (A-011's sky brings a light probe, A-010 the TV's flare
+  // lights) is compiled again, every visible top-level object; otherwise only the objects it did not have yet (the island kit, this
+  // round's planet, boss and cloud, a new ship's group). Checked every second, from the first world message on.
+  const warmedIn = new Map(), warmKeyOf = new Map();
+  const sampleJobs = []; // the kept samples' jobs: queued again for a scene whose lights change (A-010's TV flare light)
+  function lightKey(scene) {
+    let dir = 0, point = 0, spot = 0, hemi = 0, probe = 0, area = 0;
+    scene.traverseVisible((o) => {
+      if (!o.isLight) return;
+      if (o.isLightProbe) probe++; else if (o.isDirectionalLight) dir++; else if (o.isPointLight) point++; else if (o.isSpotLight) spot++;
+      else if (o.isHemisphereLight) hemi++; else if (o.isRectAreaLight) area++;
+    });
+    const fog = scene.fog ? (scene.fog.isFogExp2 ? 2 : 1) : 0;
+    return `${dir}.${point}.${spot}.${hemi}.${probe}.${area}.${fog}.${scene.environment ? 1 : 0}`;
+  }
+  function warmScene(scene) {
+    if (disposed) return;
+    const key = lightKey(scene);
+    let done = warmedIn.get(scene);
+    if (!done || warmKeyOf.get(scene) !== key) {
+      const changed = !!done; // new lights since the last look (not the first one): new programs for the samples as well
+      done = new WeakSet(); warmedIn.set(scene, done); warmKeyOf.set(scene, key);
+      if (changed) for (const j of sampleJobs) if (j.scene === scene) warmJob(j);
+    }
+    for (const o of scene.children) {
+      if (!o.visible || o.isLight || o.isCamera || done.has(o)) continue;
+      done.add(o);
+      // A group of many parts (the island kit: terrain, palms, bushes, rocks, cliffs) goes in one job per visible part, so no single
+      // step compiles a dozen shaders; hidden parts (the kit's own water and sky) are skipped, shaders and textures alike.
+      // A group holding a light is split too: compile() counts the lights of an object that is inside its target scene twice (A-011's
+      // sky + probe would compile for 2 probes). Hidden parts are compiled as well (ring pools, A-010's pools: first used mid-round),
+      // their textures not; the island kit's own water and sky (render.js never shows them) carry userData.noWarm.
+      const parts = !o.material && (o.children.length > 3 || o.children.some((c) => c.isLight)) ? o.children : null;
+      if (!parts) { warmJob({ obj: o, scene, attached: true }); queueTextures(o); continue; }
+      for (const c of parts) {
+        if (c.isLight || c.userData.noWarm) continue;
+        warmJob({ obj: c, scene, attached: true });
+        if (c.visible) queueTextures(c);
+      }
+    }
+  }
+  const warmCheck = setInterval(() => { if (warmed && !document.hidden) { warmScene(game.space.scene); warmScene(game.island.scene); } }, 1000);
+  // A model built once only to compile its materials (opaque and faded: a fade switches three's OPAQUE define) for the scenes it is
+  // drawn in and to send its shared textures; kept alive (keepAlive) so its shaders outlive every real model of its kind.
+  function warmModel(make, scenes) {
+    let m = null;
+    try { m = make(); } catch (e) { return; }
+    if (!m || !m.object3d) return;
+    keepAlive.push(m);
+    const fade = (a) => () => { try { m.setOpacity?.(a); } catch { /* opaque only */ } };
+    queueTextures(m.object3d);
+    for (const scene of scenes) sampleJob({ obj: m.object3d, scene, before: fade(1) }, { obj: m.object3d, scene, before: fade(0.5) });
+  }
+  function sampleJob(...jobs) { for (const j of jobs) { sampleJobs.push(j); warmJob(j); } }
+  // Plain render.js models (kept alive like warmModel's): the stand-in explorer and the procedural toys (car, bike, animal, blob)
+  // that a landed player shows before or without a drawing, opaque and faded (invisible, decoys), for the island.
+  function warmPlain(models, scenes) {
+    const holder = new THREE.Group();
+    const mats = [];
+    for (const m of models) {
+      if (!m || !m.object3d) continue;
+      keepAlive.push(m);
+      holder.add(m.object3d);
+      for (const x of m.materials || []) mats.push(x);
+    }
+    const fade = (a) => () => { for (const x of mats) { x.transparent = a < 1; x.opacity = a; x.forceSinglePass = true; x.needsUpdate = true; } };
+    for (const scene of scenes) sampleJob({ obj: holder, scene, before: fade(1) }, { obj: holder, scene, before: fade(0.5) });
+  }
+  // ship3d.js / entity3d.js / inflate.js: warmed once each as soon as the module is in (a drawing exists, warmDrawn).
+  let shipWarmed = false, bodyWarmed = false;
+  function warmBuilders() {
+    if (disposed) return;
+    if (!shipWarmed && entShip3dState === 2 && entShip3d) {
+      shipWarmed = true;
+      warmModel(() => entShip3d.buildShip({ hull: { shape: "rocket" }, engines: { count: 1, flame: true }, extras: [{ kind: "text", label: "GO" }] }, { quality: DRAWN.quality }), [game.space.scene, game.island.scene]);
+    }
+    if (!bodyWarmed && entEntity3dState === 2 && entEntity3d) {
+      bodyWarmed = true;
+      warmModel(() => entEntity3d.buildEntity({ type: "person" }, { quality: DRAWN.quality }), [game.island.scene]);
+    }
+  }
+  // A drawn model just built (DrawnCache): compiled for the scene it shows in now (a ship also queues the island, where it parks),
+  // its textures sent now; DrawnCache shows it three frames later.
+  const warmLaterHook = (warmLater = (obj, scene) => { if (!disposed) { warmJob({ obj, scene, attached: true }); queueTextures(obj); } });
+  const prepareDrawn = (DRAWN.prepare = (e) => {
+    const obj = e.result && e.result.object3d;
+    if (!obj || disposed) return false;
+    const ship = e.kind === "ship";
+    compileFor(obj, ship ? game.space.scene : game.island.scene);
+    if (ship) warmJob({ obj, scene: game.island.scene, skip: () => e.dead });
+    texturesOf(obj, sendTexture);
+    return true;
+  });
+
+  let warmed = false, fxWarmed = false; // fxWarmed: the TV's A-010 lights are in (frame loop): both scenes checked at once
   function warm() {
     warmed = true;
     // The explorer is only prefetched (its rig file), never built here: building and disposing a retargeted A-008
     // explorer this early crashed WebKit now and then (dev/int-client A/B, 2026-10-09).
     import(assetUrl("A-008-rigs/person.js")).then((m) => m.loadPersonRig()).catch(() => {});
-    Promise.all([loadAsset("ship", 0xffffff), loadAsset("chest", "closed"), loadAsset("boss"), loadAsset("rocks")]).then(([ship, chest]) => {
-      if (disposed) return;
-      const tmp = [ship, chest].filter(Boolean).map((a) => a.object3d);
-      const holder = new THREE.Group();
-      holder.position.set(0, -500, 0);
-      tmp.forEach((o) => holder.add(o));
-      game.island.scene.add(holder);
-      try {
-        renderer.compile(game.island.scene, camera);
-        game.island.scene.remove(holder);
-        game.space.scene.add(holder);
-        renderer.compile(game.space.scene, camera);
-      } catch (e) { console.warn("[render] pre-warm compile failed:", e?.message || e); }
-      holder.removeFromParent();
-      for (const a of [ship, chest]) a?.dispose?.();
+    // A default ship (opaque and faded) in a holder that is never added to a scene, compiled for both and kept alive (keepAlive).
+    // (No A-006 chest: the game's chests are render.js's ChestField.)
+    Promise.all([loadAsset("ship", 0xffffff), loadAsset("boss"), loadAsset("rocks")]).then(([ship]) => {
+      if (!ship) return;
+      if (disposed) { ship.dispose?.(); return; }
+      warmPlain([ship], [game.space.scene, game.island.scene]);
     });
+    warmPlain([placeholderShip(0xffffff)], [game.space.scene, game.island.scene]); // the stand-in ship (a missing default, a shot's ensureModel)
+    warmPlain([placeholderExplorer(0xffffff), ...["car", "bike", "quadruped", "blob"].map((k) => { try { return entToy(k, 0xffffff); } catch { return null; } })], [game.island.scene]);
+    warmScene(game.space.scene);
+    warmScene(game.island.scene);
+    warmTransition();
     if ([...entities.values()].some((e) => e && e.image)) warmDrawn();
   }
-  // The drawn bodies' shader (a textured, vertex-coloured plush with a rim) compiled in both scenes before the first
-  // drawing is built, so that build does not hitch. Only when a drawing exists: inflate.js stays lazy otherwise.
+  // transition.js builds its shot's materials when a landing / take-off starts (an engine glow on the ship, a sky dome and speed
+  // streaks in space, landing dust on the island): the same shader variants (three keys them on these flags, not on colour, opacity
+  // or blending) compiled here for both scenes, so the landing does not stall on them.
+  function warmTransition() {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));
+    geo.setAttribute("color", new THREE.Float32BufferAttribute([1, 1, 1, 1, 1, 1, 1, 1, 1], 3));
+    const dot = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+    dot.needsUpdate = true;
+    const mats = [
+      new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }), // engine glow
+      new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, transparent: true, depthWrite: false, fog: false }), // sky dome
+      new THREE.MeshBasicMaterial({ vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide, fog: false }), // streaks
+    ];
+    const dust = new THREE.PointsMaterial({ map: dot, transparent: true, depthWrite: false, sizeAttenuation: true, fog: false });
+    const holder = new THREE.Group();
+    for (const m of mats) holder.add(new THREE.Mesh(geo, m));
+    holder.add(new THREE.Points(geo, dust));
+    keepAlive.push({ dispose() { holder.clear(); for (const m of mats) m.dispose(); dust.dispose(); dot.dispose(); geo.dispose(); } });
+    sampleJob({ obj: holder, scene: game.space.scene }, { obj: holder, scene: game.island.scene });
+  }
+  // The drawn bodies' shaders (inflate.js's plush, ship3d.js's ship, entity3d.js's rigged body) compiled in both scenes before the
+  // first drawing is built, so that build does not hitch. Only when a drawing exists: the builders stay lazy otherwise.
   let drawnWarmed = false;
   function warmDrawn() {
-    if (drawnWarmed || disposed) return;
-    drawnWarmed = true;
-    entLoadInflate();
-    entInflatePromise.then((inf) => {
-      if (disposed || !inf || !inf.warmMaterial) return;
-      const w = inf.warmMaterial();
-      w.mesh.position.set(0, -500, 0);
-      try {
-        game.island.scene.add(w.mesh);
-        renderer.compile(game.island.scene, camera);
-        game.space.scene.add(w.mesh);
-        renderer.compile(game.space.scene, camera);
-      } catch (e) { /* the first real drawing compiles it instead */ }
-      w.dispose();
-    });
+    if (disposed) return;
+    if (!drawnWarmed) {
+      drawnWarmed = true;
+      entLoadInflate();
+      entInflatePromise.then((inf) => {
+        if (disposed || !inf || !inf.warmMaterial) return;
+        const w = inf.warmMaterial();
+        keepAlive.push(w);
+        warmPlain([{ object3d: w.mesh, materials: [w.mesh.material] }], [game.space.scene, game.island.scene]);
+      });
+    }
+    // The spec builders: loaded with the first spec (DrawnCache.acquire); warmed here as soon as they are in.
+    if (!shipWarmed && [...entities.values()].some((e) => e && e.spec && e.spec.hull)) { entLoadShip3d(); entShip3dPromise?.then(warmBuilders); }
+    if (!bodyWarmed && [...entities.values()].some((e) => e && e.spec && !e.spec.hull && e.type !== "ship")) { entLoadEntity3d(); entEntity3dPromise?.then(warmBuilders); }
   }
 
   // ---- name tags: screen positions of every visible ship / explorer (bigscreen-extras, phone tags) ----
@@ -6494,7 +6751,8 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
       tagV.project(camera);
       const visible = tagV.z < 1 && Math.abs(tagV.x) < 1.1 && Math.abs(tagV.y) < 1.1 && (lobby || dist < (island ? 120 : 260));
       const o = tagPool[i] || (tagPool[i] = {});
-      o.name = p.name; o.color = hexColor(p.color); o.hp = p.hp; o.maxHp = TUNING.shipHp; o.visible = visible; o.dist = dist;
+      if (o.colorNum !== p.color) { o.colorNum = p.color; o.color = hexColor(p.color); } // a new string only when it changes
+      o.name = p.name; o.hp = p.hp; o.maxHp = TUNING.shipHp; o.visible = visible; o.dist = dist;
       o.bot = !!p.flags.bot; o.flags = p.flags; // flags: the tick's flags object of that player (emp, inked, tractored, stun, ...), read-only
       o.x = ((tagV.x + 1) / 2) * W; o.y = ((1 - tagV.y) / 2) * H;
       out.push(o);
@@ -6513,6 +6771,19 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
   // ---- loop ----
   let raf = 0, lastT = performance.now(), lost = false, disposed = false, paused = false, lastHud = 0, lastOverlay = 0;
   const t0 = performance.now();
+  const jobMark = { progs: 0, texs: 0, built: 0, scene: "" }; // what the last frame saw (the governor's excuse)
+  // computeHud once per frame at most: the frame loop's "hud" event and a page asking game.hud() (the phone polls it, and asks it
+  // again per name tag) share one model (read-only) while the frame, the latest tick, the world and the subject are the same.
+  const hudKey = { frame: -1, tick: null, world: null, player: null, followed: null, model: null };
+  function hudNow() {
+    const k = hudKey;
+    if (!k.model || k.frame !== game.frames || k.tick !== game.snaps.latest || k.world !== game.world || k.player !== game.player || k.followed !== game.followed) {
+      k.model = computeHud(game);
+      k.frame = game.frames; k.tick = game.snaps.latest; k.world = game.world; k.player = game.player; k.followed = game.followed;
+    }
+    return k.model;
+  }
+  const frameCtx = { me: null, mePlayer: null, subject: null, cockpit: false, phone, big, t: 0, serverNow: 0, planet: null, lobby: undefined };
   function frame(now) {
     raf = 0;
     if (disposed || lost || paused || document.hidden) return;
@@ -6532,7 +6803,11 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     const subject = shotSubject(snap);
     if (shot) cam.scene = shot.ctl.scene === game.island.scene ? "planet" : "space";
     game.sceneName = cam.scene;
-    const ctx = { me: game.player, mePlayer: game.player ? snap.players.find((p) => p.name === game.player) : null, subject, cockpit: cam.mode === "cockpit", phone, big, t, serverNow: serverNow(), planet: game.space.planet };
+    // One context object, every field set again each frame (no garbage per frame; `lobby` is SpaceWorld.update's).
+    const ctx = frameCtx;
+    ctx.me = game.player; ctx.mePlayer = null; ctx.subject = subject; ctx.cockpit = cam.mode === "cockpit"; ctx.phone = phone; ctx.big = big;
+    ctx.t = t; ctx.serverNow = serverNow(); ctx.planet = game.space.planet; ctx.lobby = undefined;
+    if (game.player) for (const p of snap.players) if (p.name === game.player) { ctx.mePlayer = p; break; }
     const W = cam.scene === "planet" ? game.island : game.space;
     W.update(dt, t, snap, ctx, camera);
     (W === game.space ? game.island : game.space).efx?.update(dt, t); // the hidden world's effects age too (WorldFx.update)
@@ -6557,7 +6832,8 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     // both scenes are compiled again right then (usually in the lobby), not at the first island view (the landing shot).
     if (big && !fxWarmed && game.space.efx?.ok && game.island.efx?.ok) {
       fxWarmed = true;
-      try { renderer.compile(game.island.scene, camera); renderer.compile(game.space.scene, camera); } catch (e) { /* the first frame compiles it */ }
+      warmScene(game.island.scene); // new lights: both scenes queued again, both variants (warmScene)
+      warmScene(game.space.scene);
     }
     const tier = TIERS[game.perf.tier];
     game.space.farRocks = tier.far;
@@ -6576,13 +6852,21 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
       renderPass.scene = W.scene;
       composer.render(dt);
     } else renderer.render(W.scene, camera);
-    last = { calls: renderer.info.render.calls, tris: renderer.info.render.triangles };
+    last.calls = renderer.info.render.calls;
+    last.tris = renderer.info.render.triangles;
+    // A frame that carries a one-off job is not judged by the governor (Perf.excuse): a drawn model built, a shader compiled (the
+    // program list grew), a texture sent, a scene switch.
+    const progs = renderer.info.programs ? renderer.info.programs.length : 0, texs = renderer.info.memory.textures;
+    if (progs !== jobMark.progs || texs !== jobMark.texs || DRAWN.built !== jobMark.built || cam.scene !== jobMark.scene) {
+      jobMark.progs = progs; jobMark.texs = texs; jobMark.built = DRAWN.built; jobMark.scene = cam.scene;
+      game.perf.excuse(3);
+    }
     if (listeners.frame?.length) emit("frame", t);
     const workMs = performance.now() - work0;
     if (game.perf.frame(dtMs, workMs, t)) applySize(true);
-    if (now - lastHud > 100) {
+    if (listeners.hud?.length && now - lastHud > 100) { // only for a listener (the phone polls game.hud() itself)
       lastHud = now;
-      emit("hud", computeHud(game));
+      emit("hud", hudNow());
     }
     if (overlay && now - lastOverlay > 250) {
       lastOverlay = now;
@@ -6605,7 +6889,7 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
     // pause(true): stop drawing (the phone's opaque draw screen covers the 3D view); the stream and the state keep up, pause(false) resumes.
     pause(on) { paused = !!on; if (paused) { cancelAnimationFrame(raf); raf = 0; worldSound.hush(); } else start(); }, // the frame loop drives the held loops: silence them
     on(event, cb) { (listeners[event] = listeners[event] || []).push(cb); return () => { listeners[event] = listeners[event].filter((f) => f !== cb); }; },
-    hud: () => computeHud(game),
+    hud: () => hudNow(),
     sfx, // World look: the sound synth (same object as the `sfx` export): sfx.unlock() in a first tap, sfx.play("click")
     // The latest entity message of a player ({ type, rig, verbs, unlocked, parts, source, anims?, image? }) or null.
     entityOf: (name) => entities.get(name) || null,
@@ -6621,6 +6905,13 @@ export function startGame({ canvas, screen = "big", view, player = null } = {}) 
       white.remove();
       cancelAnimationFrame(raf);
       clearInterval(perfTimer);
+      clearInterval(warmCheck);
+      clearTimeout(warmTimer);
+      warmQ.length = 0;
+      for (const m of keepAlive) { try { m.dispose?.(); } catch { /* already gone */ } }
+      keepAlive.length = 0;
+      if (DRAWN.prepare === prepareDrawn) DRAWN.prepare = null;
+      if (warmLater === warmLaterHook) warmLater = null;
       if (es) es.close();
       ro.disconnect();
       document.removeEventListener("visibilitychange", onVis);
