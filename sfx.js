@@ -23,11 +23,13 @@ export const SOUNDS = [
   "card-pop", "podium", "fanfare", "star", "ambience",
   // v1.8 loot: grabbing a pickup in space (instant: repair, shield, boost, gems, +1 drawing, warp) and a timed power-up
   "pickup", "powerup",
+  // v1.9.1 flight: the jetpack lighting up on the planet (its held roar is the "jet" loop)
+  "jet",
 ];
 
 // Sounds with a seamless loop variant: the held actions, and the TV lobby's ambience. loop() on any other name repeats its
 // one-shot.
-export const LOOPS = ["drill", "dig", "tractor", "boost", "shield", "ambience"];
+export const LOOPS = ["drill", "dig", "tractor", "boost", "shield", "ambience", "jet"];
 
 // ---------------------------------------------------------------------------------------------------------- DSP
 
@@ -377,6 +379,24 @@ function takeoff(sr) {
     out[i] = (r * 1.6 + w + rum.run(nz()) * 6 * (1 - 0.5 * u)) * env;
   }
   return finish(out, sr, { release: 0.15 });
+}
+
+// v1.9.1 jet: the jetpack lighting up (FLY held on the planet): a soft "fwoomp" (noise through a band-pass that swells and
+// opens), a breathy rising hiss and a saturated low thump, about half a second. The held roar is the loop variant.
+function jet(sr) {
+  const T = 0.55, n = round(sr * T), out = new Float32Array(n), nz = noise("jet");
+  const body = svf(sr), hiss = svf(sr), thump = svf(sr).set(110, 0.8);
+  for (let i = 0; i < n; i++) {
+    const u = i / n;
+    const env = u < 0.18 ? pow(sin((PI / 2) * (u / 0.18)), 2) : pow(cos((PI / 2) * ((u - 0.18) / 0.82)), 1.5);
+    if ((i & 3) === 0) { body.set(220 + 900 * pow(u, 0.6), 1.1); hiss.set(1800 + 2200 * u, 0.9); }
+    const x = nz();
+    body.run(x);
+    hiss.run(x);
+    const th = tanh(thump.run(x) * 9) * pow(1 - u, 3);
+    out[i] = (body.bp * 1.8 + hiss.bp * 0.35 * (1 - u) + th * 0.8) * env;
+  }
+  return finish(out, sr, { release: 0.12 });
 }
 
 function chest(sr) {
@@ -854,6 +874,7 @@ function powerup(sr) {
 
 const RECIPES = {
   pickup, powerup, // v1.8 loot
+  jet, // v1.9.1 flight
   laser, boost, shield, drill, dig, land, takeoff, chest, kill, emp, ink, tractor, mine, hint, countdown, win,
   hit, crack, scan, flare, death, respawn, steal, hitmark, podium, fanfare, star,
   "ui-tap": uiTap, "countdown-go": countdownGo, "card-pop": cardPop,
@@ -1005,6 +1026,19 @@ const LOOP_RECIPES = {
       a.noise = 0;
     };
   }),
+  // v1.9.1 jet: the jets' steady roar while FLY is held: a low flame rumble with a fast flutter, a breathy hiss on top and a
+  // saturated 70 Hz hum that a phone speaker hears as its harmonics
+  jet: (sr) => loopBuild(sr, 1.2, (sr2, len) => {
+    const nz = noise("loop-jet"), roar = svf(sr2).set(520, 0.9), hiss = svf(sr2).set(2400, 1.2), hum = svf(sr2).set(400, 0.7), saw = sawOsc(sr2);
+    const f0 = cyc(70, len), fl = cyc(17, len), sl = cyc(2.5, len);
+    return (t, a) => {
+      const x = nz();
+      roar.run(x);
+      hiss.run(x);
+      a.tone = tanh(hum.run(saw(f0)) * 2.5) * 0.35 * (0.85 + 0.15 * sin(TAU * sl * t));
+      a.noise = (roar.lp * 1.6 * (0.7 + 0.3 * sin(TAU * fl * t)) + hiss.bp * 0.5) * (0.9 + 0.1 * sin(TAU * sl * t + 1));
+    };
+  }),
   ambience: ambienceLoop,
 };
 
@@ -1041,6 +1075,7 @@ const LEVEL = {
   "ui-tap": 0.09, hint: 0.13, steal: 0.24, hitmark: 0.11, "loop:drill": 0.12, "loop:dig": 0.14, "loop:tractor": 0.12, "loop:boost": 0.15, "loop:shield": 0.08,
   "card-pop": 0.16, podium: 0.2, fanfare: 0.3, star: 0.2, ambience: 0.06, "loop:ambience": 0.06, // v1.5 TV: the ambience sits under everything
   pickup: 0.17, powerup: 0.22, // v1.8 loot
+  jet: 0.2, "loop:jet": 0.14, // v1.9.1 flight
 };
 function loudness(x, sr) {
   const hpa = exp((-TAU * 250) / sr), lpa = 1 - exp((-TAU * 6000) / sr), w = min(x.length, round(sr * 0.1));
@@ -1060,14 +1095,14 @@ function loudness(x, sr) {
 // Random pitch spread per play (+-) so a burst of the same sound does not phase into a machine-gun comb.
 const VARY = { pickup: 0.04, laser: 0.05, hit: 0.06, hitmark: 0.04, "ui-tap": 0.03, dig: 0.05, "explosion-small": 0.05, "explosion-medium": 0.04, "explosion-large": 0.03, land: 0.04, crack: 0.05, "card-pop": 0.04 };
 // Loops start with a short spin-up (the playback rate rises) and wind down when stopped.
-const SPIN = { drill: 0.7, boost: 0.8, tractor: 0.85, shield: 0.92 };
+const SPIN = { drill: 0.7, boost: 0.8, tractor: 0.85, shield: 0.92, jet: 0.8 };
 
 // Idle-time render order: what the first seconds of a round need comes first. The v1.5 TV-only sounds (card-pop, podium,
 // fanfare, star, ambience and its loop) are left out: they are built on first play, so phones never render them.
 const ORDER = [
   "ui-tap", "laser", "hit", "hitmark", "explosion-small", "explosion-medium", "countdown", "countdown-go", "boost", "shield", "chest", "kill", "steal",
   "land", "dig", "drill", "takeoff", "emp", "ink", "tractor", "mine", "hint", "win", "explosion-large", "crack", "scan", "flare",
-  "death", "respawn", "pickup", "powerup",
+  "death", "respawn", "pickup", "powerup", "jet",
 ].concat(LOOPS.filter((n) => n !== "ambience").map((n) => "loop:" + n));
 
 const clamp01 = (v) => (v > 1 ? 1 : v > 0 ? v : 0);

@@ -105,6 +105,18 @@
     island: { chests: 3, chestsBase: 15, chestsPerPlayer: 0.65, chestsMax: 32, chestSpread: 60, chestSpreadPerChest: 7,
       walkSpeed: 12, runMultiplier: 2, jumpSpeed: 9, gravity: 24, digSeconds: 4, drillSeconds: 4.5, pickupRange: 3, explorerDrawSeconds: 15,
       speeds: { person: 1, quadruped: 1.6, car: 2.4, bike: 2.2, blob: 1.1 }, jumpers: ["person", "quadruped", "blob"] },
+    // v1.9.1 FLIGHT (owner, 10 Oct 14:16: real jetpack flight on the planet). An explorer with the fly skill (world.js grants
+    // it from a drawn part whose name holds one of `parts`: a jetpack, wings, a propeller, a balloon...; a model-sent fly is
+    // kept too) holds FLY: the jets lift it at up to climb m/s (accel m/s²) and it flies at speed × island.walkSpeed (any
+    // type), steering with the stick, over land and water, inside the island's edge (edge m in from it). It climbs to at most
+    // ceiling m above the ground under it, never above maxY (island height), and hovers there. A full tank is fuelSeconds of
+    // jets; it refills only on the ground, in rechargeSeconds; empty, it locks until relock (a fraction) is back. Released or
+    // empty it sinks at most fall m/s: no fall damage. DIG, DRILL, picking up a chest and a planet mine need the feet within
+    // ground m (pickupRange for a chest, 2 m for a mine) of the ground. Ticks: players[].fuel (0..1) only for a planet
+    // player who can fly; flags.thrust (the jets fire) or flags.glide (in the air after them, sinking): never both, so a
+    // flight is thrust || glide. Bots never land.
+    flight: { speed: 1.5, climb: 8, accel: 24, fall: 6, ceiling: 40, maxY: 60, edge: 8, fuelSeconds: 6, rechargeSeconds: 4, relock: 0.25, ground: 1,
+      parts: ["jetpack", "jet pack", "jet engine", "jets", "rockets", "rocket pack", "rocket backpack", "rocket boot", "jet boot", "thruster", "wing", "propel", "rotor", "helicopter", "balloon", "glider", "hover"] },
     // Ruthless (PLAN.md section 0): killing a player within stealSeconds after they opened a chest steals stealShare of
     // its points. Refused verbs explain themselves at most once per refusalToastSeconds per verb.
     stealSeconds: 15, stealShare: 0.5, refusalToastSeconds: 8,
@@ -245,6 +257,9 @@
    *                                                                      // humans first, then bots; score never < 0
    *                          shieldEnergy, boostEnergy,                  // 0..1, drive the HUD meters
    *                          drawingsLeft: { space, planet },            // humans only; bots omit it
+   *                          fuel?,                                      // v1.9.1 0..1 jet fuel, only for a planet player
+   *                                                                      // who can fly (TUNING.flight); flags.thrust while
+   *                                                                      // the jets fire, flags.glide while sinking after
    *                          respawnIn,                                  // seconds, only while flags.dead
    *                          bay: [x, z],                                // v1.2: only while landing / takingOff: the
    *                                                                      // island parking bay the shot ends on (= its

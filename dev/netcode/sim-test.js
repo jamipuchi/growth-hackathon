@@ -1495,6 +1495,119 @@ test("tick size with 25 players stays under 8 KB", () => {
   return `max tick ${h.maxTick} B over ${h.checked.tick} ticks (25 players, 200 s), world ${world} B, step ${ms.toFixed(3)} ms`;
 });
 
+// ---- v1.9.1 FLIGHT (owner, 10 Oct 14:16; contract.js TUNING.flight) ----------------------------------------------------
+const FLT = T.flight;
+const feet = (h, x, z) => Math.max(0, require("../../terrain").height(x, z, h.dbg().island.seed));
+const jetpack = { type: "person", unlocked: [{ verb: "boost", part: "jetpack" }, { verb: "dig", part: "shovel" }], parts: [{ name: "jetpack", x: 0.5, y: 0.4 }, { name: "shovel", x: 0.2, y: 0.6 }], source: "model" };
+function flyer(seed, entity = jetpack) {
+  const h = harness(seed);
+  h.w.join("ana");
+  h.w.setEntity("ana", "explorer", entity);
+  h.w.start();
+  killBoss(h, "bob");
+  landNow(h, "ana");
+  const p = h.p("ana"), L = h.dbg().landing;
+  p.pos = { x: L.x, y: feet(h, L.x, L.z), z: L.z }; p.yaw = 0;
+  return { h, p };
+}
+
+test("v1.9.1 flight: a drawn jetpack unlocks FLY on the planet; hold FLY lifts, 1.5x walk, ≤ 40 m over the ground, 6 s of fuel, a gentle fall, 4 s recharge", () => {
+  const { h, p } = flyer(12);
+  assert(p.entity.verbs.includes("fly"), `verbs ${p.entity.verbs}`);
+  const ent = h.entities("ana").pop();
+  assert(ent.unlocked.some((u) => u.verb === "fly" && u.part === "jetpack") && /fly \(jetpack\)/.test(ent.card), ent.card);
+  assert.strictEqual(tickOf(h, "ana").fuel, 1);
+  const hp0 = p.hp;
+  h.input("ana", "fly", true);
+  h.wait(1);
+  const up1 = p.pos.y - feet(h, p.pos.x, p.pos.z);
+  const t1 = tickOf(h, "ana");
+  assert(up1 > 4 && t1.flags.thrust && !t1.flags.glide && t1.fuel < 0.9, `1 s of FLY: ${up1.toFixed(1)} m up, ${JSON.stringify(t1.flags)} fuel ${t1.fuel}`);
+  // fly forward at 1.5x walk while the jets fire
+  const x0 = { ...p.pos };
+  h.axis("ana", "move", 0, 1); h.wait(1); h.axis("ana", "move", 0, 0);
+  const speed = dist2(x0, p.pos);
+  assert(Math.abs(speed - T.island.walkSpeed * FLT.speed) < 1, `flight speed ${speed.toFixed(1)} m/s`);
+  // keep holding: the tank empties at ~6 s, never above 40 m over the ground or 60 m
+  let maxUp = 0, maxY = 0, s = 2;
+  h.until("fuel runs out", () => p.fuel <= 0, 8, () => { s += DT; maxUp = Math.max(maxUp, p.pos.y - feet(h, p.pos.x, p.pos.z)); maxY = Math.max(maxY, p.pos.y); });
+  assert(Math.abs(s - FLT.fuelSeconds) < 0.25 && maxUp <= FLT.ceiling + 0.5 && maxY <= FLT.maxY, `empty at ${s.toFixed(2)} s, ${maxUp.toFixed(1)} m up, y ${maxY.toFixed(1)}`);
+  // empty: the jets cut out (still holding FLY), a gentle fall (≤ 6 m/s), no damage, then the ground
+  h.step(); // the step that emptied the tank still fired the jets
+  assert(!p.thrust && tickOf(h, "ana").flags.glide, "no glide flag after the tank empties");
+  let minVy = 0, fall = 0;
+  h.until("lands after the tank empties", () => !p.airborne, 20, () => { fall += DT; minVy = Math.min(minVy, p.vy); assert(!p.thrust, "the jets fire on an empty tank"); });
+  assert(minVy >= -FLT.fall - 1e-9 && p.hp === hp0 && !p.dead, `fall ${minVy.toFixed(2)} m/s, hp ${p.hp}`);
+  // still holding FLY on the ground: locked until relock is back, then a short hop; let go: full in ~4 s
+  h.input("ana", "fly", false);
+  const f0 = p.fuel;
+  h.wait(FLT.rechargeSeconds);
+  assert(f0 < 0.05 && p.fuel > 0.97, `recharge ${f0} → ${p.fuel}`);
+  return `up ${up1.toFixed(1)} m after 1 s, ${speed.toFixed(1)} m/s, tank ${s.toFixed(2)} s, peak ${maxUp.toFixed(1)} m over the ground (y ≤ ${maxY.toFixed(1)}), fell ${fall.toFixed(1)} s at ≤ ${(-minVy).toFixed(1)} m/s, recharged in ${FLT.rechargeSeconds} s`;
+});
+
+test("v1.9.1 flight: no DIG in the air (a toast says land first), DIG on the ground; no chest pickup from high up; a flyer passes over a mine; FLY refused without a flight part", () => {
+  const { h, p } = flyer(13);
+  const c = h.dbg().chests.find((x) => x.kind === "buried");
+  p.pos = { x: c.x + 1, y: feet(h, c.x + 1, c.z), z: c.z };
+  h.input("ana", "fly", true); h.wait(1.5); h.input("ana", "fly", false);
+  const from = h.steps;
+  h.input("ana", "dig", true); h.wait(0.5);
+  assert(c.dug === 0 && !p.digging && p.airborne, `dug ${c.dug} in the air`);
+  assert(h.toasts("ana", from).some((t) => /land next to the chest first/.test(t.text)), "no land-first toast");
+  h.until("lands", () => !p.airborne, 6);
+  h.until("digs the chest open", () => !c.buried, 10);
+  assert(c.open && c.by === "ana", "the chest is collected on the ground");
+  // an open chest is not collected from high above, only by a low swoop
+  const c2 = h.dbg().chests.find((x) => x.buried && x !== c);
+  c2.buried = false;
+  p.pos = { x: c2.x, y: feet(h, c2.x, c2.z) + 12, z: c2.z }; p.airborne = true; p.vy = 0;
+  h.input("ana", "fly", true); h.wait(0.3); h.input("ana", "fly", false);
+  assert(!c2.open, "collected from 12 m up");
+  h.until("swoops down onto it", () => c2.open, 8);
+  // a planet mine: a flyer passes over it, the feet on the ground set it off
+  const M = { x: p.pos.x + 30, z: p.pos.z };
+  const mine = { id: 9999, owner: "bob", mode: "planet", pos: { x: M.x, y: feet(h, M.x, M.z), z: M.z }, until: Infinity, armedAt: 0, color: 0xff0000, damage: 10 };
+  h.dbg().mines.push(mine);
+  p.pos = { x: M.x, y: mine.pos.y + 10, z: M.z }; p.airborne = true; p.vy = 0;
+  h.input("ana", "fly", true); h.wait(0.5); h.input("ana", "fly", false);
+  assert(h.dbg().mines.includes(mine), "a flyer set off the mine");
+  h.until("lands on the mine", () => !h.dbg().mines.includes(mine), 8);
+  assert(p.stun > 0 || p.dead, "the mine did nothing on the ground");
+  // without a flight part: refused with what to draw; a model-sent fly (wings) and a propeller part both fly
+  const plain = flyer(14, { type: "person", unlocked: [{ verb: "dig", part: "shovel" }], parts: [{ name: "shovel", x: 0.2, y: 0.5 }], source: "model" });
+  plain.h.input("ana", "fly", true); plain.h.wait(1);
+  assert(!plain.p.airborne && plain.p.pos.y - feet(plain.h, plain.p.pos.x, plain.p.pos.z) < 0.1 && tickOf(plain.h, "ana").fuel === undefined, "a plain explorer flew");
+  assert(plain.h.toasts("ana").some((t) => t.kind === "refused" && /FLY · draw a jetpack or wings/.test(t.text)), "no FLY refusal");
+  for (const ent of [{ type: "car", unlocked: [{ verb: "fly", part: "wings" }], parts: [], source: "model" }, { type: "quadruped", unlocked: [], parts: [{ name: "propeller", x: 0.5, y: 0.2 }], source: "model" }]) {
+    const f = flyer(15, ent);
+    f.h.input("ana", "fly", true); f.h.wait(1);
+    assert(f.p.entity.verbs.includes("fly") && f.p.pos.y - feet(f.h, f.p.pos.x, f.p.pos.z) > 4, `${ent.type} did not fly`);
+  }
+  // a ship pressing FLY hears it is a planet skill
+  const sh = harness(16); sh.w.join("ana"); sh.w.start();
+  sh.input("ana", "fly", true); sh.wait(0.2);
+  assert(sh.toasts("ana").some((t) => /FLY · not here: only on the planet/.test(t.text)), "no space refusal");
+  return `chest ${c.id} dug only on the ground, chest ${c2.id} taken by a low swoop, mine passed over at 10 m then set off on the ground`;
+});
+
+test("v1.9.1 flight: a tick with 25 explorers flying (fuel + flags) stays under 8 KB", () => {
+  const h = harness(17);
+  const names = Array.from({ length: 25 }, (_, i) => `flyer${i}`);
+  for (const n of names) { h.w.join(n); h.w.setEntity(n, "explorer", jetpack); }
+  h.w.start();
+  killBoss(h, names[0]);
+  const pl = h.dbg().planet;
+  names.forEach((n, i) => { const p = h.p(n), a = (i / 25) * Math.PI * 2; p.pos = { x: pl.x + Math.cos(a) * (pl.radius + 10), y: pl.y, z: pl.z + Math.sin(a) * (pl.radius + 10) }; h.input(n, "land", true); h.input(n, "land", false); });
+  h.until("25 explorers land", () => names.every((n) => h.p(n).mode === "planet" && !h.p(n).landingFor), 10);
+  for (const n of names) h.input(n, "fly", true);
+  h.maxTick = 0;
+  h.wait(2);
+  const t = h.w.tickMessage();
+  assert(t.players.filter((q) => q.flags.thrust && q.fuel < 1).length === 25 && h.maxTick < 8192, `max tick ${h.maxTick} B`);
+  return `max tick ${h.maxTick} B with 25 flying explorers`;
+});
+
 const passed = results.filter((r) => r.ok).length;
 console.log(`\n${passed}/${results.length} passed at ${new Date().toISOString()}`);
 process.exit(passed === results.length ? 0 : 1);

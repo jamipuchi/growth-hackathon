@@ -107,7 +107,12 @@ function seededRandom(seed) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-const HOLD = ["shoot", "boost", "shield", "drill", "dig"];
+const HOLD = ["shoot", "boost", "shield", "drill", "dig", "fly"]; // v1.9.1: fly (the jets fire while it is held)
+// v1.9.1 FLIGHT (owner, 10 Oct 14:16; contract.js TUNING.flight): FLY on the planet. verbs.js SKILLS.planet has no fly and
+// Astra reads a jetpack as BOOST, so an explorer's drawn jetpack, wings, propeller or balloon (a part name holding one of
+// TUNING.flight.parts) unlocks fly here (setEntity), on top of a fly the model sent.
+const FL = T.flight;
+const flightPart = (name) => typeof name === "string" && !!name && FL.parts.some((k) => name.toLowerCase().includes(k));
 const PRESS = ["blast", "flare", "scan", "land", "takeoff", "jump", "invisible", "teleport", "heal", "drive", ...Verbs.MISCHIEF];
 const V1_VERBS = new Set([...HOLD, ...PRESS]);
 // Hint gates (rules.js): the skill must be drawn on the entity AND have a button.
@@ -403,6 +408,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     // Owner, 10 Oct 09:05: no free skills at 3:00 (the hints jump to "draw X" and the chests glow instead).
     const extra = [];
     const verbs = Verbs.entityVerbs(type, own, extra);
+    if (world === "planet" && own.includes("fly") && !verbs.includes("fly")) verbs.push("fly"); // v1.9.1: no SKILLS.planet entry
     // card (v1.3): the unlock card in plain words. A drawing keeps the card Astra sent with it (setEntity); a plain or
     // bot entity gets Verbs.cardOf. Assist-granted skills are never on the card (they ride in `assisted`).
     const entity = {
@@ -524,6 +530,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     const { x, z } = nearestDry(b.x + 2.5, b.z);
     p.pos = { x, y: islandFeet(x, z), z };
     p.yaw = 0; p.pitch = 0; p.roll = 0; p.vy = 0; p.stun = 0;
+    p.airborne = false; p.thrust = false; p.fuel = 1; p.fuelLocked = false; // v1.9.1: on the ground with a full tank
   }
 
   // Death respawn: in space where the ship died but out of the boss's reach (no minute-long flight back), on the island
@@ -575,6 +582,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
         device: null, tractor: null, empFor: 0, inkFor: 0, drawingUntil: 0, bayIndex: null, hitSentAt: -Infinity,
         late: {}, lateAt: -Infinity, // v1.4 late hints sent this round ("gate:need") and when the last one went out
         power: null, bubbleFor: 0, // v1.8 loot: the timed power-up { kind, until, seconds } and the SHIELD pickup's bubble (s)
+        fuel: 1, fuelLocked: false, airborne: false, thrust: false, // v1.9.1 FLIGHT: the jet tank (0..1), in the air on a flight, jets on
         lastSeen: Date.now(), // before spawnAt: slotOf only counts active players
       };
       players[name] = p;
@@ -702,6 +710,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     if (verb === "jump" && (type === "car" || type === "bike")) text = `JUMP · ${type}s can't jump`;
     else if (verb === "takeoff" || (Verbs.VERBS[verb] && !Verbs.VERBS[verb].modes.includes(world))) text = `${name} · not here: ${world === "space" ? "only on the planet" : "only in space"}`;
     else if (verb === "drive") text = "DRIVE · draw a car or a bike as your explorer";
+    else if (verb === "fly") text = "FLY · draw a jetpack or wings on your explorer"; // v1.9.1 (verbs.js PARTS has no fly)
     else text = `${name} · draw ${Verbs.PARTS[verb] || "it"} on your ${what}`;
     send({ type: "toast", player: p.name, kind: "refused", verb, text, sketch: null, ghost: null });
   }
@@ -717,8 +726,15 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     const world = kind === "ship" ? "space" : "planet";
     const type = world === "space" ? "ship" : Verbs.PLANET_TYPES.includes(entity.type) ? entity.type : "person";
     const skills = Verbs.SKILLS[world];
-    const unlocked = (Array.isArray(entity.unlocked) ? entity.unlocked : []).filter((u) => u && skills.includes(u.verb)).map((u) => ({ verb: u.verb, part: String(u.part || "drawing") }));
-    const card = typeof entity.card === "string" && entity.card.trim() ? entity.card.slice(0, 200) : Verbs.cardOf(type, unlocked);
+    const sent = Array.isArray(entity.unlocked) ? entity.unlocked : [];
+    const unlocked = sent.filter((u) => u && (skills.includes(u.verb) || (world === "planet" && u.verb === "fly"))).map((u) => ({ verb: u.verb, part: String(u.part || "drawing") }));
+    // v1.9.1 FLIGHT: a drawn jetpack, wings, propeller or balloon on an explorer unlocks FLY (the card then says so too)
+    let flew = null;
+    if (world === "planet" && !unlocked.some((u) => u.verb === "fly")) {
+      flew = [...(Array.isArray(entity.parts) ? entity.parts.map((x) => x && x.name) : []), ...sent.map((u) => u && u.part)].find(flightPart) || null;
+      if (flew) unlocked.push({ verb: "fly", part: String(flew).slice(0, 40) });
+    }
+    const card = typeof entity.card === "string" && entity.card.trim() && !flew ? entity.card.slice(0, 200) : Verbs.cardOf(type, unlocked);
     p.drawn[world] = { type, unlocked, parts: Array.isArray(entity.parts) ? entity.parts.slice(0, 12) : [], source: entity.source || "model", card };
     if (world === "space") {
       const car = parked.find((x) => x.player === p.name);
@@ -1116,7 +1132,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     const attacker = by && by !== p.name ? players[by] : null;
     hitNotice(p, amount, attacker ? attacker.name : how === "boss" ? "boss" : null, src || (attacker && attacker.mode === p.mode ? attacker.pos : null));
     if (p.hp > 0) return;
-    p.hp = 0; p.dead = true; p.deadFor = 0; p.drilling = false; p.digging = false; p.tractor = null;
+    p.hp = 0; p.dead = true; p.deadFor = 0; p.drilling = false; p.digging = false; p.tractor = null; p.thrust = false;
     p.power = null; p.bubbleFor = 0; // v1.8: death ends the power-up and the bubble
     fx("explode", p.pos, p.color, p.mode === "space" ? 8 : 3, p.mode);
     const killer = attacker;
@@ -1269,6 +1285,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   function startAnim(p, action) {
     p.keys = {}; p.axes = {}; p.pressed = []; p.tractor = null;
     p.boosting = false; p.shielding = false; p.drilling = false; p.digging = false;
+    p.thrust = false; p.airborne = false; // v1.9.1: the shot carries the player (a take-off from the air too)
     p.action = action; p.slot = (Verbs.VERBS[action] && Verbs.VERBS[action].slot) || "mount"; p.startedAt = Date.now();
   }
 
@@ -1332,18 +1349,48 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     p.boostEnergy = Math.min(1, p.boostEnergy + T.boost.rechargePerSecond * dt);
     p.yaw = wrap(p.yaw - turn * T.turnRate * dt);
     // Movement per entity type: a person walks, cars and bikes drive fast, a quadruped runs, a blob bounces.
+    // v1.9.1 FLIGHT: in the air on a flight every type flies at TUNING.flight.speed × walkSpeed, over land and water.
     const type = p.entity ? p.entity.type : "person";
-    const speed = ISL.walkSpeed * (ISL.speeds[type] || 1) * (p.boosting ? ISL.runMultiplier : 1);
-    if (type === "blob" && (fwd || side) && p.pos.y <= islandFeet(p.pos.x, p.pos.z) + 0.05) p.vy = ISL.jumpSpeed * 0.45;
+    const flying = flight(p, dt, still);
+    const speed = flying ? ISL.walkSpeed * FL.speed : ISL.walkSpeed * (ISL.speeds[type] || 1) * (p.boosting ? ISL.runMultiplier : 1);
+    if (type === "blob" && !flying && (fwd || side) && p.pos.y <= islandFeet(p.pos.x, p.pos.z) + 0.05) p.vy = ISL.jumpSpeed * 0.45;
     const fx_ = -Math.sin(p.yaw), fz = -Math.cos(p.yaw), rx = Math.cos(p.yaw), rz = -Math.sin(p.yaw);
     const mx = (fx_ * fwd + rx * side) * speed * dt, mz = (fz * fwd + rz * side) * speed * dt;
-    if (mx || mz) walk(p, mx, mz);
+    if (mx || mz) { if (flying) soar(p, mx, mz); else walk(p, mx, mz); }
     pull(p, dt);
-    p.vy -= ISL.gravity * dt;
+    if (!p.thrust) p.vy -= ISL.gravity * dt; // the jets set vy themselves (flight)
+    if (flying && !p.thrust) p.vy = Math.max(p.vy, -FL.fall); // released or empty: a gentle fall, no fall damage
     p.pos.y += p.vy * dt;
+    if (flying && p.pos.y > FL.maxY) { p.pos.y = FL.maxY; p.vy = Math.min(p.vy, 0); }
     const ground = islandFeet(p.pos.x, p.pos.z);
-    if (p.pos.y <= ground) { p.pos.y = ground; p.vy = 0; }
+    if (p.pos.y <= ground) { p.pos.y = ground; p.vy = 0; if (!p.thrust) p.airborne = false; }
   }
+
+  // v1.9.1 FLIGHT (contract.js TUNING.flight). FLY held with fuel in the tank fires the jets: up at most FL.climb m/s, easing
+  // into a hover FL.ceiling m over the ground (never above FL.maxY; past the ceiling, where the ground fell away, it holds its
+  // height). The tank drains in FL.fuelSeconds and refills only on the ground, in FL.rechargeSeconds; empty, it locks until
+  // FL.relock is back. Stunned (a mine), the jets cut out. → true while airborne on a flight (jets on, or the fall after).
+  function flight(p, dt, still) {
+    const ground = islandFeet(p.pos.x, p.pos.z);
+    if (p.fuelLocked && p.fuel >= FL.relock) p.fuelLocked = false;
+    p.thrust = !!p.keys.fly && !still && !p.fuelLocked && p.fuel > 0 && can(p, "fly");
+    if (p.thrust) {
+      p.fuel = Math.max(0, p.fuel - dt / FL.fuelSeconds);
+      if (p.fuel === 0) p.fuelLocked = true;
+      p.airborne = true;
+      const want = clamp((Math.min(ground + FL.ceiling, FL.maxY) - p.pos.y) * 1.5, 0, FL.climb);
+      p.vy += clamp(want - p.vy, -FL.accel * dt, FL.accel * dt);
+    } else if (p.pos.y <= ground + 0.05) p.fuel = Math.min(1, p.fuel + dt / FL.rechargeSeconds);
+    return !!p.airborne;
+  }
+  // One step in the air: anywhere over land and water, but inside the island's edge (FL.edge m in from it).
+  function soar(p, mx, mz) {
+    const x = p.pos.x + mx, z = p.pos.z + mz, r = Math.hypot(x, z), edge = island.size / 2 - FL.edge;
+    const k = r > edge ? edge / r : 1;
+    p.pos.x = x * k; p.pos.z = z * k;
+  }
+  // The feet are off the ground (flying, or the top of a jump): no DIG or DRILL there (v1.9.1).
+  const aloft = (p) => p.pos.y > islandFeet(p.pos.x, p.pos.z) + FL.ground;
 
   // One walking step. Into the water it slides along the shore where it can: the dry heading closest to the one asked
   // for (the more inland side when both are dry), down to half speed along the shoreline itself, then the plain axis
@@ -1372,6 +1419,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     if (!p.keys[verb]) return false;
     const chest = chests.find((c) => c.kind === kind && c.buried && dist2(c, p.pos) <= VERB.dig.range);
     if (!chest) return false;
+    if (aloft(p)) { landFirst(p, verb); return false; } // v1.9.1 FLIGHT: DIG and DRILL only with the feet on the ground
     chest.dug = Math.min(1, chest.dug + dt / seconds);
     worldDirty = true;
     p.digFx = (p.digFx || 0) - dt;
@@ -1381,9 +1429,18 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   }
   function dig(p, dt) { p.digging = openChest(p, dt, "dig", "buried", pace.digSeconds); } // v1.9: = VERB.dig.seconds at 4 min
   function drillRock(p, dt) { p.drilling = openChest(p, dt, "drill", "rock", pace.drillSeconds); }
+  // v1.9.1: DIG / DRILL held in the air over a closed chest says why nothing happens (once per refusalToastSeconds).
+  function landFirst(p, verb) {
+    const key = `air:${verb}`;
+    if (p.bot || S.t - (p.refusedAt[key] ?? -Infinity) < T.refusalToastSeconds) return;
+    p.refusedAt[key] = S.t;
+    tell(p.name, `${Verbs.labelOf(verb)} · land next to the chest first`, verb);
+  }
 
   // Walking onto an open chest collects it: +1500, and a kill in the next stealSeconds steals half (hurt()).
+  // v1.9.1: a flyer collects it within pickupRange m of the ground (a low swoop), never from high above.
   function pickup(p) {
+    if (p.pos.y - islandFeet(p.pos.x, p.pos.z) > ISL.pickupRange) return;
     const chest = chests.find((c) => !c.buried && !c.open && dist2(c, p.pos) <= ISL.pickupRange);
     if (!chest) return;
     chest.open = true; chest.by = p.name;
@@ -1530,6 +1587,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     const d = len(v), step = Math.min(Math.max(0, d - 4), t.speed * dt);
     if (step <= 0) return;
     if (p.mode === "space") p.pos = add(p.pos, v, step / d);
+    else if (p.airborne) soar(p, (v.x / d) * step, (v.z / d) * step); // v1.9.1: a flyer is pulled through the air
     else walk(p, (v.x / d) * step, (v.z / d) * step);
   }
 
@@ -1549,7 +1607,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     mines = mines.filter((m) => {
       if (m.until <= S.t) return false;
       if (m.armedAt > S.t) return true;
-      const q = active().find((q) => q.name !== m.owner && q.mode === m.mode && !q.bot && !q.dead && !invulnerable(q) && !ghostTo(q, m.owner) && gap(q, m) < MINE_RADIUS[m.mode]);
+      const q = active().find((q) => q.name !== m.owner && q.mode === m.mode && !q.bot && !q.dead && !invulnerable(q) && !ghostTo(q, m.owner) && gap(q, m) < MINE_RADIUS[m.mode] &&
+        (m.mode !== "planet" || q.pos.y - m.pos.y < 2)); // v1.9.1: a flyer passes over a planet mine
       if (!q) return true;
       fx("explode", m.pos, m.color, m.mode === "space" ? 4 : 2, m.mode);
       if (q.shielding || q.bubbleFor > 0) { fx("spark", q.pos, q.color, 2, q.mode); return false; }
@@ -2018,6 +2077,8 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       boost: p.boosting, shield: p.shielding, stun: p.stun > 0, dead: p.dead, invisible: p.invisibleFor > 0, drilling: p.drilling, digging: p.digging, ready: (readyGate ? readyNow(p) : p.ready) && S.phase === "lobby", bot: p.bot,
       landing: p.landingFor > 0, takingOff: p.takeoffFor > 0, spawnShield: p.spawnShield > 0,
       emp: p.empFor > 0, inked: p.inkFor > 0, tractored: !!(p.tractor && p.tractor.until > S.t), drawing: p.drawingUntil > S.t,
+      // v1.9.1 FLIGHT: thrust = the jets fire (in the air); glide = in the air after them, sinking (one of the two, never both)
+      thrust: p.mode === "planet" && !!p.thrust, glide: p.mode === "planet" && !!p.airborne && !p.thrust,
     };
     if (p.bubbleFor > 0) all.shield = true; // v1.8: the SHIELD pickup's bubble shows as a shield on every screen
     const out = {};
@@ -2046,6 +2107,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
         // 25 players must fit in 8 KB: the last verb only once there is one (render reads startedAt || 0).
         if (p.action) Object.assign(out, { action: p.action, slot: p.slot, startedAt: p.startedAt });
         if (!p.bot) out.drawingsLeft = budget.left(p.name); // bots never draw: keeps the tick small
+        if (p.mode === "planet" && can(p, "fly")) out.fuel = r2(p.fuel); // v1.9.1 FLIGHT: the jet tank, only for a flyer
         if (p.dead) out.respawnIn = r2(Math.max(0, T.respawnSeconds - p.deadFor));
         // The landing / take-off shot ends on this bay (island x, z): the same slot the server parks the ship in.
         if ((p.landingFor > 0 || p.takeoffFor > 0) && landing) { const b = bay(p); out.bay = [r1(b.x), r1(b.z)]; } // = its parked entry

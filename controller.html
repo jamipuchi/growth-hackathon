@@ -403,6 +403,17 @@
     padding: calc(var(--st) + 8px) calc(var(--sr) + 12px) 0 calc(var(--sl) + 12px); }
   #hud .hl { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 9px; }
   #hud .hr { flex: 1 1 0; min-width: 0; display: flex; justify-content: flex-end; }
+  /* v1.9.1 FLIGHT: the jet fuel under the vitals, only while my explorer can fly (it drains while FLY is held, refills on the ground) */
+  #fuel { position: relative; z-index: 0; isolation: isolate; display: flex; align-items: center; gap: 7px; width: 178px; box-sizing: border-box;
+    margin-top: -4px; padding: 5px 12px 6px 11px; pointer-events: none; font-family: var(--f-head, "Barlow Condensed", "Arial Narrow", sans-serif);
+    font-weight: 900; font-style: italic; font-size: 13px; line-height: 1; letter-spacing: .05em; color: #fff; -webkit-text-stroke: 2px #120a2e; paint-order: stroke fill; }
+  #fuel::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-9deg); border-radius: 6px; background: rgb(13 11 46 / .78); border: 3px solid #120a2e; }
+  #fuel.hidden { display: none; }
+  #fuel i { position: relative; flex: 1; min-width: 0; height: 12px; transform: skewX(-14deg); background: rgb(4 3 20 / .9); border: 2px solid #120a2e; border-radius: 3px; overflow: hidden; }
+  #fuel b { position: absolute; inset: 0; transform-origin: 0 50%; background: linear-gradient(#ffe48a, #ff9f1c 55%, #ff5a1f); transition: transform .12s linear; }
+  #fuel.burn i { box-shadow: 0 0 9px 1px #ff9f1c; }
+  #fuel.low b { background: linear-gradient(#ffa3b0, #ff3b5c 55%, #d42246); animation: fuelBlink .6s steps(2, jump-none) infinite; }
+  @keyframes fuelBlink { 50% { opacity: .4; } }
   .tools { display: flex; gap: 6px; pointer-events: auto; }
   .tool { position: relative; z-index: 0; isolation: isolate; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; color: #fff; transition: transform 0.08s; }
   .tool::before { content: ""; position: absolute; inset: 0; z-index: -1; transform: skewX(-9deg); background: linear-gradient(#5aa0ff, #6a35e0); border: 3px solid var(--ink); border-radius: 6px; box-shadow: 0 4px 0 var(--hard); }
@@ -913,6 +924,7 @@
   <div id="hud">
     <div class="hl">
       <div id="vitals"></div>
+      <div id="fuel" class="hidden" role="meter" aria-label="Fuel"><span data-copy="hud.fuel"></span><i><b id="fuelBar"></b></i></div>
       <div class="tools">
         <button id="tTakeoff" class="tool on hidden" type="button" aria-label="Take off: back to space"><svg viewBox="0 0 24 24"><use href="#i-rocket"/></svg></button>
         <button id="tAdd" class="tool" type="button"><span class="badge" id="leftBadge">5</span><svg viewBox="0 0 24 24"><use href="#i-plus"/></svg></button>
@@ -1254,7 +1266,7 @@ const COPY = {
     ready: "I'M READY", readyDone: "READY ✓", redrawShip: "REDRAW SHIP", redrawController: "REDRAW CONTROLLER", uses: "uses 1 drawing",
   },
   hud: { hp: "HP", shield: "SHIELD", boost: "BOOST", respawn: "BACK IN {n}…", timeLeft: "TIME LEFT", endless: "ENDLESS", getReady: "GET READY", assists: "THE CHESTS GLOW · DRAW WHAT YOU NEED",
-    points: "POINTS", rank: "{r} OF {n}", spawn: "SPAWN SHIELD · YOU CAN'T BE HIT" },
+    points: "POINTS", rank: "{r} OF {n}", spawn: "SPAWN SHIELD · YOU CAN'T BE HIT", fuel: "FUEL" },
   counter: { left: "{left} OF {max} DRAWINGS LEFT", none: "NO DRAWINGS LEFT {where}", space: "IN SPACE", planet: "ON THE PLANET" },
   tools: { add: "Add a button", redraw: "Redraw", view: "Change the camera", tilt: "Tilt to steer", sound: "Sound", full: "Full screen" },
   // the short caption under each HUD tool, shown for a few seconds the first times the play screen opens
@@ -3662,7 +3674,7 @@ function wireGame(game) {
 }
 
 // ---------- HUD ----------
-const hudEls = { obj: $("obj"), status: $("status"), clock: $("clock"), objBar: $("objBar"), timer: $("timer"), scoreN: $("scoreN"), scoreRank: $("scoreRank") };
+const hudEls = { obj: $("obj"), status: $("status"), clock: $("clock"), objBar: $("objBar"), timer: $("timer"), scoreN: $("scoreN"), scoreRank: $("scoreRank"), fuel: $("fuel"), fuelBar: $("fuelBar") };
 const vitals = PE ? PE.createVitals($("vitals"), COPY.hud) : null;
 // Radar: hud().radar is heading-up with dz > 0 = AHEAD (render.js computeHud rel(): dz = dot(offset, forward)); createRadar draws y = c - dz * k,
 // so ahead is UP. Checked against both files in v1.2: no change needed.
@@ -3698,6 +3710,15 @@ function updateHud() {
   updateHintLine(h);
   updateLoot(h, me);     // v1.8 loot: the power-up / bubble countdown chips (kept with the HUD hidden)
   setScale("bar", hudEls.objBar, typeof h.bar === "number" ? h.bar : 0);
+  // v1.9.1 FLIGHT: the fuel bar, only while my explorer can fly (render.js hud().me.fuel, null otherwise); red under a quarter
+  const fuel = playing && me && me.mode === "planet" && !(me.flags && me.flags.dead) && Number.isFinite(me.fuel) ? me.fuel : null;
+  if (hudCache.fuelOn !== (fuel !== null)) { hudCache.fuelOn = fuel !== null; hudEls.fuel.classList.toggle("hidden", fuel === null); }
+  if (fuel !== null) {
+    setScale("fuel", hudEls.fuelBar, fuel);
+    const low = fuel < 0.25, burn = !!(me.flags && me.flags.thrust);
+    if (hudCache.fuelLow !== low) { hudCache.fuelLow = low; hudEls.fuel.classList.toggle("low", low); }
+    if (hudCache.fuelBurn !== burn) { hudCache.fuelBurn = burn; hudEls.fuel.classList.toggle("burn", burn); }
+  }
   if (vitals) {
     const dead = !!(me && me.flags && me.flags.dead);
     if (dead && !deadSince) deadSince = performance.now();
@@ -4417,7 +4438,7 @@ $("hudBtn").addEventListener("click", (e) => {
 
 // No overlaps while the HUD is shown: a HUD piece over the control a finger is on fades to 25 % (.ovf) until that finger lifts. The controls
 // never move (they are where the player drew them); the HUD pieces take no touches except the tool row, which the corner button skirts.
-const OVF_SEL = "#vitals, #hud .tool, #hud .objpanel, #timer, #pracBar, #score, #radar, #chip:not(.off), #toast:not(.off), #legend.on .chip, .mfx-toasts .mfx-t, .pe-coach-bub";
+const OVF_SEL = "#vitals, #fuel:not(.hidden), #hud .tool, #hud .objpanel, #timer, #pracBar, #score, #radar, #chip:not(.off), #toast:not(.off), #legend.on .chip, .mfx-toasts .mfx-t, .pe-coach-bub";
 const ovfHeld = new Map();     // finger / action key -> the control's rect
 function ovfApply() {
   for (const el of document.querySelectorAll(".ovf")) el.classList.remove("ovf");
