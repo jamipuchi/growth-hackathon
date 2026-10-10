@@ -66,6 +66,8 @@ The owner answered a long round of questions after the first playtest. Where an 
 
 **Owner decision, 10 October 12:26:** no bots; the host can start whenever, and only READY players (ship and controller accepted) get into the round. The others keep drawing and join the next round with their drawings kept (in ENDLESS they join as soon as they are ready).
 
+**Owner decision, 10 October 13:00** (and 13:02): loot and power-ups in space. "The small rocks in space you can shoot, there might be some extra life or shields or some other things there"; "boost, etc.", "come up with nice skills". A space rock destroyed by a shot or a blast drops a pickup (stone 25 %, crystal 60 %, crystals favour the rare ones) that floats for 20 s: instant REPAIR, BOOST, GEMS, SHIELD bubble, +1 DRAWING and WARP, or one timed power-up slot (OVERDRIVE, RAPID FIRE, MAGNET, HOMING, MEGA BLAST, GHOST; a new one replaces the old, death clears it). The phone shows a loot card and a countdown chip that stays with the HUD hidden; the TV a quiet kill-feed line. Numbers in `contract.js` `TUNING.loot` (v1.8).
+
 ## 1. Components
 
 One Node server, `node server.js`, runs everything: HTTP on port 8000 and HTTPS on port 8443 (a self-signed certificate, so phones get tilt and the camera). Phones join over the LAN by scanning the QR code on the big screen.

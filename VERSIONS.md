@@ -16,6 +16,7 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
 | v1.6 | Oct 10, 12:20 (tag `v1.6` on abebbfd) | Automatic landing (no LAND gate), shots that reach rivals uphill and downhill, closed vehicle tyres, the render and TV fixes (GO sound, one jingle, chest counter, a higher chase camera, drilling animates, hints stay with the HUD hidden), a Hall of Fame of every drawing judged by OpenAI's Decisions API, and an optional ENDLESS free-for-all (off by default) | Implement-first round: syntax checks on every file, plus the tracks' own node checks: sim-test 33/33, rules-test 17/17, fresh-round test pass, tyre probe 33/33, balance sim 6/6; 3 real Decisions API calls (HTTP 200, about 1.5 s each). No unit-suite set, e2e, perf run or video | not run on v1.6 (its features are in the v1.7 round) | – |
 | v1.6.1, v1.6.2 | Oct 10, 12:38 and 12:45 (tags on branch `v1.6.1-work`, hotfixes on v1.6) | v1.6.1: a RESTART button on the TV (everyone rejoins from scratch). v1.6.2: round 2 no longer asks for the explorer in the lobby | Syntax checks; the restart was tried on spare ports by the building agent (no numbers recorded). No e2e run | – | – |
 | v1.7 | Oct 10, 12:52 (tag `v1.7` on 0622fdf); the owner's demo build from 12:54 | A bright, cartoony island twice as wide (840 m) with faster explorers and chests spread across it; START any time with only READY players (ship and controller accepted), no bots; Sol on medium effort with longer timeouts; the round-2 explorer fix | Implement-first: syntax checks, plus the tracks' node checks: balance sim 12/12 (expert every chest at 3:00-3:19, regular 13-15/16 at the 4:00 cap), sim-test 33/33, rules-test 17/17, ready gate 7/7, astra-test 30/30, corpus replay 103 cases 0 failures, astra-html 57/57. No unit-suite set, e2e, phone perf run or real call on medium effort before the tag | Codex v1.7 test round from 12:53 (`dev/v17-test/FINDINGS.md`) | to come: `videos/v1.7/` |
+| v1.8 | in progress (main line after v1.7) | The render fixes (crisp shoreline on the 840 m island, no stale phone HUD while paused, every vehicle inside the phone budget), RESTART on the main line, docs for v1.6-v1.7, and loot: shot space rocks drop pickups and timed power-ups, with a loot card and countdown chips on the phone and quiet kill-feed lines on the TV | Implement-first so far: syntax checks; balance sim 12/12 with loot (see notes); `dev/v18-lootui` phone 16/16 and TV feed 6/6. No unit-suite set, e2e, perf run or video yet | – | – |
 
 ## Notes per version
 
@@ -496,6 +497,36 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
   RESTART comes to the main line in v1.8.
 - **Live:** 8105/8548 from 12:52 under the keep-alive loop with effort `medium` and 0 bots. Never restarted without the
   owner's go. v1.6 (8104/8547) and the v1.5 demo (8103/8546) still run.
+
+### v1.8 (in progress on the main line; not tagged)
+- **What landed** (commits on `v1`):
+  - 679cd7e render: a crisp shoreline on the 840 m island; the phone HUD never reads a stale frame while rendering is
+    paused; every vehicle inside the phone budget.
+  - 2f3d1b8 restart: the RESTART button on the TV, ported from v1.6.1 to the main line.
+  - 898e466 docs: VERSIONS.md for v1.6, v1.6.1/v1.6.2 and v1.7; the README (running, ports, environment variables,
+    ENDLESS, RESTART, Hall of Fame, automatic landing, ready-only start, file map).
+  - 69c4f31 loot (the owner's 13:00 and 13:02 decisions, PLAN.md section 0): a space rock destroyed by a shot or a blast
+    drops a pickup (stone 25 %, crystal 60 %) that floats for 20 s. Six instant kinds (REPAIR, BOOST, GEMS, SHIELD
+    bubble, +1 DRAWING, WARP) and six timed power-ups in one slot per player (OVERDRIVE, RAPID FIRE, MAGNET, HOMING,
+    MEGA BLAST, GHOST). Glowing badges and power-up auras on every screen, `hud().me.powerup` / `me.bubble` and
+    `game.on("pickup")` for the page. Numbers: `contract.js` `TUNING.loot`.
+  - Loot on the phone, the TV and in the docs (track v18-lootui, not committed yet): `controller.html` shows a toast
+    that carries `pickup` as a loot card (the icon in a badge, the card in the item's colour, a shine on a rare one) and
+    two countdown chips, the running power-up and the SHIELD bubble (icon, label, seconds, a ring that empties). The
+    chips stay with the HUD hidden and sit where no drawn control is, by the HUD switch's logic. A grab buzzes. The TV
+    (`space.html`, `bigscreen-extras.js` kind `loot`) shows the quiet "✨ ana · 🔥 RAPID FIRE" lines small and dim with
+    their emoji (no chips: 💎 GEMS is not a chest). It drops a line when the feed already shows 3 lines or another one
+    came less than 0.7 s before. README section "Loot and power-ups".
+- **Recorded checks:**
+  - Balance sim with loot, both routes, 24 bots, seeds 1-6 (13:26, `dev/v18-lootui/balance-sim.txt`), ALL PASS 12/12,
+    against v1.7 (`dev/v17-island-size/sim-after.txt`):
+    - Expert: no change. Boss down at 0:19-0:20, landed at 0:34-0:38, every chest open at 3:00-3:19 (179.8-199.4 s).
+    - Regular: the boss goes down 5 s sooner (0:22-0:23, was 0:27-0:28), landing and the first chest come 2-4 s
+      sooner, and the score is about 1,000 higher; still 13-15 of 16 chests at the 4:00 cap.
+    - Loot does not shorten the round. The expert route still ends well above 2:50, so no tuning change.
+  - `dev/v18-lootui/phone-loot.mjs` 16/16 and `tv-feed-loot.mjs` 6/6 (fake DOM). Phone smoke t1 13/13, t2 53/53 and
+    t3 78/78, and the TV page test, all still pass.
+  - Not run: the unit suites as a set, e2e, phone perf with pickups on screen, WebKit or a real iPhone for the chips.
 
 ## The owner's decisions on the morning of Oct 10 (PLAN.md section 0 has the full text)
 | When | Decision | Landed in |

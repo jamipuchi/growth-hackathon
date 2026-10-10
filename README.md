@@ -152,6 +152,33 @@ replaced, and you get a drawing back every minute. On the planet the TAKE OFF bu
 space; fly into the planet to land again. Join at any time: once your ship and controller are ready, you jump straight
 in.
 
+### Loot and power-ups (v1.8)
+
+Shoot the small rocks in space: a stone drops a pickup one time in four, a crystal more than half the time (and
+crystals drop the rare ones more often). Fly through a pickup to take it; it floats for 20 s and comes to you when you
+are close.
+
+| Pickup | What it does |
+|---|---|
+| ❤️ REPAIR | +40 hp |
+| ⛽ BOOST | a full boost tank |
+| 💎 GEMS | +75 points |
+| 🛡️ SHIELD | a bubble for 6 s that blocks every hit (stacks up to 12 s); you can still shoot |
+| ✏️ +1 DRAWING | one more drawing this round (+25 points when you already have all 5) |
+| 🌀 WARP | an instant dash 40 m ahead |
+| 🚀 OVERDRIVE, 8 s | boost without using the tank |
+| 🔥 RAPID FIRE, 8 s | twice the fire rate (needs a drawn weapon) |
+| 🧲 MAGNET, 10 s | pickups come to you from 4× as far |
+| 🎯 HOMING, 8 s | your shots turn toward rivals, the boss and rocks |
+| 💥 MEGA BLAST, up to 20 s | your next shot explodes: 60 damage to nearby rivals, 300 to the boss |
+| 👻 GHOST, 5 s | rival shots, blasts and mines pass through you (the boss still hits) |
+
+Power-ups with a time (🚀 🔥 🧲 🎯 💥 👻) take one slot: a new one replaces the old one, and dying ends it. Your phone
+shows the pickup as a card in its colour, and a countdown chip (icon, name, seconds and a ring that empties) for the
+running power-up and for the SHIELD bubble. The chips stay when you hide the HUD and move away from your drawn controls.
+The big screen shows each pickup as a small dim line in the kill feed ("✨ ana · 🔥 RAPID FIRE"), dropped when the feed is
+busy. Numbers: `contract.js` `TUNING.loot`.
+
 ## For the host (the big screen)
 
 | To | Do |

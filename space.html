@@ -1669,6 +1669,11 @@ function onAnnounce(m) {
   let plain = false;
   for (const [re, nice] of COPY.rewrite) if (re.test(text)) { text = nice; plain = true; }
   if (/^round \d+ starts in\b/i.test(text)) return; // "Round 2 starts in 3…": the big 3-2-1 says it (not even in the feed)
+  // v1.8 loot: "✨ ana · 🔥 RAPID FIRE" (announce.quiet): a small dim feed line with its emoji, dropped when the feed is busy; never a banner
+  if (m.quiet || /^\s*\u2728/.test(raw)) {
+    if (killFeed) killFeed.push(raw.replace(/^\s*\u2728\uFE0F?\s*/, "\u2728 "), leadColour(text), colours, "loot");
+    return;
+  }
   if (killFeed) {
     // a kill between two filler players is a small dim line that the feed drops first
     const names = namesIn(text);

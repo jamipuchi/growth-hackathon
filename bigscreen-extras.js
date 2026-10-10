@@ -153,6 +153,9 @@ export function injectStyles() {
 .bse-feed-item.quiet::before{background:linear-gradient(180deg,rgb(34 26 100/.8),rgb(18 12 56/.8))}
 .bse-feed-item.in{opacity:1;transform:none;transition:opacity .2s ease-out,transform .34s cubic-bezier(.34,1.56,.64,1)}
 .bse-feed-item.quiet.in{opacity:.82}
+.bse-feed-item.loot{font-size:1.02em;font-weight:600;padding-top:.18em;padding-bottom:.22em}
+.bse-feed-item.loot::before{background:linear-gradient(180deg,rgb(28 22 80/.62),rgb(14 10 44/.62))}
+.bse-feed-item.loot.in{opacity:.66}
 .bse-feed-item.out{opacity:0;transform:translateX(1em);transition:opacity .5s ease-in,transform .5s ease-in}
 .bse-feed-item.ko.in::before{animation:bse-flash .9s ease-out both}
 .bse-feed-item.ko.in .bse-chip.ko{animation:bse-pop .4s cubic-bezier(.34,1.56,.64,1) both}
@@ -667,7 +670,10 @@ function parseFeedBase(raw) {
 
 // push(text, colour, names?, kind?): colour = the line's accent (the lead player's colour); names = [[name, colour], …] (or a Map)
 // paints every player name in the text in its own colour; kind "hint" = a smaller purple line, "quiet" = a small dim line that
-// is dropped first (a kill between two bots). opts.labels = the words on the chips ({ emp, ink, pull, mine, decoy, steal, ko }).
+// is dropped first (a kill between two bots), "loot" (v1.8: a pickup line, "✨ ana · 🔥 RAPID FIRE") = an even smaller, dimmer line
+// with its emoji kept as they are (no chips: 💎 GEMS is not a chest), dropped first, and not shown at all while the feed is busy
+// (opts.busy lines or more on screen, default max - 2) or within opts.lootGap ms (default 700) of the last one.
+// opts.labels = the words on the chips ({ emp, ink, pull, mine, decoy, steal, ko }).
 // opts.side "left" = hang from the bottom-left corner (the page places it), newest line at the bottom; opts.lines = punchline words.
 export function createKillFeed(container, opts = {}) {
   injectStyles();
@@ -703,7 +709,8 @@ export function createKillFeed(container, opts = {}) {
     }
   }
   const items = [];
-  let lastSig = "", lastAt = 0;
+  let lastSig = "", lastAt = 0, lootAt = 0;
+  const busy = opts.busy || Math.max(2, max - 2), lootGap = opts.lootGap == null ? 700 : opts.lootGap;
 
   function remove(item) {
     const i = items.indexOf(item);
@@ -725,8 +732,9 @@ export function createKillFeed(container, opts = {}) {
     }
   }
   function push(text, colour = "#9fd8ff", names, kind) {
-    const line = parseFeedLine(text, lines);
     const now = Date.now();
+    if (kind === "loot") return pushLoot(String(text), colour, names, now);
+    const line = parseFeedLine(text, lines);
     const sig = line.lead.join() + "|" + line.text + "|" + line.tail.join();
     if (!line.text && !line.lead.length && !line.tail.length) return;
     if (sig === lastSig && now - lastAt < 1200) return; // the same line twice in a row is one event
@@ -747,6 +755,22 @@ export function createKillFeed(container, opts = {}) {
       } else if (line.text) addText(d, line.text, names);
       for (const k of line.tail) d.appendChild(chipEl(k, labels[k]));
     }
+    show(d, quiet);
+  }
+  // v1.8 loot: a small dim line, or nothing when the feed is busy or another loot line just came
+  function pushLoot(text, colour, names, now) {
+    const t = text.replace(/\s+/g, " ").trim();
+    if (!t || items.length >= busy || now - lootAt < lootGap) return false;
+    lootAt = now;
+    const d = document.createElement("div");
+    d.className = "bse-feed-item quiet loot";
+    d.style.setProperty("--c", colour);
+    d.dataset.line = text;
+    addText(d, t, names);
+    show(d, true);
+    return true;
+  }
+  function show(d, quiet) {
     el.appendChild(d);
     const item = { el: d, quiet };
     items.push(item);

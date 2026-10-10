@@ -1,0 +1,73 @@
+PASS  play screen, DOM controls built from the layout  → ["play",6]
+PASS  no pad yet: asked the server (POST /controller-html {player}), + the one QA M4 check  → 2
+PASS  one sandbox mounted in #ctl  → 1
+PASS  allowedActions = requiredActions = the pad's actions  → ["steer","boost","shoot","land","heal","emp"]
+PASS  fallbackHtml = the same html, ready timeout 6 s
+PASS  DOM controls hide at once (area.sb)
+PASS  S.layout adopted from padLayout (6 controls)  → ["steer","boost","shoot","land","heal","emp"]
+PASS  not live yet
+PASS  live after the frame reports its controls
+PASS  setDisabled([]) with no entity yet (nothing known to be locked)  → [[]]
+PASS  entity change: heal is locked, setDisabled(['heal'])  → [[],["heal"]]
+PASS  another player's entity is ignored
+PASS  press + release of BOOST: input down, input up  → [{"type":"input","player":"tester","action":"boost","down":true},{"type":"input","player":"tester","action":"boost","down":false}]
+PASS  axis out, then a forced 0,0  → [{"type":"axis","player":"tester","axis":"steer","x":0.5,"y":-0.25},{"type":"axis","player":"tester","axis":"steer","x":0,"y":0}]
+PASS  stick held state cleared
+PASS  press on a locked control: lock tip with what to draw  → 🔒 HEAL · draw a red cross on your ship
+PASS  the input is still sent (server is the authority)
+PASS  the server's own refusal for that skill stays quiet
+PASS  someone else's cooldown is ignored
+PASS  cooldown: emp greyed together with the locked heal  → emp,heal
+PASS  a countdown chip sits on the control  → ["2","70.00%","30.00%"]
+PASS  press on a cooling control: READY IN n S  → EMP · READY IN 2 S
+PASS  cooldown over: emp usable again, chip gone  → ["heal",1]
+PASS  hold >= 450 ms: what it does  → ["SHOOT","Hold to fire your gun"]
+PASS  v1.3 first touch: the tip stays its 2.2 s after a quick release
+PASS  v1.3 first touch: then it goes by itself
+PASS  second hold >= 450 ms: the tip again
+PASS  released: the hold tip goes
+PASS  EMP has its own one-line explanation  → Scramble the buttons of the closest rival
+PASS  kind html with the same actions: handle.replace(), no remount  → [1,1]
+PASS  replace resolved true: source model  → model
+PASS  replace refused: the working document stays, the pad forgets the bad one  → <!doctype html><html>MODEL xxx
+PASS  the same html again: nothing
+PASS  another player's generated is ignored
+PASS  other action set: the old frame is destroyed and a new one mounted  → [true,2]
+PASS  a held control gets its release when the frame is replaced (no stuck fire)  → ["undefined:undefined","shoot:false"]
+PASS  allowed actions of the new mount  → ["steer","shoot","scan"]
+controller frame lacks shoot : using the plain controls
+PASS  missing control: sandbox dropped, DOM controls back, pad marked bad  → [null,true]
+PASS  a bad pad is not mounted again and again (1 fetch + the one QA M4 check, no more)  → [1,2]
+controller frame reported no controls: using the plain ones
+PASS  frame reported no controls: DOM controls
+PASS  404 on /controller-html: no sandbox, padFailed, DOM controls  → [0,true]
+PASS  and it does not ask again on every screen change  → 1
+ctrl-sandbox.js unavailable, using the plain controls Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/tmp/phone-v12-smoke/run-30367-5/ctrl-sandbox.js' imported from /private/tmp/phone-v12-smoke/run-30367-5/page.mjs
+Did you mean to import "../../../../Users/jaumepuig/Documents/growth-hackathon/ctrl-sandbox.js"?
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at defaultResolve (node:internal/modules/esm/resolve:991:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
+    at #resolve (node:internal/modules/esm/loader:701:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:650:32)
+    at TracingChannel.tracePromise (node:diagnostics_channel:350:14) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///private/tmp/phone-v12-smoke/run-30367-5/ctrl-sandbox.js'
+}
+PASS  no ctrl-sandbox.js: DOM controls, no /controller-html call  → [0]
+PASS  controller result: the pad came with the answer (no /controller-html needed)  → ["controllerResult","template"]
+PASS  S.layout is the server's padLayout (4 controls)
+PASS  nothing mounted while on the result sheet
+PASS  legend pending
+PASS  PLAY: sandbox mounted with the answer's pad, no fetch (only the one QA M4 check for Sol's version)  → [1,1]
+PASS  legend waits for the frame
+PASS  legend from the frame's own labels, after it is live  → STEERFIREBOOSTLAND
+PASS  add sheet: opens
+PASS  add-a-button: the whole pad html from the answer is adopted (replace in place, same actions)  → 1
+PASS  add sheet closed again
+
+53 checks, 0 failed
+EXIT 0

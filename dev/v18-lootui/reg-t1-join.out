@@ -1,0 +1,16 @@
+PASS  join screen at load
+PASS  POST /join carries device and token (the same, 16+ chars [A-Za-z0-9_-])  → {"player":"tester","device":"yxYzE3Ik_l0xkhb55JpYY5UM","token":"yxYzE3Ik_l0xkhb55JpYY5UM"}
+PASS  device token stored in localStorage sp.device (JSON string)
+PASS  device token backed up in sessionStorage
+PASS  no notice without renamed
+PASS  went on to the ship step  → ["draw","ship","tester"]
+PASS  reload: the stored name rejoins by itself, with the same device token
+PASS  refresh rejoin sends the same device token  → {"player":"ana","device":"O13IkjDqCsP0Aiu1OIM39QD_","token":"O13IkjDqCsP0Aiu1OIM39QD_"}
+PASS  renamed: the phone plays on as ana2  → ana2
+PASS  renamed notice text  → ANA WAS TAKEN · YOU ARE ANA2
+PASS  saved name is the new one
+PASS  full: stays on the join screen with a message  → ["join","The game is full. Ask the host to make room"]
+PASS  localStorage off: a token is still sent (and kept in sessionStorage)  → wWidROFIOIPQtSLxx0q4r53N
+
+13 checks, 0 failed
+EXIT 0

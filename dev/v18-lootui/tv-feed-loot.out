@@ -1,0 +1,8 @@
+PASS  a loot line shows on a quiet feed
+PASS  it is small and dim (quiet loot), emoji kept, no chips  → ["bse-feed-item quiet loot","✨ ana · 🔥 RAPID FIRE"]
+PASS  💎 GEMS is not a chest chip
+PASS  busy feed (3+ lines): the loot line is dropped
+PASS  default gap: a second loot line within 700 ms is dropped
+PASS  over max: the loot line goes first  → ["bse-feed-item ko","bse-feed-item ko","bse-feed-item ko"]
+
+6 checks, 0 failed

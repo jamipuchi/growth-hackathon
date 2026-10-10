@@ -1,0 +1,111 @@
+PASS  emp: MFX.emp(#play, 5) and NO onSwap (the frame's kit swaps)  → [5,[]]
+PASS  inkbomb: inkBomb(#play, { seconds: 4 })  → {"seconds":4}
+PASS  tractor: dir = -dir (server pi/2 = up, mfx pi/2 = down), by = from  → {"by":"bob","dir":-1.5707963267948966,"seconds":1.5}
+PASS  tractor without a dir: 0 (right), not NaN  → {"by":"bob","dir":0,"seconds":1.5}
+PASS  mine: points -30 (positive 30 from the server), stunSeconds, by, shakeEl #game  → {"by":"bob","points":-30,"stunSeconds":1.5,"shakeEl":"<canvas#game>"}
+PASS  decoy (no victim): you shot bob's decoy -> decoyFooled(#play, { by: from })  → {"by":"bob"}
+PASS  decoy (victim): your decoy fooled bob -> { by: victim, mine: true, victim }  → {"by":"bob","mine":true,"victim":"bob"}
+PASS  messages for other players are ignored (older render.js sends everyone's)
+PASS  __spTest.mischief runs the same handler (defaults: me, from bob)
+ctrl-sandbox.js unavailable, using the plain controls Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/tmp/phone-v12-smoke/run-30365-2/ctrl-sandbox.js' imported from /private/tmp/phone-v12-smoke/run-30365-2/page.mjs
+Did you mean to import "../../../../Users/jaumepuig/Documents/growth-hackathon/ctrl-sandbox.js"?
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at defaultResolve (node:internal/modules/esm/resolve:991:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
+    at #resolve (node:internal/modules/esm/loader:701:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:650:32)
+    at TracingChannel.tracePromise (node:diagnostics_channel:350:14) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///private/tmp/phone-v12-smoke/run-30365-2/ctrl-sandbox.js'
+}
+PASS  legacy emp: onSwap given
+PASS  each DOM control carries data-action (what mischief-fx keys on)  → ["steer","boost","shoot"]
+PASS  touch on BOOST's place sends SHOOT (what is shown there)  → ["shoot:true"]
+PASS  and the release goes to SHOOT too  → ["shoot:true","shoot:false"]
+PASS  moving inside the place keeps it pressed  → ["shoot:true"]
+PASS  sliding off the place releases it  → ["shoot:true","shoot:false"]
+PASS  pointercancel releases only that finger  → ["boost:true,shoot:true",["boost:true","shoot:true","boost:false"]]
+PASS  EMP over: BOOST's place presses BOOST again  → ["boost:true","boost:false"]
+mischief-fx.js unavailable, no screen effects Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/tmp/phone-v12-smoke/run-30365-3/mischief-fx.js' imported from /private/tmp/phone-v12-smoke/run-30365-3/page.mjs
+Did you mean to import "../../../../Users/jaumepuig/Documents/growth-hackathon/mischief-fx.js"?
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at defaultResolve (node:internal/modules/esm/resolve:991:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:765:52)
+    at #resolve (node:internal/modules/esm/loader:701:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:621:35)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:650:32)
+    at TracingChannel.tracePromise (node:diagnostics_channel:350:14) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///private/tmp/phone-v12-smoke/run-30365-3/mischief-fx.js'
+}
+PASS  no mischief-fx.js: a plain line says it  → MINE! YOU LOST 30 POINTS
+PASS  no mischief-fx.js: the frame's own EMP still scrambles (handle.fx)  → [["emp",{"seconds":5}]]
+PASS  own EMP without mischief-fx.js: the chip says it  → BOB'S BUTTONS SCRAMBLED!
+PASS  my EMP hit bob: gold MFX.toast "BOB'S BUTTONS SCRAMBLED!"  → ["BOB'S BUTTONS SCRAMBLED!",{"tone":"gold","seconds":2.4,"screenEl":"<div#play>"}]
+PASS  ink: BOB GOT INKED!
+PASS  tractor: BOB PULLED IN!
+PASS  my mine: BOB HIT YOUR MINE!
+PASS  lines where I am the victim or a decoy line make no own toast
+PASS  chip: boss down + who  → ["BOSS DOWN!","BOB LANDED THE LAST HIT","gold",false]
+PASS  chip: boss down, I did it (+1000)  → ["BOSS DOWN!","YOU LANDED THE LAST HIT! +1000","gold",false]
+PASS  chip: swarm  → ["BOSS DOWN!","THE SWARM BROUGHT IT DOWN","gold",false]
+PASS  a lesser chip does not push out the boss one  → ["BOSS DOWN!","THE SWARM BROUGHT IT DOWN","gold",false]
+PASS  the chip leaves after 2.5 s  → ["BOSS DOWN!","THE SWARM BROUGHT IT DOWN","gold",true]
+PASS  chip: my chest  → ["CHEST OPENED!","+1500 POINTS","gold",false]
+PASS  another player's chest: cyan, not over mine
+PASS  another player's chest alone: cyan chip  → ["ANA OPENED A CHEST","+1500 POINTS","cyan",false]
+PASS  steal (others): violet  → ["BOB STOLE 750 POINTS","FROM ANA","violet",false]
+PASS  steal (me): gold  → ["YOU STOLE 750 POINTS!","FROM ANA","gold",false]
+PASS  steal (from me): red  → ["BOB STOLE 750 POINTS!","FROM YOU","red",false]
+PASS  my kill: YOU GOT ANA! +200  → ["YOU GOT ANA!","+200 POINTS","gold",false]
+PASS  my kill of a bot: no points line  → ["YOU GOT BOT3!","","gold",false]
+PASS  someone else's kill: nothing
+PASS  3:00: the chests glow, draw what is missing (no ALL POWERS ON)  → ["THE CHESTS GLOW!","MISSING A SKILL? DRAW IT NOW","violet",false]
+PASS  round winner: no chip (the results sheet says it)
+PASS  the death toast is swallowed (the card says it)
+PASS  death card opens
+PASS  DESTROYED! / BY BOB / BACK IN 3 / -50 POINTS  → ["DESTROYED!","BY BOB","3","-50 POINTS"]
+PASS  the killer's colour dot  → #f472b6
+PASS  controls released when it opens (the held BOOST got its up)
+PASS  countdown follows respawnIn (ceil)  → 2
+PASS  ... down to 1
+PASS  respawn: card off, BACK IN THE FIGHT! pops  → ["","on"]
+PASS  the pop goes away
+PASS  no killer: no BY line
+PASS  killer from the kill feed line ("ana ✕ me")  → BY ANA
+PASS  __spTest.dead(killer, seconds)
+PASS  ... ends by itself
+PASS  results screen: no death card
+PASS  draw screen in the lobby: no drawing input  → []
+PASS  playing on the play screen: nothing
+PASS  add-a-button sheet opens in a live round: drawing down (once)  → [true]
+PASS  not re-sent on every tick
+PASS  sheet closed: drawing up  → [true,false]
+PASS  draw screen during play: down again  → [true,false,true]
+PASS  back to the game: up  → [true,false,true,false]
+PASS  the round starts under an open draw screen: down  → [true,false,true,false,true,false,true]
+PASS  the round ends: up (never left down)  → [true,false,true,false,true,false,true,false]
+PASS  draw screen: renderer pause is not called before the game exists
+PASS  name tags: max 25  → {"max":25,"offset":4}
+PASS  play: renderer running  → [false]
+PASS  draw screen up: renderer paused  → [false,true]
+PASS  back in the game: renderer resumed  → [false,true,false,false]
+PASS  page hidden: paused
+PASS  page visible again: running
+PASS  a ghost box is up
+PASS  scoreboard: ghost cleared  → false
+PASS  a new round (lobby): ghost cleared  → false
+PASS  the page plays no start / win sound (render.js does)  → []
+PASS  results: the winner is shown  → WINNER: TESTER +1 ★
+PASS  explorer prompt: the PLANET budget (4 OF 5 DRAWINGS LEFT ON ...)  → 4 OF 5 DRAWINGS LEFT
+PASS  planet budget 0: the prompt says so and the buttons grey out  → NO DRAWINGS LEFT ON THE PLANET
+
+78 checks, 0 failed
+EXIT 0

@@ -1,0 +1,18 @@
+PASS  power-up chip on: icon + label + seconds  → 🔥RAPID FIRE5s
+PASS  chip in the power-up colour (#ff5a1f)  → #ff5a1f
+PASS  ring empties with left / seconds (4.2 / 8 -> offset 48)  → 48
+PASS  bubble chip off with no bubble
+PASS  the box is placed (left / top set)  → ["8px","8px"]
+PASS  MEGA BLAST chip says NEXT SHOT  → 💥MEGA BLASTNEXT SHOT
+PASS  bubble chip on: SHIELD + 6s  → 🛡️SHIELD6s
+PASS  bubble chip cyan (#22d3ee)  → #22d3ee
+PASS  HUD hidden: chips still on
+PASS  both chips gone when the power-up and the bubble end
+PASS  no chip while dead
+PASS  toast with pickup is a loot card  → loot
+PASS  loot card: icon badge + label + small seconds  → ["🔥","RAPID FIRE8s"]
+PASS  a plain toast is not a loot card
+PASS  test hook pickupToast(homing): loot card, rare tier  → {"kind":"loot","text":"HOMING8s","icon":"🎯"}
+PASS  game.on(pickup) buzzes powerup  → ["dead","powerup"]
+
+16 checks, 0 failed

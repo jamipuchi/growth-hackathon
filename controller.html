@@ -502,6 +502,37 @@
   #toastAct { margin-top: 8px; min-height: 48px; font-size: 18px; }
   /* while the add-a-button sheet is open the toast sits above it, low on the screen (the hint used to hide behind the photo card) */
   body.adding #toast { z-index: 9; top: auto; bottom: calc(var(--sb) + 64px); }
+  /* v1.8 loot: a toast that carries `pickup` is a loot card: the item's icon in a badge, the card in the item's colour (--pc), a shine on a rare one */
+  #toast[data-kind="loot"] { display: flex; align-items: center; gap: 12px; padding: 8px 20px 12px 10px; text-align: left; }
+  #toast[data-kind="loot"]::before { border-color: #fff; box-shadow: 0 5px 0 var(--hard), 0 0 18px var(--pc, #fff); background: var(--pc, #3a2a9a);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--pc, #3a2a9a) 70%, #fff) 0%, var(--pc, #3a2a9a) 45%, color-mix(in srgb, var(--pc, #231a78) 45%, #120a2e) 100%); }
+  #toast[data-kind="loot"][data-tier="rare"]::before { animation: lootShine 0.9s ease-in-out 2 alternate; }
+  @keyframes lootShine { from { filter: brightness(1); } to { filter: brightness(1.35) saturate(1.2); } }
+  #toastIcon { display: none; flex: none; width: 42px; height: 42px; border-radius: 50%; background: rgb(255 255 255 / 0.92); border: 3px solid var(--ink); box-shadow: 0 3px 0 var(--hard);
+    font: 24px/36px system-ui, sans-serif; text-align: center; }
+  #toast[data-kind="loot"] #toastIcon { display: block; animation: pop 0.35s ease-out; }
+  #toast[data-kind="loot"] #toastText { font: 900 italic 20px/1.05 var(--f-head); letter-spacing: 0.03em; text-transform: uppercase; -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
+  #toast[data-kind="loot"] #toastText small { display: block; font: 800 italic 13px/1.1 var(--f-head); letter-spacing: 0.06em; -webkit-text-stroke: 2px var(--ink); opacity: 0.95; }
+  /* v1.8 loot: the countdown chips (the timed power-up, the SHIELD pickup's bubble): icon + label + seconds in the item's colour, a ring that
+     empties. Gameplay-critical: they stay with the HUD hidden. placeLoot() puts them where no drawn control is (the HUD switch's logic). */
+  #lootChips { position: fixed; left: 8px; top: calc(var(--st) + 130px); z-index: 6; display: none; flex-direction: column; gap: 6px; pointer-events: none; }
+  #lootChips.on { display: flex; }
+  body.adding #lootChips { display: none !important; }
+  .puc { position: relative; display: none; align-items: center; gap: 8px; padding: 4px 14px 6px 4px; isolation: isolate; width: max-content; }
+  .puc.on { display: flex; }
+  .puc.pop { animation: pop 0.35s ease-out; }
+  .puc::before { content: ""; position: absolute; inset: 0 0 3px 0; z-index: -1; transform: skewX(-8deg); border: 3px solid var(--ink); border-radius: 8px; box-shadow: 0 3px 0 var(--hard), 0 0 12px var(--pc, #fff);
+    background: rgb(13 11 46 / 0.9); background: linear-gradient(180deg, color-mix(in srgb, var(--pc, #3a2a9a) 55%, #120a2e) 0%, rgb(13 11 46 / 0.9) 100%); }
+  .puc .ring { position: relative; flex: none; width: 40px; height: 40px; }
+  .puc svg { position: absolute; inset: 0; width: 40px; height: 40px; transform: rotate(-90deg); }
+  .puc circle { fill: rgb(10 6 30 / 0.55); stroke-width: 4.5; }
+  .puc circle.trk { stroke: rgb(255 255 255 / 0.18); }
+  .puc circle.arc { fill: none; stroke: var(--pc, #fff); stroke-linecap: round; stroke-dasharray: 100 100; transition: stroke-dashoffset 0.12s linear; }
+  .puc .ic { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 19px/1 system-ui, sans-serif; }
+  .puc .tx { display: flex; flex-direction: column; gap: 1px; }
+  .puc b { font: 900 italic 15px/1 var(--f-head); letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; color: #fff; -webkit-text-stroke: 2.4px var(--ink); paint-order: stroke fill; }
+  .puc em { font: 900 italic 19px/1 var(--f-head); white-space: nowrap; color: var(--pc, #fff); -webkit-text-stroke: 2.6px var(--ink); paint-order: stroke fill; }
+  .puc.low em { animation: lowPulse 0.45s ease-in-out infinite alternate; }
 
   /* wait banner, GO!, results */
   #banner { position: fixed; left: 50%; top: 50%; z-index: 5; transform: translate(-50%, -48%); width: min(440px, 62vw); display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 18px 20px; text-align: center; isolation: isolate; }
@@ -870,8 +901,12 @@
     </div>
   </div>
   <div id="chip" class="off" data-tone="gold" role="status"><span id="chipTitle"></span><span id="chipSub"></span></div>
-  <div id="toast" class="off"><span id="toastText"></span><button id="toastAct" class="btn blue sm hidden" type="button"></button></div>
+  <div id="toast" class="off"><span id="toastIcon" aria-hidden="true"></span><span id="toastText"></span><button id="toastAct" class="btn blue sm hidden" type="button"></button></div>
   <div id="hintLine" role="status"><span id="hintLineText"></span></div>
+  <div id="lootChips" aria-live="off">
+    <div id="puChip" class="puc"><span class="ring"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="trk" cx="22" cy="22" r="19"/><circle class="arc" cx="22" cy="22" r="19" pathLength="100"/></svg><span class="ic"></span></span><span class="tx"><b></b><em></em></span></div>
+    <div id="bubChip" class="puc"><span class="ring"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="trk" cx="22" cy="22" r="19"/><circle class="arc" cx="22" cy="22" r="19" pathLength="100"/></svg><span class="ic"></span></span><span class="tx"><b></b><em></em></span></div>
+  </div>
   <div id="redrawMenu" class="hidden"></div>
   <div id="go"><b data-copy="go"></b></div>
   <div id="waitStrip" class="hidden" role="status"><b></b><span></span><em></em></div>
@@ -1177,6 +1212,7 @@ const COPY = {
     redrawShip: "REDRAW SHIP", redrawExplorer: "REDRAW EXPLORER", added: "{name} added",
     tiltHttps: "Tilt is not available on this page. Use the stick", tiltDenied: "Tilt is off. Allow motion in your phone settings to use it", tiltOn: "Tilt is on. Tilt your phone to steer",
   },
+  loot: { nextShot: "NEXT SHOT" },     // v1.8: MEGA BLAST's chip (it waits for the next shot)
   add: {
     hintPhoto: "Draw the new button on paper with its word (SCAN, FLARE…), then take a photo",
     hintGhost: "Draw a {action} button on paper, then take a photo",
@@ -1381,7 +1417,7 @@ document.addEventListener("pointerdown", (e) => {
 // Haptics.supported() is false on every iOS device (navigator.vibrate does nothing there) and wherever the API is missing. The switch on
 // the wait banner turns it off (localStorage sp.haptics; on by default). ----------
 const HAP = PE && PE.Haptics ? PE.Haptics : null;
-const HAPTIC = { hit: 35, hitBig: [60, 30, 45], kill: [30, 40, 80], chest: [40, 50, 40, 50, 130], steal: [25, 35, 25], stolen: 160, emp: [70, 40, 70, 40, 70], mischief: 90, dead: 260, win: [60, 60, 60, 60, 260] };
+const HAPTIC = { pickup: 30, powerup: [30, 40, 70], hit: 35, hitBig: [60, 30, 45], kill: [30, 40, 80], chest: [40, 50, 40, 50, 130], steal: [25, 35, 25], stolen: 160, emp: [70, 40, 70, 40, 70], mischief: 90, dead: 260, win: [60, 60, 60, 60, 260] };
 let hapOn = store.get("haptics") !== false;
 const hapLog = [];          // for tests: the last kinds asked for (also when the device has no vibration)
 let hapHitAt = -1e9;
@@ -2301,9 +2337,19 @@ $("wrongUse").onclick = () => { $("wrong").classList.add("hidden"); commit({ any
 
 // ---- leaving the drawing steps ----
 $("useDefault").onclick = () => {
-  if (DR.kind === "ship" || DR.kind === "controller") applyLayout(defaultLayout(), defaultInk(), {});   // plain ship, default buttons
+  if (DR.kind === "ship" || DR.kind === "controller") {
+    applyLayout(defaultLayout(), defaultInk(), {});   // plain ship, default buttons
+    tellDefault(DR.kind === "ship" ? ["ship", "controller"] : ["controller"]);
+  }
   backToGame();
 };
+// v1.8 (skipready): the server counts the plain ship / the default buttons for READY (POST /default), so a player who skips is
+// READY on the TV and plays at START. One retry on a network error; an old server without /default answers 404 (nothing to do).
+function tellDefault(kinds, tries = 2) {
+  if (!S.player) return;
+  post("/default", { player: S.player, device: DEVICE, token: DEVICE, kinds }, { timeoutMs: 8000 })
+    .catch(() => { if (tries > 1) setTimeout(() => tellDefault(kinds, tries - 1), 1500); });
+}
 $("drawCancel").onclick = () => backToGame();
 function backToGame() {
   closeSheets();
@@ -3323,6 +3369,7 @@ function wireGame(game) {
   game.on("toast", (m) => { if (!m.player || m.player === S.player) onToast(m); });
   // Personal messages and the kill feed. render.js sends mischief / cooldown to every phone on older builds: each handler keeps only mine.
   game.on("mischief", onMischief);
+  game.on("pickup", onPickup);       // v1.8 loot: MY grab
   game.on("cooldown", onCooldown);
   game.on("hit", onHit);
   game.on("generated", onGenerated);
@@ -3380,6 +3427,7 @@ function updateHud() {
   if (hudCache.low !== low) { hudCache.low = low; hudEls.timer.classList.toggle("low", low); }
   if (h.phase === "assists" && !h.status) setCached("status", hudEls.status, COPY.hud.assists);
   updateHintLine(h);
+  updateLoot(h, me);     // v1.8 loot: the power-up / bubble countdown chips (kept with the HUD hidden)
   setScale("bar", hudEls.objBar, typeof h.bar === "number" ? h.bar : 0);
   if (vitals) {
     const dead = !!(me && me.flags && me.flags.dead);
@@ -3540,8 +3588,12 @@ function showToast(m) {
   // the big card instead (lateHint).
   if (m.text && !lateHint(m)) {
     const act = toastAction(m);
-    $("toast").dataset.kind = m.kind || "info";
-    $("toastText").textContent = m.text;
+    const loot = lootDef(m.pickup);     // v1.8 loot: a toast that carries `pickup` is a loot card in the item's colour
+    $("toast").dataset.kind = loot ? "loot" : m.kind || "info";
+    $("toast").dataset.tier = loot ? loot.tier || "" : "";
+    $("toast").style.setProperty("--pc", loot ? lootColour(loot.color) : "");
+    $("toastIcon").textContent = loot ? loot.icon || "" : "";
+    if (loot) setLootText(m.text, loot); else $("toastText").textContent = m.text;
     $("toastAct").classList.toggle("hidden", !act);
     $("toast").classList.toggle("act", !!act);
     toastRun = act ? act.run : null;
@@ -3556,6 +3608,102 @@ function showToast(m) {
   if (m.ghost && m.ghost.action) { clearSketch(); S.ghost = { ...m.ghost, action: C.normaliseAction(m.ghost.action) }; placeGhost(); }
 }
 $("toastAct").onclick = () => { $("toast").classList.add("off"); if (toastRun) toastRun(); };
+
+// ---- v1.8 loot (owner, 10 Oct 13:00 / 13:02): shot space rocks drop pickups. The collector's toast (pickup: kind) is a loot card; a timed
+// power-up (render.js hud().me.powerup { kind, label, icon, color, left, seconds, text }) and a SHIELD pickup's bubble (me.bubble, seconds
+// left) get a countdown chip each: icon + label + seconds in the item's colour and a ring that empties. They stay with the HUD hidden
+// (gameplay-critical) and sit where no drawn control is (placeLoot: controlRects, the HUD switch's logic). ----
+const LOOT = (C.TUNING && C.TUNING.loot && C.TUNING.loot.kinds) || {};
+const lootDef = (kind) => (kind && Object.prototype.hasOwnProperty.call(LOOT, kind) ? LOOT[kind] : null);
+const lootColour = (c) => (typeof c === "number" ? "#" + (c >>> 0).toString(16).padStart(6, "0").slice(-6) : typeof c === "string" ? c : "#ffffff");
+// "🔥 RAPID FIRE · 8s" → RAPID FIRE (big) + "8s" (small); the badge already shows the icon
+function setLootText(text, def) {
+  const el = $("toastText"), s = String(text || "").trim();
+  const body = def.icon && s.startsWith(def.icon) ? s.slice(def.icon.length).trim() : s;
+  const i = body.indexOf(" · ");
+  el.textContent = i > 0 ? body.slice(0, i) : body;
+  if (i > 0) { const sm = document.createElement("small"); sm.textContent = body.slice(i + 3); el.appendChild(sm); }
+}
+const lootEls = { box: $("lootChips"), pu: $("puChip"), bub: $("bubChip") };
+const lootState = { pu: "", bub: "", bubPeak: 0, placedAt: 0, shown: false };
+function setChip(el, key, { icon, label, sec, frac, color, low }) {
+  if (el.dataset.k !== key) {        // a new item: its icon, label and colour, and a pop
+    el.dataset.k = key;
+    el.style.setProperty("--pc", color);
+    el.querySelector(".ic").textContent = icon;
+    el.querySelector("b").textContent = label;
+    el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
+  }
+  const em = el.querySelector("em");
+  if (em.textContent !== sec) em.textContent = sec;
+  const off = String(Math.round(100 * (1 - Math.max(0, Math.min(1, frac)))));
+  const arc = el.querySelector(".arc");
+  if (arc.dataset.off !== off) { arc.dataset.off = off; arc.style.strokeDashoffset = off; }
+  el.classList.toggle("low", !!low);
+  el.classList.add("on");
+}
+function updateLoot(h, me) {
+  const playing = (h.phase === "playing" || h.phase === "assists") && S.screen === "play" && !!me && !(me.flags && me.flags.dead);
+  const pu = playing && me.powerup && me.powerup.kind ? me.powerup : null;
+  const bub = playing ? Math.max(0, Number(me.bubble) || 0) : 0;
+  if (pu) {
+    const secs = Number(pu.seconds) || (lootDef(pu.kind) || {}).seconds || 1, left = Math.max(0, Number(pu.left) || 0);
+    setChip(lootEls.pu, pu.kind, { icon: pu.icon || "", label: pu.label || pu.kind, color: lootColour(pu.color),
+      sec: pu.kind === "mega" ? COPY.loot.nextShot : Math.ceil(left) + "s", frac: left / secs, low: pu.kind !== "mega" && left <= 2 });
+  } else if (lootState.pu) { lootEls.pu.classList.remove("on"); lootEls.pu.dataset.k = ""; }
+  lootState.pu = pu ? pu.kind : "";
+  if (bub > 0) {
+    const def = lootDef("shield") || {};
+    lootState.bubPeak = Math.max(lootState.bubPeak, bub, Number(def.seconds) || 0);
+    setChip(lootEls.bub, "shield", { icon: def.icon || "🛡️", label: def.label || "SHIELD", color: lootColour(def.color != null ? def.color : 0x22d3ee),
+      sec: Math.ceil(bub) + "s", frac: bub / lootState.bubPeak, low: bub <= 2 });
+  } else { if (lootState.bub) { lootEls.bub.classList.remove("on"); lootEls.bub.dataset.k = ""; } lootState.bubPeak = 0; }
+  lootState.bub = bub > 0 ? "on" : "";
+  const shown = !!(pu || bub > 0);
+  if (shown !== lootState.shown) { lootState.shown = shown; lootEls.box.classList.toggle("on", shown); lootState.placedAt = 0; }
+  if (shown && performance.now() - lootState.placedAt > 500) placeLoot();
+}
+// The chips' box at the first spot (left column under the HUD, the right one, mid-left, mid-right, bottom centre; the top corners with the
+// HUD hidden) that covers no drawn control, the HUD switch, the hint line, the toast or the announcement chip; else the least covered one.
+function placeLoot() {
+  lootState.placedAt = performance.now();
+  const box = lootEls.box, w = box.offsetWidth, hgt = box.offsetHeight;
+  if (!w || !hgt) return;
+  const a = areaRect(), m = 8;
+  const avoid = controlRects();
+  for (const id of ["hudBtn", "hintLine", "toast", "chip"]) {
+    const el = $(id);
+    if (!el || el.classList.contains(id === "hudBtn" ? "hidden" : "off") || (id === "hintLine" && !(hudOff && el.classList.contains("on")))) continue;
+    if (id === "chip" && hudOff) continue;
+    if (id === "toast" && hudOff && !/^(hint|refused)$/.test(el.dataset.kind || "")) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width && r.height) avoid.push({ left: r.left, top: r.top, right: r.right, bottom: r.bottom });
+  }
+  let under = a.top + m;
+  if (!hudOff) {      // under the HUD row (vitals on the left, the timer / score / radar on the right)
+    const hl = document.querySelector("#hud .hl"), hr = document.querySelector("#hud .hr");
+    for (const el of [hl, hr]) { const r = el && el.getBoundingClientRect(); if (r && r.height) under = Math.max(under, r.bottom + m); }
+  }
+  const L = a.left + m, R = a.right - m - w, mid = a.top + a.height * 0.42 - hgt / 2, cx = a.left + (a.width - w) / 2;
+  const spots = [[L, under], [R, under], [L, mid], [R, mid], [cx, a.bottom - m - hgt], [cx, under]];
+  let best = spots[0], bestCost = Infinity;
+  for (const [x, y] of spots) {
+    const r = { left: x, top: y, right: x + w, bottom: y + hgt };
+    let cost = 0;
+    for (const c of avoid) cost += overlapArea(r, c, 6);
+    if (r.bottom > a.bottom || r.top < a.top) cost += w * hgt;
+    if (cost < bestCost - 0.5) { best = [x, y]; bestCost = cost; }
+    if (cost === 0) break;
+  }
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));      // never off the play area
+  box.style.left = Math.round(clamp(best[0], a.left + m, Math.max(a.left + m, a.right - m - w))) + "px";
+  box.style.top = Math.round(clamp(best[1], a.top + m, Math.max(a.top + m, a.bottom - m - hgt))) + "px";
+}
+// game.on("pickup"): MY grab ({ kind, label, icon, color, seconds?, timed }; render.js flashes the screen): a buzz, and the chips move at once
+function onPickup(p) {
+  buzz(p && p.timed ? "powerup" : "pickup");
+  lootState.placedAt = 0;
+}
 
 // ---- the late hint (owner, 10 Oct 09:05: no free skills at 3:00, the skill is never given): a big, friendly "DRAW A SHOVEL" card with the
 // part's example and one tap to the drawing (a full redraw of the ship / explorer, or the add-a-button sheet on the ghost box for a missing
@@ -3987,6 +4135,7 @@ function setHudOff(off, { say = false } = {}) {
   if (hudOff) { hideTip(); ovfClear(); $("redrawMenu").classList.add("hidden"); if (coach && coach.isOpen()) { coachState.idx = coach.index(); coach.hide(); } }
   if (say) notice(hudOff ? COPY.hudBtn.hidden : COPY.hudBtn.shown, 2200);
   placeHints();
+  if (lootState.shown) placeLoot();      // v1.8: the loot chips move to the HUD-less spots at once
   return hudOff;
 }
 $("hudBtn").addEventListener("click", (e) => {
@@ -4383,6 +4532,20 @@ window.__spTest = {
   // hud(off)   v1.5 the HUD switch: off true / false (omitted: toggle) -> { off, at: the corner it sits in, rects: drawn controls on screen }
   hud(off) { setHudOff(off === undefined ? !hudOff : !!off); store.set("hudOff", hudOff); return { off: hudOff, at: placeHudBtn(), rects: controlRects().length }; },
   juice(action = "shoot") { const r = controlBox(C.normaliseAction(action)); juice(r); return !!r; },
+  // v1.8 loot: loot(kind, left, bubble)   the countdown chips as hud().me would bring them (live HUD frames win: use it with no round
+  //   running) -> { pu: chip text, bub: chip text, box: its rect }; pickupToast(kind)   the collector's loot card
+  loot(kind = "rapid", left = 5, bubble = 0) {
+    const d = lootDef(kind);
+    const me = { flags: {}, bubble, powerup: d && d.timed ? { kind, label: d.label, icon: d.icon, color: d.color, left, seconds: d.seconds } : null };
+    updateLoot({ phase: "playing" }, me);
+    const r = lootEls.box.getBoundingClientRect(), on = (el) => el.classList.contains("on") ? el.textContent.replace(/\s+/g, " ").trim() : "";
+    return { pu: on(lootEls.pu), bub: on(lootEls.bub), box: { left: r.left, top: r.top, right: r.right, bottom: r.bottom }, hudOff };
+  },
+  pickupToast(kind = "rapid") {
+    const d = lootDef(kind) || {};
+    onToast({ type: "toast", player: S.player, kind: "info", verb: null, text: `${d.icon || ""} ${d.label || kind}${d.timed ? ` · ${kind === "mega" ? "next shot" : d.seconds + "s"}` : ""}`, sketch: null, ghost: null, pickup: kind });
+    return { kind: $("toast").dataset.kind, text: $("toastText").textContent, icon: $("toastIcon").textContent };
+  },
   installHint() { if (installHint) installHint.show(); return !!installHint; },
   toolCaps() { $("hud").classList.add("caps"); clearTimeout(showToolCaps.t); showToolCaps.t = setTimeout(() => $("hud").classList.remove("caps"), 6000); },
   html(html, kind = "controller", padLayout = null) {

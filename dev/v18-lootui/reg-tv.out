@@ -1,0 +1,31 @@
+ok   startGame({ screen: "big", winJingle: false }) ({"screen":"big","winJingle":false})
+ok   lobby view
+ok   join code = /info controllerUrl (https://192.168.1.20:8443/controller.html)
+ok   address shown as https:// + host:port + path
+ok   QR canvas is there (no hint)
+ok   play view, panel normal
+ok   dead panel: DESTROYED / BACK IN 3
+ok   respawn: green BACK IN THE FIGHT!
+ok   the green pop goes away
+ok   respawn 0.4 s still says BACK IN 1
+ok   three feed lines (3)
+ok   a kill between two bots is a quiet KO line
+ok   a kill with a human: KO chip + mine chip, not quiet
+ok   mischief line: EMP chip
+ok   no banner for those
+ok   a steal still shows the gold banner (text without emoji)
+ok   3:00 line rewritten in plain words (3:00! THE CHESTS GLOW · MISSING A SKILL? DRAW IT NOW!)
+ok   old server's assists line: same plain words (3:00! THE CHESTS GLOW · MISSING A SKILL? DRAW IT NOW!)
+ok   private hints are not shown on the TV
+ok   __bigscreen.feed() goes through the same path
+ok   results view
+ok   title names the winner (ana WINS!)
+ok   reason chip
+ok   podium: ana is 1st (bob,ana,bot1)
+ok   the rest: 1 row (4 players - 3 on the podium)
+ok   nobody scored: title + all players listed
+ok   no result yet: ROUND OVER, no 'nobody scored' flash
+ok   banner hidden in the results view (CSS in a browser)
+ok   next lobby keeps the join code
+ALL OK
+EXIT 0
