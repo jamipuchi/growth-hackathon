@@ -1,0 +1,32 @@
+{
+  "buttons": [
+    {
+      "type": "stick",
+      "action": "steer",
+      "label": "",
+      "x": 0.063,
+      "y": 0.283,
+      "w": 0.273,
+      "h": 0.583
+    },
+    {
+      "type": "button",
+      "action": "shoot",
+      "label": "SHOOT",
+      "x": 0.484,
+      "y": 0.533,
+      "w": 0.328,
+      "h": 0.35
+    },
+    {
+      "type": "button",
+      "action": "boost",
+      "label": "BOOST",
+      "x": 0.523,
+      "y": 0.133,
+      "w": 0.391,
+      "h": 0.367
+    }
+  ],
+  "source": "regions"
+}

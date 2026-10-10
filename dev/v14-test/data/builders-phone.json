@@ -1,0 +1,381 @@
+{
+  "at": "2026-10-10T09:13:00.401Z",
+  "device": "phone",
+  "cases": [
+    {
+      "id": "E01-plain-fighter",
+      "kind": "ship",
+      "type": "ship",
+      "triangles": 1307,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 2.421072006225586,
+        "y": 1.711875081062317,
+        "z": 3.200000047683716
+      },
+      "buildMs": 22,
+      "nonfinite": 0,
+      "skinned": 0,
+      "meshes": 2
+    },
+    {
+      "id": "E04-cannon-flames",
+      "kind": "ship",
+      "type": "ship",
+      "triangles": 1455,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 2.1022164821624756,
+        "y": 1.5536683797836304,
+        "z": 3.200000047683716
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 0,
+      "meshes": 2
+    },
+    {
+      "id": "E06-nose-drill",
+      "kind": "ship",
+      "type": "ship",
+      "triangles": 1313,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 1.6898882389068604,
+        "y": 1.1825367212295532,
+        "z": 3.200000047683716
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 0,
+      "meshes": 2
+    },
+    {
+      "id": "E08-saucer",
+      "kind": "ship",
+      "type": "ship",
+      "triangles": 1970,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 3.0162158012390137,
+        "y": 1.7565852403640747,
+        "z": 3.200000047683716
+      },
+      "buildMs": 2,
+      "nonfinite": 0,
+      "skinned": 0,
+      "meshes": 2
+    },
+    {
+      "id": "E09-rocket",
+      "kind": "ship",
+      "type": "ship",
+      "triangles": 1981,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 2.106236219406128,
+        "y": 1.6951979398727417,
+        "z": 3.200000047683716
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 0,
+      "meshes": 2
+    },
+    {
+      "id": "E10-chunky",
+      "kind": "ship",
+      "type": "ship",
+      "triangles": 2235,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 1.284287452697754,
+        "y": 2.542389154434204,
+        "z": 3.200000047683716
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 0,
+      "meshes": 2
+    },
+    {
+      "id": "color-messy",
+      "kind": "ship",
+      "type": "ship",
+      "triangles": 1414,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 3.200000047683716,
+        "y": 1.8901009559631348,
+        "z": 3.176804304122925
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 0,
+      "meshes": 2
+    },
+    {
+      "id": "color-topview",
+      "kind": "ship",
+      "type": "ship",
+      "triangles": 1671,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 2.5882046222686768,
+        "y": 1.025821328163147,
+        "z": 3.200000047683716
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 0,
+      "meshes": 2
+    },
+    {
+      "id": "genqa-topview",
+      "kind": "ship",
+      "type": "ship",
+      "triangles": 1455,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 2.113644599914551,
+        "y": 1.4849066734313965,
+        "z": 3.200000047683716
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 0,
+      "meshes": 2
+    },
+    {
+      "id": "jaume-jet",
+      "kind": "ship",
+      "type": "ship",
+      "triangles": 1455,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 1.2927756309509277,
+        "y": 1.3843390941619873,
+        "z": 3.200000047683716
+      },
+      "buildMs": 0,
+      "nonfinite": 0,
+      "skinned": 0,
+      "meshes": 2
+    },
+    {
+      "id": "photo-E13",
+      "kind": "ship",
+      "type": "ship",
+      "triangles": 2023,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 2.245697021484375,
+        "y": 1.6130192279815674,
+        "z": 3.200000047683716
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 0,
+      "meshes": 2
+    },
+    {
+      "id": "photo-E16",
+      "kind": "ship",
+      "type": "ship",
+      "triangles": 1869,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 1.9125218391418457,
+        "y": 1.6311699151992798,
+        "z": 3.200000047683716
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 0,
+      "meshes": 2
+    },
+    {
+      "id": "astronaut-drill",
+      "kind": "entity",
+      "type": "person",
+      "triangles": 2265,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 1.504,
+        "y": 1.795,
+        "z": 0.608
+      },
+      "buildMs": 6,
+      "nonfinite": 0,
+      "skinned": 2,
+      "meshes": 2
+    },
+    {
+      "id": "astronaut-shovel",
+      "kind": "entity",
+      "type": "person",
+      "triangles": 2586,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 1.602,
+        "y": 1.795,
+        "z": 1.035
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 2,
+      "meshes": 2
+    },
+    {
+      "id": "bike-lamp",
+      "kind": "entity",
+      "type": "bike",
+      "triangles": 1064,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 0.701,
+        "y": 1.216,
+        "z": 1.931
+      },
+      "buildMs": 2,
+      "nonfinite": 0,
+      "skinned": 2,
+      "meshes": 2
+    },
+    {
+      "id": "blob",
+      "kind": "entity",
+      "type": "blob",
+      "triangles": 792,
+      "reportedCalls": 1,
+      "actualCalls": 1,
+      "size": {
+        "x": 1.438,
+        "y": 1.151,
+        "z": 1.4
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 1,
+      "meshes": 1
+    },
+    {
+      "id": "car-cannon",
+      "kind": "entity",
+      "type": "car",
+      "triangles": 2416,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 2.095,
+        "y": 2.073,
+        "z": 4.149
+      },
+      "buildMs": 2,
+      "nonfinite": 0,
+      "skinned": 2,
+      "meshes": 2
+    },
+    {
+      "id": "color-person",
+      "kind": "entity",
+      "type": "person",
+      "triangles": 2204,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 1.593,
+        "y": 1.835,
+        "z": 0.819
+      },
+      "buildMs": 2,
+      "nonfinite": 0,
+      "skinned": 2,
+      "meshes": 2
+    },
+    {
+      "id": "color-robot",
+      "kind": "entity",
+      "type": "person",
+      "triangles": 2530,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 1.937,
+        "y": 1.8,
+        "z": 0.609
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 2,
+      "meshes": 2
+    },
+    {
+      "id": "dog-claws",
+      "kind": "entity",
+      "type": "quadruped",
+      "triangles": 2038,
+      "reportedCalls": 1,
+      "actualCalls": 1,
+      "size": {
+        "x": 0.508,
+        "y": 1.221,
+        "z": 2.031
+      },
+      "buildMs": 4,
+      "nonfinite": 0,
+      "skinned": 1,
+      "meshes": 1
+    },
+    {
+      "id": "horse-saddle",
+      "kind": "entity",
+      "type": "quadruped",
+      "triangles": 2082,
+      "reportedCalls": 1,
+      "actualCalls": 1,
+      "size": {
+        "x": 0.702,
+        "y": 1.77,
+        "z": 2.686
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 1,
+      "meshes": 1
+    },
+    {
+      "id": "monster-truck",
+      "kind": "entity",
+      "type": "car",
+      "triangles": 2564,
+      "reportedCalls": 2,
+      "actualCalls": 2,
+      "size": {
+        "x": 3.672,
+        "y": 3.171,
+        "z": 5.609
+      },
+      "buildMs": 1,
+      "nonfinite": 0,
+      "skinned": 2,
+      "meshes": 2
+    }
+  ],
+  "errors": []
+}

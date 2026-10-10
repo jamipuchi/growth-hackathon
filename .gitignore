@@ -14,3 +14,7 @@ dev/**/shots/
 dev/**/*.log
 videos/
 hall/
+
+# Codex QA screenshots stay local (hundreds of MB)
+dev/v14-qa/shots/
+dev/v14-test/shots/

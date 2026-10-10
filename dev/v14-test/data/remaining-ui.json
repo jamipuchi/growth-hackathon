@@ -1,0 +1,60 @@
+{
+  "at": "2026-10-10T09:20:02.154Z",
+  "ipadBefore": {
+    "supported": false,
+    "active": false,
+    "standalone": false,
+    "iosSafari": true
+  },
+  "ipadAfter": {
+    "supported": false,
+    "active": false,
+    "standalone": false,
+    "iosSafari": true
+  },
+  "audio": {
+    "phone": [
+      {
+        "name": "countdown",
+        "at": 2392
+      },
+      {
+        "name": "countdown",
+        "at": 3396
+      },
+      {
+        "name": "countdown",
+        "at": 4398
+      }
+    ],
+    "tv": [
+      {
+        "name": "click",
+        "at": 1504
+      },
+      {
+        "name": "countdown",
+        "at": 1564
+      },
+      {
+        "name": "countdown",
+        "at": 2569
+      },
+      {
+        "name": "countdown",
+        "at": 3569
+      }
+    ]
+  },
+  "inkBefore": 0.5766059027777778,
+  "wipe": {
+    "coverage": 0.17605437364222276,
+    "exists": true
+  },
+  "wipeWallMs": 2837,
+  "controllerPortrait": {
+    "ratio": 0,
+    "rotateVisible": false,
+    "text": "\nTurn your phone sideways"
+  }
+}

@@ -1,0 +1,4426 @@
+{
+  "at": "2026-10-10T09:20:43.212Z",
+  "device": "phone",
+  "staged": true,
+  "description": "25 planet actors + 25 parked ships. 24 bots moved to planet by QA-only hook (normally bots patrol space). Unique per-player v1.4 generated fallback specs for 25 ship3d ships +25 entity3d persons, one shared sample drawing; actual render.js.",
+  "perf": {
+    "frames": 1500,
+    "fps": 60,
+    "low1": 55.6,
+    "p90ms": 17,
+    "worstMs": 31,
+    "calls": {
+      "avg": 75,
+      "p95": 75,
+      "max": 75
+    },
+    "tris": {
+      "avg": 107262,
+      "p95": 107293,
+      "max": 107309
+    },
+    "tier": {
+      "min": 0,
+      "max": 1
+    },
+    "scenes": [
+      "planet"
+    ]
+  },
+  "violations": {
+    "calls": 0,
+    "triangles": 0
+  },
+  "state": {
+    "ok": true,
+    "phase": "playing",
+    "round": 1,
+    "playT": 36.97,
+    "assists": false,
+    "playerCount": 1,
+    "boss": {
+      "x": -372.77,
+      "y": 6.47,
+      "z": -145.07,
+      "radius": 20,
+      "hp": 0,
+      "maxHp": 5520,
+      "dead": true
+    },
+    "planet": {
+      "x": -698.8964072834636,
+      "y": 12.12559054724833,
+      "z": -271.9838323967355,
+      "radius": 40,
+      "landRange": 25
+    },
+    "landing": {
+      "x": -41.158893407837084,
+      "z": 28.389179161122378
+    },
+    "island": {
+      "seed": 2279,
+      "size": 420
+    },
+    "chests": [
+      {
+        "id": 1,
+        "kind": "buried",
+        "x": -15.14,
+        "z": 40.47,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 2,
+        "kind": "rock",
+        "x": -23.74,
+        "z": -0.17,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 3,
+        "kind": "buried",
+        "x": -11.48,
+        "z": 3.12,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 4,
+        "kind": "rock",
+        "x": -21.49,
+        "z": 24.65,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 5,
+        "kind": "buried",
+        "x": -106.31,
+        "z": 15.05,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 6,
+        "kind": "rock",
+        "x": -71.25,
+        "z": 27.8,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 7,
+        "kind": "buried",
+        "x": -108.58,
+        "z": 34.3,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 8,
+        "kind": "rock",
+        "x": -55.66,
+        "z": 43.56,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 9,
+        "kind": "buried",
+        "x": 35.31,
+        "z": -12.97,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 10,
+        "kind": "rock",
+        "x": -31.82,
+        "z": -22.18,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 11,
+        "kind": "buried",
+        "x": 9.4,
+        "z": 14.81,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 12,
+        "kind": "rock",
+        "x": -16.92,
+        "z": 53.71,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 13,
+        "kind": "buried",
+        "x": -18.04,
+        "z": -6.71,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 14,
+        "kind": "rock",
+        "x": -76.48,
+        "z": 67.58,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 15,
+        "kind": "buried",
+        "x": 18.75,
+        "z": 19.7,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 16,
+        "kind": "rock",
+        "x": -56.4,
+        "z": -21.21,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      }
+    ],
+    "parked": [
+      {
+        "player": "crowder",
+        "x": -51.16,
+        "z": 28.39,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "retro",
+          "seed": 994138297,
+          "hull": {
+            "shape": "dart",
+            "width": 0.253,
+            "height": 0.262,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "canopy",
+            "at": 0.271,
+            "size": 0.231,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "swept",
+            "at": 0.58,
+            "span": 0.717,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.208,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot1",
+        "x": -31.158893407837084,
+        "z": 20.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "cute",
+          "seed": 2615009117,
+          "hull": {
+            "shape": "rocket",
+            "width": 0.351,
+            "height": 0.318,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.278,
+            "size": 0.219,
+            "color": ""
+          },
+          "wings": {
+            "count": 4,
+            "shape": "swept",
+            "at": 0.58,
+            "span": 0.45,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.257,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot2",
+        "x": -27.158893407837084,
+        "z": 20.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "chunky",
+          "seed": 2598231498,
+          "hull": {
+            "shape": "box",
+            "width": 0.276,
+            "height": 0.254,
+            "nose": "blunt",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.309,
+            "size": 0.236,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "swept",
+            "at": 0.58,
+            "span": 0.919,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.245,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot3",
+        "x": -23.158893407837084,
+        "z": 20.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "chunky",
+          "seed": 2581453879,
+          "hull": {
+            "shape": "dart",
+            "width": 0.324,
+            "height": 0.289,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.324,
+            "size": 0.201,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "swept",
+            "at": 0.58,
+            "span": 0.755,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.27,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 2,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot4",
+        "x": -19.158893407837084,
+        "z": 20.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "menacing",
+          "seed": 2564676260,
+          "hull": {
+            "shape": "box",
+            "width": 0.322,
+            "height": 0.28,
+            "nose": "blunt",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "canopy",
+            "at": 0.275,
+            "size": 0.21,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "swept",
+            "at": 0.58,
+            "span": 0.997,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.289,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 2,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot5",
+        "x": -15.158893407837084,
+        "z": 20.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "retro",
+          "seed": 2547898641,
+          "hull": {
+            "shape": "dart",
+            "width": 0.277,
+            "height": 0.293,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.296,
+            "size": 0.264,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "straight",
+            "at": 0.58,
+            "span": 0.774,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.223,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot6",
+        "x": -31.158893407837084,
+        "z": 24.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "menacing",
+          "seed": 2531121022,
+          "hull": {
+            "shape": "dart",
+            "width": 0.394,
+            "height": 0.218,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.297,
+            "size": 0.224,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "delta",
+            "at": 0.58,
+            "span": 0.81,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.246,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 2,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot7",
+        "x": -27.158893407837084,
+        "z": 24.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "menacing",
+          "seed": 2514343403,
+          "hull": {
+            "shape": "box",
+            "width": 0.273,
+            "height": 0.196,
+            "nose": "blunt",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.269,
+            "size": 0.218,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "delta",
+            "at": 0.58,
+            "span": 0.917,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.283,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot8",
+        "x": -23.158893407837084,
+        "z": 24.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "retro",
+          "seed": 2497565784,
+          "hull": {
+            "shape": "wedge",
+            "width": 0.297,
+            "height": 0.313,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "canopy",
+            "at": 0.296,
+            "size": 0.222,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "delta",
+            "at": 0.58,
+            "span": 0.83,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.299,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot9",
+        "x": -19.158893407837084,
+        "z": 24.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "sleek",
+          "seed": 2480788165,
+          "hull": {
+            "shape": "rocket",
+            "width": 0.305,
+            "height": 0.218,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "canopy",
+            "at": 0.346,
+            "size": 0.264,
+            "color": ""
+          },
+          "wings": {
+            "count": 4,
+            "shape": "swept",
+            "at": 0.58,
+            "span": 0.45,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.228,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot10",
+        "x": -15.158893407837084,
+        "z": 24.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "menacing",
+          "seed": 2464010546,
+          "hull": {
+            "shape": "dart",
+            "width": 0.364,
+            "height": 0.311,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "canopy",
+            "at": 0.29,
+            "size": 0.27,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "straight",
+            "at": 0.58,
+            "span": 0.907,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.212,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot11",
+        "x": -31.158893407837084,
+        "z": 28.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "menacing",
+          "seed": 3309596814,
+          "hull": {
+            "shape": "dart",
+            "width": 0.255,
+            "height": 0.237,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.314,
+            "size": 0.254,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "delta",
+            "at": 0.58,
+            "span": 0.906,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.2,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot12",
+        "x": -27.158893407837084,
+        "z": 28.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "retro",
+          "seed": 3326374433,
+          "hull": {
+            "shape": "capsule",
+            "width": 0.274,
+            "height": 0.192,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "canopy",
+            "at": 0.293,
+            "size": 0.232,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "swept",
+            "at": 0.58,
+            "span": 0.988,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.244,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 2,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot13",
+        "x": -23.158893407837084,
+        "z": 28.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "retro",
+          "seed": 3276041576,
+          "hull": {
+            "shape": "dart",
+            "width": 0.222,
+            "height": 0.197,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.287,
+            "size": 0.277,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "straight",
+            "at": 0.58,
+            "span": 0.743,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.253,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 2,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot14",
+        "x": -19.158893407837084,
+        "z": 28.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "sleek",
+          "seed": 3292819195,
+          "hull": {
+            "shape": "box",
+            "width": 0.391,
+            "height": 0.193,
+            "nose": "blunt",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.253,
+            "size": 0.21,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "straight",
+            "at": 0.58,
+            "span": 0.83,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.291,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot15",
+        "x": -15.158893407837084,
+        "z": 28.389179161122378,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "menacing",
+          "seed": 3376707290,
+          "hull": {
+            "shape": "box",
+            "width": 0.305,
+            "height": 0.293,
+            "nose": "blunt",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "canopy",
+            "at": 0.289,
+            "size": 0.271,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "delta",
+            "at": 0.58,
+            "span": 0.744,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.256,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot16",
+        "x": -31.158893407837084,
+        "z": 32.38917916112238,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "menacing",
+          "seed": 3393484909,
+          "hull": {
+            "shape": "capsule",
+            "width": 0.259,
+            "height": 0.299,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.267,
+            "size": 0.25,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "swept",
+            "at": 0.58,
+            "span": 0.766,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.278,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot17",
+        "x": -27.158893407837084,
+        "z": 32.38917916112238,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "sleek",
+          "seed": 3343152052,
+          "hull": {
+            "shape": "dart",
+            "width": 0.384,
+            "height": 0.228,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "canopy",
+            "at": 0.337,
+            "size": 0.239,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "swept",
+            "at": 0.58,
+            "span": 0.821,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.23,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot18",
+        "x": -23.158893407837084,
+        "z": 32.38917916112238,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "cute",
+          "seed": 3359929671,
+          "hull": {
+            "shape": "wedge",
+            "width": 0.394,
+            "height": 0.31,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.313,
+            "size": 0.247,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "straight",
+            "at": 0.58,
+            "span": 0.975,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.291,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot19",
+        "x": -19.158893407837084,
+        "z": 32.38917916112238,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "cute",
+          "seed": 3175375862,
+          "hull": {
+            "shape": "capsule",
+            "width": 0.227,
+            "height": 0.185,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.32,
+            "size": 0.241,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "swept",
+            "at": 0.58,
+            "span": 0.774,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.214,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 2,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot20",
+        "x": -15.158893407837084,
+        "z": 32.38917916112238,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "cute",
+          "seed": 3192153481,
+          "hull": {
+            "shape": "box",
+            "width": 0.36,
+            "height": 0.276,
+            "nose": "blunt",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.31,
+            "size": 0.259,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "swept",
+            "at": 0.58,
+            "span": 0.774,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.214,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot21",
+        "x": -31.158893407837084,
+        "z": 36.38917916112238,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "menacing",
+          "seed": 1061248773,
+          "hull": {
+            "shape": "capsule",
+            "width": 0.343,
+            "height": 0.18,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.265,
+            "size": 0.217,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "straight",
+            "at": 0.58,
+            "span": 0.898,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.209,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 2,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot22",
+        "x": -27.158893407837084,
+        "z": 36.38917916112238,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "chunky",
+          "seed": 1044471154,
+          "hull": {
+            "shape": "rocket",
+            "width": 0.24,
+            "height": 0.259,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "canopy",
+            "at": 0.309,
+            "size": 0.28,
+            "color": ""
+          },
+          "wings": {
+            "count": 4,
+            "shape": "forward",
+            "at": 0.58,
+            "span": 0.45,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.283,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 1,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot23",
+        "x": -23.158893407837084,
+        "z": 36.38917916112238,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "cute",
+          "seed": 1027693535,
+          "hull": {
+            "shape": "rocket",
+            "width": 0.365,
+            "height": 0.305,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "bubble",
+            "at": 0.337,
+            "size": 0.238,
+            "color": ""
+          },
+          "wings": {
+            "count": 4,
+            "shape": "swept",
+            "at": 0.58,
+            "span": 0.45,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.256,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 2,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      },
+      {
+        "player": "bot24",
+        "x": -19.158893407837084,
+        "z": 36.38917916112238,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false,
+        "image": "/drawings/crowder-ship.png",
+        "spec": {
+          "v": 1,
+          "view": "side",
+          "noseDir": "right",
+          "style": "menacing",
+          "seed": 1010915916,
+          "hull": {
+            "shape": "capsule",
+            "width": 0.364,
+            "height": 0.183,
+            "nose": "pointed",
+            "tail": "flat",
+            "color": "",
+            "stripe": ""
+          },
+          "cockpit": {
+            "kind": "canopy",
+            "at": 0.277,
+            "size": 0.231,
+            "color": ""
+          },
+          "wings": {
+            "count": 2,
+            "shape": "swept",
+            "at": 0.58,
+            "span": 0.918,
+            "chord": 0.3,
+            "mount": "mid",
+            "color": ""
+          },
+          "fins": [
+            {
+              "kind": "tail",
+              "at": 0.86,
+              "size": 0.285,
+              "color": ""
+            }
+          ],
+          "engines": {
+            "count": 2,
+            "size": 0.16,
+            "flame": true,
+            "flameColor": "",
+            "layout": "pair",
+            "verb": "boost"
+          },
+          "weapons": [
+            {
+              "kind": "cannon",
+              "count": 2,
+              "at": 0.32,
+              "mount": "wings",
+              "size": 0.28,
+              "color": "",
+              "verb": "shoot",
+              "added": true
+            }
+          ],
+          "extras": [
+            {
+              "kind": "shield",
+              "at": 0.5,
+              "mount": "top",
+              "size": 0.12,
+              "color": "",
+              "label": "",
+              "verb": "shield",
+              "added": true
+            },
+            {
+              "kind": "legs",
+              "at": 0.5,
+              "mount": "belly",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "land",
+              "added": true
+            },
+            {
+              "kind": "antenna",
+              "at": 0.45,
+              "mount": "top",
+              "size": 0.2,
+              "color": "",
+              "label": "",
+              "verb": "scan",
+              "added": true
+            },
+            {
+              "kind": "lamp",
+              "at": 0.08,
+              "mount": "nose",
+              "size": 0.1,
+              "color": "",
+              "label": "",
+              "verb": "flare",
+              "added": true
+            },
+            {
+              "kind": "lightning",
+              "at": 0.5,
+              "mount": "sides",
+              "size": 0.16,
+              "color": "",
+              "label": "",
+              "verb": "emp",
+              "added": true
+            },
+            {
+              "kind": "spikes",
+              "at": 0.6,
+              "mount": "top",
+              "size": 0.35,
+              "color": "",
+              "label": "",
+              "verb": "mine",
+              "added": true
+            }
+          ],
+          "palette": {
+            "colored": false,
+            "main": "",
+            "second": "",
+            "accent": ""
+          }
+        }
+      }
+    ],
+    "rocks": 340,
+    "players": {
+      "bot1": {
+        "mode": "planet",
+        "x": -49.16,
+        "y": 10.58,
+        "z": 20.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot2": {
+        "mode": "planet",
+        "x": -45.16,
+        "y": 12.51,
+        "z": 20.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot3": {
+        "mode": "planet",
+        "x": -41.16,
+        "y": 13.69,
+        "z": 20.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot4": {
+        "mode": "planet",
+        "x": -37.16,
+        "y": 15.2,
+        "z": 20.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot5": {
+        "mode": "planet",
+        "x": -33.16,
+        "y": 16.99,
+        "z": 20.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot6": {
+        "mode": "planet",
+        "x": -49.16,
+        "y": 12.8,
+        "z": 24.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot7": {
+        "mode": "planet",
+        "x": -45.16,
+        "y": 13.51,
+        "z": 24.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot8": {
+        "mode": "planet",
+        "x": -41.16,
+        "y": 14.86,
+        "z": 24.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot9": {
+        "mode": "planet",
+        "x": -37.16,
+        "y": 15.44,
+        "z": 24.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot10": {
+        "mode": "planet",
+        "x": -33.16,
+        "y": 16.77,
+        "z": 24.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot11": {
+        "mode": "planet",
+        "x": -49.16,
+        "y": 13.36,
+        "z": 28.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot12": {
+        "mode": "planet",
+        "x": -45.16,
+        "y": 14.31,
+        "z": 28.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot13": {
+        "mode": "planet",
+        "x": -41.16,
+        "y": 14.46,
+        "z": 28.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot14": {
+        "mode": "planet",
+        "x": -37.16,
+        "y": 14.96,
+        "z": 28.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot15": {
+        "mode": "planet",
+        "x": -33.16,
+        "y": 15.3,
+        "z": 28.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot16": {
+        "mode": "planet",
+        "x": -49.16,
+        "y": 14.14,
+        "z": 32.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot17": {
+        "mode": "planet",
+        "x": -45.16,
+        "y": 14.79,
+        "z": 32.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot18": {
+        "mode": "planet",
+        "x": -41.16,
+        "y": 14.83,
+        "z": 32.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot19": {
+        "mode": "planet",
+        "x": -37.16,
+        "y": 14.69,
+        "z": 32.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot20": {
+        "mode": "planet",
+        "x": -33.16,
+        "y": 15,
+        "z": 32.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot21": {
+        "mode": "planet",
+        "x": -49.16,
+        "y": 15.44,
+        "z": 36.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot22": {
+        "mode": "planet",
+        "x": -45.16,
+        "y": 15.52,
+        "z": 36.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot23": {
+        "mode": "planet",
+        "x": -41.16,
+        "y": 15.73,
+        "z": 36.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot24": {
+        "mode": "planet",
+        "x": -37.16,
+        "y": 15.94,
+        "z": 36.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "crowder": {
+        "mode": "planet",
+        "x": -33.16,
+        "y": 15.78,
+        "z": 36.39,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 1000,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged-drawn",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      }
+    }
+  },
+  "console": {
+    "phone": {
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "abortedRequests": {},
+      "warnings": 0,
+      "crashed": false
+    }
+  },
+  "warningDetails": [],
+  "render": {
+    "perf": {
+      "player": "crowder",
+      "screen": "phone",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+      "fps": 60,
+      "low1": 55.6,
+      "p90ms": 17,
+      "calls": 75,
+      "tris": 107235,
+      "textures": 37,
+      "tier": 0,
+      "w": 844,
+      "h": 390,
+      "dpr": 2,
+      "scene": "planet",
+      "followed": "crowder"
+    },
+    "models": 25,
+    "parked": 25,
+    "drawn": [
+      {
+        "entity3d": true,
+        "kind": "drawn"
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "entity3d": true,
+        "kind": "drawn"
+      },
+      {
+        "kind": ""
+      },
+      {
+        "kind": ""
+      },
+      {
+        "entity3d": true,
+        "kind": "drawn"
+      },
+      {
+        "entity3d": true,
+        "kind": "drawn"
+      },
+      {
+        "entity3d": true,
+        "kind": "drawn"
+      },
+      {
+        "kind": ""
+      },
+      {
+        "entity3d": true,
+        "kind": "drawn"
+      },
+      {
+        "entity3d": true,
+        "kind": "drawn"
+      },
+      {
+        "entity3d": true,
+        "kind": "drawn"
+      }
+    ]
+  },
+  "loadedEntity3d": 8
+}

@@ -1,0 +1,1522 @@
+{
+  "at": "2026-10-10T09:13:16.210Z",
+  "joins": [
+    {
+      "i": 1,
+      "status": 200,
+      "response": {
+        "player": "human1",
+        "color": 3900150
+      }
+    },
+    {
+      "i": 2,
+      "status": 200,
+      "response": {
+        "player": "human2",
+        "color": 1096065
+      }
+    },
+    {
+      "i": 3,
+      "status": 200,
+      "response": {
+        "player": "human3",
+        "color": 15381256
+      }
+    },
+    {
+      "i": 4,
+      "status": 200,
+      "response": {
+        "player": "human4",
+        "color": 14239471
+      }
+    },
+    {
+      "i": 5,
+      "status": 200,
+      "response": {
+        "player": "human5",
+        "color": 440020
+      }
+    },
+    {
+      "i": 6,
+      "status": 200,
+      "response": {
+        "player": "human6",
+        "color": 8702998
+      }
+    },
+    {
+      "i": 7,
+      "status": 200,
+      "response": {
+        "player": "human7",
+        "color": 16347926
+      }
+    },
+    {
+      "i": 8,
+      "status": 200,
+      "response": {
+        "player": "human8",
+        "color": 8490232
+      }
+    },
+    {
+      "i": 9,
+      "status": 200,
+      "response": {
+        "player": "human9",
+        "color": 16478597
+      }
+    },
+    {
+      "i": 10,
+      "status": 200,
+      "response": {
+        "player": "human10",
+        "color": 4906624
+      }
+    },
+    {
+      "i": 11,
+      "status": 200,
+      "response": {
+        "player": "human11",
+        "color": 16638023
+      }
+    },
+    {
+      "i": 12,
+      "status": 200,
+      "response": {
+        "player": "human12",
+        "color": 10980346
+      }
+    },
+    {
+      "i": 13,
+      "status": 200,
+      "response": {
+        "player": "human13",
+        "color": 3003583
+      }
+    },
+    {
+      "i": 14,
+      "status": 200,
+      "response": {
+        "player": "human14",
+        "color": 3718648
+      }
+    },
+    {
+      "i": 15,
+      "status": 200,
+      "response": {
+        "player": "human15",
+        "color": 16498468
+      }
+    },
+    {
+      "i": 16,
+      "status": 200,
+      "response": {
+        "player": "human16",
+        "color": 15235577
+      }
+    },
+    {
+      "i": 17,
+      "status": 200,
+      "response": {
+        "player": "human17",
+        "color": 3462041
+      }
+    },
+    {
+      "i": 18,
+      "status": 200,
+      "response": {
+        "player": "human18",
+        "color": 16281969
+      }
+    },
+    {
+      "i": 19,
+      "status": 200,
+      "response": {
+        "player": "human19",
+        "color": 6333946
+      }
+    },
+    {
+      "i": 20,
+      "status": 200,
+      "response": {
+        "player": "human20",
+        "color": 12616956
+      }
+    },
+    {
+      "i": 21,
+      "status": 200,
+      "response": {
+        "player": "human21",
+        "color": 16486972
+      }
+    },
+    {
+      "i": 22,
+      "status": 200,
+      "response": {
+        "player": "human22",
+        "color": 16436245
+      }
+    },
+    {
+      "i": 23,
+      "status": 200,
+      "response": {
+        "player": "human23",
+        "color": 10741301
+      }
+    },
+    {
+      "i": 24,
+      "status": 200,
+      "response": {
+        "player": "human24",
+        "color": 16020150
+      }
+    },
+    {
+      "i": 25,
+      "status": 200,
+      "response": {
+        "player": "human25",
+        "color": 2282478
+      }
+    },
+    {
+      "i": 26,
+      "status": 400,
+      "response": {
+        "error": "the game is full"
+      }
+    }
+  ],
+  "ticks": [
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 3,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 2,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "countdown",
+      "countdown": 1,
+      "left": 0,
+      "bullets": 0
+    },
+    {
+      "phase": "playing",
+      "left": 239.97,
+      "bullets": 0
+    },
+    {
+      "phase": "playing",
+      "left": 239.9,
+      "bullets": 0
+    },
+    {
+      "phase": "playing",
+      "left": 239.83,
+      "bullets": 0
+    },
+    {
+      "phase": "playing",
+      "left": 239.77,
+      "bullets": 0
+    },
+    {
+      "phase": "playing",
+      "left": 239.7,
+      "bullets": 0
+    }
+  ],
+  "capState": {
+    "ok": true,
+    "phase": "lobby",
+    "round": 1,
+    "playT": 0,
+    "assists": false,
+    "playerCount": 1,
+    "boss": {
+      "x": -310.85,
+      "y": 28.12,
+      "z": 251.74,
+      "radius": 20,
+      "hp": 1200,
+      "maxHp": 1200,
+      "dead": false
+    },
+    "planet": null,
+    "landing": {
+      "x": -19.470367473747388,
+      "z": 4.572175678737619
+    },
+    "island": {
+      "seed": 92292,
+      "size": 420
+    },
+    "chests": [
+      {
+        "id": 1,
+        "kind": "buried",
+        "x": 29.04,
+        "z": 28.11,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 2,
+        "kind": "rock",
+        "x": -8.13,
+        "z": -62.93,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 3,
+        "kind": "buried",
+        "x": -47.99,
+        "z": 49.32,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 4,
+        "kind": "rock",
+        "x": -33.47,
+        "z": -11.97,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 5,
+        "kind": "buried",
+        "x": 65.86,
+        "z": -5.87,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 6,
+        "kind": "rock",
+        "x": 8.13,
+        "z": 43.16,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 7,
+        "kind": "buried",
+        "x": -33.42,
+        "z": -3.24,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 8,
+        "kind": "rock",
+        "x": -48.82,
+        "z": -66.26,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 9,
+        "kind": "buried",
+        "x": -72.72,
+        "z": 4.98,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 10,
+        "kind": "rock",
+        "x": -61.06,
+        "z": -44.95,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 11,
+        "kind": "buried",
+        "x": -55.63,
+        "z": -16.76,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 12,
+        "kind": "rock",
+        "x": 26.98,
+        "z": -43.42,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 13,
+        "kind": "buried",
+        "x": -26.63,
+        "z": -28.62,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 14,
+        "kind": "rock",
+        "x": -7.42,
+        "z": -54.08,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 15,
+        "kind": "buried",
+        "x": 30.6,
+        "z": -14.23,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 16,
+        "kind": "rock",
+        "x": 51.13,
+        "z": 16.53,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      }
+    ],
+    "parked": [],
+    "rocks": 340,
+    "players": {
+      "human1": {
+        "mode": "space",
+        "x": -11.57,
+        "y": 0,
+        "z": -14.29,
+        "yaw": 2.3,
+        "pitch": 0.07,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human2": {
+        "mode": "space",
+        "x": 14.78,
+        "y": 21.51,
+        "z": 18.25,
+        "yaw": 2.19,
+        "pitch": 0.02,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human3": {
+        "mode": "space",
+        "x": -2.26,
+        "y": -40.95,
+        "z": -2.79,
+        "yaw": 2.26,
+        "pitch": 0.17,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human4": {
+        "mode": "space",
+        "x": -18.63,
+        "y": 38.6,
+        "z": -23,
+        "yaw": 2.33,
+        "pitch": -0.03,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human5": {
+        "mode": "space",
+        "x": 34.18,
+        "y": -9.61,
+        "z": 42.21,
+        "yaw": 2.12,
+        "pitch": 0.09,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human6": {
+        "mode": "space",
+        "x": -32.38,
+        "y": -32.73,
+        "z": -39.98,
+        "yaw": 2.38,
+        "pitch": 0.15,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human7": {
+        "mode": "space",
+        "x": 10.83,
+        "y": 64.01,
+        "z": 13.37,
+        "yaw": 2.21,
+        "pitch": -0.09,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human8": {
+        "mode": "space",
+        "x": 20.65,
+        "y": -63.19,
+        "z": 25.5,
+        "yaw": 2.17,
+        "pitch": 0.22,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human9": {
+        "mode": "space",
+        "x": -44.81,
+        "y": 26,
+        "z": -55.33,
+        "yaw": 2.43,
+        "pitch": 0.01,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human10": {
+        "mode": "space",
+        "x": 46.62,
+        "y": 30.58,
+        "z": 57.57,
+        "yaw": 2.07,
+        "pitch": -0.01,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human11": {
+        "mode": "space",
+        "x": -22.47,
+        "y": -76.31,
+        "z": -27.75,
+        "yaw": 2.34,
+        "pitch": 0.25,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human12": {
+        "mode": "space",
+        "x": -16.61,
+        "y": 84.13,
+        "z": -20.51,
+        "yaw": 2.32,
+        "pitch": -0.14,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human13": {
+        "mode": "space",
+        "x": 50.05,
+        "y": -46.09,
+        "z": 61.81,
+        "yaw": 2.06,
+        "pitch": 0.18,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human14": {
+        "mode": "space",
+        "x": -58.72,
+        "y": -20.51,
+        "z": -72.51,
+        "yaw": 2.48,
+        "pitch": 0.12,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human15": {
+        "mode": "space",
+        "x": 35.84,
+        "y": 80.99,
+        "z": 44.25,
+        "yaw": 2.11,
+        "pitch": -0.13,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human16": {
+        "mode": "space",
+        "x": 8.28,
+        "y": -101.51,
+        "z": 10.22,
+        "yaw": 2.22,
+        "pitch": 0.31,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human17": {
+        "mode": "space",
+        "x": -50.82,
+        "y": 68.06,
+        "z": -62.76,
+        "yaw": 2.45,
+        "pitch": -0.1,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human18": {
+        "mode": "space",
+        "x": 68.39,
+        "y": 4.49,
+        "z": 84.45,
+        "yaw": 1.99,
+        "pitch": 0.06,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human19": {
+        "mode": "space",
+        "x": -49.89,
+        "y": -78.88,
+        "z": -61.6,
+        "yaw": 2.45,
+        "pitch": 0.26,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human20": {
+        "mode": "space",
+        "x": 3.34,
+        "y": 114.69,
+        "z": 4.12,
+        "yaw": 2.24,
+        "pitch": -0.21,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human21": {
+        "mode": "space",
+        "x": 47.47,
+        "y": -90.38,
+        "z": 58.61,
+        "yaw": 2.07,
+        "pitch": 0.28,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human22": {
+        "mode": "space",
+        "x": -75.19,
+        "y": 16.08,
+        "z": -92.85,
+        "yaw": 2.54,
+        "pitch": 0.03,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human23": {
+        "mode": "space",
+        "x": 63.71,
+        "y": 70.44,
+        "z": 78.67,
+        "yaw": 2,
+        "pitch": -0.1,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human24": {
+        "mode": "space",
+        "x": -17.41,
+        "y": -122.97,
+        "z": -21.5,
+        "yaw": 2.32,
+        "pitch": 0.36,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      },
+      "human25": {
+        "mode": "space",
+        "x": -40.27,
+        "y": 111.66,
+        "z": -49.72,
+        "yaw": 2.41,
+        "pitch": -0.2,
+        "hp": 100,
+        "score": 0,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "ship",
+        "source": "plain",
+        "verbs": []
+      }
+    }
+  },
+  "start": {
+    "status": 200,
+    "json": {
+      "ok": true,
+      "round": 1,
+      "phase": "countdown",
+      "countdown": 3
+    },
+    "text": "{\"ok\":true,\"round\":1,\"phase\":\"countdown\",\"countdown\":3}"
+  },
+  "before": {
+    "human1": {
+      "x": -11.57,
+      "y": 0,
+      "z": -14.29,
+      "yaw": 2.3,
+      "pitch": 0.07
+    },
+    "human2": {
+      "x": 14.78,
+      "y": 21.51,
+      "z": 18.25,
+      "yaw": 2.19,
+      "pitch": 0.02
+    },
+    "human3": {
+      "x": -2.26,
+      "y": -40.95,
+      "z": -2.79,
+      "yaw": 2.26,
+      "pitch": 0.17
+    },
+    "human4": {
+      "x": -18.63,
+      "y": 38.6,
+      "z": -23,
+      "yaw": 2.33,
+      "pitch": -0.03
+    },
+    "human5": {
+      "x": 34.18,
+      "y": -9.61,
+      "z": 42.21,
+      "yaw": 2.12,
+      "pitch": 0.09
+    },
+    "human6": {
+      "x": -32.38,
+      "y": -32.73,
+      "z": -39.98,
+      "yaw": 2.38,
+      "pitch": 0.15
+    },
+    "human7": {
+      "x": 10.83,
+      "y": 64.01,
+      "z": 13.37,
+      "yaw": 2.21,
+      "pitch": -0.09
+    },
+    "human8": {
+      "x": 20.65,
+      "y": -63.19,
+      "z": 25.5,
+      "yaw": 2.17,
+      "pitch": 0.22
+    },
+    "human9": {
+      "x": -44.81,
+      "y": 26,
+      "z": -55.33,
+      "yaw": 2.43,
+      "pitch": 0.01
+    },
+    "human10": {
+      "x": 46.62,
+      "y": 30.58,
+      "z": 57.57,
+      "yaw": 2.07,
+      "pitch": -0.01
+    },
+    "human11": {
+      "x": -22.47,
+      "y": -76.31,
+      "z": -27.75,
+      "yaw": 2.34,
+      "pitch": 0.25
+    },
+    "human12": {
+      "x": -16.61,
+      "y": 84.13,
+      "z": -20.51,
+      "yaw": 2.32,
+      "pitch": -0.14
+    },
+    "human13": {
+      "x": 50.05,
+      "y": -46.09,
+      "z": 61.81,
+      "yaw": 2.06,
+      "pitch": 0.18
+    },
+    "human14": {
+      "x": -58.72,
+      "y": -20.51,
+      "z": -72.51,
+      "yaw": 2.48,
+      "pitch": 0.12
+    },
+    "human15": {
+      "x": 35.84,
+      "y": 80.99,
+      "z": 44.25,
+      "yaw": 2.11,
+      "pitch": -0.13
+    },
+    "human16": {
+      "x": 8.28,
+      "y": -101.51,
+      "z": 10.22,
+      "yaw": 2.22,
+      "pitch": 0.31
+    },
+    "human17": {
+      "x": -50.82,
+      "y": 68.06,
+      "z": -62.76,
+      "yaw": 2.45,
+      "pitch": -0.1
+    },
+    "human18": {
+      "x": 68.39,
+      "y": 4.49,
+      "z": 84.45,
+      "yaw": 1.99,
+      "pitch": 0.06
+    },
+    "human19": {
+      "x": -49.89,
+      "y": -78.88,
+      "z": -61.6,
+      "yaw": 2.45,
+      "pitch": 0.26
+    },
+    "human20": {
+      "x": 3.34,
+      "y": 114.69,
+      "z": 4.12,
+      "yaw": 2.24,
+      "pitch": -0.21
+    },
+    "human21": {
+      "x": 47.47,
+      "y": -90.38,
+      "z": 58.61,
+      "yaw": 2.07,
+      "pitch": 0.28
+    },
+    "human22": {
+      "x": -75.19,
+      "y": 16.08,
+      "z": -92.85,
+      "yaw": 2.54,
+      "pitch": 0.03
+    },
+    "human23": {
+      "x": 63.71,
+      "y": 70.44,
+      "z": 78.67,
+      "yaw": 2,
+      "pitch": -0.1
+    },
+    "human24": {
+      "x": -17.41,
+      "y": -122.97,
+      "z": -21.5,
+      "yaw": 2.32,
+      "pitch": 0.36
+    },
+    "human25": {
+      "x": -40.27,
+      "y": 111.66,
+      "z": -49.72,
+      "yaw": 2.41,
+      "pitch": -0.2
+    }
+  },
+  "during": {
+    "human1": {
+      "x": -11.57,
+      "y": 0,
+      "z": -14.29,
+      "yaw": 2.3,
+      "pitch": 0.07
+    },
+    "human2": {
+      "x": 14.78,
+      "y": 21.51,
+      "z": 18.25,
+      "yaw": 2.19,
+      "pitch": 0.02
+    },
+    "human3": {
+      "x": -2.26,
+      "y": -40.95,
+      "z": -2.79,
+      "yaw": 2.26,
+      "pitch": 0.17
+    },
+    "human4": {
+      "x": -18.63,
+      "y": 38.6,
+      "z": -23,
+      "yaw": 2.33,
+      "pitch": -0.03
+    },
+    "human5": {
+      "x": 34.18,
+      "y": -9.61,
+      "z": 42.21,
+      "yaw": 2.12,
+      "pitch": 0.09
+    },
+    "human6": {
+      "x": -32.38,
+      "y": -32.73,
+      "z": -39.98,
+      "yaw": 2.38,
+      "pitch": 0.15
+    },
+    "human7": {
+      "x": 10.83,
+      "y": 64.01,
+      "z": 13.37,
+      "yaw": 2.21,
+      "pitch": -0.09
+    },
+    "human8": {
+      "x": 20.65,
+      "y": -63.19,
+      "z": 25.5,
+      "yaw": 2.17,
+      "pitch": 0.22
+    },
+    "human9": {
+      "x": -44.81,
+      "y": 26,
+      "z": -55.33,
+      "yaw": 2.43,
+      "pitch": 0.01
+    },
+    "human10": {
+      "x": 46.62,
+      "y": 30.58,
+      "z": 57.57,
+      "yaw": 2.07,
+      "pitch": -0.01
+    },
+    "human11": {
+      "x": -22.47,
+      "y": -76.31,
+      "z": -27.75,
+      "yaw": 2.34,
+      "pitch": 0.25
+    },
+    "human12": {
+      "x": -16.61,
+      "y": 84.13,
+      "z": -20.51,
+      "yaw": 2.32,
+      "pitch": -0.14
+    },
+    "human13": {
+      "x": 50.05,
+      "y": -46.09,
+      "z": 61.81,
+      "yaw": 2.06,
+      "pitch": 0.18
+    },
+    "human14": {
+      "x": -58.72,
+      "y": -20.51,
+      "z": -72.51,
+      "yaw": 2.48,
+      "pitch": 0.12
+    },
+    "human15": {
+      "x": 35.84,
+      "y": 80.99,
+      "z": 44.25,
+      "yaw": 2.11,
+      "pitch": -0.13
+    },
+    "human16": {
+      "x": 8.28,
+      "y": -101.51,
+      "z": 10.22,
+      "yaw": 2.22,
+      "pitch": 0.31
+    },
+    "human17": {
+      "x": -50.82,
+      "y": 68.06,
+      "z": -62.76,
+      "yaw": 2.45,
+      "pitch": -0.1
+    },
+    "human18": {
+      "x": 68.39,
+      "y": 4.49,
+      "z": 84.45,
+      "yaw": 1.99,
+      "pitch": 0.06
+    },
+    "human19": {
+      "x": -49.89,
+      "y": -78.88,
+      "z": -61.6,
+      "yaw": 2.45,
+      "pitch": 0.26
+    },
+    "human20": {
+      "x": 3.34,
+      "y": 114.69,
+      "z": 4.12,
+      "yaw": 2.24,
+      "pitch": -0.21
+    },
+    "human21": {
+      "x": 47.47,
+      "y": -90.38,
+      "z": 58.61,
+      "yaw": 2.07,
+      "pitch": 0.28
+    },
+    "human22": {
+      "x": -75.19,
+      "y": 16.08,
+      "z": -92.85,
+      "yaw": 2.54,
+      "pitch": 0.03
+    },
+    "human23": {
+      "x": 63.71,
+      "y": 70.44,
+      "z": 78.67,
+      "yaw": 2,
+      "pitch": -0.1
+    },
+    "human24": {
+      "x": -17.41,
+      "y": -122.97,
+      "z": -21.5,
+      "yaw": 2.32,
+      "pitch": 0.36
+    },
+    "human25": {
+      "x": -40.27,
+      "y": 111.66,
+      "z": -49.72,
+      "yaw": 2.41,
+      "pitch": -0.2
+    }
+  },
+  "countdownFrozen": true,
+  "digits": [
+    3,
+    2,
+    1
+  ],
+  "beforeHints": {
+    "mode": "space",
+    "x": -17.31,
+    "y": 2.69,
+    "z": -11.8,
+    "yaw": 1.7,
+    "pitch": 0.67,
+    "hp": 100,
+    "score": 0,
+    "bot": false,
+    "dead": false,
+    "landingFor": 0,
+    "type": "ship",
+    "source": "plain",
+    "verbs": []
+  },
+  "afterHints": {
+    "mode": "space",
+    "x": -19.79,
+    "y": 145.75,
+    "z": -12.17,
+    "yaw": 1.72,
+    "pitch": 1.4,
+    "hp": 100,
+    "score": 0,
+    "bot": false,
+    "dead": false,
+    "landingFor": 0,
+    "type": "ship",
+    "source": "plain",
+    "verbs": []
+  },
+  "checks": {
+    "cap25": true,
+    "countdownFrozen": true,
+    "threeTwoOne": true,
+    "noCountdownBullets": true,
+    "noFreeSkills": true
+  }
+}

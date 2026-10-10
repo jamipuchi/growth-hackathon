@@ -1,0 +1,969 @@
+{
+  "at": "2026-10-10T08:37:37.231Z",
+  "checks": [
+    {
+      "kind": "ship",
+      "afterDoneMs": 4042,
+      "state": {
+        "screen": "draw",
+        "step": "shipResult",
+        "entity": null,
+        "drawn": {
+          "ship": {
+            "type": "ship",
+            "rig": "ship",
+            "verbs": [
+              "shoot",
+              "boost",
+              "shield",
+              "land",
+              "scan",
+              "flare",
+              "mine",
+              "emp"
+            ],
+            "unlocked": [
+              {
+                "verb": "shoot",
+                "part": "cannon"
+              },
+              {
+                "verb": "boost",
+                "part": "exhaust flames"
+              },
+              {
+                "verb": "shield",
+                "part": "bubble"
+              },
+              {
+                "verb": "land",
+                "part": "landing legs"
+              },
+              {
+                "verb": "scan",
+                "part": "antenna"
+              },
+              {
+                "verb": "flare",
+                "part": "lamp"
+              },
+              {
+                "verb": "emp",
+                "part": "lightning bolt"
+              },
+              {
+                "verb": "mine",
+                "part": "spikes"
+              }
+            ],
+            "parts": [
+              {
+                "name": "cannon",
+                "x": 0.2,
+                "y": 0.5
+              },
+              {
+                "name": "exhaust flames",
+                "x": 0.3,
+                "y": 0.5
+              },
+              {
+                "name": "bubble",
+                "x": 0.4,
+                "y": 0.5
+              },
+              {
+                "name": "landing legs",
+                "x": 0.5,
+                "y": 0.5
+              },
+              {
+                "name": "antenna",
+                "x": 0.6,
+                "y": 0.5
+              },
+              {
+                "name": "lamp",
+                "x": 0.7,
+                "y": 0.5
+              },
+              {
+                "name": "lightning bolt",
+                "x": 0.8,
+                "y": 0.5
+              },
+              {
+                "name": "spikes",
+                "x": 0.9,
+                "y": 0.5
+              }
+            ],
+            "source": "devkit",
+            "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+            "anims": {
+              "idle": {
+                "clip": null,
+                "profile": "idleBob",
+                "fx": [],
+                "shake": 0,
+                "hitStop": 0
+              },
+              "move": {
+                "clip": null,
+                "profile": "bank",
+                "fx": [],
+                "shake": 0,
+                "hitStop": 0,
+                "byVerb": {
+                  "boost": {
+                    "clip": null,
+                    "profile": "boostSurge",
+                    "fx": [
+                      {
+                        "kind": "burst",
+                        "at": 0,
+                        "socket": "engine_l"
+                      },
+                      {
+                        "kind": "burst",
+                        "at": 0,
+                        "socket": "engine_r"
+                      }
+                    ],
+                    "shake": 0.28,
+                    "hitStop": 0
+                  }
+                }
+              },
+              "hit": {
+                "clip": null,
+                "profile": "knockback",
+                "fx": [
+                  {
+                    "kind": "spark",
+                    "at": 0,
+                    "socket": "root"
+                  }
+                ],
+                "shake": 0.5,
+                "hitStop": 3
+              },
+              "die": {
+                "clip": null,
+                "profile": "spinOut",
+                "fx": [
+                  {
+                    "kind": "explosion",
+                    "at": 0.68,
+                    "socket": "root"
+                  }
+                ],
+                "shake": 0.9,
+                "hitStop": 4
+              },
+              "respawn": {
+                "clip": null,
+                "profile": "warpIn",
+                "fx": [
+                  {
+                    "kind": "warp",
+                    "at": 0,
+                    "socket": "root"
+                  }
+                ],
+                "shake": 0.1,
+                "hitStop": 0
+              },
+              "primary": {
+                "clip": null,
+                "profile": "recoil",
+                "fx": [
+                  {
+                    "kind": "muzzle",
+                    "at": 0,
+                    "socket": "nose"
+                  }
+                ],
+                "shake": 0.07,
+                "hitStop": 0
+              },
+              "defend": {
+                "clip": null,
+                "profile": "shieldPop",
+                "fx": [
+                  {
+                    "kind": "shield",
+                    "at": 0,
+                    "socket": "root"
+                  }
+                ],
+                "shake": 0,
+                "hitStop": 0
+              },
+              "mount": {
+                "clip": null,
+                "profile": "dock",
+                "fx": [],
+                "shake": 0,
+                "hitStop": 0
+              },
+              "use": {
+                "clip": null,
+                "profile": "pulse",
+                "fx": [
+                  {
+                    "kind": "ring",
+                    "at": 0,
+                    "socket": "root"
+                  }
+                ],
+                "shake": 0,
+                "hitStop": 0,
+                "byVerb": {
+                  "scan": {
+                    "clip": null,
+                    "profile": "pulse",
+                    "fx": [
+                      {
+                        "kind": "ring",
+                        "at": 0,
+                        "socket": "root"
+                      },
+                      {
+                        "kind": "ring",
+                        "at": 0.22,
+                        "socket": "root"
+                      }
+                    ],
+                    "shake": 0,
+                    "hitStop": 0
+                  },
+                  "flare": {
+                    "clip": null,
+                    "profile": "pulse",
+                    "fx": [
+                      {
+                        "kind": "glow",
+                        "at": 0,
+                        "socket": "nose"
+                      }
+                    ],
+                    "shake": 0,
+                    "hitStop": 0
+                  }
+                }
+              },
+              "secondary": {
+                "clip": null,
+                "profile": "recoil",
+                "fx": [
+                  {
+                    "kind": "muzzle",
+                    "at": 0,
+                    "socket": "nose"
+                  }
+                ],
+                "shake": 0.05,
+                "hitStop": 0
+              }
+            },
+            "image": "/drawings/sketcher-ship.png?v=bd25ba8741"
+          },
+          "explorer": null
+        },
+        "layout": null,
+        "text": "1 · DRAW YOUR SHIP\n— it becomes your 3D ship\nPHOTO\nDRAW\nflames =BOOST\ncannon =SHOOT\n\nDraw a cannon to SHOOT, flames to BOOST, legs to LAND\n\nSKIP — plain ship + default buttons\nDRAW YOUR SHIP HERE\nUNDO\nCLEAR\n4 OF 5 DRAWINGS LEFT\nTap DONE when it looks right\nDONE\nYOUR SHIP!\nBUILDING YOUR 3D SHIP…\nYOUR SHIP CAN:\nFLY\nSHOOT\nBOOST\nSHIELD\nLAND\nSCAN\nFLARE\nEMP\nMINE\nNEXT: DRAW YOUR CONTROLLER ▶\nREDRAW SHIP\n· uses 1 drawing\n4 OF 5 DRAWINGS LEFT"
+      }
+    },
+    {
+      "kind": "controller",
+      "afterDoneMs": 1531,
+      "state": {
+        "screen": "draw",
+        "step": "controllerResult",
+        "entity": null,
+        "drawn": {
+          "ship": {
+            "type": "ship",
+            "rig": "ship",
+            "verbs": [
+              "shoot",
+              "boost",
+              "shield",
+              "land",
+              "scan",
+              "flare",
+              "mine",
+              "emp"
+            ],
+            "unlocked": [
+              {
+                "verb": "shoot",
+                "part": "cannon"
+              },
+              {
+                "verb": "boost",
+                "part": "exhaust flames"
+              },
+              {
+                "verb": "shield",
+                "part": "bubble"
+              },
+              {
+                "verb": "land",
+                "part": "landing legs"
+              },
+              {
+                "verb": "scan",
+                "part": "antenna"
+              },
+              {
+                "verb": "flare",
+                "part": "lamp"
+              },
+              {
+                "verb": "emp",
+                "part": "lightning bolt"
+              },
+              {
+                "verb": "mine",
+                "part": "spikes"
+              }
+            ],
+            "parts": [
+              {
+                "name": "cannon",
+                "x": 0.2,
+                "y": 0.5
+              },
+              {
+                "name": "exhaust flames",
+                "x": 0.3,
+                "y": 0.5
+              },
+              {
+                "name": "bubble",
+                "x": 0.4,
+                "y": 0.5
+              },
+              {
+                "name": "landing legs",
+                "x": 0.5,
+                "y": 0.5
+              },
+              {
+                "name": "antenna",
+                "x": 0.6,
+                "y": 0.5
+              },
+              {
+                "name": "lamp",
+                "x": 0.7,
+                "y": 0.5
+              },
+              {
+                "name": "lightning bolt",
+                "x": 0.8,
+                "y": 0.5
+              },
+              {
+                "name": "spikes",
+                "x": 0.9,
+                "y": 0.5
+              }
+            ],
+            "source": "devkit",
+            "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+            "anims": {
+              "idle": {
+                "clip": null,
+                "profile": "idleBob",
+                "fx": [],
+                "shake": 0,
+                "hitStop": 0
+              },
+              "move": {
+                "clip": null,
+                "profile": "bank",
+                "fx": [],
+                "shake": 0,
+                "hitStop": 0,
+                "byVerb": {
+                  "boost": {
+                    "clip": null,
+                    "profile": "boostSurge",
+                    "fx": [
+                      {
+                        "kind": "burst",
+                        "at": 0,
+                        "socket": "engine_l"
+                      },
+                      {
+                        "kind": "burst",
+                        "at": 0,
+                        "socket": "engine_r"
+                      }
+                    ],
+                    "shake": 0.28,
+                    "hitStop": 0
+                  }
+                }
+              },
+              "hit": {
+                "clip": null,
+                "profile": "knockback",
+                "fx": [
+                  {
+                    "kind": "spark",
+                    "at": 0,
+                    "socket": "root"
+                  }
+                ],
+                "shake": 0.5,
+                "hitStop": 3
+              },
+              "die": {
+                "clip": null,
+                "profile": "spinOut",
+                "fx": [
+                  {
+                    "kind": "explosion",
+                    "at": 0.68,
+                    "socket": "root"
+                  }
+                ],
+                "shake": 0.9,
+                "hitStop": 4
+              },
+              "respawn": {
+                "clip": null,
+                "profile": "warpIn",
+                "fx": [
+                  {
+                    "kind": "warp",
+                    "at": 0,
+                    "socket": "root"
+                  }
+                ],
+                "shake": 0.1,
+                "hitStop": 0
+              },
+              "primary": {
+                "clip": null,
+                "profile": "recoil",
+                "fx": [
+                  {
+                    "kind": "muzzle",
+                    "at": 0,
+                    "socket": "nose"
+                  }
+                ],
+                "shake": 0.07,
+                "hitStop": 0
+              },
+              "defend": {
+                "clip": null,
+                "profile": "shieldPop",
+                "fx": [
+                  {
+                    "kind": "shield",
+                    "at": 0,
+                    "socket": "root"
+                  }
+                ],
+                "shake": 0,
+                "hitStop": 0
+              },
+              "mount": {
+                "clip": null,
+                "profile": "dock",
+                "fx": [],
+                "shake": 0,
+                "hitStop": 0
+              },
+              "use": {
+                "clip": null,
+                "profile": "pulse",
+                "fx": [
+                  {
+                    "kind": "ring",
+                    "at": 0,
+                    "socket": "root"
+                  }
+                ],
+                "shake": 0,
+                "hitStop": 0,
+                "byVerb": {
+                  "scan": {
+                    "clip": null,
+                    "profile": "pulse",
+                    "fx": [
+                      {
+                        "kind": "ring",
+                        "at": 0,
+                        "socket": "root"
+                      },
+                      {
+                        "kind": "ring",
+                        "at": 0.22,
+                        "socket": "root"
+                      }
+                    ],
+                    "shake": 0,
+                    "hitStop": 0
+                  },
+                  "flare": {
+                    "clip": null,
+                    "profile": "pulse",
+                    "fx": [
+                      {
+                        "kind": "glow",
+                        "at": 0,
+                        "socket": "nose"
+                      }
+                    ],
+                    "shake": 0,
+                    "hitStop": 0
+                  }
+                }
+              },
+              "secondary": {
+                "clip": null,
+                "profile": "recoil",
+                "fx": [
+                  {
+                    "kind": "muzzle",
+                    "at": 0,
+                    "socket": "nose"
+                  }
+                ],
+                "shake": 0.05,
+                "hitStop": 0
+              }
+            },
+            "image": "/drawings/sketcher-ship.png?v=bd25ba8741"
+          },
+          "explorer": null
+        },
+        "layout": {
+          "source": "model",
+          "buttons": [
+            {
+              "type": "button",
+              "action": "shoot",
+              "label": "FIRE",
+              "x": 0.496,
+              "y": 0.27,
+              "w": 0.406,
+              "h": 0.236
+            },
+            {
+              "type": "button",
+              "action": "land",
+              "label": "LAND",
+              "x": 0.518,
+              "y": 0.624,
+              "w": 0.395,
+              "h": 0.253
+            },
+            {
+              "type": "stick",
+              "action": "steer",
+              "label": "",
+              "x": 0.03,
+              "y": 0.51,
+              "w": 0.26,
+              "h": 0.46,
+              "auto": true
+            }
+          ]
+        },
+        "text": "2 · DRAW YOUR CONTROLLER\n— these become your buttons\nPHOTO\nDRAW\nFIRE\nBOOST\ncircle =STEER\nbox + word =button\n\nDraw a circle to steer, and boxes with a word: FIRE, BOOST, LAND\n\nYour ship can SHOOT, BOOST, SHIELD, LAND and more: draw those buttons\n\nSKIP — use the default buttons\nDRAW YOUR BUTTONS HERE\nUNDO\nCLEAR\n3 OF 5 DRAWINGS LEFT\nTap DONE when it looks right\nDONE\nYOUR CONTROLLER!\nFIRE ✓LAND ✓STEER ✓\n✓ Every button works with your ship\nPLAY ▶\nREDRAW CONTROLLER\n· uses 1 drawing\n3 OF 5 DRAWINGS LEFT"
+      }
+    }
+  ],
+  "requests": [
+    {
+      "kind": "ship",
+      "speculative": false,
+      "status": 200,
+      "ok": true,
+      "entity": {
+        "type": "ship",
+        "rig": "ship",
+        "verbs": [
+          "shoot",
+          "boost",
+          "shield",
+          "land",
+          "scan",
+          "flare",
+          "mine",
+          "emp"
+        ],
+        "unlocked": [
+          {
+            "verb": "shoot",
+            "part": "cannon"
+          },
+          {
+            "verb": "boost",
+            "part": "exhaust flames"
+          },
+          {
+            "verb": "shield",
+            "part": "bubble"
+          },
+          {
+            "verb": "land",
+            "part": "landing legs"
+          },
+          {
+            "verb": "scan",
+            "part": "antenna"
+          },
+          {
+            "verb": "flare",
+            "part": "lamp"
+          },
+          {
+            "verb": "emp",
+            "part": "lightning bolt"
+          },
+          {
+            "verb": "mine",
+            "part": "spikes"
+          }
+        ],
+        "parts": [
+          {
+            "name": "cannon",
+            "x": 0.2,
+            "y": 0.5
+          },
+          {
+            "name": "exhaust flames",
+            "x": 0.3,
+            "y": 0.5
+          },
+          {
+            "name": "bubble",
+            "x": 0.4,
+            "y": 0.5
+          },
+          {
+            "name": "landing legs",
+            "x": 0.5,
+            "y": 0.5
+          },
+          {
+            "name": "antenna",
+            "x": 0.6,
+            "y": 0.5
+          },
+          {
+            "name": "lamp",
+            "x": 0.7,
+            "y": 0.5
+          },
+          {
+            "name": "lightning bolt",
+            "x": 0.8,
+            "y": 0.5
+          },
+          {
+            "name": "spikes",
+            "x": 0.9,
+            "y": 0.5
+          }
+        ],
+        "source": "devkit",
+        "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+        "anims": {
+          "idle": {
+            "clip": null,
+            "profile": "idleBob",
+            "fx": [],
+            "shake": 0,
+            "hitStop": 0
+          },
+          "move": {
+            "clip": null,
+            "profile": "bank",
+            "fx": [],
+            "shake": 0,
+            "hitStop": 0,
+            "byVerb": {
+              "boost": {
+                "clip": null,
+                "profile": "boostSurge",
+                "fx": [
+                  {
+                    "kind": "burst",
+                    "at": 0,
+                    "socket": "engine_l"
+                  },
+                  {
+                    "kind": "burst",
+                    "at": 0,
+                    "socket": "engine_r"
+                  }
+                ],
+                "shake": 0.28,
+                "hitStop": 0
+              }
+            }
+          },
+          "hit": {
+            "clip": null,
+            "profile": "knockback",
+            "fx": [
+              {
+                "kind": "spark",
+                "at": 0,
+                "socket": "root"
+              }
+            ],
+            "shake": 0.5,
+            "hitStop": 3
+          },
+          "die": {
+            "clip": null,
+            "profile": "spinOut",
+            "fx": [
+              {
+                "kind": "explosion",
+                "at": 0.68,
+                "socket": "root"
+              }
+            ],
+            "shake": 0.9,
+            "hitStop": 4
+          },
+          "respawn": {
+            "clip": null,
+            "profile": "warpIn",
+            "fx": [
+              {
+                "kind": "warp",
+                "at": 0,
+                "socket": "root"
+              }
+            ],
+            "shake": 0.1,
+            "hitStop": 0
+          },
+          "primary": {
+            "clip": null,
+            "profile": "recoil",
+            "fx": [
+              {
+                "kind": "muzzle",
+                "at": 0,
+                "socket": "nose"
+              }
+            ],
+            "shake": 0.07,
+            "hitStop": 0
+          },
+          "defend": {
+            "clip": null,
+            "profile": "shieldPop",
+            "fx": [
+              {
+                "kind": "shield",
+                "at": 0,
+                "socket": "root"
+              }
+            ],
+            "shake": 0,
+            "hitStop": 0
+          },
+          "mount": {
+            "clip": null,
+            "profile": "dock",
+            "fx": [],
+            "shake": 0,
+            "hitStop": 0
+          },
+          "use": {
+            "clip": null,
+            "profile": "pulse",
+            "fx": [
+              {
+                "kind": "ring",
+                "at": 0,
+                "socket": "root"
+              }
+            ],
+            "shake": 0,
+            "hitStop": 0,
+            "byVerb": {
+              "scan": {
+                "clip": null,
+                "profile": "pulse",
+                "fx": [
+                  {
+                    "kind": "ring",
+                    "at": 0,
+                    "socket": "root"
+                  },
+                  {
+                    "kind": "ring",
+                    "at": 0.22,
+                    "socket": "root"
+                  }
+                ],
+                "shake": 0,
+                "hitStop": 0
+              },
+              "flare": {
+                "clip": null,
+                "profile": "pulse",
+                "fx": [
+                  {
+                    "kind": "glow",
+                    "at": 0,
+                    "socket": "nose"
+                  }
+                ],
+                "shake": 0,
+                "hitStop": 0
+              }
+            }
+          },
+          "secondary": {
+            "clip": null,
+            "profile": "recoil",
+            "fx": [
+              {
+                "kind": "muzzle",
+                "at": 0,
+                "socket": "nose"
+              }
+            ],
+            "shake": 0.05,
+            "hitStop": 0
+          }
+        },
+        "image": "/drawings/sketcher-ship.png?v=bd25ba8741"
+      }
+    },
+    {
+      "kind": "controller",
+      "speculative": false,
+      "status": 200,
+      "ok": true,
+      "layout": {
+        "buttons": [
+          {
+            "type": "button",
+            "action": "shoot",
+            "label": "FIRE",
+            "x": 0.496,
+            "y": 0.27,
+            "w": 0.406,
+            "h": 0.236
+          },
+          {
+            "type": "button",
+            "action": "land",
+            "label": "LAND",
+            "x": 0.518,
+            "y": 0.624,
+            "w": 0.395,
+            "h": 0.253
+          },
+          {
+            "type": "stick",
+            "action": "steer",
+            "label": "",
+            "x": 0.03,
+            "y": 0.51,
+            "w": 0.26,
+            "h": 0.46,
+            "auto": true
+          }
+        ],
+        "source": "model"
+      },
+      "htmlSource": "template"
+    }
+  ],
+  "serverPid": 8731,
+  "mountedController": {
+    "mounted": true,
+    "live": true,
+    "source": "template",
+    "usingFallback": false,
+    "actions": [
+      "shoot",
+      "land",
+      "steer"
+    ],
+    "controls": [
+      {
+        "action": "shoot",
+        "kind": "button",
+        "label": "FIRE",
+        "x": 0.487,
+        "y": 0.27,
+        "w": 0.423,
+        "h": 0.236
+      },
+      {
+        "action": "land",
+        "kind": "button",
+        "label": "LAND",
+        "x": 0.509,
+        "y": 0.624,
+        "w": 0.414,
+        "h": 0.253
+      },
+      {
+        "action": "steer",
+        "kind": "stick",
+        "label": "STEER",
+        "x": 0.054,
+        "y": 0.51,
+        "w": 0.213,
+        "h": 0.46
+      }
+    ],
+    "stats": {
+      "accepted": 0,
+      "dropped": {
+        "origin": 0,
+        "type": 0,
+        "action": 0,
+        "rate": 0,
+        "shape": 0
+      },
+      "violations": [],
+      "clearedCovers": 0,
+      "down": [],
+      "axes": []
+    },
+    "hitsHidden": true,
+    "cool": {},
+    "pad": {
+      "source": "template",
+      "bytes": 5138,
+      "bad": false
+    },
+    "padFailed": false,
+    "drawingDown": false,
+    "empMap": null
+  },
+  "console": {
+    "real-phone": {
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "abortedRequests": {},
+      "warnings": 0,
+      "crashed": false
+    }
+  },
+  "ended": "2026-10-10T08:37:55.897Z"
+}

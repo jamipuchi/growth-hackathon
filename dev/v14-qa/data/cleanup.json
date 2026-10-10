@@ -1,0 +1,9 @@
+{
+  "checkedAt": "2026-10-10T08:54:06.428568+00:00",
+  "frozenPathExists": false,
+  "frozenRegistered": false,
+  "qaPortListeners": "",
+  "realRequests": 8,
+  "gameFilesEditedByThisPass": false,
+  "browserCleanup": "Each owned browser.close() and registered runCleanups() completed; no browser jobs left running by this harness."
+}

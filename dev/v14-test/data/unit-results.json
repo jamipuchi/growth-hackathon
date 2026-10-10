@@ -1,0 +1,56 @@
+[
+  {
+    "suite": "dev/astra/astra-test.js",
+    "exit": 1,
+    "seconds": 11.61,
+    "log": "dev/v14-test/logs/unit-1-astra-test.log"
+  },
+  {
+    "suite": "dev/astra/gen-regression-test.js",
+    "exit": 1,
+    "seconds": 10.33,
+    "log": "dev/v14-test/logs/unit-2-gen-regression-test.log"
+  },
+  {
+    "suite": "dev/astra/vocab-test.js",
+    "exit": 0,
+    "seconds": 0.04,
+    "log": "dev/v14-test/logs/unit-3-vocab-test.log"
+  },
+  {
+    "suite": "dev/astra/anim-wire-test.js",
+    "exit": 0,
+    "seconds": 0.08,
+    "log": "dev/v14-test/logs/unit-4-anim-wire-test.log"
+  },
+  {
+    "suite": "dev/netcode/sim-test.js",
+    "exit": 1,
+    "seconds": 7.76,
+    "log": "dev/v14-test/logs/unit-5-sim-test.log"
+  },
+  {
+    "suite": "dev/netcode/live-test.js",
+    "exit": 0,
+    "seconds": 16.84,
+    "log": "dev/v14-test/logs/unit-6-live-test.log"
+  },
+  {
+    "suite": "dev/rules/rules-test.js",
+    "exit": 0,
+    "seconds": 0.07,
+    "log": "dev/v14-test/logs/unit-7-rules-test.log"
+  },
+  {
+    "suite": "dev/inflate/astra-entity-test.js",
+    "exit": 0,
+    "seconds": 0.13,
+    "log": "dev/v14-test/logs/unit-8-astra-entity-test.log"
+  },
+  {
+    "suite": "dev/https/test.js",
+    "exit": 0,
+    "seconds": 0.51,
+    "log": "dev/v14-test/logs/unit-9-test.log"
+  }
+]

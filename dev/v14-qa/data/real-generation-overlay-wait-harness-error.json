@@ -1,0 +1,172 @@
+{
+  "at": "2026-10-10T08:35:22.093Z",
+  "checks": [],
+  "requests": [
+    {
+      "kind": "ship",
+      "speculative": false,
+      "status": 200,
+      "ok": true,
+      "entity": {
+        "type": "ship",
+        "rig": "ship",
+        "verbs": [
+          "shoot",
+          "boost",
+          "land"
+        ],
+        "unlocked": [
+          {
+            "verb": "shoot",
+            "part": "cannon"
+          },
+          {
+            "verb": "boost",
+            "part": "exhaust flames"
+          },
+          {
+            "verb": "land",
+            "part": "landing legs"
+          }
+        ],
+        "parts": [
+          {
+            "name": "body",
+            "x": 0.5,
+            "y": 0.406
+          },
+          {
+            "name": "cockpit",
+            "x": 0.516,
+            "y": 0.417
+          },
+          {
+            "name": "left wing",
+            "x": 0.19,
+            "y": 0.571
+          },
+          {
+            "name": "right wing",
+            "x": 0.81,
+            "y": 0.573
+          },
+          {
+            "name": "cannon",
+            "x": 0.503,
+            "y": 0.121
+          },
+          {
+            "name": "landing legs",
+            "x": 0.507,
+            "y": 0.727
+          },
+          {
+            "name": "exhaust flames",
+            "x": 0.482,
+            "y": 0.811
+          }
+        ],
+        "source": "model",
+        "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), land (landing legs)",
+        "anims": {
+          "idle": {
+            "clip": null,
+            "profile": "idleBob",
+            "fx": [],
+            "shake": 0,
+            "hitStop": 0
+          },
+          "move": {
+            "clip": null,
+            "profile": "bank",
+            "fx": [],
+            "shake": 0,
+            "hitStop": 0,
+            "byVerb": {
+              "boost": {
+                "clip": null,
+                "profile": "boostSurge",
+                "fx": [
+                  {
+                    "kind": "burst",
+                    "at": 0,
+                    "socket": "engine_l"
+                  },
+                  {
+                    "kind": "burst",
+                    "at": 0,
+                    "socket": "engine_r"
+                  }
+                ],
+                "shake": 0.28,
+                "hitStop": 0
+              }
+            }
+          },
+          "hit": {
+            "clip": null,
+            "profile": "knockback",
+            "fx": [
+              {
+                "kind": "spark",
+                "at": 0,
+                "socket": "root"
+              }
+            ],
+            "shake": 0.5,
+            "hitStop": 3
+          },
+          "die": {
+            "clip": null,
+            "profile": "spinOut",
+            "fx": [
+              {
+                "kind": "explosion",
+                "at": 0.68,
+                "socket": "root"
+              }
+            ],
+            "shake": 0.9,
+            "hitStop": 4
+          },
+          "respawn": {
+            "clip": null,
+            "profile": "warpIn",
+            "fx": [
+              {
+                "kind": "warp",
+                "at": 0,
+                "socket": "root"
+              }
+            ],
+            "shake": 0.1,
+            "hitStop": 0
+          },
+          "primary": {
+            "clip": null,
+            "profile": "recoil",
+            "fx": [
+              {
+                "kind": "muzzle",
+                "at": 0,
+                "socket": "nose"
+              }
+            ],
+            "shake": 0.07,
+            "hitStop": 0
+          },
+          "mount": {
+            "clip": null,
+            "profile": "dock",
+            "fx": [],
+            "shake": 0,
+            "hitStop": 0
+          }
+        },
+        "image": "/drawings/sketcher-ship.png?v=bd25ba8741"
+      }
+    }
+  ],
+  "serverPid": 3899,
+  "fatal": "page.waitForFunction: Timeout 55000ms exceeded.\n    at submit (/Users/jaumepuig/Documents/growth-hackathon/dev/v14-qa/scripts/real-generation.mjs:11:138)\n    at async main (/Users/jaumepuig/Documents/growth-hackathon/dev/v14-qa/scripts/real-generation.mjs:21:38)"
+}

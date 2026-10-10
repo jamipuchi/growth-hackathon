@@ -1,0 +1,54 @@
+{
+  "at": "2026-10-10T09:13:50.185Z",
+  "injection": "All model requests return 503 locally; no outbound request",
+  "fakeCalls": 3,
+  "result": {
+    "ok": true,
+    "source": "devkit",
+    "verbs": [
+      "shoot",
+      "boost",
+      "shield",
+      "land",
+      "scan",
+      "flare",
+      "mine",
+      "emp"
+    ],
+    "unlocked": [
+      {
+        "verb": "shoot",
+        "part": "cannon"
+      },
+      {
+        "verb": "boost",
+        "part": "exhaust flames"
+      },
+      {
+        "verb": "shield",
+        "part": "bubble"
+      },
+      {
+        "verb": "land",
+        "part": "landing legs"
+      },
+      {
+        "verb": "scan",
+        "part": "antenna"
+      },
+      {
+        "verb": "flare",
+        "part": "lamp"
+      },
+      {
+        "verb": "emp",
+        "part": "lightning bolt"
+      },
+      {
+        "verb": "mine",
+        "part": "spikes"
+      }
+    ],
+    "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)"
+  }
+}

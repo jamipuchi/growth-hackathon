@@ -1,0 +1,253 @@
+{
+  "at": "2026-10-10T08:33:57.260Z",
+  "checks": [
+    {
+      "kind": "ship",
+      "afterDoneMs": 696,
+      "state": {
+        "screen": "draw",
+        "step": "ship",
+        "entity": null,
+        "drawn": {
+          "ship": null,
+          "explorer": null
+        },
+        "layout": null,
+        "text": "1 · DRAW YOUR SHIP\n— it becomes your 3D ship\nPHOTO\nDRAW\nflames =BOOST\ncannon =SHOOT\n\nDraw a cannon to SHOOT, flames to BOOST, legs to LAND\n\nSKIP — plain ship + default buttons\nDRAW YOUR SHIP HERE\nUNDO\nCLEAR\n5 OF 5 DRAWINGS LEFT\nTap DONE when it looks right\nDONE\nREADING YOUR SHIP…\n\nYour drawing is becoming a 3D ship"
+      }
+    },
+    {
+      "kind": "controller",
+      "afterDoneMs": 685,
+      "state": {
+        "screen": "draw",
+        "step": "controller",
+        "entity": null,
+        "drawn": {
+          "ship": null,
+          "explorer": null
+        },
+        "layout": null,
+        "text": "2 · DRAW YOUR CONTROLLER\n— these become your buttons\nPHOTO\nDRAW\nFIRE\nBOOST\ncircle =STEER\nbox + word =button\n\nDraw a circle to steer, and boxes with a word: FIRE, BOOST, LAND\n\nYour plain ship only flies: draw a circle to steer\n\nSKIP — use the default buttons\nDRAW YOUR BUTTONS HERE\nUNDO\nCLEAR\n5 OF 5 DRAWINGS LEFT\nTap DONE when it looks right\nDONE\nREADING YOUR CONTROLLER…\n\nFinding your buttons"
+      }
+    }
+  ],
+  "requests": [
+    {
+      "kind": "ship",
+      "speculative": false,
+      "status": 200,
+      "ok": true,
+      "entity": {
+        "type": "ship",
+        "rig": "ship",
+        "verbs": [
+          "shoot",
+          "boost",
+          "land"
+        ],
+        "unlocked": [
+          {
+            "verb": "shoot",
+            "part": "cannon"
+          },
+          {
+            "verb": "land",
+            "part": "landing legs"
+          },
+          {
+            "verb": "boost",
+            "part": "exhaust flames"
+          }
+        ],
+        "parts": [
+          {
+            "name": "body",
+            "x": 0.502,
+            "y": 0.406
+          },
+          {
+            "name": "cockpit",
+            "x": 0.516,
+            "y": 0.415
+          },
+          {
+            "name": "left wing",
+            "x": 0.192,
+            "y": 0.571
+          },
+          {
+            "name": "right wing",
+            "x": 0.806,
+            "y": 0.576
+          },
+          {
+            "name": "cannon",
+            "x": 0.502,
+            "y": 0.119
+          },
+          {
+            "name": "landing legs",
+            "x": 0.504,
+            "y": 0.727
+          },
+          {
+            "name": "exhaust flames",
+            "x": 0.483,
+            "y": 0.815
+          }
+        ],
+        "source": "model",
+        "card": "Your ship can: fly, shoot (cannon), land (landing legs), boost (exhaust flames)",
+        "anims": {
+          "idle": {
+            "clip": null,
+            "profile": "idleBob",
+            "fx": [],
+            "shake": 0,
+            "hitStop": 0
+          },
+          "move": {
+            "clip": null,
+            "profile": "bank",
+            "fx": [],
+            "shake": 0,
+            "hitStop": 0,
+            "byVerb": {
+              "boost": {
+                "clip": null,
+                "profile": "boostSurge",
+                "fx": [
+                  {
+                    "kind": "burst",
+                    "at": 0,
+                    "socket": "engine_l"
+                  },
+                  {
+                    "kind": "burst",
+                    "at": 0,
+                    "socket": "engine_r"
+                  }
+                ],
+                "shake": 0.28,
+                "hitStop": 0
+              }
+            }
+          },
+          "hit": {
+            "clip": null,
+            "profile": "knockback",
+            "fx": [
+              {
+                "kind": "spark",
+                "at": 0,
+                "socket": "root"
+              }
+            ],
+            "shake": 0.5,
+            "hitStop": 3
+          },
+          "die": {
+            "clip": null,
+            "profile": "spinOut",
+            "fx": [
+              {
+                "kind": "explosion",
+                "at": 0.68,
+                "socket": "root"
+              }
+            ],
+            "shake": 0.9,
+            "hitStop": 4
+          },
+          "respawn": {
+            "clip": null,
+            "profile": "warpIn",
+            "fx": [
+              {
+                "kind": "warp",
+                "at": 0,
+                "socket": "root"
+              }
+            ],
+            "shake": 0.1,
+            "hitStop": 0
+          },
+          "primary": {
+            "clip": null,
+            "profile": "recoil",
+            "fx": [
+              {
+                "kind": "muzzle",
+                "at": 0,
+                "socket": "nose"
+              }
+            ],
+            "shake": 0.07,
+            "hitStop": 0
+          },
+          "mount": {
+            "clip": null,
+            "profile": "dock",
+            "fx": [],
+            "shake": 0,
+            "hitStop": 0
+          }
+        },
+        "image": "/drawings/sketcher-ship.png?v=bd25ba8741"
+      }
+    },
+    {
+      "kind": "controller",
+      "speculative": false,
+      "status": 200,
+      "ok": true,
+      "layout": {
+        "buttons": [
+          {
+            "type": "button",
+            "action": "shoot",
+            "label": "FIRE",
+            "x": 0.496,
+            "y": 0.27,
+            "w": 0.405,
+            "h": 0.236
+          },
+          {
+            "type": "button",
+            "action": "land",
+            "label": "LAND",
+            "x": 0.518,
+            "y": 0.624,
+            "w": 0.393,
+            "h": 0.249
+          },
+          {
+            "type": "stick",
+            "action": "steer",
+            "label": "",
+            "x": 0.03,
+            "y": 0.51,
+            "w": 0.26,
+            "h": 0.46,
+            "auto": true
+          }
+        ],
+        "source": "model"
+      },
+      "htmlSource": "template"
+    }
+  ],
+  "serverPid": 99222,
+  "console": {
+    "real-phone": {
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "abortedRequests": {},
+      "warnings": 0,
+      "crashed": false
+    }
+  },
+  "ended": "2026-10-10T08:34:12.881Z"
+}

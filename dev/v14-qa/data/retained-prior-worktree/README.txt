@@ -1,0 +1,1 @@
+Generated artifacts already present in the frozen QA worktree at task start; retained before its user-requested removal. These are prior QA artifacts, not source changes made during this pass. No environment or credential files were read or copied.

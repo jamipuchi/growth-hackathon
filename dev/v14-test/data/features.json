@@ -1,0 +1,835 @@
+{
+  "at": "2026-10-10T09:06:54.178Z",
+  "checks": [
+    {
+      "name": "iPhone Add to Home Screen hint",
+      "ok": true,
+      "detail": {
+        "fs": {
+          "supported": false,
+          "active": false,
+          "standalone": false,
+          "iosSafari": true
+        },
+        "hint": "For full screen: tap  Share, then Add to Home Screen",
+        "visible": true
+      }
+    },
+    {
+      "name": "drawing canvas >=90% viewport both orientations",
+      "ok": false,
+      "detail": {
+        "landscape": {
+          "viewport": [
+            844,
+            390
+          ],
+          "box": {
+            "x": 7,
+            "y": 7,
+            "w": 772,
+            "h": 376
+          },
+          "ratio": 0.8818568477336249,
+          "pixels": 0,
+          "centroid": null
+        },
+        "portrait": {
+          "viewport": [
+            390,
+            844
+          ],
+          "box": {
+            "x": 7,
+            "y": 7,
+            "w": 376,
+            "h": 772
+          },
+          "ratio": 0.8818568477336249,
+          "pixels": 0,
+          "centroid": null
+        }
+      }
+    },
+    {
+      "name": "strokes retained on rotation",
+      "ok": false,
+      "detail": {
+        "before": null,
+        "after": null
+      }
+    },
+    {
+      "name": "phone in Play receives server countdown",
+      "ok": true,
+      "detail": [
+        {
+          "at": 1791623220067,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "countdown",
+            "digits": [
+              "3"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "3"
+            ]
+          },
+          "server": "countdown"
+        },
+        {
+          "at": 1791623220495,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "countdown",
+            "digits": [
+              "3"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "3"
+            ]
+          },
+          "server": "countdown"
+        },
+        {
+          "at": 1791623221382,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "countdown",
+            "digits": [
+              "2"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "2"
+            ]
+          },
+          "server": "countdown"
+        },
+        {
+          "at": 1791623221806,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "countdown",
+            "digits": [
+              "1"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "1"
+            ]
+          },
+          "server": "countdown"
+        },
+        {
+          "at": 1791623222235,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "countdown",
+            "digits": [
+              "1"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "1"
+            ]
+          },
+          "server": "countdown"
+        },
+        {
+          "at": 1791623222657,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "countdown",
+            "digits": [
+              "1"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "1"
+            ]
+          },
+          "server": "countdown"
+        },
+        {
+          "at": 1791623223083,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "playing",
+            "digits": [
+              "GO!"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "GO!"
+            ]
+          },
+          "server": "playing"
+        }
+      ]
+    },
+    {
+      "name": "phone still drawing receives server countdown",
+      "ok": false,
+      "detail": [
+        {
+          "at": 1791623220067,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "countdown",
+            "digits": [
+              "3"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "3"
+            ]
+          },
+          "server": "countdown"
+        },
+        {
+          "at": 1791623220495,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "countdown",
+            "digits": [
+              "3"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "3"
+            ]
+          },
+          "server": "countdown"
+        },
+        {
+          "at": 1791623221382,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "countdown",
+            "digits": [
+              "2"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "2"
+            ]
+          },
+          "server": "countdown"
+        },
+        {
+          "at": 1791623221806,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "countdown",
+            "digits": [
+              "1"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "1"
+            ]
+          },
+          "server": "countdown"
+        },
+        {
+          "at": 1791623222235,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "countdown",
+            "digits": [
+              "1"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "1"
+            ]
+          },
+          "server": "countdown"
+        },
+        {
+          "at": 1791623222657,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "countdown",
+            "digits": [
+              "1"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "1"
+            ]
+          },
+          "server": "countdown"
+        },
+        {
+          "at": 1791623223083,
+          "drawing": {
+            "screen": "draw",
+            "phase": null,
+            "digits": []
+          },
+          "playing": {
+            "screen": "play",
+            "phase": "playing",
+            "digits": [
+              "GO!"
+            ]
+          },
+          "tv": {
+            "digits": [
+              "GO!"
+            ]
+          },
+          "server": "playing"
+        }
+      ]
+    },
+    {
+      "name": "top seven plus followed player",
+      "ok": false,
+      "detail": {
+        "timer": "3:07",
+        "rows": "1\nANA\n★ 2\n5,200\n2\nBEN\n4,973\n3\nCARLA\n★ 1\n4,746\n4\nDANI\n4,609\n5\nELI\n4,382\n6\nFRAN\n4,245\n20\nTINA\n1,517",
+        "assist": "ALL POWERS ON",
+        "followed": "tina"
+      }
+    },
+    {
+      "name": "DRAW X late hint shown",
+      "ok": true,
+      "detail": {
+        "text": "DRAW A SHOVEL AND A DRILLON YOUR EXPLORERREDRAW MY EXPLORERLATER",
+        "entity": {
+          "type": "ship",
+          "rig": "ship",
+          "verbs": [],
+          "unlocked": [],
+          "parts": [],
+          "source": "plain",
+          "card": "Your ship can: fly",
+          "anims": {
+            "idle": {
+              "clip": null,
+              "profile": "idleBob",
+              "fx": [],
+              "shake": 0,
+              "hitStop": 0
+            },
+            "move": {
+              "clip": null,
+              "profile": "bank",
+              "fx": [],
+              "shake": 0,
+              "hitStop": 0
+            },
+            "hit": {
+              "clip": null,
+              "profile": "knockback",
+              "fx": [
+                {
+                  "kind": "spark",
+                  "at": 0,
+                  "socket": "root"
+                }
+              ],
+              "shake": 0.5,
+              "hitStop": 3
+            },
+            "die": {
+              "clip": null,
+              "profile": "spinOut",
+              "fx": [
+                {
+                  "kind": "explosion",
+                  "at": 0.68,
+                  "socket": "root"
+                }
+              ],
+              "shake": 0.9,
+              "hitStop": 4
+            },
+            "respawn": {
+              "clip": null,
+              "profile": "warpIn",
+              "fx": [
+                {
+                  "kind": "warp",
+                  "at": 0,
+                  "socket": "root"
+                }
+              ],
+              "shake": 0.1,
+              "hitStop": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "ink persists at 5s and auto fades at 10s",
+      "ok": true,
+      "detail": {
+        "exists": false,
+        "cleared": {
+          "wiped": false,
+          "ms": 10000
+        }
+      }
+    },
+    {
+      "name": "pointer wiping clears ink before safety timer",
+      "ok": false,
+      "detail": {
+        "exists": true,
+        "cleared": null,
+        "coverage": 0.155029302656961
+      }
+    },
+    {
+      "name": "android FULL SCREEN button",
+      "ok": true,
+      "detail": {
+        "engine": "Chromium emulation, not hardware",
+        "before": {
+          "supported": true,
+          "active": false,
+          "standalone": false,
+          "iosSafari": false
+        },
+        "after": {
+          "supported": true,
+          "active": true,
+          "standalone": false,
+          "iosSafari": false
+        }
+      }
+    },
+    {
+      "name": "ipad FULL SCREEN button",
+      "ok": true,
+      "detail": {
+        "engine": "Chromium emulation, not hardware",
+        "before": {
+          "supported": true,
+          "active": false,
+          "standalone": false,
+          "iosSafari": true
+        },
+        "after": {
+          "supported": true,
+          "active": true,
+          "standalone": false,
+          "iosSafari": true
+        }
+      }
+    }
+  ],
+  "shots": [
+    "iphone-install-hint.png",
+    "canvas-landscape.png",
+    "canvas-portrait.png",
+    "tv-1440-lobby.png",
+    "phone-drawing-during-countdown.png",
+    "phone-play-countdown.png",
+    "tv-countdown.png",
+    "tv-1440-play.png",
+    "tv-1920-play.png",
+    "tv-followed-rank20-assists.png",
+    "late-draw-hint.png",
+    "ink-at-5s.png",
+    "ink-wiped.png",
+    "tv-1920-results.png",
+    "tv-1440-results.png",
+    "android-fullscreen.png",
+    "ipad-fullscreen.png"
+  ],
+  "errors": [],
+  "iphone": {
+    "fs": {
+      "supported": false,
+      "active": false,
+      "standalone": false,
+      "iosSafari": true
+    },
+    "hint": "For full screen: tap  Share, then Add to Home Screen",
+    "visible": true
+  },
+  "canvasLandscape": {
+    "viewport": [
+      844,
+      390
+    ],
+    "box": {
+      "x": 7,
+      "y": 7,
+      "w": 772,
+      "h": 376
+    },
+    "ratio": 0.8818568477336249,
+    "pixels": 0,
+    "centroid": null
+  },
+  "canvasPortrait": {
+    "viewport": [
+      390,
+      844
+    ],
+    "box": {
+      "x": 7,
+      "y": 7,
+      "w": 376,
+      "h": 772
+    },
+    "ratio": 0.8818568477336249,
+    "pixels": 0,
+    "centroid": null
+  },
+  "countdown": [
+    {
+      "at": 1791623220067,
+      "drawing": {
+        "screen": "draw",
+        "phase": null,
+        "digits": []
+      },
+      "playing": {
+        "screen": "play",
+        "phase": "countdown",
+        "digits": [
+          "3"
+        ]
+      },
+      "tv": {
+        "digits": [
+          "3"
+        ]
+      },
+      "server": "countdown"
+    },
+    {
+      "at": 1791623220495,
+      "drawing": {
+        "screen": "draw",
+        "phase": null,
+        "digits": []
+      },
+      "playing": {
+        "screen": "play",
+        "phase": "countdown",
+        "digits": [
+          "3"
+        ]
+      },
+      "tv": {
+        "digits": [
+          "3"
+        ]
+      },
+      "server": "countdown"
+    },
+    {
+      "at": 1791623221382,
+      "drawing": {
+        "screen": "draw",
+        "phase": null,
+        "digits": []
+      },
+      "playing": {
+        "screen": "play",
+        "phase": "countdown",
+        "digits": [
+          "2"
+        ]
+      },
+      "tv": {
+        "digits": [
+          "2"
+        ]
+      },
+      "server": "countdown"
+    },
+    {
+      "at": 1791623221806,
+      "drawing": {
+        "screen": "draw",
+        "phase": null,
+        "digits": []
+      },
+      "playing": {
+        "screen": "play",
+        "phase": "countdown",
+        "digits": [
+          "1"
+        ]
+      },
+      "tv": {
+        "digits": [
+          "1"
+        ]
+      },
+      "server": "countdown"
+    },
+    {
+      "at": 1791623222235,
+      "drawing": {
+        "screen": "draw",
+        "phase": null,
+        "digits": []
+      },
+      "playing": {
+        "screen": "play",
+        "phase": "countdown",
+        "digits": [
+          "1"
+        ]
+      },
+      "tv": {
+        "digits": [
+          "1"
+        ]
+      },
+      "server": "countdown"
+    },
+    {
+      "at": 1791623222657,
+      "drawing": {
+        "screen": "draw",
+        "phase": null,
+        "digits": []
+      },
+      "playing": {
+        "screen": "play",
+        "phase": "countdown",
+        "digits": [
+          "1"
+        ]
+      },
+      "tv": {
+        "digits": [
+          "1"
+        ]
+      },
+      "server": "countdown"
+    },
+    {
+      "at": 1791623223083,
+      "drawing": {
+        "screen": "draw",
+        "phase": null,
+        "digits": []
+      },
+      "playing": {
+        "screen": "play",
+        "phase": "playing",
+        "digits": [
+          "GO!"
+        ]
+      },
+      "tv": {
+        "digits": [
+          "GO!"
+        ]
+      },
+      "server": "playing"
+    }
+  ],
+  "scoreboard": {
+    "timer": "3:07",
+    "rows": "1\nANA\n★ 2\n5,200\n2\nBEN\n4,973\n3\nCARLA\n★ 1\n4,746\n4\nDANI\n4,609\n5\nELI\n4,382\n6\nFRAN\n4,245\n20\nTINA\n1,517",
+    "assist": "ALL POWERS ON",
+    "followed": "tina"
+  },
+  "late": {
+    "text": "DRAW A SHOVEL AND A DRILLON YOUR EXPLORERREDRAW MY EXPLORERLATER",
+    "entity": {
+      "type": "ship",
+      "rig": "ship",
+      "verbs": [],
+      "unlocked": [],
+      "parts": [],
+      "source": "plain",
+      "card": "Your ship can: fly",
+      "anims": {
+        "idle": {
+          "clip": null,
+          "profile": "idleBob",
+          "fx": [],
+          "shake": 0,
+          "hitStop": 0
+        },
+        "move": {
+          "clip": null,
+          "profile": "bank",
+          "fx": [],
+          "shake": 0,
+          "hitStop": 0
+        },
+        "hit": {
+          "clip": null,
+          "profile": "knockback",
+          "fx": [
+            {
+              "kind": "spark",
+              "at": 0,
+              "socket": "root"
+            }
+          ],
+          "shake": 0.5,
+          "hitStop": 3
+        },
+        "die": {
+          "clip": null,
+          "profile": "spinOut",
+          "fx": [
+            {
+              "kind": "explosion",
+              "at": 0.68,
+              "socket": "root"
+            }
+          ],
+          "shake": 0.9,
+          "hitStop": 4
+        },
+        "respawn": {
+          "clip": null,
+          "profile": "warpIn",
+          "fx": [
+            {
+              "kind": "warp",
+              "at": 0,
+              "socket": "root"
+            }
+          ],
+          "shake": 0.1,
+          "hitStop": 0
+        }
+      }
+    }
+  },
+  "inkStart": 0.5766059027777778,
+  "ink5": {
+    "coverage": 0.5766059027777778,
+    "exists": true,
+    "opacity": "1"
+  },
+  "inkEnd": {
+    "exists": false,
+    "cleared": {
+      "wiped": false,
+      "ms": 10000
+    }
+  },
+  "wipe": {
+    "exists": true,
+    "cleared": null,
+    "coverage": 0.155029302656961
+  },
+  "resources": [
+    {
+      "url": "/controller.webmanifest",
+      "status": 200,
+      "type": "application/manifest+json"
+    },
+    {
+      "url": "/icons/icon-180.png",
+      "status": 200,
+      "type": "image/png"
+    },
+    {
+      "url": "/icons/icon-192.png",
+      "status": 200,
+      "type": "image/png"
+    },
+    {
+      "url": "/icons/icon-512.png",
+      "status": 200,
+      "type": "image/png"
+    },
+    {
+      "url": "/icons/icon-maskable-512.png",
+      "status": 200,
+      "type": "image/png"
+    }
+  ]
+}

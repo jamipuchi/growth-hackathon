@@ -1,0 +1,1239 @@
+{
+  "at": "2026-10-10T09:12:21.914Z",
+  "device": "tv",
+  "staged": true,
+  "description": "25 planet actors + 25 parked ships. 24 bots moved to planet by QA-only hook (normally bots patrol space). Default A-008 person models; actual renderer, no model or asset substitution.",
+  "perf": {
+    "frames": 2999,
+    "fps": 120,
+    "low1": 105.3,
+    "p90ms": 8.9,
+    "worstMs": 18.1,
+    "calls": {
+      "avg": 130.4,
+      "p95": 141,
+      "max": 142
+    },
+    "tris": {
+      "avg": 232870,
+      "p95": 236904,
+      "max": 237598
+    },
+    "tier": {
+      "min": 0,
+      "max": 1
+    },
+    "scenes": [
+      "planet"
+    ]
+  },
+  "violations": {
+    "calls": 2408,
+    "triangles": null
+  },
+  "state": {
+    "ok": true,
+    "phase": "playing",
+    "round": 1,
+    "playT": 37.43,
+    "assists": false,
+    "playerCount": 1,
+    "boss": {
+      "x": -351.78,
+      "y": 2.13,
+      "z": 190.4,
+      "radius": 20,
+      "hp": 0,
+      "maxHp": 5520,
+      "dead": true
+    },
+    "planet": {
+      "x": -659.5825908049317,
+      "y": 3.995024216840825,
+      "z": 356.9920977971676,
+      "radius": 40,
+      "landRange": 25
+    },
+    "landing": {
+      "x": 19.063631234032247,
+      "z": 6.047971905757349
+    },
+    "island": {
+      "seed": 77828,
+      "size": 420
+    },
+    "chests": [
+      {
+        "id": 1,
+        "kind": "buried",
+        "x": 16.44,
+        "z": -54.58,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 2,
+        "kind": "rock",
+        "x": 38.64,
+        "z": 44.52,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 3,
+        "kind": "buried",
+        "x": 43.5,
+        "z": 22.23,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 4,
+        "kind": "rock",
+        "x": -0.11,
+        "z": -8.11,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 5,
+        "kind": "buried",
+        "x": -22.52,
+        "z": -65.15,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 6,
+        "kind": "rock",
+        "x": 13.42,
+        "z": -44.43,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 7,
+        "kind": "buried",
+        "x": 72.84,
+        "z": 23.76,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 8,
+        "kind": "rock",
+        "x": 24.82,
+        "z": -43.85,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 9,
+        "kind": "buried",
+        "x": 3.57,
+        "z": -44.08,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 10,
+        "kind": "rock",
+        "x": 48.94,
+        "z": -34.64,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 11,
+        "kind": "buried",
+        "x": 26.14,
+        "z": 22.18,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 12,
+        "kind": "rock",
+        "x": 26.06,
+        "z": 51.97,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 13,
+        "kind": "buried",
+        "x": 32.65,
+        "z": -9.1,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 14,
+        "kind": "rock",
+        "x": -36.04,
+        "z": 53.91,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 15,
+        "kind": "buried",
+        "x": 50.31,
+        "z": -26.38,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      },
+      {
+        "id": 16,
+        "kind": "rock",
+        "x": 54.04,
+        "z": 70.25,
+        "buried": true,
+        "dug": 0,
+        "open": false,
+        "by": null
+      }
+    ],
+    "parked": [
+      {
+        "player": "crowder",
+        "x": 9.06,
+        "z": 6.05,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot1",
+        "x": 29.063631234032247,
+        "z": -1.9520280942426513,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot2",
+        "x": 33.06363123403224,
+        "z": -1.9520280942426513,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot3",
+        "x": 37.06363123403224,
+        "z": -1.9520280942426513,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot4",
+        "x": 41.06363123403224,
+        "z": -1.9520280942426513,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot5",
+        "x": 45.06363123403224,
+        "z": -1.9520280942426513,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot6",
+        "x": 29.063631234032247,
+        "z": 2.0479719057573487,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot7",
+        "x": 33.06363123403224,
+        "z": 2.0479719057573487,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot8",
+        "x": 37.06363123403224,
+        "z": 2.0479719057573487,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot9",
+        "x": 41.06363123403224,
+        "z": 2.0479719057573487,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot10",
+        "x": 45.06363123403224,
+        "z": 2.0479719057573487,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot11",
+        "x": 29.063631234032247,
+        "z": 6.047971905757349,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot12",
+        "x": 33.06363123403224,
+        "z": 6.047971905757349,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot13",
+        "x": 37.06363123403224,
+        "z": 6.047971905757349,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot14",
+        "x": 41.06363123403224,
+        "z": 6.047971905757349,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot15",
+        "x": 45.06363123403224,
+        "z": 6.047971905757349,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot16",
+        "x": 29.063631234032247,
+        "z": 10.04797190575735,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot17",
+        "x": 33.06363123403224,
+        "z": 10.04797190575735,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot18",
+        "x": 37.06363123403224,
+        "z": 10.04797190575735,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot19",
+        "x": 41.06363123403224,
+        "z": 10.04797190575735,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot20",
+        "x": 45.06363123403224,
+        "z": 10.04797190575735,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot21",
+        "x": 29.063631234032247,
+        "z": 14.04797190575735,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot22",
+        "x": 33.06363123403224,
+        "z": 14.04797190575735,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot23",
+        "x": 37.06363123403224,
+        "z": 14.04797190575735,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      },
+      {
+        "player": "bot24",
+        "x": 41.06363123403224,
+        "z": 14.04797190575735,
+        "hp": 300,
+        "maxHp": 300,
+        "wrecked": false
+      }
+    ],
+    "rocks": 339,
+    "players": {
+      "bot1": {
+        "mode": "planet",
+        "x": 11.06,
+        "y": 18.12,
+        "z": -1.95,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot2": {
+        "mode": "planet",
+        "x": 15.06,
+        "y": 15.39,
+        "z": -1.95,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot3": {
+        "mode": "planet",
+        "x": 19.06,
+        "y": 13.61,
+        "z": -1.95,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot4": {
+        "mode": "planet",
+        "x": 23.06,
+        "y": 11.75,
+        "z": -1.95,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot5": {
+        "mode": "planet",
+        "x": 27.06,
+        "y": 10.08,
+        "z": -1.95,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot6": {
+        "mode": "planet",
+        "x": 11.06,
+        "y": 18.63,
+        "z": 2.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot7": {
+        "mode": "planet",
+        "x": 15.06,
+        "y": 16.16,
+        "z": 2.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot8": {
+        "mode": "planet",
+        "x": 19.06,
+        "y": 13.95,
+        "z": 2.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot9": {
+        "mode": "planet",
+        "x": 23.06,
+        "y": 12.22,
+        "z": 2.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot10": {
+        "mode": "planet",
+        "x": 27.06,
+        "y": 10.67,
+        "z": 2.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot11": {
+        "mode": "planet",
+        "x": 11.06,
+        "y": 19.91,
+        "z": 6.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot12": {
+        "mode": "planet",
+        "x": 15.06,
+        "y": 16.91,
+        "z": 6.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot13": {
+        "mode": "planet",
+        "x": 19.06,
+        "y": 15.62,
+        "z": 6.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot14": {
+        "mode": "planet",
+        "x": 23.06,
+        "y": 14.47,
+        "z": 6.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot15": {
+        "mode": "planet",
+        "x": 27.06,
+        "y": 12.04,
+        "z": 6.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot16": {
+        "mode": "planet",
+        "x": 11.06,
+        "y": 20.72,
+        "z": 10.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot17": {
+        "mode": "planet",
+        "x": 15.06,
+        "y": 18.28,
+        "z": 10.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot18": {
+        "mode": "planet",
+        "x": 19.06,
+        "y": 17.22,
+        "z": 10.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot19": {
+        "mode": "planet",
+        "x": 23.06,
+        "y": 16.16,
+        "z": 10.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot20": {
+        "mode": "planet",
+        "x": 27.06,
+        "y": 13.14,
+        "z": 10.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot21": {
+        "mode": "planet",
+        "x": 11.06,
+        "y": 20.71,
+        "z": 14.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot22": {
+        "mode": "planet",
+        "x": 15.06,
+        "y": 18.86,
+        "z": 14.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot23": {
+        "mode": "planet",
+        "x": 19.06,
+        "y": 17.96,
+        "z": 14.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "bot24": {
+        "mode": "planet",
+        "x": 23.06,
+        "y": 16.56,
+        "z": 14.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 0,
+        "bot": true,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      },
+      "crowder": {
+        "mode": "planet",
+        "x": 27.06,
+        "y": 13.66,
+        "z": 14.05,
+        "yaw": 0,
+        "pitch": 0,
+        "hp": 100,
+        "score": 1010,
+        "bot": false,
+        "dead": false,
+        "landingFor": 0,
+        "type": "person",
+        "source": "qa-staged",
+        "verbs": [
+          "shoot",
+          "shield",
+          "dig",
+          "drill",
+          "jump",
+          "scan",
+          "flare",
+          "tractor",
+          "inkbomb",
+          "takeoff"
+        ]
+      }
+    }
+  },
+  "console": {
+    "tv": {
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "abortedRequests": {
+        "/perf": 6
+      },
+      "warnings": 24,
+      "crashed": false
+    }
+  },
+  "warningDetails": [
+    {
+      "t": 1791623548716,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    },
+    {
+      "t": 1791623548717,
+      "text": "[.WebGL-0x11408f76c00] GL_INVALID_VALUE: glGetProgramiv: Program object expected."
+    }
+  ],
+  "render": {
+    "perf": {
+      "player": "bigscreen",
+      "screen": "big",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36",
+      "fps": 120,
+      "low1": 107.5,
+      "p90ms": 9.1,
+      "calls": 106,
+      "tris": 224248,
+      "textures": 64,
+      "tier": 0,
+      "w": 1440,
+      "h": 900,
+      "dpr": 1,
+      "scene": "planet",
+      "followed": "crowder"
+    },
+    "models": 25,
+    "parked": 25
+  }
+}

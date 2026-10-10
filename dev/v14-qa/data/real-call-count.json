@@ -1,0 +1,1 @@
+{"calls":8,"timings":[{"call":1,"ms":2082,"status":200},{"call":2,"ms":1280,"status":200},{"call":3,"ms":4517,"status":200},{"call":4,"ms":2051,"status":200},{"call":5,"ms":4002,"failed":true},{"call":6,"ms":1793,"failed":true},{"call":7,"ms":1436,"status":200},{"call":8,"ms":4855,"status":200}]}

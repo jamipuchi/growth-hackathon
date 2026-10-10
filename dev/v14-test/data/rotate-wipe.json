@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-10T09:13:50.354Z",
+  "note": "Focused repair of QA interactions: dismiss drawing guide; start wiping on covered ink cells.",
+  "land": {
+    "ratio": 0.881856847733625,
+    "pixels": 982,
+    "centroid": [
+      0.4988655910007072,
+      0.49798771504094985
+    ],
+    "width": 772,
+    "height": 376
+  },
+  "port": {
+    "ratio": 0.881856847733625,
+    "pixels": 809,
+    "centroid": [
+      0.4982411961181387,
+      0.4980650006084399
+    ],
+    "width": 376,
+    "height": 772
+  },
+  "rotatePass": true,
+  "fatal": "locator.tap: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#modeDraw')\u001b[22m\n\u001b[2m    - locator resolved to <button id=\"modeDraw\" class=\"rb on\" type=\"button\" data-mode=\"draw\">…</button>\u001b[22m\n\u001b[2m  - attempting tap action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div id=\"rotate\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying tap action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div id=\"rotate\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying tap action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div id=\"rotate\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying tap action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n    at main (/Users/jaumepuig/Documents/growth-hackathon/dev/v14-test/scripts/rotate-wipe.mjs:11:78)"
+}

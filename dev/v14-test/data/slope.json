@@ -1,0 +1,81 @@
+{
+  "at": "2026-10-10T09:14:23.101Z",
+  "cases": [
+    {
+      "variant": "original slope",
+      "before": {
+        "victim": {
+          "x": -52.778697701458555,
+          "y": 9.143352013878683,
+          "z": -20.37547897151767
+        },
+        "shooter": {
+          "x": -52.778697701458555,
+          "y": 11.06562496012876,
+          "z": -14.37547897151767
+        },
+        "hp": 1,
+        "pitch": -0.3100465427897527
+      },
+      "after": {
+        "hp": 1,
+        "dead": false,
+        "victim": {
+          "x": -52.778697701458555,
+          "y": 9.143352013878683,
+          "z": -20.37547897151767
+        },
+        "shooter": {
+          "x": -52.778697701458555,
+          "y": 11.06562496012876,
+          "z": -14.37547897151767
+        }
+      },
+      "score": 0,
+      "announces": [
+        "ana landed on the planet. OPEN THE CHESTS",
+        "bob landed on the planet. OPEN THE CHESTS",
+        "cy landed on the planet. OPEN THE CHESTS",
+        "💎 ana opened a chest (+1500)"
+      ]
+    },
+    {
+      "variant": "nearby level approach",
+      "before": {
+        "victim": {
+          "x": -52.778697701458555,
+          "y": 9.143352013878683,
+          "z": -20.37547897151767
+        },
+        "shooter": {
+          "x": -51.22578343084343,
+          "y": 9.146740170154404,
+          "z": -26.17103392925208
+        },
+        "hp": 1,
+        "pitch": -0.0005646926525974325
+      },
+      "after": {
+        "hp": 0,
+        "dead": true,
+        "victim": {
+          "x": -52.778697701458555,
+          "y": 9.143352013878683,
+          "z": -20.37547897151767
+        },
+        "shooter": {
+          "x": -51.22578343084343,
+          "y": 9.146740170154404,
+          "z": -26.17103392925208
+        }
+      },
+      "score": 950,
+      "announces": [
+        "cy landed on the planet. OPEN THE CHESTS",
+        "💎 ana opened a chest (+1500)",
+        "bob ✕ ana",
+        "💰 bob stole 750 points from ana!"
+      ]
+    }
+  ]
+}

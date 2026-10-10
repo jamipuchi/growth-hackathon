@@ -1,0 +1,61 @@
+{
+  "at": "2026-10-10T08:46:49.099Z",
+  "description": "Full phone UI; 24 bots + one human; no screenshots during measurements. Travel skipped, real final shot and LAND.",
+  "bossKill": {
+    "frames": 503,
+    "fps": 60,
+    "low1": 55.6,
+    "p90ms": 17,
+    "worstMs": 23,
+    "calls": {
+      "avg": 51.4,
+      "p95": 58,
+      "max": 60
+    },
+    "tris": {
+      "avg": 61784,
+      "p95": 65360,
+      "max": 69850
+    },
+    "tier": {
+      "min": 1,
+      "max": 1
+    },
+    "scenes": [
+      "space"
+    ],
+    "violations": {
+      "calls": 0,
+      "triangles": 0
+    }
+  },
+  "landing": {
+    "frames": 492,
+    "fps": 59.6,
+    "low1": 43.5,
+    "p90ms": 17,
+    "worstMs": 51,
+    "calls": {
+      "avg": 37.1,
+      "p95": 41,
+      "max": 58
+    },
+    "tris": {
+      "avg": 59336,
+      "p95": 63907,
+      "max": 63929
+    },
+    "tier": {
+      "min": 0,
+      "max": 1
+    },
+    "scenes": [
+      "space",
+      "planet"
+    ],
+    "violations": {
+      "calls": 0,
+      "triangles": 0
+    }
+  }
+}

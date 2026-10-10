@@ -1,0 +1,134 @@
+{
+  "tv": {
+    "frames": [
+      {
+        "shot": "dev/v14-qa/shots/tv-boss-kill-00.png",
+        "meanRGB": 71.22,
+        "nearWhitePct": 0.062
+      },
+      {
+        "shot": "dev/v14-qa/shots/tv-boss-kill-01.png",
+        "meanRGB": 79.2,
+        "nearWhitePct": 0.093
+      },
+      {
+        "shot": "dev/v14-qa/shots/tv-boss-kill-02.png",
+        "meanRGB": 79.94,
+        "nearWhitePct": 0.093
+      },
+      {
+        "shot": "dev/v14-qa/shots/tv-boss-kill-03.png",
+        "meanRGB": 97.99,
+        "nearWhitePct": 0.085
+      },
+      {
+        "shot": "dev/v14-qa/shots/tv-boss-kill-04.png",
+        "meanRGB": 94.73,
+        "nearWhitePct": 0.085
+      },
+      {
+        "shot": "dev/v14-qa/shots/tv-boss-kill-05.png",
+        "meanRGB": 95.88,
+        "nearWhitePct": 0.093
+      },
+      {
+        "shot": "dev/v14-qa/shots/tv-boss-kill-06.png",
+        "meanRGB": 99.96,
+        "nearWhitePct": 0.1
+      },
+      {
+        "shot": "dev/v14-qa/shots/tv-boss-kill-07.png",
+        "meanRGB": 108.92,
+        "nearWhitePct": 0.177
+      },
+      {
+        "shot": "dev/v14-qa/shots/tv-boss-kill-08.png",
+        "meanRGB": 109.17,
+        "nearWhitePct": 0.34
+      },
+      {
+        "shot": "dev/v14-qa/shots/tv-boss-kill-09.png",
+        "meanRGB": 97.61,
+        "nearWhitePct": 0.069
+      },
+      {
+        "shot": "dev/v14-qa/shots/tv-boss-kill-10.png",
+        "meanRGB": 94.55,
+        "nearWhitePct": 0.077
+      },
+      {
+        "shot": "dev/v14-qa/shots/tv-boss-kill-11.png",
+        "meanRGB": 110.83,
+        "nearWhitePct": 0.193
+      }
+    ],
+    "maxMeanRGB": 110.83,
+    "maxNearWhitePct": 0.34
+  },
+  "phone": {
+    "frames": [
+      {
+        "shot": "dev/v14-qa/shots/phone-boss-kill-00.png",
+        "meanRGB": 87.39,
+        "nearWhitePct": 0.054
+      },
+      {
+        "shot": "dev/v14-qa/shots/phone-boss-kill-01.png",
+        "meanRGB": 106.55,
+        "nearWhitePct": 0.062
+      },
+      {
+        "shot": "dev/v14-qa/shots/phone-boss-kill-02.png",
+        "meanRGB": 115.53,
+        "nearWhitePct": 0.077
+      },
+      {
+        "shot": "dev/v14-qa/shots/phone-boss-kill-03.png",
+        "meanRGB": 111.77,
+        "nearWhitePct": 0.069
+      },
+      {
+        "shot": "dev/v14-qa/shots/phone-boss-kill-04.png",
+        "meanRGB": 105.17,
+        "nearWhitePct": 0.077
+      },
+      {
+        "shot": "dev/v14-qa/shots/phone-boss-kill-05.png",
+        "meanRGB": 103.9,
+        "nearWhitePct": 0.085
+      },
+      {
+        "shot": "dev/v14-qa/shots/phone-boss-kill-06.png",
+        "meanRGB": 109.65,
+        "nearWhitePct": 0.478
+      },
+      {
+        "shot": "dev/v14-qa/shots/phone-boss-kill-07.png",
+        "meanRGB": 116.04,
+        "nearWhitePct": 0.687
+      },
+      {
+        "shot": "dev/v14-qa/shots/phone-boss-kill-08.png",
+        "meanRGB": 145.09,
+        "nearWhitePct": 4.807
+      },
+      {
+        "shot": "dev/v14-qa/shots/phone-boss-kill-09.png",
+        "meanRGB": 122.24,
+        "nearWhitePct": 0.664
+      },
+      {
+        "shot": "dev/v14-qa/shots/phone-boss-kill-10.png",
+        "meanRGB": 121.06,
+        "nearWhitePct": 1.412
+      },
+      {
+        "shot": "dev/v14-qa/shots/phone-boss-kill-11.png",
+        "meanRGB": 113.52,
+        "nearWhitePct": 0.571
+      }
+    ],
+    "maxMeanRGB": 145.09,
+    "maxNearWhitePct": 4.807
+  }
+}

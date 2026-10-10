@@ -1,0 +1,52 @@
+{
+  "at": "2026-10-10T09:13:50.264Z",
+  "method": "Replay prior recognised controls into v1.4 withSteer; no fresh vision call",
+  "recognised": {
+    "buttons": [
+      {
+        "type": "button",
+        "action": "shoot",
+        "label": "FIRE",
+        "x": 0.496,
+        "y": 0.27,
+        "w": 0.406,
+        "h": 0.236
+      },
+      {
+        "type": "button",
+        "action": "land",
+        "label": "LAND",
+        "x": 0.518,
+        "y": 0.624,
+        "w": 0.395,
+        "h": 0.253
+      }
+    ],
+    "source": "model"
+  },
+  "priorAutomatic": [
+    {
+      "type": "stick",
+      "action": "steer",
+      "label": "",
+      "x": 0.03,
+      "y": 0.51,
+      "w": 0.26,
+      "h": 0.46,
+      "auto": true
+    }
+  ],
+  "currentAutomatic": [
+    {
+      "type": "stick",
+      "action": "steer",
+      "label": "",
+      "x": 0.03,
+      "y": 0.51,
+      "w": 0.26,
+      "h": 0.46,
+      "auto": true
+    }
+  ],
+  "identical": true
+}

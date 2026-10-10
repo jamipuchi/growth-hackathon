@@ -1,0 +1,5717 @@
+{
+  "kit": "v13-entity",
+  "startedAt": "2026-10-10T09:05:19.144Z",
+  "mode": "mock",
+  "realCap": 0,
+  "port": 8455,
+  "argv": [
+    "--port",
+    "8455",
+    "--mock"
+  ],
+  "drawings": [
+    {
+      "id": "ship-gun-flames",
+      "kind": "ship",
+      "world": "space",
+      "player": "kshipgun",
+      "desc": "fighter with a cannon and exhaust flames",
+      "source": "draw",
+      "file": "dev/gen-corpus/entity/E04.png",
+      "png": {
+        "w": 512,
+        "h": 290,
+        "bytes": 24618
+      },
+      "sha": "b41c777e2d6e0c31020d5297f3d559fd1fda4acc",
+      "corpus": {
+        "must": [
+          "shoot",
+          "boost"
+        ],
+        "ok": [],
+        "wrong": null
+      },
+      "expect": {
+        "ok": true,
+        "types": [
+          "ship"
+        ],
+        "must": [
+          "shoot",
+          "boost"
+        ]
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 6
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 5,
+        "drawingsLeft": {
+          "space": 4,
+          "planet": 5
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 5,
+          "type": "ship",
+          "rig": "ship",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "boost",
+            "shield",
+            "land",
+            "scan",
+            "flare",
+            "mine",
+            "emp"
+          ],
+          "unlocked": [
+            {
+              "verb": "shoot",
+              "part": "cannon"
+            },
+            {
+              "verb": "boost",
+              "part": "exhaust flames"
+            },
+            {
+              "verb": "shield",
+              "part": "bubble"
+            },
+            {
+              "verb": "land",
+              "part": "landing legs"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "lamp"
+            },
+            {
+              "verb": "emp",
+              "part": "lightning bolt"
+            },
+            {
+              "verb": "mine",
+              "part": "spikes"
+            }
+          ],
+          "parts": [
+            "cannon",
+            "exhaust flames",
+            "bubble",
+            "landing legs",
+            "antenna",
+            "lamp",
+            "lightning bolt",
+            "spikes"
+          ],
+          "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+          "image": "/drawings/kshipgun-ship.png?v=84736624c1",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 4,
+            "planet": 5
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (expected ship)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (rigs.js template for ship: ship)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot boost shield land scan flare mine emp], innate []"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "cannon, exhaust flames, bubble, landing legs, antenna, lamp, lightning bolt, spikes"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "10 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (space)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/kshipgun-ship.png?v=84736624c1"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 24618 B (posted 24618 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 7 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 7 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [shoot boost], unlocked [shoot boost shield land scan flare emp mine]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        },
+        {
+          "name": "tv: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "tv: preview card shows it as a ship",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind ship "
+        },
+        {
+          "name": "tv: triangles within the big budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "11036 ≤ 12400"
+        },
+        {
+          "name": "tv: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "tv: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "tv: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "3.18 m longest of x, z vs 3.2 m ± 20%"
+        },
+        {
+          "name": "tv: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "32 ms (target ≤ 150 ms)"
+        },
+        {
+          "name": "phone: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "phone: preview card shows it as a ship",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind ship "
+        },
+        {
+          "name": "phone: triangles within the lite budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "2404 ≤ 3000"
+        },
+        {
+          "name": "phone: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "phone: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "phone: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "3.18 m longest of x, z vs 3.2 m ± 20%"
+        },
+        {
+          "name": "phone: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "25 ms (target ≤ 250 ms)"
+        }
+      ],
+      "numbers": {
+        "tv": {
+          "quality": "big",
+          "triangles": 11036,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 32,
+          "inflateMs": 32,
+          "loadMs": 4,
+          "sizeM": {
+            "x": 1.76,
+            "y": 0.59,
+            "z": 3.18
+          },
+          "scaleM": 3.18,
+          "expectedM": 3.2,
+          "axis": "longest of x, z",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 4626,
+            "ms": 12,
+            "kind": "ship",
+            "wheels": 0,
+            "ship3d": true,
+            "entity3d": false
+          },
+          "error": null
+        },
+        "phone": {
+          "quality": "lite",
+          "triangles": 2404,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 25,
+          "inflateMs": 25,
+          "loadMs": 4,
+          "sizeM": {
+            "x": 1.83,
+            "y": 0.62,
+            "z": 3.18
+          },
+          "scaleM": 3.18,
+          "expectedM": 3.2,
+          "axis": "longest of x, z",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 3380,
+            "ms": 11,
+            "kind": "ship",
+            "wheels": 0,
+            "ship3d": true,
+            "entity3d": false
+          },
+          "error": null
+        }
+      },
+      "shots": [
+        "dev/v13-entity/shots/ship-gun-flames-tv.png",
+        "dev/v13-entity/shots/ship-gun-flames-phone.png"
+      ],
+      "built": {
+        "type": "ship",
+        "image": "/drawings/kshipgun-ship.png?v=84736624c1",
+        "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+        "color": 2282478
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "ship-plain",
+      "kind": "ship",
+      "world": "space",
+      "player": "kshipplain",
+      "desc": "plain fighter: only flies",
+      "source": "draw",
+      "file": "dev/gen-corpus/entity/E01.png",
+      "png": {
+        "w": 512,
+        "h": 345,
+        "bytes": 26304
+      },
+      "sha": "fe79e015143548833ef60f0567e28bd20de5ca8f",
+      "corpus": {
+        "must": [],
+        "ok": [],
+        "wrong": null
+      },
+      "expect": {
+        "ok": true,
+        "types": [
+          "ship"
+        ],
+        "must": [],
+        "none": true
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 1
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 3,
+        "drawingsLeft": {
+          "space": 4,
+          "planet": 5
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 3,
+          "type": "ship",
+          "rig": "ship",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "boost",
+            "shield",
+            "land",
+            "scan",
+            "flare",
+            "mine",
+            "emp"
+          ],
+          "unlocked": [
+            {
+              "verb": "shoot",
+              "part": "cannon"
+            },
+            {
+              "verb": "boost",
+              "part": "exhaust flames"
+            },
+            {
+              "verb": "shield",
+              "part": "bubble"
+            },
+            {
+              "verb": "land",
+              "part": "landing legs"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "lamp"
+            },
+            {
+              "verb": "emp",
+              "part": "lightning bolt"
+            },
+            {
+              "verb": "mine",
+              "part": "spikes"
+            }
+          ],
+          "parts": [
+            "cannon",
+            "exhaust flames",
+            "bubble",
+            "landing legs",
+            "antenna",
+            "lamp",
+            "lightning bolt",
+            "spikes"
+          ],
+          "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+          "image": "/drawings/kshipplain-ship.png?v=5e8a26e21d",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 4,
+            "planet": 5
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (expected ship)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (rigs.js template for ship: ship)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot boost shield land scan flare mine emp], innate []"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "cannon, exhaust flames, bubble, landing legs, antenna, lamp, lightning bolt, spikes"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "10 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (space)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/kshipplain-ship.png?v=5e8a26e21d"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 26304 B (posted 26304 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 4 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 3 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [], unlocked [shoot boost shield land scan flare emp mine]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "a plain drawing unlocks nothing",
+          "ok": null,
+          "level": "hard",
+          "detail": "n/a in --mock"
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        },
+        {
+          "name": "phone: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "phone: preview card shows it as a ship",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind ship "
+        },
+        {
+          "name": "phone: triangles within the lite budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "2368 ≤ 3000"
+        },
+        {
+          "name": "phone: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "phone: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "phone: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "3.15 m longest of x, z vs 3.2 m ± 20%"
+        },
+        {
+          "name": "phone: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "18 ms (target ≤ 250 ms)"
+        },
+        {
+          "name": "tv: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "tv: preview card shows it as a ship",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind ship "
+        },
+        {
+          "name": "tv: triangles within the big budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "11028 ≤ 12400"
+        },
+        {
+          "name": "tv: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "tv: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "tv: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "3.2 m longest of x, z vs 3.2 m ± 20%"
+        },
+        {
+          "name": "tv: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "27 ms (target ≤ 150 ms)"
+        }
+      ],
+      "numbers": {
+        "phone": {
+          "quality": "lite",
+          "triangles": 2368,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 18,
+          "inflateMs": 18,
+          "loadMs": 3,
+          "sizeM": {
+            "x": 2.09,
+            "y": 0.66,
+            "z": 3.15
+          },
+          "scaleM": 3.15,
+          "expectedM": 3.2,
+          "axis": "longest of x, z",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 3380,
+            "ms": 5,
+            "kind": "ship",
+            "wheels": 0,
+            "ship3d": true,
+            "entity3d": false
+          },
+          "error": null
+        },
+        "tv": {
+          "quality": "big",
+          "triangles": 11028,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 27,
+          "inflateMs": 27,
+          "loadMs": 4,
+          "sizeM": {
+            "x": 2.16,
+            "y": 0.65,
+            "z": 3.2
+          },
+          "scaleM": 3.2,
+          "expectedM": 3.2,
+          "axis": "longest of x, z",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 4626,
+            "ms": 7,
+            "kind": "ship",
+            "wheels": 0,
+            "ship3d": true,
+            "entity3d": false
+          },
+          "error": null
+        }
+      },
+      "shots": [
+        "dev/v13-entity/shots/ship-plain-phone.png",
+        "dev/v13-entity/shots/ship-plain-tv.png"
+      ],
+      "built": {
+        "type": "ship",
+        "image": "/drawings/kshipplain-ship.png?v=5e8a26e21d",
+        "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+        "color": 16020150
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "ship-landing-legs",
+      "kind": "ship",
+      "world": "space",
+      "player": "kshiplegs",
+      "desc": "fighter with landing legs (the LAND gate)",
+      "source": "draw",
+      "file": "dev/gen-corpus/entity/E05.png",
+      "png": {
+        "w": 512,
+        "h": 345,
+        "bytes": 29062
+      },
+      "sha": "43128ba2c5feb80665269c36bf90381c3c5daee5",
+      "corpus": {
+        "must": [
+          "land"
+        ],
+        "ok": [],
+        "wrong": null
+      },
+      "expect": {
+        "ok": true,
+        "types": [
+          "ship"
+        ],
+        "must": [
+          "land"
+        ]
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 4
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 2,
+        "drawingsLeft": {
+          "space": 4,
+          "planet": 5
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 2,
+          "type": "ship",
+          "rig": "ship",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "boost",
+            "shield",
+            "land",
+            "scan",
+            "flare",
+            "mine",
+            "emp"
+          ],
+          "unlocked": [
+            {
+              "verb": "shoot",
+              "part": "cannon"
+            },
+            {
+              "verb": "boost",
+              "part": "exhaust flames"
+            },
+            {
+              "verb": "shield",
+              "part": "bubble"
+            },
+            {
+              "verb": "land",
+              "part": "landing legs"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "lamp"
+            },
+            {
+              "verb": "emp",
+              "part": "lightning bolt"
+            },
+            {
+              "verb": "mine",
+              "part": "spikes"
+            }
+          ],
+          "parts": [
+            "cannon",
+            "exhaust flames",
+            "bubble",
+            "landing legs",
+            "antenna",
+            "lamp",
+            "lightning bolt",
+            "spikes"
+          ],
+          "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+          "image": "/drawings/kshiplegs-ship.png?v=f17f5157f9",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 4,
+            "planet": 5
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (expected ship)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (rigs.js template for ship: ship)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot boost shield land scan flare mine emp], innate []"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "cannon, exhaust flames, bubble, landing legs, antenna, lamp, lightning bolt, spikes"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "10 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (space)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/kshiplegs-ship.png?v=f17f5157f9"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 29062 B (posted 29062 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 3 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 2 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [land], unlocked [shoot boost shield land scan flare emp mine]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        },
+        {
+          "name": "phone: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "phone: preview card shows it as a ship",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind ship "
+        },
+        {
+          "name": "phone: triangles within the lite budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "2452 ≤ 3000"
+        },
+        {
+          "name": "phone: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "phone: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "phone: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "3.24 m longest of x, z vs 3.2 m ± 20%"
+        },
+        {
+          "name": "phone: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "8 ms (target ≤ 250 ms)"
+        },
+        {
+          "name": "tv: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "tv: preview card shows it as a ship",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind ship "
+        },
+        {
+          "name": "tv: triangles within the big budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "10996 ≤ 12400"
+        },
+        {
+          "name": "tv: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "tv: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "tv: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "3.18 m longest of x, z vs 3.2 m ± 20%"
+        },
+        {
+          "name": "tv: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "24 ms (target ≤ 150 ms)"
+        }
+      ],
+      "numbers": {
+        "phone": {
+          "quality": "lite",
+          "triangles": 2452,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 8,
+          "inflateMs": 8,
+          "loadMs": 3,
+          "sizeM": {
+            "x": 2.19,
+            "y": 0.67,
+            "z": 3.24
+          },
+          "scaleM": 3.24,
+          "expectedM": 3.2,
+          "axis": "longest of x, z",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 3740,
+            "ms": 3,
+            "kind": "ship",
+            "wheels": 0,
+            "ship3d": true,
+            "entity3d": false
+          },
+          "error": null
+        },
+        "tv": {
+          "quality": "big",
+          "triangles": 10996,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 24,
+          "inflateMs": 24,
+          "loadMs": 3,
+          "sizeM": {
+            "x": 2.14,
+            "y": 0.64,
+            "z": 3.18
+          },
+          "scaleM": 3.18,
+          "expectedM": 3.2,
+          "axis": "longest of x, z",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 3740,
+            "ms": 9,
+            "kind": "ship",
+            "wheels": 0,
+            "ship3d": true,
+            "entity3d": false
+          },
+          "error": null
+        }
+      },
+      "shots": [
+        "dev/v13-entity/shots/ship-landing-legs-phone.png",
+        "dev/v13-entity/shots/ship-landing-legs-tv.png"
+      ],
+      "built": {
+        "type": "ship",
+        "image": "/drawings/kshiplegs-ship.png?v=f17f5157f9",
+        "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+        "color": 10741301
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "ship-lands",
+      "kind": "ship",
+      "world": "space",
+      "player": "klander",
+      "desc": "the landing-legs ship, landed with its own LAND: the pad shows its drawing",
+      "source": "draw",
+      "file": "dev/gen-corpus/entity/E05.png",
+      "png": {
+        "w": 512,
+        "h": 345,
+        "bytes": 29062
+      },
+      "sha": "43128ba2c5feb80665269c36bf90381c3c5daee5",
+      "corpus": {
+        "must": [
+          "land"
+        ],
+        "ok": [],
+        "wrong": null
+      },
+      "expect": {
+        "ok": true,
+        "types": [
+          "ship"
+        ],
+        "must": [
+          "land"
+        ]
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 2
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 1,
+        "drawingsLeft": {
+          "space": 4,
+          "planet": 5
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 1,
+          "type": "ship",
+          "rig": "ship",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "boost",
+            "shield",
+            "land",
+            "scan",
+            "flare",
+            "mine",
+            "emp"
+          ],
+          "unlocked": [
+            {
+              "verb": "shoot",
+              "part": "cannon"
+            },
+            {
+              "verb": "boost",
+              "part": "exhaust flames"
+            },
+            {
+              "verb": "shield",
+              "part": "bubble"
+            },
+            {
+              "verb": "land",
+              "part": "landing legs"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "lamp"
+            },
+            {
+              "verb": "emp",
+              "part": "lightning bolt"
+            },
+            {
+              "verb": "mine",
+              "part": "spikes"
+            }
+          ],
+          "parts": [
+            "cannon",
+            "exhaust flames",
+            "bubble",
+            "landing legs",
+            "antenna",
+            "lamp",
+            "lightning bolt",
+            "spikes"
+          ],
+          "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+          "image": "/drawings/klander-ship.png?v=f17f5157f9",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 4,
+            "planet": 5
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (expected ship)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (rigs.js template for ship: ship)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot boost shield land scan flare mine emp], innate []"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "cannon, exhaust flames, bubble, landing legs, antenna, lamp, lightning bolt, spikes"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "10 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (space)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/klander-ship.png?v=f17f5157f9"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 29062 B (posted 29062 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 1 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 1 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [land], unlocked [shoot boost shield land scan flare emp mine]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        },
+        {
+          "name": "drawn landing legs land the ship (LAND, no help)",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"ok\":true,\"mode\":\"planet\",\"landingFor\":0,\"type\":\"person\"}; granted a kit ship: [kastroshovel kastrodrill kcar kbike kdog kblob kexplwrong]"
+        },
+        {
+          "name": "parked ship shows its drawing (TV stream)",
+          "ok": true,
+          "level": "hard",
+          "detail": "world message 3272 ms after the landing started"
+        }
+      ],
+      "numbers": null,
+      "shots": [],
+      "built": {
+        "type": "ship",
+        "image": "/drawings/klander-ship.png?v=f17f5157f9",
+        "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+        "color": 16436245
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "ship-photo",
+      "kind": "ship",
+      "world": "space",
+      "player": "kshipphoto",
+      "desc": "photo of a paper drawing: fighter, cannon, flames",
+      "source": "photo",
+      "file": "dev/gen-corpus/entity/E13.png",
+      "png": {
+        "w": 512,
+        "h": 293,
+        "bytes": 56267
+      },
+      "sha": "f0d217172e8133f98603a79598786111b5b54049",
+      "corpus": {
+        "must": [
+          "shoot",
+          "boost"
+        ],
+        "ok": [],
+        "wrong": null
+      },
+      "expect": {
+        "ok": true,
+        "types": [
+          "ship"
+        ],
+        "must": [
+          "shoot",
+          "boost"
+        ]
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 2
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 2,
+        "drawingsLeft": {
+          "space": 4,
+          "planet": 5
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 2,
+          "type": "ship",
+          "rig": "ship",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "boost",
+            "shield",
+            "land",
+            "scan",
+            "flare",
+            "mine",
+            "emp"
+          ],
+          "unlocked": [
+            {
+              "verb": "shoot",
+              "part": "cannon"
+            },
+            {
+              "verb": "boost",
+              "part": "exhaust flames"
+            },
+            {
+              "verb": "shield",
+              "part": "bubble"
+            },
+            {
+              "verb": "land",
+              "part": "landing legs"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "lamp"
+            },
+            {
+              "verb": "emp",
+              "part": "lightning bolt"
+            },
+            {
+              "verb": "mine",
+              "part": "spikes"
+            }
+          ],
+          "parts": [
+            "cannon",
+            "exhaust flames",
+            "bubble",
+            "landing legs",
+            "antenna",
+            "lamp",
+            "lightning bolt",
+            "spikes"
+          ],
+          "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+          "image": "/drawings/kshipphoto-ship.png?v=1e1ccf78d5",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 4,
+            "planet": 5
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (expected ship)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (rigs.js template for ship: ship)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot boost shield land scan flare mine emp], innate []"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "cannon, exhaust flames, bubble, landing legs, antenna, lamp, lightning bolt, spikes"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "10 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (space)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/kshipphoto-ship.png?v=1e1ccf78d5"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 56267 B (posted 56267 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 2 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 2 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [shoot boost], unlocked [shoot boost shield land scan flare emp mine]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        },
+        {
+          "name": "phone: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "phone: preview card shows it as a ship",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind ship "
+        },
+        {
+          "name": "phone: triangles within the lite budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "2400 ≤ 3000"
+        },
+        {
+          "name": "phone: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "phone: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "phone: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "3.19 m longest of x, z vs 3.2 m ± 20%"
+        },
+        {
+          "name": "phone: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "14 ms (target ≤ 250 ms)"
+        },
+        {
+          "name": "tv: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "tv: preview card shows it as a ship",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind ship "
+        },
+        {
+          "name": "tv: triangles within the big budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "11028 ≤ 12400"
+        },
+        {
+          "name": "tv: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "tv: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "tv: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "3.18 m longest of x, z vs 3.2 m ± 20%"
+        },
+        {
+          "name": "tv: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "25 ms (target ≤ 150 ms)"
+        }
+      ],
+      "numbers": {
+        "phone": {
+          "quality": "lite",
+          "triangles": 2400,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 14,
+          "inflateMs": 14,
+          "loadMs": 3,
+          "sizeM": {
+            "x": 1.79,
+            "y": 0.58,
+            "z": 3.19
+          },
+          "scaleM": 3.19,
+          "expectedM": 3.2,
+          "axis": "longest of x, z",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 3380,
+            "ms": 3,
+            "kind": "ship",
+            "wheels": 0,
+            "ship3d": true,
+            "entity3d": false
+          },
+          "error": null
+        },
+        "tv": {
+          "quality": "big",
+          "triangles": 11028,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 25,
+          "inflateMs": 25,
+          "loadMs": 3,
+          "sizeM": {
+            "x": 1.77,
+            "y": 0.57,
+            "z": 3.18
+          },
+          "scaleM": 3.18,
+          "expectedM": 3.2,
+          "axis": "longest of x, z",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 4626,
+            "ms": 4,
+            "kind": "ship",
+            "wheels": 0,
+            "ship3d": true,
+            "entity3d": false
+          },
+          "error": null
+        }
+      },
+      "shots": [
+        "dev/v13-entity/shots/ship-photo-phone.png",
+        "dev/v13-entity/shots/ship-photo-tv.png"
+      ],
+      "built": {
+        "type": "ship",
+        "image": "/drawings/kshipphoto-ship.png?v=1e1ccf78d5",
+        "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+        "color": 16486972
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "ship-wrong-controller",
+      "kind": "ship",
+      "world": "space",
+      "player": "kshipwrong",
+      "desc": "a controller (stick, FIRE, BOOST) drawn in the ship step",
+      "source": "draw",
+      "file": "dev/gen-corpus/wrong/W09.png",
+      "png": {
+        "w": 512,
+        "h": 183,
+        "bytes": 18371
+      },
+      "sha": "42926eac0dad8984a7eab03c7d53b01db8505354",
+      "corpus": {
+        "wrong": {
+          "looksLike": "controller"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "error": "looks like a controller",
+        "looksLike": "controller",
+        "message": "/looks like a controller/i",
+        "anyway": true
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 2
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 1,
+        "drawingsLeft": {
+          "space": 4,
+          "planet": 5
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 1,
+          "type": "ship",
+          "rig": "ship",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "boost",
+            "shield",
+            "land",
+            "scan",
+            "flare",
+            "mine",
+            "emp"
+          ],
+          "unlocked": [
+            {
+              "verb": "shoot",
+              "part": "cannon"
+            },
+            {
+              "verb": "boost",
+              "part": "exhaust flames"
+            },
+            {
+              "verb": "shield",
+              "part": "bubble"
+            },
+            {
+              "verb": "land",
+              "part": "landing legs"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "lamp"
+            },
+            {
+              "verb": "emp",
+              "part": "lightning bolt"
+            },
+            {
+              "verb": "mine",
+              "part": "spikes"
+            }
+          ],
+          "parts": [
+            "cannon",
+            "exhaust flames",
+            "bubble",
+            "landing legs",
+            "antenna",
+            "lamp",
+            "lightning bolt",
+            "spikes"
+          ],
+          "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+          "image": "/drawings/kshipwrong-ship.png?v=9f976bc02f",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 4,
+            "planet": 5
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "refused in plain words",
+          "ok": null,
+          "level": "hard",
+          "detail": "n/a in --mock: the offline answer is the dev kit for every drawing"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (expected ship)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (rigs.js template for ship: ship)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot boost shield land scan flare mine emp], innate []"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "cannon, exhaust flames, bubble, landing legs, antenna, lamp, lightning bolt, spikes"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "10 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (space)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/kshipwrong-ship.png?v=9f976bc02f"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 18371 B (posted 18371 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 1 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 1 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [], unlocked [shoot boost shield land scan flare emp mine]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        }
+      ],
+      "numbers": null,
+      "shots": [],
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "ship-scribble",
+      "kind": "ship",
+      "world": "space",
+      "player": "kscribble",
+      "desc": "an unreadable scribble",
+      "source": "draw",
+      "file": "generated: scribble",
+      "png": {
+        "w": 512,
+        "h": 420,
+        "bytes": 34908
+      },
+      "sha": "cf3eeeded06000ec278289ee5e2775a1b03dcca7",
+      "corpus": null,
+      "expect": {
+        "ok": "either",
+        "error": "nothing to read",
+        "message": "/drawing|bigger|darker|read/i"
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 1
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 2,
+        "drawingsLeft": {
+          "space": 4,
+          "planet": 5
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 2,
+          "type": "ship",
+          "rig": "ship",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "boost",
+            "shield",
+            "land",
+            "scan",
+            "flare",
+            "mine",
+            "emp"
+          ],
+          "unlocked": [
+            {
+              "verb": "shoot",
+              "part": "cannon"
+            },
+            {
+              "verb": "boost",
+              "part": "exhaust flames"
+            },
+            {
+              "verb": "shield",
+              "part": "bubble"
+            },
+            {
+              "verb": "land",
+              "part": "landing legs"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "lamp"
+            },
+            {
+              "verb": "emp",
+              "part": "lightning bolt"
+            },
+            {
+              "verb": "mine",
+              "part": "spikes"
+            }
+          ],
+          "parts": [
+            "cannon",
+            "exhaust flames",
+            "bubble",
+            "landing legs",
+            "antenna",
+            "lamp",
+            "lightning bolt",
+            "spikes"
+          ],
+          "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)",
+          "image": "/drawings/kscribble-ship.png?v=ca4012104e",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 4,
+            "planet": 5
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "refused in plain words",
+          "ok": null,
+          "level": "hard",
+          "detail": "n/a in --mock: the offline answer is the dev kit for every drawing"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (expected ship)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "ship (rigs.js template for ship: ship)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot boost shield land scan flare mine emp], innate []"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "cannon, exhaust flames, bubble, landing legs, antenna, lamp, lightning bolt, spikes"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "10 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (space)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/kscribble-ship.png?v=ca4012104e"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 34908 B (posted 34908 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 3 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type ship, 3 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [], unlocked [shoot boost shield land scan flare emp mine]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)\""
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        }
+      ],
+      "numbers": null,
+      "shots": [],
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "astronaut-shovel",
+      "kind": "explorer",
+      "world": "planet",
+      "player": "kastroshovel",
+      "desc": "astronaut holding a shovel (the DIG gate)",
+      "source": "draw",
+      "file": "dev/gen-corpus/entity/E17.png",
+      "png": {
+        "w": 335,
+        "h": 512,
+        "bytes": 27755
+      },
+      "sha": "11b455d964630843672fab4a5e799076cf1213f5",
+      "corpus": {
+        "must": [
+          "dig"
+        ],
+        "ok": [
+          "jump"
+        ],
+        "wrong": null
+      },
+      "expect": {
+        "ok": true,
+        "types": [
+          "person"
+        ],
+        "must": [
+          "dig"
+        ]
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 9
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 2,
+        "drawingsLeft": {
+          "space": 5,
+          "planet": 4
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 2,
+          "type": "person",
+          "rig": "person",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "shield",
+            "dig",
+            "drill",
+            "jump",
+            "scan",
+            "flare",
+            "tractor",
+            "inkbomb",
+            "takeoff"
+          ],
+          "unlocked": [
+            {
+              "verb": "dig",
+              "part": "shovel"
+            },
+            {
+              "verb": "drill",
+              "part": "drill"
+            },
+            {
+              "verb": "shoot",
+              "part": "blaster"
+            },
+            {
+              "verb": "shield",
+              "part": "shield"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "torch"
+            },
+            {
+              "verb": "inkbomb",
+              "part": "ink bottle"
+            },
+            {
+              "verb": "tractor",
+              "part": "magnet"
+            }
+          ],
+          "parts": [
+            "shovel",
+            "drill",
+            "blaster",
+            "shield",
+            "antenna",
+            "torch",
+            "ink bottle",
+            "magnet"
+          ],
+          "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+          "image": "/drawings/kastroshovel-explorer.png?v=fd9b8b6af8",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 5,
+            "planet": 4
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (expected person)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (rigs.js template for person: person)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot shield dig drill jump scan flare tractor inkbomb takeoff], innate [jump takeoff]"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "dig (shovel), drill (drill), shoot (blaster), shield (shield), scan (antenna), flare (torch), inkbomb (ink bottle), tractor (magnet)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "shovel, drill, blaster, shield, antenna, torch, ink bottle, magnet"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "11 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (planet)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/kastroshovel-explorer.png?v=fd9b8b6af8"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 27755 B (posted 27755 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 3 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 2 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [dig], unlocked [dig drill shoot shield scan flare inkbomb tractor]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        },
+        {
+          "name": "tv: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "tv: preview card shows it as a person",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind person "
+        },
+        {
+          "name": "tv: triangles within the big budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "11004 ≤ 12400"
+        },
+        {
+          "name": "tv: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "tv: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "tv: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "1.8 m height (y) vs 1.8 m ± 10%"
+        },
+        {
+          "name": "tv: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "30 ms (target ≤ 150 ms)"
+        },
+        {
+          "name": "phone: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "phone: preview card shows it as a person",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind person "
+        },
+        {
+          "name": "phone: triangles within the lite budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "2340 ≤ 3000"
+        },
+        {
+          "name": "phone: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "phone: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "phone: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "1.79 m height (y) vs 1.8 m ± 10%"
+        },
+        {
+          "name": "phone: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "19 ms (target ≤ 250 ms)"
+        }
+      ],
+      "numbers": {
+        "tv": {
+          "quality": "big",
+          "triangles": 11004,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 30,
+          "inflateMs": 30,
+          "loadMs": 3,
+          "sizeM": {
+            "x": 1.17,
+            "y": 1.8,
+            "z": 0.39
+          },
+          "scaleM": 1.8,
+          "expectedM": 1.8,
+          "axis": "height (y)",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 4973,
+            "ms": 2,
+            "kind": "person",
+            "wheels": 0,
+            "ship3d": false,
+            "entity3d": true
+          },
+          "error": null
+        },
+        "phone": {
+          "quality": "lite",
+          "triangles": 2340,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 19,
+          "inflateMs": 19,
+          "loadMs": 3,
+          "sizeM": {
+            "x": 1.16,
+            "y": 1.79,
+            "z": 0.4
+          },
+          "scaleM": 1.79,
+          "expectedM": 1.8,
+          "axis": "height (y)",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 3969,
+            "ms": 8,
+            "kind": "person",
+            "wheels": 0,
+            "ship3d": false,
+            "entity3d": true
+          },
+          "error": null
+        }
+      },
+      "shots": [
+        "dev/v13-entity/shots/astronaut-shovel-phone.png",
+        "dev/v13-entity/shots/astronaut-shovel-tv.png"
+      ],
+      "built": {
+        "type": "person",
+        "image": "/drawings/kastroshovel-explorer.png?v=fd9b8b6af8",
+        "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+        "color": 16281969
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "astronaut-drill",
+      "kind": "explorer",
+      "world": "planet",
+      "player": "kastrodrill",
+      "desc": "astronaut with a hand drill (the DRILL gate)",
+      "source": "draw",
+      "file": "dev/gen-corpus/entity/E18.png",
+      "png": {
+        "w": 403,
+        "h": 512,
+        "bytes": 28845
+      },
+      "sha": "ea574176b552d4577cff85b0056140c866c5eba9",
+      "corpus": {
+        "must": [
+          "drill"
+        ],
+        "ok": [
+          "jump"
+        ],
+        "wrong": null
+      },
+      "expect": {
+        "ok": true,
+        "types": [
+          "person"
+        ],
+        "must": [
+          "drill"
+        ]
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 4
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 1,
+        "drawingsLeft": {
+          "space": 5,
+          "planet": 4
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 1,
+          "type": "person",
+          "rig": "person",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "shield",
+            "dig",
+            "drill",
+            "jump",
+            "scan",
+            "flare",
+            "tractor",
+            "inkbomb",
+            "takeoff"
+          ],
+          "unlocked": [
+            {
+              "verb": "dig",
+              "part": "shovel"
+            },
+            {
+              "verb": "drill",
+              "part": "drill"
+            },
+            {
+              "verb": "shoot",
+              "part": "blaster"
+            },
+            {
+              "verb": "shield",
+              "part": "shield"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "torch"
+            },
+            {
+              "verb": "inkbomb",
+              "part": "ink bottle"
+            },
+            {
+              "verb": "tractor",
+              "part": "magnet"
+            }
+          ],
+          "parts": [
+            "shovel",
+            "drill",
+            "blaster",
+            "shield",
+            "antenna",
+            "torch",
+            "ink bottle",
+            "magnet"
+          ],
+          "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+          "image": "/drawings/kastrodrill-explorer.png?v=459dac5e52",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 5,
+            "planet": 4
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (expected person)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (rigs.js template for person: person)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot shield dig drill jump scan flare tractor inkbomb takeoff], innate [jump takeoff]"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "dig (shovel), drill (drill), shoot (blaster), shield (shield), scan (antenna), flare (torch), inkbomb (ink bottle), tractor (magnet)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "shovel, drill, blaster, shield, antenna, torch, ink bottle, magnet"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "11 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (planet)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/kastrodrill-explorer.png?v=459dac5e52"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 28845 B (posted 28845 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 2 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 2 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [drill], unlocked [dig drill shoot shield scan flare inkbomb tractor]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        },
+        {
+          "name": "phone: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "phone: preview card shows it as a person",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind person "
+        },
+        {
+          "name": "phone: triangles within the lite budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "2396 ≤ 3000"
+        },
+        {
+          "name": "phone: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "phone: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "phone: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "1.78 m height (y) vs 1.8 m ± 10%"
+        },
+        {
+          "name": "phone: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "14 ms (target ≤ 250 ms)"
+        },
+        {
+          "name": "tv: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "tv: preview card shows it as a person",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind person "
+        },
+        {
+          "name": "tv: triangles within the big budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "11060 ≤ 12400"
+        },
+        {
+          "name": "tv: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "tv: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "tv: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "1.8 m height (y) vs 1.8 m ± 10%"
+        },
+        {
+          "name": "tv: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "11 ms (target ≤ 150 ms)"
+        }
+      ],
+      "numbers": {
+        "phone": {
+          "quality": "lite",
+          "triangles": 2396,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 14,
+          "inflateMs": 14,
+          "loadMs": 4,
+          "sizeM": {
+            "x": 1.39,
+            "y": 1.78,
+            "z": 0.4
+          },
+          "scaleM": 1.78,
+          "expectedM": 1.8,
+          "axis": "height (y)",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 3969,
+            "ms": 3,
+            "kind": "person",
+            "wheels": 0,
+            "ship3d": false,
+            "entity3d": true
+          },
+          "error": null
+        },
+        "tv": {
+          "quality": "big",
+          "triangles": 11060,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 11,
+          "inflateMs": 11,
+          "loadMs": 4,
+          "sizeM": {
+            "x": 1.41,
+            "y": 1.8,
+            "z": 0.39
+          },
+          "scaleM": 1.8,
+          "expectedM": 1.8,
+          "axis": "height (y)",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 4973,
+            "ms": 4,
+            "kind": "person",
+            "wheels": 0,
+            "ship3d": false,
+            "entity3d": true
+          },
+          "error": null
+        }
+      },
+      "shots": [
+        "dev/v13-entity/shots/astronaut-drill-phone.png",
+        "dev/v13-entity/shots/astronaut-drill-tv.png"
+      ],
+      "built": {
+        "type": "person",
+        "image": "/drawings/kastrodrill-explorer.png?v=459dac5e52",
+        "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+        "color": 3462041
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "car-cannon",
+      "kind": "explorer",
+      "world": "planet",
+      "player": "kcar",
+      "desc": "car with a cannon on the roof",
+      "source": "draw",
+      "file": "dev/gen-corpus/entity/E23.png",
+      "png": {
+        "w": 512,
+        "h": 266,
+        "bytes": 25175
+      },
+      "sha": "848f909cafa8c4851e578ee872fc819ca4d024ab",
+      "corpus": {
+        "must": [
+          "shoot"
+        ],
+        "ok": [
+          "boost",
+          "jump"
+        ],
+        "wrong": null
+      },
+      "expect": {
+        "ok": true,
+        "types": [
+          "car"
+        ],
+        "must": [
+          "shoot"
+        ]
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 3
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 2,
+        "drawingsLeft": {
+          "space": 5,
+          "planet": 4
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 2,
+          "type": "person",
+          "rig": "person",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "shield",
+            "dig",
+            "drill",
+            "jump",
+            "scan",
+            "flare",
+            "tractor",
+            "inkbomb",
+            "takeoff"
+          ],
+          "unlocked": [
+            {
+              "verb": "dig",
+              "part": "shovel"
+            },
+            {
+              "verb": "drill",
+              "part": "drill"
+            },
+            {
+              "verb": "shoot",
+              "part": "blaster"
+            },
+            {
+              "verb": "shield",
+              "part": "shield"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "torch"
+            },
+            {
+              "verb": "inkbomb",
+              "part": "ink bottle"
+            },
+            {
+              "verb": "tractor",
+              "part": "magnet"
+            }
+          ],
+          "parts": [
+            "shovel",
+            "drill",
+            "blaster",
+            "shield",
+            "antenna",
+            "torch",
+            "ink bottle",
+            "magnet"
+          ],
+          "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+          "image": "/drawings/kcar-explorer.png?v=3eb8646d2c",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 5,
+            "planet": 4
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (expected person)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (rigs.js template for person: person)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot shield dig drill jump scan flare tractor inkbomb takeoff], innate [jump takeoff]"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "dig (shovel), drill (drill), shoot (blaster), shield (shield), scan (antenna), flare (torch), inkbomb (ink bottle), tractor (magnet)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "shovel, drill, blaster, shield, antenna, torch, ink bottle, magnet"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "11 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (planet)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/kcar-explorer.png?v=3eb8646d2c"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 25175 B (posted 25175 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 3 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 2 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [shoot], unlocked [dig drill shoot shield scan flare inkbomb tractor]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        },
+        {
+          "name": "phone: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "phone: preview card shows it as a car",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind car "
+        },
+        {
+          "name": "phone: triangles within the lite budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "2640 ≤ 3000"
+        },
+        {
+          "name": "phone: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "3 (hard ≤ 12)"
+        },
+        {
+          "name": "phone: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "3 (target ≤ 4)"
+        },
+        {
+          "name": "phone: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "3.96 m longest of z, y vs 4 m ± 15%"
+        },
+        {
+          "name": "phone: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "14 ms (target ≤ 250 ms)"
+        },
+        {
+          "name": "tv: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "tv: preview card shows it as a car",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind car "
+        },
+        {
+          "name": "tv: triangles within the big budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "11396 ≤ 12400"
+        },
+        {
+          "name": "tv: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "3 (hard ≤ 12)"
+        },
+        {
+          "name": "tv: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "3 (target ≤ 4)"
+        },
+        {
+          "name": "tv: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "3.99 m longest of z, y vs 4 m ± 15%"
+        },
+        {
+          "name": "tv: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "28 ms (target ≤ 150 ms)"
+        }
+      ],
+      "numbers": {
+        "phone": {
+          "quality": "lite",
+          "triangles": 2640,
+          "drawCalls": 3,
+          "meshes": 3,
+          "buildMs": 14,
+          "inflateMs": 14,
+          "loadMs": 3,
+          "sizeM": {
+            "x": 1.72,
+            "y": 2.03,
+            "z": 3.96
+          },
+          "scaleM": 3.96,
+          "expectedM": 4,
+          "axis": "longest of z, y",
+          "wheels": 2,
+          "preview": {
+            "ok": true,
+            "triangles": 3984,
+            "ms": 11,
+            "kind": "car",
+            "wheels": 2,
+            "ship3d": false,
+            "entity3d": false
+          },
+          "error": null
+        },
+        "tv": {
+          "quality": "big",
+          "triangles": 11396,
+          "drawCalls": 3,
+          "meshes": 3,
+          "buildMs": 28,
+          "inflateMs": 28,
+          "loadMs": 3,
+          "sizeM": {
+            "x": 1.72,
+            "y": 2.02,
+            "z": 3.99
+          },
+          "scaleM": 3.99,
+          "expectedM": 4,
+          "axis": "longest of z, y",
+          "wheels": 2,
+          "preview": {
+            "ok": true,
+            "triangles": 11396,
+            "ms": 13,
+            "kind": "car",
+            "wheels": 2,
+            "ship3d": false,
+            "entity3d": false
+          },
+          "error": null
+        }
+      },
+      "shots": [
+        "dev/v13-entity/shots/car-cannon-phone.png",
+        "dev/v13-entity/shots/car-cannon-tv.png"
+      ],
+      "built": {
+        "type": "car",
+        "image": "/drawings/kcar-explorer.png?v=3eb8646d2c",
+        "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+        "color": 15235577
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "bike-lamp",
+      "kind": "explorer",
+      "world": "planet",
+      "player": "kbike",
+      "desc": "bike with a headlamp",
+      "source": "draw",
+      "file": "dev/gen-corpus/entity/E26.png",
+      "png": {
+        "w": 512,
+        "h": 288,
+        "bytes": 29449
+      },
+      "sha": "988a10b472f698865588b3d9591dab2ff448c735",
+      "corpus": {
+        "must": [
+          "flare"
+        ],
+        "ok": [
+          "boost",
+          "jump"
+        ],
+        "wrong": null
+      },
+      "expect": {
+        "ok": true,
+        "types": [
+          "bike"
+        ],
+        "must": [
+          "flare"
+        ]
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 3
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 1,
+        "drawingsLeft": {
+          "space": 5,
+          "planet": 4
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 1,
+          "type": "person",
+          "rig": "person",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "shield",
+            "dig",
+            "drill",
+            "jump",
+            "scan",
+            "flare",
+            "tractor",
+            "inkbomb",
+            "takeoff"
+          ],
+          "unlocked": [
+            {
+              "verb": "dig",
+              "part": "shovel"
+            },
+            {
+              "verb": "drill",
+              "part": "drill"
+            },
+            {
+              "verb": "shoot",
+              "part": "blaster"
+            },
+            {
+              "verb": "shield",
+              "part": "shield"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "torch"
+            },
+            {
+              "verb": "inkbomb",
+              "part": "ink bottle"
+            },
+            {
+              "verb": "tractor",
+              "part": "magnet"
+            }
+          ],
+          "parts": [
+            "shovel",
+            "drill",
+            "blaster",
+            "shield",
+            "antenna",
+            "torch",
+            "ink bottle",
+            "magnet"
+          ],
+          "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+          "image": "/drawings/kbike-explorer.png?v=7df422764c",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 5,
+            "planet": 4
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (expected person)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (rigs.js template for person: person)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot shield dig drill jump scan flare tractor inkbomb takeoff], innate [jump takeoff]"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "dig (shovel), drill (drill), shoot (blaster), shield (shield), scan (antenna), flare (torch), inkbomb (ink bottle), tractor (magnet)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "shovel, drill, blaster, shield, antenna, torch, ink bottle, magnet"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "11 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (planet)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/kbike-explorer.png?v=7df422764c"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 29449 B (posted 29449 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 2 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 2 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [flare], unlocked [dig drill shoot shield scan flare inkbomb tractor]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        },
+        {
+          "name": "phone: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "phone: preview card shows it as a bike",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind bike "
+        },
+        {
+          "name": "phone: triangles within the lite budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "2472 ≤ 3000"
+        },
+        {
+          "name": "phone: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "3 (hard ≤ 12)"
+        },
+        {
+          "name": "phone: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "3 (target ≤ 4)"
+        },
+        {
+          "name": "phone: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "2 m longest of z, y vs 2 m ± 20%"
+        },
+        {
+          "name": "phone: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "10 ms (target ≤ 250 ms)"
+        },
+        {
+          "name": "tv: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "tv: preview card shows it as a bike",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind bike "
+        },
+        {
+          "name": "tv: triangles within the big budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "11264 ≤ 12400"
+        },
+        {
+          "name": "tv: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "3 (hard ≤ 12)"
+        },
+        {
+          "name": "tv: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "3 (target ≤ 4)"
+        },
+        {
+          "name": "tv: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "2.01 m longest of z, y vs 2 m ± 20%"
+        },
+        {
+          "name": "tv: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "33 ms (target ≤ 150 ms)"
+        }
+      ],
+      "numbers": {
+        "phone": {
+          "quality": "lite",
+          "triangles": 2472,
+          "drawCalls": 3,
+          "meshes": 3,
+          "buildMs": 10,
+          "inflateMs": 10,
+          "loadMs": 2,
+          "sizeM": {
+            "x": 0.45,
+            "y": 1.07,
+            "z": 2
+          },
+          "scaleM": 2,
+          "expectedM": 2,
+          "axis": "longest of z, y",
+          "wheels": 2,
+          "preview": {
+            "ok": true,
+            "triangles": 3828,
+            "ms": 9,
+            "kind": "bike",
+            "wheels": 2,
+            "ship3d": false,
+            "entity3d": false
+          },
+          "error": null
+        },
+        "tv": {
+          "quality": "big",
+          "triangles": 11264,
+          "drawCalls": 3,
+          "meshes": 3,
+          "buildMs": 33,
+          "inflateMs": 33,
+          "loadMs": 3,
+          "sizeM": {
+            "x": 0.45,
+            "y": 1.11,
+            "z": 2.01
+          },
+          "scaleM": 2.01,
+          "expectedM": 2,
+          "axis": "longest of z, y",
+          "wheels": 2,
+          "preview": {
+            "ok": true,
+            "triangles": 11264,
+            "ms": 13,
+            "kind": "bike",
+            "wheels": 2,
+            "ship3d": false,
+            "entity3d": false
+          },
+          "error": null
+        }
+      },
+      "shots": [
+        "dev/v13-entity/shots/bike-lamp-phone.png",
+        "dev/v13-entity/shots/bike-lamp-tv.png"
+      ],
+      "built": {
+        "type": "bike",
+        "image": "/drawings/kbike-explorer.png?v=7df422764c",
+        "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+        "color": 16498468
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "dog-claws",
+      "kind": "explorer",
+      "world": "planet",
+      "player": "kdog",
+      "desc": "dog with big digging claws (an animal: quadruped)",
+      "source": "draw",
+      "file": "dev/gen-corpus/entity/E28.png",
+      "png": {
+        "w": 512,
+        "h": 408,
+        "bytes": 29799
+      },
+      "sha": "c2844b03fb7a5ecc385e699c68aac73174dc2e5b",
+      "corpus": {
+        "must": [
+          "dig"
+        ],
+        "ok": [
+          "jump"
+        ],
+        "wrong": null
+      },
+      "expect": {
+        "ok": true,
+        "types": [
+          "quadruped"
+        ],
+        "must": [
+          "dig"
+        ]
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 2
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 3,
+        "drawingsLeft": {
+          "space": 5,
+          "planet": 4
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 3,
+          "type": "person",
+          "rig": "person",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "shield",
+            "dig",
+            "drill",
+            "jump",
+            "scan",
+            "flare",
+            "tractor",
+            "inkbomb",
+            "takeoff"
+          ],
+          "unlocked": [
+            {
+              "verb": "dig",
+              "part": "shovel"
+            },
+            {
+              "verb": "drill",
+              "part": "drill"
+            },
+            {
+              "verb": "shoot",
+              "part": "blaster"
+            },
+            {
+              "verb": "shield",
+              "part": "shield"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "torch"
+            },
+            {
+              "verb": "inkbomb",
+              "part": "ink bottle"
+            },
+            {
+              "verb": "tractor",
+              "part": "magnet"
+            }
+          ],
+          "parts": [
+            "shovel",
+            "drill",
+            "blaster",
+            "shield",
+            "antenna",
+            "torch",
+            "ink bottle",
+            "magnet"
+          ],
+          "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+          "image": "/drawings/kdog-explorer.png?v=8c55f0b8ff",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 5,
+            "planet": 4
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (expected person)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (rigs.js template for person: person)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot shield dig drill jump scan flare tractor inkbomb takeoff], innate [jump takeoff]"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "dig (shovel), drill (drill), shoot (blaster), shield (shield), scan (antenna), flare (torch), inkbomb (ink bottle), tractor (magnet)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "shovel, drill, blaster, shield, antenna, torch, ink bottle, magnet"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "11 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (planet)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/kdog-explorer.png?v=8c55f0b8ff"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 29799 B (posted 29799 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 5 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 5 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [dig], unlocked [dig drill shoot shield scan flare inkbomb tractor]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        },
+        {
+          "name": "phone: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "phone: preview card shows it as a quadruped",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind quadruped "
+        },
+        {
+          "name": "phone: triangles within the lite budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "2424 ≤ 3000"
+        },
+        {
+          "name": "phone: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "phone: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "phone: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "1.99 m longest of z, y vs 2 m ± 20%"
+        },
+        {
+          "name": "phone: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "8 ms (target ≤ 250 ms)"
+        },
+        {
+          "name": "tv: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "tv: preview card shows it as a quadruped",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind quadruped "
+        },
+        {
+          "name": "tv: triangles within the big budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "10992 ≤ 12400"
+        },
+        {
+          "name": "tv: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "tv: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "tv: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "2 m longest of z, y vs 2 m ± 20%"
+        },
+        {
+          "name": "tv: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "10 ms (target ≤ 150 ms)"
+        }
+      ],
+      "numbers": {
+        "phone": {
+          "quality": "lite",
+          "triangles": 2424,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 8,
+          "inflateMs": 8,
+          "loadMs": 3,
+          "sizeM": {
+            "x": 0.58,
+            "y": 1.6,
+            "z": 1.99
+          },
+          "scaleM": 1.99,
+          "expectedM": 2,
+          "axis": "longest of z, y",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 3648,
+            "ms": 18,
+            "kind": "quadruped",
+            "wheels": 0,
+            "ship3d": false,
+            "entity3d": false
+          },
+          "error": null
+        },
+        "tv": {
+          "quality": "big",
+          "triangles": 10992,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 10,
+          "inflateMs": 10,
+          "loadMs": 4,
+          "sizeM": {
+            "x": 0.56,
+            "y": 1.57,
+            "z": 2
+          },
+          "scaleM": 2,
+          "expectedM": 2,
+          "axis": "longest of z, y",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 10992,
+            "ms": 11,
+            "kind": "quadruped",
+            "wheels": 0,
+            "ship3d": false,
+            "entity3d": false
+          },
+          "error": null
+        }
+      },
+      "shots": [
+        "dev/v13-entity/shots/dog-claws-phone.png",
+        "dev/v13-entity/shots/dog-claws-tv.png"
+      ],
+      "built": {
+        "type": "quadruped",
+        "image": "/drawings/kdog-explorer.png?v=8c55f0b8ff",
+        "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+        "color": 3718648
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "blob",
+      "kind": "explorer",
+      "world": "planet",
+      "player": "kblob",
+      "desc": "a blob with a face (the fallback type)",
+      "source": "draw",
+      "file": "dev/gen-corpus/entity/E29.png",
+      "png": {
+        "w": 512,
+        "h": 437,
+        "bytes": 31421
+      },
+      "sha": "f0d6d6d583e74de33617aaac21f88a9104f6d444",
+      "corpus": {
+        "must": [],
+        "ok": [
+          "jump"
+        ],
+        "wrong": null
+      },
+      "expect": {
+        "ok": true,
+        "types": [
+          "blob"
+        ],
+        "must": [],
+        "none": true
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 2
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 2,
+        "drawingsLeft": {
+          "space": 5,
+          "planet": 4
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 2,
+          "type": "person",
+          "rig": "person",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "shield",
+            "dig",
+            "drill",
+            "jump",
+            "scan",
+            "flare",
+            "tractor",
+            "inkbomb",
+            "takeoff"
+          ],
+          "unlocked": [
+            {
+              "verb": "dig",
+              "part": "shovel"
+            },
+            {
+              "verb": "drill",
+              "part": "drill"
+            },
+            {
+              "verb": "shoot",
+              "part": "blaster"
+            },
+            {
+              "verb": "shield",
+              "part": "shield"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "torch"
+            },
+            {
+              "verb": "inkbomb",
+              "part": "ink bottle"
+            },
+            {
+              "verb": "tractor",
+              "part": "magnet"
+            }
+          ],
+          "parts": [
+            "shovel",
+            "drill",
+            "blaster",
+            "shield",
+            "antenna",
+            "torch",
+            "ink bottle",
+            "magnet"
+          ],
+          "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+          "image": "/drawings/kblob-explorer.png?v=9403355592",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 5,
+            "planet": 4
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (expected person)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (rigs.js template for person: person)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot shield dig drill jump scan flare tractor inkbomb takeoff], innate [jump takeoff]"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "dig (shovel), drill (drill), shoot (blaster), shield (shield), scan (antenna), flare (torch), inkbomb (ink bottle), tractor (magnet)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "shovel, drill, blaster, shield, antenna, torch, ink bottle, magnet"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "11 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (planet)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/kblob-explorer.png?v=9403355592"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 31421 B (posted 31421 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 3 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 3 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [], unlocked [dig drill shoot shield scan flare inkbomb tractor]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "a plain drawing unlocks nothing",
+          "ok": null,
+          "level": "hard",
+          "detail": "n/a in --mock"
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        },
+        {
+          "name": "tv: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "tv: preview card shows it as a blob",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind blob "
+        },
+        {
+          "name": "tv: triangles within the big budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "11032 ≤ 12400"
+        },
+        {
+          "name": "tv: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "tv: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "tv: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "1.39 m longest of z, y vs 1.4 m ± 25%"
+        },
+        {
+          "name": "tv: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "23 ms (target ≤ 150 ms)"
+        },
+        {
+          "name": "phone: built by inflate.js",
+          "ok": true,
+          "level": "hard",
+          "detail": ""
+        },
+        {
+          "name": "phone: preview card shows it as a blob",
+          "ok": true,
+          "level": "hard",
+          "detail": "ok true kind blob "
+        },
+        {
+          "name": "phone: triangles within the lite budget",
+          "ok": true,
+          "level": "hard",
+          "detail": "2388 ≤ 3000"
+        },
+        {
+          "name": "phone: draw calls",
+          "ok": true,
+          "level": "hard",
+          "detail": "1 (hard ≤ 12)"
+        },
+        {
+          "name": "phone: draw calls (target)",
+          "ok": true,
+          "level": "soft",
+          "detail": "1 (target ≤ 4)"
+        },
+        {
+          "name": "phone: scale",
+          "ok": true,
+          "level": "hard",
+          "detail": "1.39 m longest of z, y vs 1.4 m ± 25%"
+        },
+        {
+          "name": "phone: build time",
+          "ok": true,
+          "level": "soft",
+          "detail": "19 ms (target ≤ 250 ms)"
+        }
+      ],
+      "numbers": {
+        "tv": {
+          "quality": "big",
+          "triangles": 11032,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 23,
+          "inflateMs": 23,
+          "loadMs": 3,
+          "sizeM": {
+            "x": 0.99,
+            "y": 1.18,
+            "z": 1.39
+          },
+          "scaleM": 1.39,
+          "expectedM": 1.4,
+          "axis": "longest of z, y",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 11032,
+            "ms": 11,
+            "kind": "blob",
+            "wheels": 0,
+            "ship3d": false,
+            "entity3d": false
+          },
+          "error": null
+        },
+        "phone": {
+          "quality": "lite",
+          "triangles": 2388,
+          "drawCalls": 1,
+          "meshes": 1,
+          "buildMs": 19,
+          "inflateMs": 19,
+          "loadMs": 3,
+          "sizeM": {
+            "x": 1,
+            "y": 1.21,
+            "z": 1.39
+          },
+          "scaleM": 1.39,
+          "expectedM": 1.4,
+          "axis": "longest of z, y",
+          "wheels": 0,
+          "preview": {
+            "ok": true,
+            "triangles": 3648,
+            "ms": 22,
+            "kind": "blob",
+            "wheels": 0,
+            "ship3d": false,
+            "entity3d": false
+          },
+          "error": null
+        }
+      },
+      "shots": [
+        "dev/v13-entity/shots/blob-phone.png",
+        "dev/v13-entity/shots/blob-tv.png"
+      ],
+      "built": {
+        "type": "blob",
+        "image": "/drawings/kblob-explorer.png?v=9403355592",
+        "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+        "color": 3003583
+      },
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "explorer-wrong-controller",
+      "kind": "explorer",
+      "world": "planet",
+      "player": "kexplwrong",
+      "desc": "a controller (stick, DIG, JUMP) drawn in the explorer step",
+      "source": "draw",
+      "file": "dev/gen-corpus/wrong/W11.png",
+      "png": {
+        "w": 512,
+        "h": 174,
+        "bytes": 17956
+      },
+      "sha": "3e714a6ef3a1b717c54b101bba1c5cd1454ea1f8",
+      "corpus": {
+        "wrong": {
+          "looksLike": "controller"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "error": "looks like a controller",
+        "looksLike": "controller",
+        "message": "/looks like a controller/i",
+        "anyway": true
+      },
+      "model": "mock (dev kit)",
+      "speculative": {
+        "status": 200,
+        "ok": true,
+        "ms": 3
+      },
+      "http": {
+        "status": 200,
+        "ok": true,
+        "error": null,
+        "message": null,
+        "looksLike": null,
+        "fallback": false,
+        "ms": 1,
+        "drawingsLeft": {
+          "space": 5,
+          "planet": 4
+        }
+      },
+      "anyway": null,
+      "answers": [
+        {
+          "label": "finished",
+          "ms": 1,
+          "type": "person",
+          "rig": "person",
+          "source": "devkit",
+          "verbs": [
+            "shoot",
+            "shield",
+            "dig",
+            "drill",
+            "jump",
+            "scan",
+            "flare",
+            "tractor",
+            "inkbomb",
+            "takeoff"
+          ],
+          "unlocked": [
+            {
+              "verb": "dig",
+              "part": "shovel"
+            },
+            {
+              "verb": "drill",
+              "part": "drill"
+            },
+            {
+              "verb": "shoot",
+              "part": "blaster"
+            },
+            {
+              "verb": "shield",
+              "part": "shield"
+            },
+            {
+              "verb": "scan",
+              "part": "antenna"
+            },
+            {
+              "verb": "flare",
+              "part": "torch"
+            },
+            {
+              "verb": "inkbomb",
+              "part": "ink bottle"
+            },
+            {
+              "verb": "tractor",
+              "part": "magnet"
+            }
+          ],
+          "parts": [
+            "shovel",
+            "drill",
+            "blaster",
+            "shield",
+            "antenna",
+            "torch",
+            "ink bottle",
+            "magnet"
+          ],
+          "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+          "image": "/drawings/kexplwrong-explorer.png?v=4f38fb2d7a",
+          "fallback": false,
+          "looksLike": null,
+          "drawingsLeft": {
+            "space": 5,
+            "planet": 4
+          }
+        }
+      ],
+      "checks": [
+        {
+          "name": "drawing budget readable",
+          "ok": true,
+          "level": "hard",
+          "detail": "{\"space\":5,\"planet\":5}"
+        },
+        {
+          "name": "speculative call answered",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok"
+        },
+        {
+          "name": "speculative call spends nothing",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 5"
+        },
+        {
+          "name": "speculative call sends no entity message",
+          "ok": true,
+          "level": "hard",
+          "detail": "0 message(s)"
+        },
+        {
+          "name": "refused in plain words",
+          "ok": null,
+          "level": "hard",
+          "detail": "n/a in --mock: the offline answer is the dev kit for every drawing"
+        },
+        {
+          "name": "answer is an entity",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 ok=true "
+        },
+        {
+          "name": "type",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (expected person)"
+        },
+        {
+          "name": "rig",
+          "ok": true,
+          "level": "hard",
+          "detail": "person (rigs.js template for person: person)"
+        },
+        {
+          "name": "moves by itself",
+          "ok": true,
+          "level": "hard",
+          "detail": "verbs [shoot shield dig drill jump scan flare tractor inkbomb takeoff], innate [jump takeoff]"
+        },
+        {
+          "name": "unlocked skills are live skills of this world",
+          "ok": true,
+          "level": "hard",
+          "detail": "dig (shovel), drill (drill), shoot (blaster), shield (shield), scan (antenna), flare (torch), inkbomb (ink bottle), tractor (magnet)"
+        },
+        {
+          "name": "parts",
+          "ok": true,
+          "level": "hard",
+          "detail": "shovel, drill, blaster, shield, antenna, torch, ink bottle, magnet"
+        },
+        {
+          "name": "unlock card in plain words",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "card = Verbs.cardOf(type, unlocked)",
+          "ok": true,
+          "level": "soft",
+          "detail": "want \"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "animations wired",
+          "ok": true,
+          "level": "soft",
+          "detail": "11 slots"
+        },
+        {
+          "name": "one drawing spent",
+          "ok": true,
+          "level": "hard",
+          "detail": "5 → 4 (planet)"
+        },
+        {
+          "name": "image URL on the answer",
+          "ok": true,
+          "level": "hard",
+          "detail": "/drawings/kexplwrong-explorer.png?v=4f38fb2d7a"
+        },
+        {
+          "name": "image served",
+          "ok": true,
+          "level": "hard",
+          "detail": "HTTP 200 image/png 17956 B (posted 17956 B)"
+        },
+        {
+          "name": "entity message on the phone stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 1 ms after the post"
+        },
+        {
+          "name": "entity message on the TV stream",
+          "ok": true,
+          "level": "hard",
+          "detail": "type person, 1 ms after the post"
+        },
+        {
+          "name": "drawn skills unlocked (generous)",
+          "ok": true,
+          "level": "hard",
+          "detail": "must [], unlocked [dig drill shoot shield scan flare inkbomb tractor]"
+        },
+        {
+          "name": "card names every drawn skill",
+          "ok": true,
+          "level": "hard",
+          "detail": "\"Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)\""
+        },
+        {
+          "name": "answered by the model, not a fallback",
+          "ok": true,
+          "level": "hard",
+          "detail": "source devkit"
+        }
+      ],
+      "numbers": null,
+      "shots": [],
+      "pass": true,
+      "failed": []
+    }
+  ],
+  "late": {
+    "stream": [
+      {
+        "id": "ship-gun-flames",
+        "player": "kshipgun",
+        "ok": true,
+        "type": "ship",
+        "image": "/drawings/kshipgun-ship.png?v=84736624c1"
+      },
+      {
+        "id": "ship-plain",
+        "player": "kshipplain",
+        "ok": true,
+        "type": "ship",
+        "image": "/drawings/kshipplain-ship.png?v=5e8a26e21d"
+      },
+      {
+        "id": "ship-landing-legs",
+        "player": "kshiplegs",
+        "ok": true,
+        "type": "ship",
+        "image": "/drawings/kshiplegs-ship.png?v=f17f5157f9"
+      },
+      {
+        "id": "ship-lands",
+        "player": "klander",
+        "ok": true,
+        "type": "person",
+        "parkedImage": "/drawings/klander-ship.png?v=f17f5157f9"
+      },
+      {
+        "id": "ship-photo",
+        "player": "kshipphoto",
+        "ok": true,
+        "type": "ship",
+        "image": "/drawings/kshipphoto-ship.png?v=1e1ccf78d5"
+      },
+      {
+        "id": "astronaut-shovel",
+        "player": "kastroshovel",
+        "ok": true,
+        "type": "person",
+        "image": "/drawings/kastroshovel-explorer.png?v=fd9b8b6af8"
+      },
+      {
+        "id": "astronaut-drill",
+        "player": "kastrodrill",
+        "ok": true,
+        "type": "person",
+        "image": "/drawings/kastrodrill-explorer.png?v=459dac5e52"
+      },
+      {
+        "id": "car-cannon",
+        "player": "kcar",
+        "ok": true,
+        "type": "person",
+        "image": "/drawings/kcar-explorer.png?v=3eb8646d2c"
+      },
+      {
+        "id": "bike-lamp",
+        "player": "kbike",
+        "ok": true,
+        "type": "person",
+        "image": "/drawings/kbike-explorer.png?v=7df422764c"
+      },
+      {
+        "id": "dog-claws",
+        "player": "kdog",
+        "ok": true,
+        "type": "person",
+        "image": "/drawings/kdog-explorer.png?v=8c55f0b8ff"
+      },
+      {
+        "id": "blob",
+        "player": "kblob",
+        "ok": true,
+        "type": "person",
+        "image": "/drawings/kblob-explorer.png?v=9403355592"
+      }
+    ],
+    "browser": [
+      {
+        "id": "ship-gun-flames",
+        "player": "kshipgun",
+        "ok": true,
+        "got": {
+          "type": "ship",
+          "image": "/drawings/kshipgun-ship.png?v=84736624c1",
+          "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)"
+        }
+      },
+      {
+        "id": "ship-plain",
+        "player": "kshipplain",
+        "ok": true,
+        "got": {
+          "type": "ship",
+          "image": "/drawings/kshipplain-ship.png?v=5e8a26e21d",
+          "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)"
+        }
+      },
+      {
+        "id": "ship-landing-legs",
+        "player": "kshiplegs",
+        "ok": true,
+        "got": {
+          "type": "ship",
+          "image": "/drawings/kshiplegs-ship.png?v=f17f5157f9",
+          "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)"
+        }
+      },
+      {
+        "id": "ship-photo",
+        "player": "kshipphoto",
+        "ok": true,
+        "got": {
+          "type": "ship",
+          "image": "/drawings/kshipphoto-ship.png?v=1e1ccf78d5",
+          "card": "Your ship can: fly, shoot (cannon), boost (exhaust flames), shield (bubble), land (landing legs), scan (antenna), flare (lamp), emp (lightning bolt), mine (spikes)"
+        }
+      },
+      {
+        "id": "astronaut-shovel",
+        "player": "kastroshovel",
+        "ok": true,
+        "got": {
+          "type": "person",
+          "image": "/drawings/kastroshovel-explorer.png?v=fd9b8b6af8",
+          "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)"
+        }
+      },
+      {
+        "id": "astronaut-drill",
+        "player": "kastrodrill",
+        "ok": true,
+        "got": {
+          "type": "person",
+          "image": "/drawings/kastrodrill-explorer.png?v=459dac5e52",
+          "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)"
+        }
+      },
+      {
+        "id": "car-cannon",
+        "player": "kcar",
+        "ok": true,
+        "got": {
+          "type": "person",
+          "image": "/drawings/kcar-explorer.png?v=3eb8646d2c",
+          "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)"
+        }
+      },
+      {
+        "id": "bike-lamp",
+        "player": "kbike",
+        "ok": true,
+        "got": {
+          "type": "person",
+          "image": "/drawings/kbike-explorer.png?v=7df422764c",
+          "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)"
+        }
+      },
+      {
+        "id": "dog-claws",
+        "player": "kdog",
+        "ok": true,
+        "got": {
+          "type": "person",
+          "image": "/drawings/kdog-explorer.png?v=8c55f0b8ff",
+          "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)"
+        }
+      },
+      {
+        "id": "blob",
+        "player": "kblob",
+        "ok": true,
+        "got": {
+          "type": "person",
+          "image": "/drawings/kblob-explorer.png?v=9403355592",
+          "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)"
+        }
+      }
+    ]
+  },
+  "planet": {
+    "ok": true,
+    "phase": "playing",
+    "granted": [
+      "kastroshovel",
+      "kastrodrill",
+      "kcar",
+      "kbike",
+      "kdog",
+      "kblob",
+      "kexplwrong"
+    ],
+    "players": {
+      "kastroshovel": {
+        "ok": true,
+        "mode": "planet",
+        "landingFor": 0,
+        "type": "person"
+      },
+      "kastrodrill": {
+        "ok": true,
+        "mode": "planet",
+        "landingFor": 0,
+        "type": "person"
+      },
+      "kcar": {
+        "ok": true,
+        "mode": "planet",
+        "landingFor": 0,
+        "type": "person"
+      },
+      "kbike": {
+        "ok": true,
+        "mode": "planet",
+        "landingFor": 0,
+        "type": "person"
+      },
+      "kdog": {
+        "ok": true,
+        "mode": "planet",
+        "landingFor": 0,
+        "type": "person"
+      },
+      "kblob": {
+        "ok": true,
+        "mode": "planet",
+        "landingFor": 0,
+        "type": "person"
+      },
+      "kexplwrong": {
+        "ok": true,
+        "mode": "planet",
+        "landingFor": 0,
+        "type": "person"
+      },
+      "klander": {
+        "ok": true,
+        "mode": "planet",
+        "landingFor": 0,
+        "type": "person"
+      }
+    },
+    "ms": 3333
+  },
+  "browser": {
+    "tv": {
+      "url": "http://127.0.0.1:8455/space.html",
+      "viewport": "1440x900",
+      "browser": "webkit"
+    },
+    "phone": {
+      "url": "http://127.0.0.1:8455/controller.html",
+      "viewport": "844x390@3",
+      "browser": "webkit"
+    },
+    "shots": [
+      "dev/v13-entity/shots/tv-game.png",
+      "dev/v13-entity/shots/phone-join.png",
+      "dev/v13-entity/shots/ship-gun-flames-tv.png",
+      "dev/v13-entity/shots/ship-gun-flames-phone.png",
+      "dev/v13-entity/shots/ship-plain-phone.png",
+      "dev/v13-entity/shots/ship-plain-tv.png",
+      "dev/v13-entity/shots/ship-landing-legs-phone.png",
+      "dev/v13-entity/shots/ship-landing-legs-tv.png",
+      "dev/v13-entity/shots/ship-photo-phone.png",
+      "dev/v13-entity/shots/ship-photo-tv.png",
+      "dev/v13-entity/shots/astronaut-shovel-phone.png",
+      "dev/v13-entity/shots/astronaut-shovel-tv.png",
+      "dev/v13-entity/shots/astronaut-drill-phone.png",
+      "dev/v13-entity/shots/astronaut-drill-tv.png",
+      "dev/v13-entity/shots/car-cannon-phone.png",
+      "dev/v13-entity/shots/car-cannon-tv.png",
+      "dev/v13-entity/shots/bike-lamp-phone.png",
+      "dev/v13-entity/shots/bike-lamp-tv.png",
+      "dev/v13-entity/shots/dog-claws-phone.png",
+      "dev/v13-entity/shots/dog-claws-tv.png",
+      "dev/v13-entity/shots/blob-phone.png",
+      "dev/v13-entity/shots/blob-tv.png"
+    ]
+  },
+  "calls": {
+    "ok": true,
+    "mode": "mock",
+    "cap": 0,
+    "real": 0,
+    "replayed": 0,
+    "scripted": 0,
+    "missing": 0,
+    "blocked": 0,
+    "recorded": 103,
+    "log": []
+  },
+  "consoleErrors": [],
+  "timeline": {
+    "serverUp": 0.4,
+    "joined": 0.4,
+    "ships": 2.2,
+    "explorers": 7.6,
+    "late": 7.6,
+    "browsers": 21.3
+  },
+  "setupError": null,
+  "checks": [
+    {
+      "name": "server runs in the requested mode",
+      "ok": true,
+      "level": "hard",
+      "detail": "mock"
+    },
+    {
+      "name": "join kshipgun",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"kshipgun\",\"color\":2282478}"
+    },
+    {
+      "name": "join kshipplain",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"kshipplain\",\"color\":16020150}"
+    },
+    {
+      "name": "join kshiplegs",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"kshiplegs\",\"color\":10741301}"
+    },
+    {
+      "name": "join klander",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"klander\",\"color\":16436245}"
+    },
+    {
+      "name": "join kshipphoto",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"kshipphoto\",\"color\":16486972}"
+    },
+    {
+      "name": "join kshipwrong",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"kshipwrong\",\"color\":12616956}"
+    },
+    {
+      "name": "join kscribble",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"kscribble\",\"color\":6333946}"
+    },
+    {
+      "name": "join kastroshovel",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"kastroshovel\",\"color\":16281969}"
+    },
+    {
+      "name": "join kastrodrill",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"kastrodrill\",\"color\":3462041}"
+    },
+    {
+      "name": "join kcar",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"kcar\",\"color\":15235577}"
+    },
+    {
+      "name": "join kbike",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"kbike\",\"color\":16498468}"
+    },
+    {
+      "name": "join kdog",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"kdog\",\"color\":3718648}"
+    },
+    {
+      "name": "join kblob",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"kblob\",\"color\":3003583}"
+    },
+    {
+      "name": "join kexplwrong",
+      "ok": true,
+      "level": "hard",
+      "detail": "HTTP 200 {\"player\":\"kexplwrong\",\"color\":10980346}"
+    },
+    {
+      "name": "players landed on the planet (test hook)",
+      "ok": true,
+      "level": "hard",
+      "detail": "{\"ok\":true,\"phase\":\"playing\",\"granted\":[\"kastroshovel\",\"kastrodrill\",\"kcar\",\"kbike\",\"kdog\",\"kblob\",\"kexplwrong\"],\"players\":{\"kastroshovel\":{\"ok\":true,\"mode\":\"planet\",\"landingFor\":0,\"type\":\"person\"},\"kastrodrill\":{\"ok\":true,\"mode\":\"planet\",\"landingFor\":0,\"type\":\"person\"},\"kcar\":{\"ok\":true,\"mode\":\"pla"
+    },
+    {
+      "name": "late TV stream has ship-gun-flames",
+      "ok": true,
+      "level": "hard",
+      "detail": "type ship, image /drawings/kshipgun-ship.png?v=84736624c1"
+    },
+    {
+      "name": "late TV stream has ship-plain",
+      "ok": true,
+      "level": "hard",
+      "detail": "type ship, image /drawings/kshipplain-ship.png?v=5e8a26e21d"
+    },
+    {
+      "name": "late TV stream has ship-landing-legs",
+      "ok": true,
+      "level": "hard",
+      "detail": "type ship, image /drawings/kshiplegs-ship.png?v=f17f5157f9"
+    },
+    {
+      "name": "late TV stream has ship-lands (parked on the pad)",
+      "ok": true,
+      "level": "hard",
+      "detail": "parked /drawings/klander-ship.png?v=f17f5157f9, drives person"
+    },
+    {
+      "name": "late TV stream has ship-photo",
+      "ok": true,
+      "level": "hard",
+      "detail": "type ship, image /drawings/kshipphoto-ship.png?v=1e1ccf78d5"
+    },
+    {
+      "name": "late TV stream has astronaut-shovel",
+      "ok": true,
+      "level": "hard",
+      "detail": "type person, image /drawings/kastroshovel-explorer.png?v=fd9b8b6af8"
+    },
+    {
+      "name": "late TV stream has astronaut-drill",
+      "ok": true,
+      "level": "hard",
+      "detail": "type person, image /drawings/kastrodrill-explorer.png?v=459dac5e52"
+    },
+    {
+      "name": "late TV stream has car-cannon",
+      "ok": true,
+      "level": "hard",
+      "detail": "type person, image /drawings/kcar-explorer.png?v=3eb8646d2c"
+    },
+    {
+      "name": "late TV stream has bike-lamp",
+      "ok": true,
+      "level": "hard",
+      "detail": "type person, image /drawings/kbike-explorer.png?v=7df422764c"
+    },
+    {
+      "name": "late TV stream has dog-claws",
+      "ok": true,
+      "level": "hard",
+      "detail": "type person, image /drawings/kdog-explorer.png?v=8c55f0b8ff"
+    },
+    {
+      "name": "late TV stream has blob",
+      "ok": true,
+      "level": "hard",
+      "detail": "type person, image /drawings/kblob-explorer.png?v=9403355592"
+    },
+    {
+      "name": "no model calls in --mock",
+      "ok": true,
+      "level": "hard",
+      "detail": "{\"ok\":true,\"mode\":\"mock\",\"cap\":0,\"real\":0,\"replayed\":0,\"scripted\":0,\"missing\":0,\"blocked\":0,\"recorded\":103}"
+    },
+    {
+      "name": "TV page exposes window.__game.entityOf",
+      "ok": true,
+      "level": "hard",
+      "detail": ""
+    },
+    {
+      "name": "late TV (space.html) has ship-gun-flames",
+      "ok": true,
+      "level": "hard",
+      "detail": "type ship, image /drawings/kshipgun-ship.png?v=84736624c1"
+    },
+    {
+      "name": "late TV (space.html) has ship-plain",
+      "ok": true,
+      "level": "hard",
+      "detail": "type ship, image /drawings/kshipplain-ship.png?v=5e8a26e21d"
+    },
+    {
+      "name": "late TV (space.html) has ship-landing-legs",
+      "ok": true,
+      "level": "hard",
+      "detail": "type ship, image /drawings/kshiplegs-ship.png?v=f17f5157f9"
+    },
+    {
+      "name": "late TV (space.html) has ship-photo",
+      "ok": true,
+      "level": "hard",
+      "detail": "type ship, image /drawings/kshipphoto-ship.png?v=1e1ccf78d5"
+    },
+    {
+      "name": "late TV (space.html) has astronaut-shovel",
+      "ok": true,
+      "level": "hard",
+      "detail": "type person, image /drawings/kastroshovel-explorer.png?v=fd9b8b6af8"
+    },
+    {
+      "name": "late TV (space.html) has astronaut-drill",
+      "ok": true,
+      "level": "hard",
+      "detail": "type person, image /drawings/kastrodrill-explorer.png?v=459dac5e52"
+    },
+    {
+      "name": "late TV (space.html) has car-cannon",
+      "ok": true,
+      "level": "hard",
+      "detail": "type person, image /drawings/kcar-explorer.png?v=3eb8646d2c"
+    },
+    {
+      "name": "late TV (space.html) has bike-lamp",
+      "ok": true,
+      "level": "hard",
+      "detail": "type person, image /drawings/kbike-explorer.png?v=7df422764c"
+    },
+    {
+      "name": "late TV (space.html) has dog-claws",
+      "ok": true,
+      "level": "hard",
+      "detail": "type person, image /drawings/kdog-explorer.png?v=8c55f0b8ff"
+    },
+    {
+      "name": "late TV (space.html) has blob",
+      "ok": true,
+      "level": "hard",
+      "detail": "type person, image /drawings/kblob-explorer.png?v=9403355592"
+    },
+    {
+      "name": "no page errors (TV, phone)",
+      "ok": true,
+      "level": "hard",
+      "detail": ""
+    },
+    {
+      "name": "no console errors (TV, phone)",
+      "ok": true,
+      "level": "soft",
+      "detail": ""
+    }
+  ],
+  "server": {
+    "pid": 74370,
+    "mode": "mock",
+    "recorded": 103,
+    "round": {
+      "autostartSeconds": null,
+      "maxSeconds": 1800,
+      "assistsAt": 1500,
+      "scoreboardSeconds": 10,
+      "countdownSeconds": 3
+    }
+  },
+  "finalState": {
+    "phase": "playing",
+    "round": 1,
+    "boss": {
+      "hp": 0,
+      "maxHp": 5880,
+      "dead": true,
+      "radius": 20,
+      "x": -340.9,
+      "y": -29.82,
+      "z": -209.26
+    },
+    "planet": true
+  },
+  "finishedAt": "2026-10-10T09:05:40.456Z",
+  "summary": {
+    "pass": true,
+    "checks": 482,
+    "passed": 477,
+    "hardFailed": 0,
+    "softFailed": 0,
+    "notApplicable": 5,
+    "seconds": 21.3,
+    "drawings": 14,
+    "drawingsPassed": 14
+  }
+}

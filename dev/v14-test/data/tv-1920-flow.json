@@ -1,0 +1,62 @@
+{
+  "at": "2026-10-10T09:23:46.571Z",
+  "viewport": "1920x1080",
+  "states": [
+    {
+      "name": "lobby",
+      "state": {
+        "body": {},
+        "sting": "",
+        "phase": "lobby"
+      }
+    },
+    {
+      "name": "countdown-3",
+      "state": {
+        "body": {},
+        "sting": "3",
+        "phase": "countdown"
+      }
+    },
+    {
+      "name": "countdown-2",
+      "state": {
+        "body": {},
+        "sting": "2",
+        "phase": "countdown"
+      }
+    },
+    {
+      "name": "countdown-1",
+      "state": {
+        "body": {},
+        "sting": "1",
+        "phase": "countdown"
+      }
+    },
+    {
+      "name": "go",
+      "state": {
+        "body": {},
+        "sting": "GO!",
+        "phase": "playing"
+      }
+    },
+    {
+      "name": "live-play",
+      "state": {
+        "body": {},
+        "sting": "GO!",
+        "phase": "playing"
+      }
+    },
+    {
+      "name": "live-results",
+      "state": {
+        "body": {},
+        "sting": "1",
+        "phase": "scoreboard"
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "buttons": [
+    {
+      "type": "button",
+      "action": "shoot",
+      "label": "FIRE",
+      "x": 0.496,
+      "y": 0.27,
+      "w": 0.406,
+      "h": 0.236
+    },
+    {
+      "type": "button",
+      "action": "land",
+      "label": "LAND",
+      "x": 0.518,
+      "y": 0.624,
+      "w": 0.395,
+      "h": 0.253
+    }
+  ],
+  "source": "model"
+}

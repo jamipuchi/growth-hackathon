@@ -1,0 +1,206 @@
+{
+  "type": "person",
+  "rig": "person",
+  "verbs": [
+    "shoot",
+    "shield",
+    "dig",
+    "drill",
+    "jump",
+    "scan",
+    "flare",
+    "tractor",
+    "inkbomb",
+    "takeoff"
+  ],
+  "unlocked": [
+    {
+      "verb": "dig",
+      "part": "shovel"
+    },
+    {
+      "verb": "drill",
+      "part": "drill"
+    },
+    {
+      "verb": "shoot",
+      "part": "blaster"
+    },
+    {
+      "verb": "shield",
+      "part": "shield"
+    },
+    {
+      "verb": "scan",
+      "part": "antenna"
+    },
+    {
+      "verb": "flare",
+      "part": "torch"
+    },
+    {
+      "verb": "inkbomb",
+      "part": "ink bottle"
+    },
+    {
+      "verb": "tractor",
+      "part": "magnet"
+    }
+  ],
+  "parts": [
+    {
+      "name": "shovel",
+      "x": 0.2,
+      "y": 0.5
+    },
+    {
+      "name": "drill",
+      "x": 0.3,
+      "y": 0.5
+    },
+    {
+      "name": "blaster",
+      "x": 0.4,
+      "y": 0.5
+    },
+    {
+      "name": "shield",
+      "x": 0.5,
+      "y": 0.5
+    },
+    {
+      "name": "antenna",
+      "x": 0.6,
+      "y": 0.5
+    },
+    {
+      "name": "torch",
+      "x": 0.7,
+      "y": 0.5
+    },
+    {
+      "name": "ink bottle",
+      "x": 0.8,
+      "y": 0.5
+    },
+    {
+      "name": "magnet",
+      "x": 0.9,
+      "y": 0.5
+    }
+  ],
+  "source": "devkit",
+  "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)",
+  "spec": {
+    "v": 1,
+    "type": "person",
+    "view": "front",
+    "facing": "viewer",
+    "style": "retro",
+    "seed": 3805972060,
+    "head": {
+      "shape": "round",
+      "size": 0.206,
+      "gear": "helmet",
+      "face": "visor",
+      "eyes": 0,
+      "snout": 0,
+      "color": "",
+      "gearColor": "",
+      "faceColor": ""
+    },
+    "torso": {
+      "shape": "round",
+      "width": 0.32,
+      "color": "",
+      "belt": true,
+      "emblem": ""
+    },
+    "arms": {
+      "count": 2,
+      "length": 0.36,
+      "thickness": "normal",
+      "hands": "mitten",
+      "color": ""
+    },
+    "legs": {
+      "count": 2,
+      "length": 0.42,
+      "thickness": "normal",
+      "feet": "boots",
+      "color": ""
+    },
+    "neck": 0,
+    "tail": {
+      "kind": "none",
+      "color": ""
+    },
+    "vehicle": {
+      "body": "none",
+      "height": 0.36,
+      "cabin": "none",
+      "wheels": 0,
+      "wheelSize": 0.24,
+      "color": "",
+      "rider": false
+    },
+    "items": [
+      {
+        "kind": "shovel",
+        "where": "right hand",
+        "size": 0.32,
+        "color": "",
+        "verb": "dig",
+        "added": true
+      },
+      {
+        "kind": "drill",
+        "where": "left hand",
+        "size": 0.32,
+        "color": "",
+        "verb": "drill",
+        "added": true
+      },
+      {
+        "kind": "blaster",
+        "where": "back",
+        "size": 0.32,
+        "color": "",
+        "verb": "shoot",
+        "added": true
+      },
+      {
+        "kind": "shield",
+        "where": "back",
+        "size": 0.32,
+        "color": "",
+        "verb": "shield",
+        "added": true
+      },
+      {
+        "kind": "antenna",
+        "where": "head",
+        "size": 0.32,
+        "color": "",
+        "verb": "scan",
+        "added": true
+      },
+      {
+        "kind": "lamp",
+        "where": "head",
+        "size": 0.32,
+        "color": "",
+        "verb": "flare",
+        "added": true
+      }
+    ],
+    "palette": {
+      "colored": false,
+      "main": "",
+      "second": "",
+      "accent": "",
+      "skin": ""
+    },
+    "source": "entity"
+  }
+}

@@ -1,0 +1,387 @@
+{
+  "started": "2026-10-10T08:31:55.214Z",
+  "port": 8421,
+  "checks": {
+    "join → ship step": {
+      "ok": true
+    },
+    "step title is '1 · DRAW YOUR SHIP'": {
+      "ok": true,
+      "detail": "1 · DRAW YOUR SHIP"
+    },
+    "join (land) shows join, name": {
+      "ok": true
+    },
+    "ship (land) shows draw, drawTitle, example, useDefault": {
+      "ok": true
+    },
+    "controller (land) shows draw, drawTitle, example": {
+      "ok": true
+    },
+    "explorerDraw (land) shows draw, drawTitle, example": {
+      "ok": true
+    },
+    "planetController (land) shows draw, drawTitle": {
+      "ok": true
+    },
+    "gen (land) shows gen, genPic, genTitle, genSub": {
+      "ok": true
+    },
+    "genError (land) shows gen, genErr, genRetry, genBack": {
+      "ok": true
+    },
+    "wrong (land) shows wrong, wrongRedraw, wrongUse": {
+      "ok": true
+    },
+    "shipResult (land) shows result, unlockCard, resultNext, resultRedraw, resultCount": {
+      "ok": true
+    },
+    "explorerResult (land) shows result, unlockCard, resultNext": {
+      "ok": true
+    },
+    "controllerResult (land) shows result, ctrlPreview, resultNext": {
+      "ok": true
+    },
+    "wait (land) shows play, banner, readyBtn": {
+      "ok": true
+    },
+    "explorer (land) shows explorer, expPhoto, expDraw, expDefault": {
+      "ok": true
+    },
+    "ctrlPrompt (land) shows ctrlPrompt, ctrlKeep, ctrlRedraw": {
+      "ok": true
+    },
+    "results (land) shows resultsSheet, resTitle, resRank": {
+      "ok": true
+    },
+    "join (port) shows join, name": {
+      "ok": true
+    },
+    "ship (port) shows draw, drawTitle, example, useDefault": {
+      "ok": true
+    },
+    "controller (port) shows draw, drawTitle, example": {
+      "ok": true
+    },
+    "explorerDraw (port) shows draw, drawTitle, example": {
+      "ok": true
+    },
+    "planetController (port) shows draw, drawTitle": {
+      "ok": true
+    },
+    "gen (port) shows gen, genPic, genTitle, genSub": {
+      "ok": true
+    },
+    "genError (port) shows gen, genErr, genRetry, genBack": {
+      "ok": true
+    },
+    "wrong (port) shows wrong, wrongRedraw, wrongUse": {
+      "ok": true
+    },
+    "shipResult (port) shows result, unlockCard, resultNext, resultRedraw, resultCount": {
+      "ok": true
+    },
+    "explorerResult (port) shows result, unlockCard, resultNext": {
+      "ok": true
+    },
+    "controllerResult (port) shows result, ctrlPreview, resultNext": {
+      "ok": true
+    },
+    "wait (port) shows play, banner, readyBtn": {
+      "ok": true
+    },
+    "explorer (port) shows explorer, expPhoto, expDraw, expDefault": {
+      "ok": true
+    },
+    "ctrlPrompt (port) shows ctrlPrompt, ctrlKeep, ctrlRedraw": {
+      "ok": true
+    },
+    "results (port) shows resultsSheet, resTitle, resRank": {
+      "ok": true
+    },
+    "ship card lists 1-3 locked skills (demo ship: LAND, EMP)": {
+      "ok": true,
+      "detail": 2
+    },
+    "ship card sentence": {
+      "ok": true
+    },
+    "NEXT button in view without scrolling (844x390)": {
+      "ok": true,
+      "detail": {
+        "top": 217.09375,
+        "bottom": 271.09375,
+        "vh": 390
+      }
+    },
+    "blank drawing → DRAW IT AGAIN": {
+      "ok": true,
+      "detail": "DRAW IT AGAIN"
+    },
+    "says it cost nothing": {
+      "ok": true
+    },
+    "score pill visible (not in the lobby: hidden there)": {
+      "ok": true
+    },
+    "tool captions on": {
+      "ok": true
+    },
+    "hit markers on screen (≤ 4)": {
+      "ok": true,
+      "detail": 2
+    },
+    "hit markers gone after their fade": {
+      "ok": true
+    },
+    "spawn shield aura on": {
+      "ok": true
+    },
+    "spawn shield aura off": {
+      "ok": true
+    },
+    "wrecked chip": {
+      "ok": true,
+      "detail": "YOUR SHIP WAS WRECKED!"
+    },
+    "death card on": {
+      "ok": true
+    },
+    "TV start requests shared server countdown": {
+      "ok": false,
+      "detail": {
+        "phaseDuringTvCountdown": "lobby",
+        "phone": {
+          "phase": "lobby",
+          "text": "HP\n100\nSHIELD\nBOOST\nYOU'RE IN!\nWait for the host to press START on the big screen\nI'M READY\nREDRAW SHIP\nuses 1 drawing\nREDRAW CONTROLLER\nuses 1 drawing\nYOUR SHIP WAS WRECKED!\nREDRAW YOUR SHIP TO TAKE OFF\nGO!\nDESTROYED!\nBY\nBOB\nBACK IN\n1\n-50 POINTS\nBACK IN THE FIGHT!"
+        },
+        "startBody": "{}",
+        "phonePhases": [
+          "lobby",
+          "playing"
+        ]
+      }
+    },
+    "no page errors": {
+      "ok": true,
+      "detail": []
+    }
+  },
+  "steps": [
+    {
+      "name": "join",
+      "ok": true,
+      "ms": 339
+    },
+    {
+      "name": "join-land",
+      "ok": true,
+      "ms": 826
+    },
+    {
+      "name": "ship-land",
+      "ok": true,
+      "ms": 805
+    },
+    {
+      "name": "controller-land",
+      "ok": true,
+      "ms": 806
+    },
+    {
+      "name": "explorerDraw-land",
+      "ok": true,
+      "ms": 797
+    },
+    {
+      "name": "planetController-land",
+      "ok": true,
+      "ms": 809
+    },
+    {
+      "name": "gen-land",
+      "ok": true,
+      "ms": 790
+    },
+    {
+      "name": "genError-land",
+      "ok": true,
+      "ms": 778
+    },
+    {
+      "name": "wrong-land",
+      "ok": true,
+      "ms": 815
+    },
+    {
+      "name": "shipResult-land",
+      "ok": true,
+      "ms": 873
+    },
+    {
+      "name": "explorerResult-land",
+      "ok": true,
+      "ms": 876
+    },
+    {
+      "name": "controllerResult-land",
+      "ok": true,
+      "ms": 868
+    },
+    {
+      "name": "wait-land",
+      "ok": true,
+      "ms": 1036
+    },
+    {
+      "name": "explorer-land",
+      "ok": true,
+      "ms": 886
+    },
+    {
+      "name": "ctrlPrompt-land",
+      "ok": true,
+      "ms": 889
+    },
+    {
+      "name": "results-land",
+      "ok": true,
+      "ms": 889
+    },
+    {
+      "name": "join-port",
+      "ok": true,
+      "ms": 834
+    },
+    {
+      "name": "ship-port",
+      "ok": true,
+      "ms": 796
+    },
+    {
+      "name": "controller-port",
+      "ok": true,
+      "ms": 804
+    },
+    {
+      "name": "explorerDraw-port",
+      "ok": true,
+      "ms": 803
+    },
+    {
+      "name": "planetController-port",
+      "ok": true,
+      "ms": 809
+    },
+    {
+      "name": "gen-port",
+      "ok": true,
+      "ms": 789
+    },
+    {
+      "name": "genError-port",
+      "ok": true,
+      "ms": 774
+    },
+    {
+      "name": "wrong-port",
+      "ok": true,
+      "ms": 834
+    },
+    {
+      "name": "shipResult-port",
+      "ok": true,
+      "ms": 879
+    },
+    {
+      "name": "explorerResult-port",
+      "ok": true,
+      "ms": 883
+    },
+    {
+      "name": "controllerResult-port",
+      "ok": true,
+      "ms": 856
+    },
+    {
+      "name": "wait-port",
+      "ok": true,
+      "ms": 866
+    },
+    {
+      "name": "explorer-port",
+      "ok": true,
+      "ms": 923
+    },
+    {
+      "name": "ctrlPrompt-port",
+      "ok": true,
+      "ms": 866
+    },
+    {
+      "name": "results-port",
+      "ok": true,
+      "ms": 865
+    },
+    {
+      "name": "unlock card",
+      "ok": true,
+      "ms": 936
+    },
+    {
+      "name": "failure sheet",
+      "ok": true,
+      "ms": 404
+    },
+    {
+      "name": "play hud",
+      "ok": true,
+      "ms": 3109
+    },
+    {
+      "name": "hit marker",
+      "ok": true,
+      "ms": 2794
+    },
+    {
+      "name": "spawn shield",
+      "ok": true,
+      "ms": 1377
+    },
+    {
+      "name": "mischief + death",
+      "ok": true,
+      "ms": 29256
+    },
+    {
+      "name": "synchronized host countdown",
+      "ok": true,
+      "ms": 8786
+    }
+  ],
+  "console": {
+    "phone": {
+      "errors": [],
+      "http": [],
+      "failed": [],
+      "abortedRequests": {},
+      "warnings": 0,
+      "crashed": false
+    }
+  },
+  "sync": {
+    "phaseDuringTvCountdown": "lobby",
+    "phone": {
+      "phase": "lobby",
+      "text": "HP\n100\nSHIELD\nBOOST\nYOU'RE IN!\nWait for the host to press START on the big screen\nI'M READY\nREDRAW SHIP\nuses 1 drawing\nREDRAW CONTROLLER\nuses 1 drawing\nYOUR SHIP WAS WRECKED!\nREDRAW YOUR SHIP TO TAKE OFF\nGO!\nDESTROYED!\nBY\nBOB\nBACK IN\n1\n-50 POINTS\nBACK IN THE FIGHT!"
+    },
+    "startBody": "{}",
+    "phonePhases": [
+      "lobby",
+      "playing"
+    ]
+  },
+  "ended": "2026-10-10T08:33:08.453Z",
+  "passed": 46,
+  "total": 47
+}

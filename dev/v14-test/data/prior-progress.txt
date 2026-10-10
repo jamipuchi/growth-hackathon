@@ -1,0 +1,19 @@
+# v14-test progress (worker: v14-test)
+Started: 2026-10-10 10:14 CEST (1st launch pid 43968 died at once; resumed by pid 46217 at 10:15; died OAuth 10:16;
+3rd launch pid 52002 resumed 10:16; 4th launch resumed 10:19: dev/v14-test/CHECKS.md was MISSING, rewriting it)
+## Status
+- [x] 0. Prep (10:17): read CONTRACT, PLAN s0, integration-notes v13/v14, v14-fix-client report, fix-server NOTES,
+     progress of fix-server/pacing/ship3d/entity3d/qa, e2e run.mjs+driver.mjs, v13-entity/run.mjs, v13-phone/tour.mjs,
+     v13-tv/unit-feed.mjs, dev/v11-client/lib.mjs + server.cjs (test hooks /__test/*). Check plan: dev/v14-test/CHECKS.md
+- [ ] wait for "v1.4 server" commit (poll every 3 min: git log --oneline -8 | grep -i "v1.4 server")
+- [ ] worktree /private/tmp/claude-501/v14-test (copy .env, .orch-certs)
+- [ ] 1. 9 unit suites
+- [ ] 2. e2e expert + regular, 24 bots
+- [ ] 3. entity kit mock + real 6
+- [ ] 4. phone checks
+- [ ] 5. TV checks
+- [ ] 6. server decisions (cap 25, countdown blocks movement, no free skills 3:00)
+- [ ] FINDINGS.md delivered (dev/v14-test/FINDINGS.md)
+## Notes
+- CONTRACT.md still carries the 08:50 "IMPLEMENT ONLY" override; this task is the separate test round it anticipates
+  ("Testing comes in a separate round after every track lands"), so tests run; reported as a followup.

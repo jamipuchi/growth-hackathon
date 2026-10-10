@@ -1,0 +1,84 @@
+# v14-test progress
+Updated: 2026-10-10T08:55:41.412565+00:00
+## Build and rules
+- Frozen worktree: /private/tmp/claude-501/v14-test; tag v1.4 = a1bf42970488c7dcaab60963b99c3001e3d36ff8. Server commit b099a9d landed. HEAD is v1.5; explicit tag instruction wins.
+- No game edits; owned artifacts only dev/v14-test in main plus this required checkpoint. No .env read/copied; no credential inspection. No installs. Ports 8450-8469. One browser at a time.
+- The IMPLEMENT ONLY note belongs to the prior round; this explicit QA task authorizes testing.
+## Done
+- Prior worker prep read; no tests had been completed. Contract/spec/prior QA findings reviewed; v14 changes identified.
+- Created frozen worktree from v1.4. Never copy .env overrides old copy instruction; real generation may be unavailable.
+## Left
+1. Nine suites (HTTPS test needs owned-lane port redirect 8444 -> 8454).
+2. E2E expert/regular with 24 bots. Original harness opens two browsers; owned copy must use one WebKit instance with two contexts.
+3. Entity kit mock + real capped 6 (no credential file operations). Browser phases sequential.
+4. Phone tour + v1.4 features.
+5. TV feed/flow/resolutions + prior findings stress/regressions.
+6. Server cap/countdown/no-free-skills. Final findings/numbers/cleanup.
+## Resume
+Read this and dev/v14-test/PROGRESS.md; logs and JSON under dev/v14-test. No owned processes yet. Preserve prior artifacts; never rerun completed tests except a documented harness repair.
+
+### Step 1 running
+Nine original tag suites sequentially; HTTPS copy only redirects 8444 to owned port 8454. Live test uses 8452/8453. Logs preserved by suite.
+
+- Suite 1/9 dev/astra/astra-test.js: exit 1, 11.61 s; dev/v14-test/logs/unit-1-astra-test.log.
+- Suite 2/9 dev/astra/gen-regression-test.js: exit 1, 10.33 s; dev/v14-test/logs/unit-2-gen-regression-test.log.
+- Suite 3/9 dev/astra/vocab-test.js: exit 0, 0.04 s; dev/v14-test/logs/unit-3-vocab-test.log.
+- Suite 4/9 dev/astra/anim-wire-test.js: exit 0, 0.08 s; dev/v14-test/logs/unit-4-anim-wire-test.log.
+- Suite 5/9 dev/netcode/sim-test.js: exit 1, 7.76 s; dev/v14-test/logs/unit-5-sim-test.log.
+- Suite 6/9 dev/netcode/live-test.js: exit 0, 16.84 s; dev/v14-test/logs/unit-6-live-test.log.
+- Suite 7/9 dev/rules/rules-test.js: exit 0, 0.07 s; dev/v14-test/logs/unit-7-rules-test.log.
+- Suite 8/9 dev/inflate/astra-entity-test.js: exit 0, 0.13 s; dev/v14-test/logs/unit-8-astra-entity-test.log.
+- Suite 9/9 dev/https/test.js: exit 0, 0.51 s; dev/v14-test/logs/unit-9-test.log.
+- 2026-10-10T08:57:02.700504+00:00: Step 1 complete: 6/9 suites pass; Astra 2 call-count expectations fail; replay corpus consumes new spec calls; sim scoring failure needs classification. Live server 15.21 ticks/s, max 5508 B, 25 players. All suite servers exited. Starting expert E2E one-WebKit adaptation.
+
+- 2026-10-10T08:57:50.331285+00:00: Harness copies prepared under scripts/: frozen imports, isolated outputs and ports. E2E running; lobby→countdown→playing observed, boss reached at 11.7s. Entity kit uses one WebKit process; old inflate-only measurement will be labeled and actual 3D builders checked separately.
+
+- 2026-10-10T08:58:43.018496+00:00: Initial FINDINGS.md written with measured suite results and precise harness failures; final severity/recheck matrix pending. Prepared phone/entity/prior-regression harnesses; no game edits.
+
+- 2026-10-10T09:00:37.672264+00:00: Expert E2E complete: all gameplay gates pass; round 181.33 server seconds / 183.5 wall seconds, 16 chests, winner e2e; 80.4% on planet. Overall exit1 from phone low-FPS gate during 74 screenshot captures. Clean per-frame windows still required. Starting regular with --no-shots to isolate performance (same driver/assertions).
+
+- 2026-10-10T09:01:29.835039+00:00: Supplemental builders harness ready: actual ship3d/entity3d using recorded Sol specs, both qualities, no new generation. Feature harness includes real host countdown paired across initial drawing, Play, and TV; canvas rotation; install/fullscreen; ink; late hints; score rows.
+
+- 2026-10-10T09:02:07.837629+00:00: Sequential post-E2E runner prepared (not started yet), preserving output and checkpointing each job. Remaining steps will obey one browser process at a time.
+
+- 2026-10-10T09:03:34.774505+00:00: Preserved expert artifacts under shots/e2e-expert. Prepared deterministic slope-shooting diagnostic for remaining sim failure; source forces all planet bullets horizontal even when victim is downhill.
+
+- 2026-10-10T09:04:04.768986+00:00: Visual inspection of expert captures: TV 1440x900 chest counter wraps 10 / 16 into label and following panel (shots/e2e-expert/chest-10-big.png); unchanged dark blue names and olive/grey island treatment observed. Documenting as v1.4 findings.
+
+- 2026-10-10T09:04:45.670250+00:00: FINDINGS.md updated with confirmed double-digit chest-counter overlap and expert pacing recheck. Regular E2E approaching cap; no new browser launched until it exits.
+
+- 2026-10-10T09:05:19.069512+00:00: Step 2 complete: regular E2E PASS with no screenshots, 240s game cap / 243s wall, landed80s, 12 chests, 66.7% planet. Phone59.9fps mean, max48 calls, max66k tris; min 5s-window1% low15.5 noted, aggregate gate passes. Starting remaining sequential QA runner.
+
+- 2026-10-10T09:05:19.110003+00:00: START entity-mock; runner writes logs/entity-mock.log; own child cleanup handlers installed.
+
+- 2026-10-10T09:05:40.528235+00:00: DONE entity-mock; exit 0; elapsed 21.4s. Read log/report before interpreting.
+
+- 2026-10-10T09:05:40.548241+00:00: START entity-real6; runner writes logs/entity-real6.log; own child cleanup handlers installed.
+
+- 2026-10-10T09:05:49.811855+00:00: DONE entity-real6; exit 1; elapsed 9.2s. Read log/report before interpreting.
+
+- 2026-10-10T09:05:49.831952+00:00: START phone-tour; runner writes logs/phone-tour.log; own child cleanup handlers installed.
+
+- 2026-10-10T09:06:22.046586+00:00: Step 3 complete: mock477/482 with0hard5n/a; real6 attempted but0actual API calls (isolated checkout no credential). No .env/key accessed/copied. Real model quality remains unverified; report updated. Phone tour running.
+
+- 2026-10-10T09:06:54.122191+00:00: DONE phone-tour; exit 0; elapsed 64.3s. Read log/report before interpreting.
+
+- 2026-10-10T09:06:54.140222+00:00: START phone-features; runner writes logs/phone-features.log; own child cleanup handlers installed.
+
+- 2026-10-10T09:07:03.566300+00:00: Additional recheck scripts prepared: HTTP25-seat/countdown freeze/no-free-skills; deterministic uphill/downhill PvP; offline upstream-failure fallback. Runner will execute after browser checks; no outbound model calls from these reproductions.
+
+- 2026-10-10T09:07:24.476008+00:00: DONE phone-features; exit 0; elapsed 30.3s. Read log/report before interpreting.
+
+- 2026-10-10T09:07:24.494556+00:00: START tv-feed; runner writes logs/tv-feed.log; own child cleanup handlers installed.
+
+- 2026-10-10T09:07:24.556554+00:00: DONE tv-feed; exit 0; elapsed 0.0s. Read log/report before interpreting.
+
+- 2026-10-10T09:07:24.575717+00:00: START scenario-phone; runner writes logs/scenario-phone.log; own child cleanup handlers installed.
+
+- 2026-10-10T09:08:17.921938+00:00: Phone feature results: Play phone and TV show3-2-1/GO; first-drawing phone misses it. iPhone A2HS hint and Android/iPad Chromium fullscreen pass; ink remains5s and clearsat10s. Canvas initial stroke attempt hit GOT IT guide; first wipe path started on blank cells. Focused corrected interactions queued, so those initial failures are not product findings. Canvas bounds88.2% both orientations.
+
+- 2026-10-10T09:08:55.843337+00:00: Prepared extra actual-spec crowd stress (25 unique body/ship specs) and focused rotation/wipe repair. IMPORTANT resume: active Python runner loaded before fallback/rotate were appended; run those separately after its original queue finishes. Never rerun completed run-next jobs.
+
+- 2026-10-10T09:09:37.944395+00:00: DONE scenario-phone; exit 0; elapsed 133.3s. Read log/report before interpreting.
+
+- 2026-10-10T09:09:37.963072+00:00: START scenario-tv; runner writes logs/scenario-tv.log; own child cleanup handlers installed.

@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-10T09:30:53.635459+00:00",
+  "linkedEvidenceCount": 80,
+  "missingLinks": [],
+  "sourceCleanBeforeRemoval": true,
+  "cleanupPassed": true,
+  "findings": {
+    "blocker": 1,
+    "major": 4,
+    "minorIncludingPolish": 9
+  },
+  "priorFindingsRechecked": 10,
+  "actualApiCalls": 0
+}

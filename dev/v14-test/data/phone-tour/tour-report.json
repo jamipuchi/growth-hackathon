@@ -1,0 +1,416 @@
+{
+  "started": "2026-10-10T09:05:49.866Z",
+  "port": 8456,
+  "checks": {
+    "join → ship step": {
+      "ok": true
+    },
+    "step title is '1 · DRAW YOUR SHIP'": {
+      "ok": true,
+      "detail": "1 · DRAW YOUR SHIP"
+    },
+    "join (land) shows join, name": {
+      "ok": true
+    },
+    "ship (land) shows draw, drawTitle, example, useDefault": {
+      "ok": false,
+      "detail": {
+        "hidden": [
+          "example"
+        ]
+      }
+    },
+    "controller (land) shows draw, drawTitle, example": {
+      "ok": true
+    },
+    "explorerDraw (land) shows draw, drawTitle, example": {
+      "ok": true
+    },
+    "planetController (land) shows draw, drawTitle": {
+      "ok": true
+    },
+    "gen (land) shows gen, genPic, genTitle, genSub": {
+      "ok": true
+    },
+    "genError (land) shows gen, genErr, genRetry, genBack": {
+      "ok": true
+    },
+    "wrong (land) shows wrong, wrongRedraw, wrongUse": {
+      "ok": true
+    },
+    "shipResult (land) shows result, unlockCard, resultNext, resultRedraw, resultCount": {
+      "ok": true
+    },
+    "explorerResult (land) shows result, unlockCard, resultNext": {
+      "ok": true
+    },
+    "controllerResult (land) shows result, ctrlPreview, resultNext": {
+      "ok": true
+    },
+    "wait (land) shows play, banner, readyBtn": {
+      "ok": true
+    },
+    "explorer (land) shows explorer, expPhoto, expDraw, expDefault": {
+      "ok": true
+    },
+    "ctrlPrompt (land) shows ctrlPrompt, ctrlKeep, ctrlRedraw": {
+      "ok": true
+    },
+    "results (land) shows resultsSheet, resTitle, resRank": {
+      "ok": true
+    },
+    "join (port) shows join, name": {
+      "ok": true
+    },
+    "ship (port) shows draw, drawTitle, example, useDefault": {
+      "ok": false,
+      "detail": {
+        "hidden": [
+          "example"
+        ]
+      }
+    },
+    "controller (port) shows draw, drawTitle, example": {
+      "ok": false,
+      "detail": {
+        "hidden": [
+          "example"
+        ]
+      }
+    },
+    "explorerDraw (port) shows draw, drawTitle, example": {
+      "ok": false,
+      "detail": {
+        "hidden": [
+          "example"
+        ]
+      }
+    },
+    "planetController (port) shows draw, drawTitle": {
+      "ok": true
+    },
+    "gen (port) shows gen, genPic, genTitle, genSub": {
+      "ok": true
+    },
+    "genError (port) shows gen, genErr, genRetry, genBack": {
+      "ok": true
+    },
+    "wrong (port) shows wrong, wrongRedraw, wrongUse": {
+      "ok": true
+    },
+    "shipResult (port) shows result, unlockCard, resultNext, resultRedraw, resultCount": {
+      "ok": true
+    },
+    "explorerResult (port) shows result, unlockCard, resultNext": {
+      "ok": true
+    },
+    "controllerResult (port) shows result, ctrlPreview, resultNext": {
+      "ok": true
+    },
+    "wait (port) shows play, banner, readyBtn": {
+      "ok": true
+    },
+    "explorer (port) shows explorer, expPhoto, expDraw, expDefault": {
+      "ok": true
+    },
+    "ctrlPrompt (port) shows ctrlPrompt, ctrlKeep, ctrlRedraw": {
+      "ok": true
+    },
+    "results (port) shows resultsSheet, resTitle, resRank": {
+      "ok": true
+    },
+    "ship card lists 1-3 locked skills (demo ship: LAND, EMP)": {
+      "ok": true,
+      "detail": 2
+    },
+    "ship card sentence": {
+      "ok": true
+    },
+    "NEXT button in view without scrolling (844x390)": {
+      "ok": true,
+      "detail": {
+        "top": 217.09375,
+        "bottom": 271.09375,
+        "vh": 390
+      }
+    },
+    "blank drawing → DRAW IT AGAIN": {
+      "ok": true,
+      "detail": "DRAW IT AGAIN"
+    },
+    "says it cost nothing": {
+      "ok": true
+    },
+    "score pill visible (not in the lobby: hidden there)": {
+      "ok": true
+    },
+    "tool captions on": {
+      "ok": true
+    },
+    "hit markers on screen (≤ 4)": {
+      "ok": true,
+      "detail": 2
+    },
+    "hit markers gone after their fade": {
+      "ok": true
+    },
+    "spawn shield aura on": {
+      "ok": true
+    },
+    "spawn shield aura off": {
+      "ok": true
+    },
+    "wrecked chip": {
+      "ok": true,
+      "detail": "YOUR SHIP WAS WRECKED!"
+    },
+    "death card on": {
+      "ok": true
+    },
+    "no page errors": {
+      "ok": true,
+      "detail": []
+    }
+  },
+  "steps": [
+    {
+      "name": "join",
+      "ok": true,
+      "ms": 374
+    },
+    {
+      "name": "join-land",
+      "ok": true,
+      "ms": 805
+    },
+    {
+      "name": "ship-land",
+      "ok": true,
+      "ms": 812
+    },
+    {
+      "name": "controller-land",
+      "ok": true,
+      "ms": 872
+    },
+    {
+      "name": "explorerDraw-land",
+      "ok": true,
+      "ms": 854
+    },
+    {
+      "name": "planetController-land",
+      "ok": true,
+      "ms": 861
+    },
+    {
+      "name": "gen-land",
+      "ok": true,
+      "ms": 805
+    },
+    {
+      "name": "genError-land",
+      "ok": true,
+      "ms": 794
+    },
+    {
+      "name": "wrong-land",
+      "ok": true,
+      "ms": 818
+    },
+    {
+      "name": "shipResult-land",
+      "ok": true,
+      "ms": 887
+    },
+    {
+      "name": "explorerResult-land",
+      "ok": true,
+      "ms": 884
+    },
+    {
+      "name": "controllerResult-land",
+      "ok": true,
+      "ms": 869
+    },
+    {
+      "name": "wait-land",
+      "ok": true,
+      "ms": 876
+    },
+    {
+      "name": "explorer-land",
+      "ok": true,
+      "ms": 908
+    },
+    {
+      "name": "ctrlPrompt-land",
+      "ok": true,
+      "ms": 910
+    },
+    {
+      "name": "results-land",
+      "ok": true,
+      "ms": 876
+    },
+    {
+      "name": "join-port",
+      "ok": true,
+      "ms": 834
+    },
+    {
+      "name": "ship-port",
+      "ok": true,
+      "ms": 815
+    },
+    {
+      "name": "controller-port",
+      "ok": true,
+      "ms": 813
+    },
+    {
+      "name": "explorerDraw-port",
+      "ok": true,
+      "ms": 803
+    },
+    {
+      "name": "planetController-port",
+      "ok": true,
+      "ms": 819
+    },
+    {
+      "name": "gen-port",
+      "ok": true,
+      "ms": 818
+    },
+    {
+      "name": "genError-port",
+      "ok": true,
+      "ms": 802
+    },
+    {
+      "name": "wrong-port",
+      "ok": true,
+      "ms": 817
+    },
+    {
+      "name": "shipResult-port",
+      "ok": true,
+      "ms": 886
+    },
+    {
+      "name": "explorerResult-port",
+      "ok": true,
+      "ms": 884
+    },
+    {
+      "name": "controllerResult-port",
+      "ok": true,
+      "ms": 877
+    },
+    {
+      "name": "wait-port",
+      "ok": true,
+      "ms": 856
+    },
+    {
+      "name": "explorer-port",
+      "ok": true,
+      "ms": 922
+    },
+    {
+      "name": "ctrlPrompt-port",
+      "ok": true,
+      "ms": 874
+    },
+    {
+      "name": "results-port",
+      "ok": true,
+      "ms": 905
+    },
+    {
+      "name": "unlock card",
+      "ok": true,
+      "ms": 911
+    },
+    {
+      "name": "failure sheet",
+      "ok": true,
+      "ms": 405
+    },
+    {
+      "name": "play hud",
+      "ok": true,
+      "ms": 3069
+    },
+    {
+      "name": "hit marker",
+      "ok": true,
+      "ms": 2740
+    },
+    {
+      "name": "spawn shield",
+      "ok": true,
+      "ms": 1307
+    },
+    {
+      "name": "mischief + death",
+      "ok": true,
+      "ms": 29076
+    }
+  ],
+  "console": {
+    "phone": {
+      "errors": [],
+      "http": [
+        {
+          "status": 404,
+          "url": "/ship-spec?v=8cb7416b56"
+        },
+        {
+          "status": 404,
+          "url": "/ship-spec?v=8cb7416b56"
+        },
+        {
+          "status": 404,
+          "url": "/ship-spec?v=2f628d442c"
+        },
+        {
+          "status": 404,
+          "url": "/ship-spec?v=2f628d442c"
+        },
+        {
+          "status": 404,
+          "url": "/ship-spec?v=8cb7416b56"
+        },
+        {
+          "status": 404,
+          "url": "/ship-spec?v=8cb7416b56"
+        },
+        {
+          "status": 404,
+          "url": "/ship-spec?v=2f628d442c"
+        },
+        {
+          "status": 404,
+          "url": "/ship-spec?v=2f628d442c"
+        },
+        {
+          "status": 404,
+          "url": "/ship-spec?v=8cb7416b56"
+        },
+        {
+          "status": 404,
+          "url": "/ship-spec?v=8cb7416b56"
+        }
+      ],
+      "failed": [],
+      "abortedRequests": {},
+      "warnings": 0,
+      "crashed": false
+    }
+  },
+  "ended": "2026-10-10T09:06:54.038Z",
+  "passed": 42,
+  "total": 46
+}

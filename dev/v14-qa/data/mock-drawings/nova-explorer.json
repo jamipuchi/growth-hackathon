@@ -1,0 +1,94 @@
+{
+  "type": "person",
+  "rig": "person",
+  "verbs": [
+    "shoot",
+    "shield",
+    "dig",
+    "drill",
+    "jump",
+    "scan",
+    "flare",
+    "tractor",
+    "inkbomb",
+    "takeoff"
+  ],
+  "unlocked": [
+    {
+      "verb": "dig",
+      "part": "shovel"
+    },
+    {
+      "verb": "drill",
+      "part": "drill"
+    },
+    {
+      "verb": "shoot",
+      "part": "blaster"
+    },
+    {
+      "verb": "shield",
+      "part": "shield"
+    },
+    {
+      "verb": "scan",
+      "part": "antenna"
+    },
+    {
+      "verb": "flare",
+      "part": "torch"
+    },
+    {
+      "verb": "inkbomb",
+      "part": "ink bottle"
+    },
+    {
+      "verb": "tractor",
+      "part": "magnet"
+    }
+  ],
+  "parts": [
+    {
+      "name": "shovel",
+      "x": 0.2,
+      "y": 0.5
+    },
+    {
+      "name": "drill",
+      "x": 0.3,
+      "y": 0.5
+    },
+    {
+      "name": "blaster",
+      "x": 0.4,
+      "y": 0.5
+    },
+    {
+      "name": "shield",
+      "x": 0.5,
+      "y": 0.5
+    },
+    {
+      "name": "antenna",
+      "x": 0.6,
+      "y": 0.5
+    },
+    {
+      "name": "torch",
+      "x": 0.7,
+      "y": 0.5
+    },
+    {
+      "name": "ink bottle",
+      "x": 0.8,
+      "y": 0.5
+    },
+    {
+      "name": "magnet",
+      "x": 0.9,
+      "y": 0.5
+    }
+  ],
+  "source": "devkit",
+  "card": "Your explorer can: walk, jump, dig (shovel), drill, shoot (blaster), shield, scan (antenna), flare (torch), ink bomb (ink bottle), tractor (magnet)"
+}
