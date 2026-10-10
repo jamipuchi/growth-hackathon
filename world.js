@@ -10,10 +10,13 @@
 // v1.2: the drill is a planet skill only (rock chests); a ship can never drill the boss.
 // v1.3 mischief (PLAN.md "Mischief"): mine, tractor, EMP, ink bomb and decoy, each unlocked by a drawn part, aimed at
 // the nearest human rival (mischief()); the victim's phone gets a `mischief` message and the kill feed announces it.
+// v1.6 ENDLESS (owner, 10 Oct 11:53; endless.js): an optional free-for-all, off by default (setEndless, in the lobby):
+// no clock, the boss and the chests come back, drawings recharge, the host ends it (endSession). Off, nothing changes.
 const Contract = require("./contract");
 const Verbs = require("./verbs");
 const Terrain = require("./terrain");
 const Rules = require("./rules");
+const Endless = require("./endless");
 
 const { TUNING: T, ROUND, SCORING, ROCK_TYPES, ROCK_TYPE_NAMES, COLORS } = Contract;
 const ISL = T.island;
@@ -219,6 +222,17 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   const assists = () => S.assists;
   const islandFeet = (x, z) => Math.max(0, Terrain.height(x, z, island.seed));
   const dry = (x, z) => Terrain.height(x, z, island.seed) > 0.3 && Math.hypot(x, z) < island.size / 2 - 5;
+  // v1.6 ENDLESS (endless.js): the session's timers, off by default; these hooks are all it touches.
+  const endless = Endless.createEndless({
+    announce: (text, big) => announce(text, big),
+    humans: () => active().filter((q) => !q.bot),
+    bossDead: () => !!boss && boss.dead,
+    respawnBoss: () => respawnBoss(),
+    chests: () => chests || [],
+    refreshChests: () => refreshChests(),
+    // +1 drawing per world for every human below the maximum (rules.js refund)
+    recharge: () => { if (typeof budget.refund === "function") for (const q of active()) if (!q.bot) { budget.refund(q.name, "space"); budget.refund(q.name, "planet"); } },
+  });
 
   // ---- World generation ----------------------------------------------------------------------------------------
 
@@ -687,6 +701,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     const wait = countdown ? Math.max(0, Number(ROUND.countdownSeconds) || 0) : 0;
     S.phase = wait > 0 ? "countdown" : "playing"; S.phaseT = 0; S.playT = 0;
     for (const p of Object.values(players)) { spawnAt(p); Object.assign(p, { pressed: [], score: 0, lastChest: null, hitBy: {}, run: null, botBoost: false, hitAcc: 0 }); }
+    endless.reset(); // v1.6 ENDLESS: the boss, chest, recharge and leader timers start again
     // v1.4: the kill feed only (not big): every screen shows its own big 3-2-1 from the phase, so a banner would cover it.
     if (wait > 0) announce(`Round ${S.round} starts in ${Math.round(wait)}…`);
     else go();
@@ -737,8 +752,45 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     }
     S.result = { round: S.round, reason, winner, scores };
     for (const p of list) { p.keys = {}; p.drilling = false; p.digging = false; }
-    const why = reason === "chests" ? "Every chest is open" : "Time's up";
+    const why = reason === "chests" ? "Every chest is open" : reason === "host" ? "Game over" : "Time's up"; // host: v1.6 ENDLESS END
     announce(winner ? `🏆 ${why}! ${winner} wins round ${S.round} with ${scores[0][1]} points` : `${why}! Nobody scored this round`, true);
+    sendWorld();
+  }
+
+  // ---- ENDLESS (v1.6, endless.js) -------------------------------------------------------------------------------
+  // The big screen's switch (POST /mode): only in the lobby; it holds for every session until switched off. Every screen
+  // hears it at once (world.mode).
+  function setEndless(on) {
+    if (S.phase !== "lobby") return false;
+    if (endless.on !== !!on) { endless.set(on); sendWorld(); }
+    return true;
+  }
+  // The host's END (POST /end): an endless session in play ends now: the normal results (reason "host"), then the lobby.
+  function endSession() {
+    if (!endless.on || (S.phase !== "playing" && S.phase !== "assists")) return false;
+    endRound("host");
+    return true;
+  }
+  // The boss back where it died: fresh HP for the players here now, nobody's damage carried over, no shots in flight;
+  // the rock field topped up to TUNING.rockCount (new rocks keep 30 m clear of every ship). The planet stays open.
+  function respawnBoss() {
+    const hp = bossHp(hpCount(active()));
+    Object.assign(boss, { hp, maxHp: hp, dead: false, shotCd: T.boss.shotEverySeconds, damageBy: Object.create(null) });
+    bossShots = [];
+    const ships = active().filter((q) => q.mode === "space" && !q.dead);
+    for (let i = 0; i < 3 * T.rockCount && rocks.length < T.rockCount; i++) {
+      const rock = spawnRock();
+      if (ships.every((q) => dist(q.pos, rock.pos) > rock.size + 30)) rocks.push(rock);
+    }
+    fx("respawn", boss.pos, 0xef4444, boss.radius);
+    sendWorld();
+  }
+  // Opened chests replaced by new ones in new places (endless.js freshChests), as many as the players here now call for.
+  function refreshChests() {
+    S.playerCount = scaledCount(active());
+    const want = chestCount(S.playerCount);
+    chests = Endless.freshChests(chests, { want, at: landing, spread: ISL.chestSpread + ISL.chestSpreadPerChest * want,
+      ok: (x, z) => dry(x, z) && dryLine(landing.x, landing.z, x, z), random });
     sendWorld();
   }
 
@@ -1159,7 +1211,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     fx("treasure", { x: chest.x, y: islandFeet(chest.x, chest.z), z: chest.z }, p.color, 20, "planet");
     announce(`💎 ${p.name} opened a chest (+${SCORING.chest})`);
     sendWorld();
-    if (chests.every((c) => c.open)) endRound("chests");
+    if (!endless.on && chests.every((c) => c.open)) endRound("chests"); // v1.6 ENDLESS: new chests instead (endless.js)
   }
 
   // ---- Verbs that are pressed once -----------------------------------------------------------------------------
@@ -1543,9 +1595,10 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       if (S.phaseT >= ROUND.scoreboardSeconds) newRound();
     } else {
       S.playT += dt;
-      if (S.phase === "playing" && S.playT >= ROUND.assistsAt) startAssists();
+      if (!endless.on && S.phase === "playing" && S.playT >= ROUND.assistsAt) startAssists();
       simulate(list, dt);
-      if (S.phase !== "scoreboard" && S.playT >= ROUND.maxSeconds) endRound("time");
+      if (endless.on) { if (S.phase === "playing") endless.step(dt); } // v1.6 ENDLESS: no clock (endless.js)
+      else if (S.phase !== "scoreboard" && S.playT >= ROUND.maxSeconds) endRound("time");
     }
     const revealed = revealedTo().join(",");
     if (revealed !== lastRevealed) { lastRevealed = revealed; worldDirty = true; }
@@ -1611,6 +1664,7 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
       assists: S.assists, playerCount: S.playerCount, result: S.result,
       leaderboard: leaderboard(),
       phase: S.phase, ...countdownField(), // v1.4: a screen that connects mid-countdown counts down at once
+      ...endless.fields(), // v1.6: mode "endless" while it is on, absent in the demo
     };
     if (entities) m.entities = Object.fromEntries(ordered().filter((p) => p.entity).map((p) => [p.name, p.entity]));
     return m;
@@ -1652,8 +1706,9 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
   function tickMessage() {
     return {
       type: "tick", t: Date.now(), round: S.round, phase: S.phase, clock: clock(),
-      left: S.phase === "playing" || S.phase === "assists" ? r2(Math.max(0, ROUND.maxSeconds - S.playT)) : 0,
+      left: (S.phase === "playing" || S.phase === "assists") && !endless.on ? r2(Math.max(0, ROUND.maxSeconds - S.playT)) : 0,
       ...countdownField(),
+      ...endless.fields(), // v1.6 ENDLESS: mode "endless" (absent in the demo); left 0 = no cap
       players: ordered().map((p) => { // humans first, then bots
         const out = {
           name: p.name, color: p.color, mode: p.mode, x: r1(p.pos.x), y: r1(p.pos.y), z: r1(p.pos.z),
@@ -1695,10 +1750,14 @@ function createWorld({ broadcast = () => {}, random = Math.random, autoStart = f
     // v1.4: true when that player holds a seat now (an existing human back after INACTIVE_MS takes one, a bot leaving
     // for them if needed); false when unknown or the round is full of active humans (server.js: "the game is full").
     seat: (name) => !!getPlayer(name, false, { create: false }),
+    // v1.6 ENDLESS (endless.js): the switch (lobby only, false otherwise), the host's END (false unless an endless
+    // session is in play), and whether it is on.
+    setEndless, endSession,
+    get endless() { return endless.on; },
     get phase() { return S.phase; },
     get round() { return S.round; },
     get countdown() { return countdownField().countdown; }, // v1.4: whole seconds left in phase "countdown", else undefined
-    debug: () => ({ ...S, boss, planet, landing, chests, island, parked, rocks, bullets, bossShots, mines, decoys }),
+    debug: () => ({ ...S, boss, planet, landing, chests, island, parked, rocks, bullets, bossShots, mines, decoys, endless: endless.debug() }),
   };
 }
 
