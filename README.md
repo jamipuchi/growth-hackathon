@@ -6,7 +6,55 @@ only from what is drawn on it, and a controller whose drawn buttons become the p
 4:00 and most points wins; an optional ENDLESS mode runs with no clock until the host ends it.
 
 - The spec: [PLAN.md](PLAN.md). Section 0 holds the owner's decisions and wins over everything else.
-- Every playable version, its checks and videos: [VERSIONS.md](VERSIONS.md). The demo build is v1.7 (tag `v1.7`).
+- Every playable version, its checks and videos: [VERSIONS.md](VERSIONS.md). The demo build is v1.9 (branch
+  `v1.9-fix`, live on 8107/8550); v1.9.1 (tag `v1.9.1`) is the main line, with jetpack flight and the automatic Hall
+  of Fame.
+
+## Demo day
+
+**Start it.** On the laptop, in the game's folder:
+
+```
+node server.js                       # 2-minute rounds; --minutes 1, 2, 3 or 4 to change the default
+```
+
+- **The TV:** open `http://<laptop-ip>:8000/space.html?http` (the server prints the address). `?http` makes the QR
+  send phones to the plain-http page, with no certificate warning.
+- **Phones:** scan the QR on the TV. It opens `controller.html`. Ports: 8000 for http, 8443 for https (`PORT`,
+  `HTTPS_PORT`). Without `?http` the QR opens the https page, which tilt needs.
+- The play server on the host laptop runs on 8107 (http) and 8550 (https): see "The play servers" below.
+
+**In the lobby** (the TV):
+
+- **ROUND · MIN** picks 1, 2, 3 or 4 minutes (2 by default) and **AUTO-START** 15, 30 or 60 s, or OFF (30 s by
+  default). Once one player is READY the TV and the phones count STARTING IN 30, then the round starts with the ready
+  players. **START** (or ENTER) starts it sooner.
+- **PLAY WHILE YOU WAIT:** a READY player can fly in a shared practice world (boss, planet, explorer, chests) with no
+  clock and no points. The round start pulls them back with their ship and controller. To get as far as the explorer in
+  practice, pick AUTO-START 60 S.
+- **ENDLESS** beside the round length (or E): no clock until the host presses END GAME.
+- **↻ RESTART**, bottom left, tapped twice (or R twice): everyone rejoins from scratch.
+
+**After each round** the TV shows the Hall of Fame by itself, a few seconds after the podium (v1.9.1; in v1.9 press
+★ HALL OF FAME). It ranks this round's drawings; **T** switches between THIS ROUND and ALL ROUNDS. Tap, ENTER or ESC
+closes it; the next round's 3-2-1 closes it too. Before anyone has drawn, it shows 16 example drawings with real scores.
+
+**Tips for players:**
+
+- In 1 and 2 minute rounds, draw your explorer with a shovel AND a drill, or tap USE A QUICK EXPLORER: a shovel alone
+  cannot open the chests locked in rocks.
+- **Jetpack** (v1.9.1): draw your explorer with a jetpack, wings, a rotor or a balloon and it can fly. Hold FLY (a FLY,
+  WINGS or JETPACK button on your controller): it climbs to about 40 m and the stick steers. The fuel lasts 6 s and
+  refills on the ground. No digging or drilling in the air.
+
+**Network:**
+
+- The TV laptop and every phone must be on the same Wi-Fi.
+- The QR follows the laptop's LAN address live (the TV asks every 5 s), so a Wi-Fi change needs no reload.
+- Corporate and guest Wi-Fi often isolate clients, so phones cannot reach the laptop. Use a phone's hotspot instead.
+- iPhones may warn about the https page's self-signed certificate. The http link works with no warning (only tilt is
+  missing).
+- Keep the laptop on AC power and awake (for example `caffeinate -d` in a terminal).
 
 ## What's new (v1.6 and v1.7)
 
@@ -64,7 +112,7 @@ only from what is drawn on it, and a controller whose drawn buttons become the p
 Node 20+, no dependencies, no build step. three.js loads from a CDN.
 
 ```
-PORT=8000 HTTPS_PORT=8443 node server.js [--bots N] [--endless]
+PORT=8000 HTTPS_PORT=8443 node server.js [--minutes 1|2|3|4] [--start-after 0|15|30|60] [--bots N] [--endless]
 ```
 
 - **Big screen:** open `http://<laptop-ip>:8000/space.html` on the TV or laptop (the server prints the address).
@@ -79,9 +127,12 @@ PORT=8000 HTTPS_PORT=8443 node server.js [--bots N] [--endless]
   joins a full room.
 - **ENDLESS:** `--endless` or `ENDLESS=1` starts the server in the endless free-for-all. The ENDLESS switch in the big
   screen's lobby (or key E) turns it on and off between games. See "ENDLESS" below.
-- **Sol's effort:** `OPENAI_REASONING_EFFORT` defaults to `medium` (`low` answers sooner but reads less well). Every
-  timeout and switch is in "Environment variables" below.
-- `--autostart S` starts every lobby after S seconds. It is for tests only; a party always starts from the big screen.
+- **Sol's effort** (v1.9): ship and explorer reads use `high`, their 3D specs and every other read `medium`. Leave
+  `OPENAI_REASONING_EFFORT` unset: when set, it forces one effort on every call. Every timeout and switch is in
+  "Environment variables" below.
+- `--minutes N` sets the default round length (1, 2, 3 or 4; 2 by default) and `--start-after S` the lobby auto-start
+  after the first READY player (0 = off, 15, 30 or 60; 30 by default). The TV lobby changes both while it runs.
+- `--autostart S` starts every lobby after S seconds, ready or not. It is for tests only.
 - `?perf` on any page shows fps and draw calls; `node perf-report.js --since 10m` checks every device against the budgets.
 
 ### The play servers on the host laptop
@@ -93,18 +144,19 @@ server again whenever it exits (a crash, or RESTART on the big screen):
 export KEEPALIVE=1                 # the server knows a loop restarts it (see "Restart everything")
 cd <the version's worktree>
 while true; do
-  PORT=8105 HTTPS_PORT=8548 OPENAI_REASONING_EFFORT=${EFFORT:-medium} PERF_LOG=play.log.perf \
+  PORT=8107 HTTPS_PORT=8550 PERF_LOG=play.log.perf \
     node server.js --bots ${BOTS:-0} >> play.log 2>&1
   sleep 2
 done
 ```
 
-- `EFFORT` is that server's Sol effort: `medium` for v1.7 and later. Keep `low` for v1.6 and older: their drawing
-  reads give up after 4 s. (The orchestrator's own loop defaults to `low` and starts v1.7 with `EFFORT=medium`.)
+- v1.9 and later start with no `OPENAI_REASONING_EFFORT`, so each call keeps its own effort (the orchestrator's loop
+  sets it only when `EFFORT` is given). v1.7 ran with `medium`; v1.6 and older need `low` (their drawing reads give
+  up after 4 s).
 - `BOTS` stays 0 for a party.
-- Which version runs on which ports is in each version's note in [VERSIONS.md](VERSIONS.md). On Oct 10 at 13:00:
-  v1.7, the demo build, on 8105/8548; v1.6 on 8104/8547; v1.5 on 8103/8546. Never restart the demo server without the
-  owner's go.
+- Which version runs on which ports is in each version's note in [VERSIONS.md](VERSIONS.md). Since Oct 10 at 14:21
+  only v1.9, the demo build, runs, on 8107/8550 (v1.5, v1.6 and v1.7 were stopped). v1.9.1 is frozen for 8108/8551 and
+  not started yet. Never restart the demo server without the owner's go.
 
 ### HTTPS on or off
 
@@ -255,15 +307,18 @@ could not start. Every screen hears `{ "type": "restart", "session": <the old id
 | `HTTPS_PORT` | 8443 | The HTTPS port for the phones (tilt needs it); `0` turns HTTPS off |
 | `OPENAI_API_KEY` | – | The OpenAI key; else read from `.env` next to `server.js`. Set but empty means no key |
 | `ASTRA_MOCK` | off | `1`: no OpenAI calls. Drawings get fixed answers, the controller is the template, the Hall of Fame scores are mock |
-| `OPENAI_REASONING_EFFORT` | `medium` | Sol's effort for drawing reads and ship and body specs (`low` is quicker); `none` or empty sends none |
+| `OPENAI_REASONING_EFFORT` | – | When set, one effort for every drawing read and spec call (overrides the three below); `none` or empty sends none |
+| `ASTRA_ENTITY_EFFORT` | `high` | Sol's effort for ship and explorer reads (v1.9) |
+| `ASTRA_SPEC_EFFORT` | `medium` | Sol's effort for the ship and body specs (the 3D models) |
+| `ASTRA_READ_EFFORT` | `medium` | Sol's effort for controller and button reads |
 | `ASTRA_HTML_EFFORT` | `medium` | Sol's effort for the controller page |
 | `OPENAI_SERVICE_TIER` | `ultrafast` | The service tier; `none` or empty sends none |
 | `OPENAI_MODEL` | `gpt-6.1-sol` | The model is pinned: only `gpt-6.1-sol` or a dated snapshot of it is taken, anything else is ignored |
-| `ASTRA_TIMEOUT_MS` | 9000 | A whole drawing read, retry included; at most 13000, so the phone (15 s) never gives up first |
-| `ASTRA_HEDGE_MS` | 5000 | A read with no answer by then starts an identical second request; the first answer wins |
-| `ASTRA_RETRY_BEFORE_MS` | 4000 | A failed read is retried only if it failed sooner than this |
-| `ASTRA_SPEC_TIMEOUT_MS` | 14000 | The ship or body spec call (the 3D model). A late spec still reaches every screen |
-| `ASTRA_SPEC_HEDGE_MS` | 8000 | The spec call's second request |
+| `ASTRA_TIMEOUT_MS` | 11000 | A whole drawing read, retry included; at most 13000, so the phone (15 s) never gives up first |
+| `ASTRA_HEDGE_MS` | 6500 | A read with no answer by then starts an identical second request; the first answer wins |
+| `ASTRA_RETRY_BEFORE_MS` | 5000 | A failed read is retried only if it failed sooner than this |
+| `ASTRA_SPEC_TIMEOUT_MS` | 12000 | The ship or body spec call (the 3D model). A late spec still reaches every screen |
+| `ASTRA_SPEC_HEDGE_MS` | 7000 | The spec call's second request |
 | `ASTRA_HTML_TIMEOUT_MS` | 45000 | Sol's controller page when `astra-html.js` runs on its own. The server gives each page 20 s (`CTRL_HTML_TIMEOUT_MS` in `server.js`) |
 | `ASTRA_HTML_CALL_LOG` | – | A file that gets one JSON line per controller-page request |
 | `ENDLESS` | off | `1` starts in ENDLESS, like `--endless` |
@@ -273,7 +328,8 @@ could not start. Every screen hears `{ "type": "restart", "session": <the old id
 | `PERF_LOG` | `perf.log` | Where the phones' and the big screen's perf samples go |
 | `KEEPALIVE` | – | `1`: a keep-alive loop restarts the server, so RESTART only has to exit (v1.6.1; the main line from v1.8) |
 
-Flags: `--bots N` (0 to 25, default 0), `--endless`, `--autostart S` (tests only). Tests also read `LIVE_PORT`.
+Flags: `--minutes N` (1 to 4, default 2), `--start-after S` (0, 15, 30 or 60, default 30), `--bots N` (0 to 25,
+default 0), `--endless`, `--autostart S` (tests only). Tests also read `LIVE_PORT`.
 
 ## Files
 
@@ -366,8 +422,9 @@ Entity creation (every drawing type through `/generate` like a phone, then built
 
 ## Where things live
 
-- **Versions:** `VERSIONS.md` (what each version added, its checks, the owner's decisions). Git tags `v1.0` to `v1.7`;
-  `v1.6.1` and `v1.6.2` are hotfixes on v1.6, on the branch `v1.6.1-work`.
+- **Versions:** `VERSIONS.md` (what each version added, its checks, the owner's decisions). Git tags `v1.0` to `v1.7` and
+  `v1.9.1`; `v1.6.1` and `v1.6.2` are hotfixes on v1.6, on the branch `v1.6.1-work`. v1.8 has no tag (it went into
+  v1.9). v1.9 has no tag: it is the freeze 120daf9 plus hotfixes on the branch `v1.9-fix`.
 - **Videos:** `videos/<version>/` on the host laptop (git-ignored).
 - **QA reports (Codex):** `dev/v14-qa/FINDINGS.md` (v1.3), `dev/v14-test/FINDINGS.md` (v1.4),
   `dev/v17-test/FINDINGS.md` (v1.7, from 12:53 on Oct 10).

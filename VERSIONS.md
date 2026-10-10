@@ -16,7 +16,9 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
 | v1.6 | Oct 10, 12:20 (tag `v1.6` on abebbfd) | Automatic landing (no LAND gate), shots that reach rivals uphill and downhill, closed vehicle tyres, the render and TV fixes (GO sound, one jingle, chest counter, a higher chase camera, drilling animates, hints stay with the HUD hidden), a Hall of Fame of every drawing judged by OpenAI's Decisions API, and an optional ENDLESS free-for-all (off by default) | Implement-first round: syntax checks on every file, plus the tracks' own node checks: sim-test 33/33, rules-test 17/17, fresh-round test pass, tyre probe 33/33, balance sim 6/6; 3 real Decisions API calls (HTTP 200, about 1.5 s each). No unit-suite set, e2e, perf run or video | not run on v1.6 (its features are in the v1.7 round) | – |
 | v1.6.1, v1.6.2 | Oct 10, 12:38 and 12:45 (tags on branch `v1.6.1-work`, hotfixes on v1.6) | v1.6.1: a RESTART button on the TV (everyone rejoins from scratch). v1.6.2: round 2 no longer asks for the explorer in the lobby | Syntax checks; the restart was tried on spare ports by the building agent (no numbers recorded). No e2e run | – | – |
 | v1.7 | Oct 10, 12:52 (tag `v1.7` on 0622fdf); the owner's demo build from 12:54 | A bright, cartoony island twice as wide (840 m) with faster explorers and chests spread across it; START any time with only READY players (ship and controller accepted), no bots; Sol on medium effort with longer timeouts; the round-2 explorer fix | Implement-first: syntax checks, plus the tracks' node checks: balance sim 12/12 (expert every chest at 3:00-3:19, regular 13-15/16 at the 4:00 cap), sim-test 33/33, rules-test 17/17, ready gate 7/7, astra-test 30/30, corpus replay 103 cases 0 failures, astra-html 57/57. No unit-suite set, e2e, phone perf run or real call on medium effort before the tag | Codex v1.7 test round from 12:53 (`dev/v17-test/FINDINGS.md`) | to come: `videos/v1.7/` |
-| v1.8 | in progress (main line after v1.7) | The render fixes (crisp shoreline on the 840 m island, no stale phone HUD while paused, every vehicle inside the phone budget), RESTART on the main line, docs for v1.6-v1.7, and loot: shot space rocks drop pickups and timed power-ups, with a loot card and countdown chips on the phone and quiet kill-feed lines on the TV | Implement-first so far: syntax checks; balance sim 12/12 with loot (see notes); `dev/v18-lootui` phone 16/16 and TV feed 6/6. No unit-suite set, e2e, perf run or video yet | – | – |
+| v1.8 | Oct 10, 12:53-13:26 on the main line (no tag and no release of its own: the owner, 13:29, "we will demo version 1.9", which carries all of v1.8) | The render fixes (crisp shoreline on the 840 m island, no stale phone HUD while paused, every vehicle inside the phone budget), RESTART on the main line, docs for v1.6-v1.7, and loot: shot space rocks drop pickups and timed power-ups, with a loot card and countdown chips on the phone and quiet kill-feed lines on the TV (that phone and TV half landed at 13:39 as 2463730, labelled v1.9) | Implement-first: syntax checks; shoreline foam shift median 3.1-3.4 m → 0.13-0.18 m; 411 vehicle and character builds inside the phone budget; restart proven on spare ports (no numbers); sim-test 39/39, rules-test 17/17, gate-test 7/7; balance sim 12/12 with loot; phone loot 16/16, TV feed 6/6. No unit-suite set, e2e, perf run or video on v1.8 itself: its code was checked inside v1.9's release checks | not run (Codex was on the v1.7 round) | – |
+| v1.9 | Oct 10, frozen 14:18 at 120daf9 (no tag); hotfixes on branch `v1.9-fix` up to e7c6b6f (14:47). Live on 8107/8550 from 14:21: the owner's demo build | The owner's demo settings (13:41): a round length picked on the TV (1, 2, 3 or 4 minutes; 1 by default, 2 since 14:37), shorter rounds scaled to the clock (at 1 minute the boss has 300 HP), a 30 s lobby auto-start after the first READY player, finger drawing by default, a quick explorer and big DIG / DRILL buttons in short rounds, and an example Hall of Fame. PLAY WHILE YOU WAIT: a shared practice world with no clock for players waiting in the lobby (14:08). SKIP makes a player READY. Very good drawing reads and 3D designs within 10 s (13:04). The A-009 car and A-008 animal clips. Hotfixes: the TV's QR follows the LAN address live (`?http` for the plain-http link), the 2-minute default, the missing asset files, genuine Decisions API scores in the example hall | Two release checks, both GO. A (14:36-15:00, `dev/v19-release/A.md`): all.sh 21 pass, 4 fail, 0 timeout, every failure a harness older than a v1.9 rule or the asset 404s fixed in 2e7c8a2. e2e with 24 bots: 1 min expert PASS 10/10 gates in 38.4 s, 4 min expert PASS in 202.3 s (16 chests), 2 min expert won in 67.6 s; phone 60 fps (1% low 51-54) at about 40 draw calls, TV 120 fps. B (14:18-14:37, `B.md`): the demo flow with real generation on two WebKit iPhones and the TV: boss down at 0:08.3, landed at 0:21.6, round over at 60.9 s; practice probe 0 problems; entity kit (real) 631/646, 4 hard, all one check's timing | not run on v1.9 (it carries the fix for Codex's v1.7 N8; B1 and M6 are in v1.9.1) | – |
+| v1.9.1 | Oct 10, 14:47 (tag `v1.9.1` on 4bbf07c, the main line). Frozen in `/private/tmp/claude-501/v191-freeze`; not started yet: the owner picks 8108/8551 next to v1.9 or in its place | v1.9 plus: real flight on the planet for an explorer drawn with a jetpack, wings, a rotor, a balloon... (hold FLY); Codex B1 (the TV stays within 120 draw calls on a crowded island) and M6 (phone smoothness); the Hall of Fame on the TV by itself when a round ends; the example hall with genuine Decisions API scores and no MOCK or EXAMPLES label; after a round the hall shows THIS ROUND, with an ALL ROUNDS toggle (T); the 2-minute default and the live QR; the A-008 and A-009 asset files. Landing: players unreachable for 30 s are kicked automatically (being built since 14:59; the tag moves onto it before v1.9.1 starts) | Implement-first: B1 on Codex's stress scene, worst frame 144 → within budget; sim-test with the flight cases passes; hall-auto check 16/16 on a real 1-minute round; 16 real Decisions API calls for the example hall. No unit-suite set, e2e, perf run, release check or video on v1.9.1 | not run | – |
 
 ## Notes per version
 
@@ -498,10 +500,12 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
 - **Live:** 8105/8548 from 12:52 under the keep-alive loop with effort `medium` and 0 bots. Never restarted without the
   owner's go. v1.6 (8104/8547) and the v1.5 demo (8103/8546) still run.
 
-### v1.8 (in progress on the main line; not tagged)
+### v1.8 (main line, 12:53-13:26; never tagged or released: folded into v1.9)
+- **Why no release:** at 13:29 the owner said "we will demo version 1.9", so v1.9 took everything and v1.8 never got a
+  release of its own. Its code was checked as part of v1.9 (see v1.9's release checks).
 - **What landed** (commits on `v1`):
   - 679cd7e render: a crisp shoreline on the 840 m island; the phone HUD never reads a stale frame while rendering is
-    paused; every vehicle inside the phone budget.
+    paused (the root fix of the round-2 explorer bug); every vehicle inside the phone budget.
   - 2f3d1b8 restart: the RESTART button on the TV, ported from v1.6.1 to the main line.
   - 898e466 docs: VERSIONS.md for v1.6, v1.6.1/v1.6.2 and v1.7; the README (running, ports, environment variables,
     ENDLESS, RESTART, Hall of Fame, automatic landing, ready-only start, file map).
@@ -510,14 +514,20 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
     bubble, +1 DRAWING, WARP) and six timed power-ups in one slot per player (OVERDRIVE, RAPID FIRE, MAGNET, HOMING,
     MEGA BLAST, GHOST). Glowing badges and power-up auras on every screen, `hud().me.powerup` / `me.bubble` and
     `game.on("pickup")` for the page. Numbers: `contract.js` `TUNING.loot`.
-  - Loot on the phone, the TV and in the docs (track v18-lootui, not committed yet): `controller.html` shows a toast
-    that carries `pickup` as a loot card (the icon in a badge, the card in the item's colour, a shine on a rare one) and
+  - Loot on the phone, the TV and in the docs (track v18-lootui, committed at 13:39 as 2463730 with a v1.9 label):
+    `controller.html` shows a toast that carries `pickup` as a loot card (the icon in a badge, the card in the item's colour, a shine on a rare one) and
     two countdown chips, the running power-up and the SHIELD bubble (icon, label, seconds, a ring that empties). The
     chips stay with the HUD hidden and sit where no drawn control is, by the HUD switch's logic. A grab buzzes. The TV
     (`space.html`, `bigscreen-extras.js` kind `loot`) shows the quiet "✨ ana · 🔥 RAPID FIRE" lines small and dim with
     their emoji (no chips: 💎 GEMS is not a chest). It drops a line when the feed already shows 3 lines or another one
     came less than 0.7 s before. README section "Loot and power-ups".
-- **Recorded checks:**
+- **Recorded checks** (implement-first: syntax checks, plus the tracks' own checks):
+  - Render (679cd7e, probes in `dev/v18-render`, all pass): the shoreline foam's shift from the true shore went from a
+    median of 3.1-3.4 m to 0.13-0.18 m (p90 5.5 m → 0.8 m); 411 character and vehicle builds all inside the phone
+    budget (the lite tank 2,718 → 2,356 triangles, the worst 2,586 of 2,600).
+  - Restart (2f3d1b8, `dev/v18-restart`): the respawn, supervised exit, copy crash and copy hang paths proven on spare
+    ports (no numbers recorded).
+  - Loot (69c4f31): sim-test 39/39 (6 new loot cases), rules-test 17/17, gate-test 7/7, render sound unit 88/88.
   - Balance sim with loot, both routes, 24 bots, seeds 1-6 (13:26, `dev/v18-lootui/balance-sim.txt`), ALL PASS 12/12,
     against v1.7 (`dev/v17-island-size/sim-after.txt`):
     - Expert: no change. Boss down at 0:19-0:20, landed at 0:34-0:38, every chest open at 3:00-3:19 (179.8-199.4 s).
@@ -526,9 +536,118 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
     - Loot does not shorten the round. The expert route still ends well above 2:50, so no tuning change.
   - `dev/v18-lootui/phone-loot.mjs` 16/16 and `tv-feed-loot.mjs` 6/6 (fake DOM). Phone smoke t1 13/13, t2 53/53 and
     t3 78/78, and the TV page test, all still pass.
-  - Not run: the unit suites as a set, e2e, phone perf with pickups on screen, WebKit or a real iPhone for the chips.
+  - Not run on v1.8 itself: the unit suites as a set, e2e, phone perf with pickups on screen, WebKit or a real iPhone
+    for the chips. v1.9's release check A ran the suites and the e2e on a build that contains all of v1.8.
 
-## The owner's decisions on the morning of Oct 10 (PLAN.md section 0 has the full text)
+### v1.9 (frozen 14:18 at 120daf9, no tag; hotfixes on branch `v1.9-fix` up to e7c6b6f; live on 8107/8550 from 14:21)
+- **Why:** the owner, 13:29: "we will demo version 1.9". At 14:06 the submission was set for 16:00 with time to test,
+  so v1.9 froze with what had landed by 14:18 (`/private/tmp/claude-501/v19-freeze`). At 14:21 the owner asked to stop
+  every other play server: v1.5, v1.6 and v1.7 were stopped and the v1.9 freeze went live on 8107/8550 (0 bots, no
+  `EFFORT`, so astra.js's own effort split applies).
+- **What changed** (commits on `v1`, 13:33-14:18):
+  - bf4e23a and the phone half in 2463730, skip ready: a player who taps SKIP (plain ship, default buttons) is READY
+    and enters the round (`POST /default`, free). Found by the test-suite update 4806036 (24/25 pass on 0622fdf).
+  - 2463730 loot UI: v1.8's loot on the phone and the TV (see v1.8).
+  - 2640c2d generation (the owner, 13:04: "up to 10 s, but VERY VERY GOOD"): ship and explorer reads at `high` effort,
+    3D specs at `medium` with a far more careful prompt, controller and button reads at `medium`; high image detail
+    everywhere; read timeout 11 s, spec 12 s, the phone's cap 13 s. Measured on the 22-drawing sets ("119/120 real
+    calls" in the commit): ship and explorer reads p90 4.5 s, max 5.1 s (`dev/v18-genquality/REPORT.md`).
+  - f0fcd2e demo (the owner, 13:41):
+    - The TV lobby picks the round length, ROUND · MIN 1 / 2 / 3 / 4 (1 by default in the freeze), and AUTO-START 15 /
+      30 / 60 S / OFF (30 s by default): once a player is READY, everyone sees STARTING IN 30. `--minutes N` and
+      `--start-after S` set them at launch; `POST /mode {minutes, startAfter}` while running. 4 minutes is the old tuning.
+    - Short rounds scale with the clock (`contract.js` `pacing(minutes)`). At 1 minute the boss has 300 HP, the boss and
+      the planet are close, and 3 chests sit near the landing pad. Balance sim: boss down 0:09, landed 0:21-0:23, every
+      chest open 0:38-0:42.
+    - The phone opens every drawing step in finger-drawing mode; the paper photo is one tap away.
+    - In 1-2 minute rounds: USE A QUICK EXPLORER 12 s after landing (20 s at 2 minutes), and big DIG / DRILL buttons
+      when the explorer has the skill but no button.
+    - The waiting notice also shows on the drawing screen (Codex v1.7 N8).
+    - `hall-of-fame.html?mock=1`: 16 ranked example drawings with live 3D models and no API call. The TV's HALL OF FAME
+      opens them when the session has nothing to rank yet.
+  - 515b928 assets: the A-009 default car replaces the procedural toy car; drawn animals play the A-008 quadruped clips.
+  - 14bf2f3 demo fix: the quick explorer also after SKIP on the explorer prompt; the STARTING IN strip no longer covers
+    the drawing header.
+  - 120daf9 practice (the owner, 14:08): PLAY WHILE YOU WAIT. A READY player in the lobby can fly in a shared practice
+    world: the whole game (boss, planet, explorer, chests) with ENDLESS rules, no clock, no points. The phone shows
+    PRACTICE · ROUND STARTS IN n; the TV shows n PRACTICING. START or the auto-start pulls every practising player back
+    with their lobby ship and controller before the 3-2-1.
+- **Hotfixes on `v1.9-fix`** (on top of the freeze; the live server picks up static files on the next page load):
+  - 0ee0486 (14:28): the TV's join QR re-asks `/info` every 5 s, so it follows the laptop's LAN address live.
+    `space.html?http` points phones at the plain-http page (no certificate warning).
+  - 0769faf (14:37, the owner): the default round is 2 minutes. The live v1.9 was switched with `POST /mode
+    {minutes: 2}` at 14:38; the new default applies from its next start.
+  - 2e7c8a2 (14:42): the A-008 creature rig and A-009 car files the build loads (release check B's P1: they 404ed and
+    the game fell back to the procedural models).
+  - e7c6b6f (14:47, the owner, 14:46): the example hall's invented scores replaced by genuine Decisions API scores,
+    and no MOCK or EXAMPLES label.
+- **Release check A** (14:36-15:00, `dev/v19-release/A.md`; every test suite and the e2e at each round length). Verdict:
+  **GO**, no game bug found.
+  - all.sh, run 1: 21 pass, 4 fail, 0 timeout. Unit: astra-test 30/30, gen-regression 103 cases with 0 failures,
+    vocab 415 checks, anim-wire 9, sim 39/39, live, rules 17, astra-entity 5/5, https: all pass. Client: render 88/88,
+    65/65 and 72/72, the TV tests, ship-spec 7/7, phone 13, 53 and 78 checks: all pass. Entity kit (mock) 682/699 with
+    0 hard failures and 17 not applicable. Extra: `demo-test` 8/8, `practice-test` 9/9.
+  - The four failures: harness-self 6/43 failed (the harness still bends `Contract.ROUND`, which v1.9 no longer reads);
+    both 2-minute e2e routes failed only `noConsoleErrors` (the two asset 404s, fixed by 2e7c8a2); phone-tour 79/81
+    (the 30 s auto-start began the round before the tour's own START; 81/81 with the auto-start off).
+  - e2e, 24 bots: 1 minute expert PASS 10/10 gates in 38.4 s (3 chests, boss down 8.93 s); 1 minute regular failed
+    only "opened a chest" (the driver waits for a "draw DIG" hint that short rounds never send); 2 minutes expert won in
+    67.6 s (7 chests, boss 12.17 s) and regular in 121.4 s (1 chest); 4 minutes expert PASS 10/10 in 202.3 s (16
+    chests, boss 19.97 s); 4 minutes regular still running when A.md was written. 3-2-1 every time.
+  - Phone 60 fps, 1% low 51-54, 37-44 draw calls, 56-61k triangles. TV 120 fps, 1% low 102.4-106.3.
+  - Not re-run on the final hotfix: the 2-minute default (run 1 ran on 0769faf, before the assets landed).
+- **Release check B** (14:18-14:37, `dev/v19-release/B.md`; the owner's demo flow on the freeze, real generation, two
+  WebKit iPhones 844×390 and the Chromium TV 1440×900). Verdict: **GO**.
+  - Ship read 5.4 s, controller read 2.4 s, the result card about 0.5 s after DONE. READY, then STARTING IN on the TV
+    and the phones, then the auto-start.
+  - Boss down at 0:08.3; both ships landed by themselves at 0:21.6 and 0:21.7; a finger-drawn explorer read in 7.3 s;
+    the quick explorer offered 11.7 s after landing; the round ended at 60.9 s with a podium and +1 STAR; the TV's HALL
+    OF FAME opened.
+  - No chest in the live 1-minute round: harness limits (the driver parked a shovel-only explorer at a rock chest, and
+    Playwright cannot tap the pulsing quick-explorer button). The balance sim on the freeze: 6/6 seeds open 3/3 chests by
+    0:38-0:40.
+  - Practice probe (mock): practice starts, the TV shows 1 PRACTICING, auto-landed 23.3 s after practice began, the
+    round start pulls the player back: 0 problems.
+  - Entity kit with real calls: 631/646, 4 hard failures, all the same check (the real ship spec arrives about 7 s after
+    the answer; the check does not wait for it).
+  - About 6-8 real OpenAI calls in all, plus the entity kit's 6.
+- **Still open after v1.9:**
+  - Harness fixes from check A, one file each: `dev/v11-client/server.cjs` (F1), `dev/e2e/driver.mjs` (F3),
+    `dev/v13-phone/tour.mjs` (F4).
+  - From check B: whether a late real ship spec reaches the TV and the phone (N1, not verified); the phone's lobby line
+    still says "Wait for the host to press START" while the auto-start counts (N5); the TV results row showed ★0 next to
+    "+1 STAR" 2.5 s after the end (N6, unverified).
+  - Demo notes from check B: a shovel-only explorer cannot open rock chests (draw a shovel AND a drill, or take the
+    quick explorer); to show the practice explorer, pick AUTO-START 60 S (30 s is too short to land and draw).
+  - Codex B1 and M6: fixed in v1.9.1, not in v1.9.
+
+### v1.9.1 (tag v1.9.1 on 4bbf07c, Oct 10 14:47; the main line; not started yet)
+- **What changed** (commits on `v1`, 14:35-14:47, on top of v1.9 without the `v1.9-fix` branch):
+  - 22244d6 Codex fixes: B1, one draw-call budget per frame for the island's actors (explorers first, humans nearest
+    first, then decoys, then parked ships), so the TV stays within 120 draw calls on a crowded island; M6, the phone
+    smoothness fix and a quality-governor fix (`dev/v19-codexfix/NOTES.md`).
+  - ed85647 hall auto (the owner, 14:26): when a round ends the server starts the judging, and the TV shows the Hall of
+    Fame full screen 2.5 s after the podium. It closes on Enter, Esc, Space or a tap, or at the next round's 3-2-1
+    (`?nohall` turns it off). The same commit brings the 2-minute default and the live QR (`?http`) from `v1.9-fix`.
+  - 26df7a4 assets: the A-008 creature rigs and the A-009 car files (the same files as 2e7c8a2).
+  - 32df860 jetpack (the owner, 14:16): real flight on the planet. An explorer drawn with a jetpack, wings, a rotor, a
+    propeller, a balloon... can fly; its card reads "fly (jetpack)". Hold FLY: the jets climb and hover about 40 m over
+    the ground, the stick steers, a 6 s tank refills on the ground in 4 s, and a gentle fall does no damage. No DIG,
+    DRILL or chest in the air. A fuel bar on the phone and a whoosh sound.
+  - 4bbf07c hall real (the owner, 14:46 and 14:47): the example hall carries genuine Decisions API scores (16 real
+    calls) with no MOCK or EXAMPLES label; after a round the hall shows THIS ROUND, and T (or the tabs) switches to ALL
+    ROUNDS.
+  - Landing (the owner, 14:59): a player the server cannot reach for 30 s is kicked automatically. Being built on the
+    main line and on `v1.9-fix`; the `v1.9.1` tag moves onto it before v1.9.1 starts. The live v1.9 needs a restart for
+    it, on the owner's go.
+- **Recorded checks** (implement-first, from the commit messages): B1 on Codex's stress scene, the worst frame 144
+  draw calls → within budget; sim-test with the flight cases passes; `dev/v191-hallauto/hall-auto-check.cjs` 16/16 on a
+  real 1-minute round; 16 real Decisions API calls for the example hall.
+- **Not run on v1.9.1:** the unit suites as a set, e2e, phone perf, a release check, a real iPhone, videos.
+- **Live:** frozen in `/private/tmp/claude-501/v191-freeze`, pushed with its tag. Not started: the owner chooses
+  8108/8551 next to v1.9, or in its place.
+
+## The owner's decisions on Oct 10 (PLAN.md section 0 has the full text of the design ones; the rest are in `.orch/ORCHESTRATOR.md`)
 | When | Decision | Landed in |
 | --- | --- | --- |
 | 08:40 | "Don't test at all, first let's implement everything" and "make sure the character / entity creation works asap": v1.3 is one implement-only round, entity creation first in every track, then a test round | v1.3 |
@@ -556,6 +675,19 @@ decisions taken. Videos live in `videos/` on this laptop (git-ignored). Feedback
 | 12:45 | Bug: round 2 asked for the explorer in the lobby; it must only ask after landing | v1.6.2 and v1.7 |
 | 12:50 | Push to main directly | from 12:50 (v1 is fast-forwarded onto `main`) |
 | 12:54 | "v1.7 is the good version": the demo build; its server (8105/8548) is never restarted without the owner's go | v1.7 |
+| 13:00, 13:02 | Loot in space: shot rocks drop extra life, shields, boost and other pickups, and timed power-ups | v1.8 (server 69c4f31; phone and TV 2463730) |
+| 13:04 | "Generation can take more seconds (up to 10) but it is VERY VERY GOOD" | v1.9: `high` effort for ship and explorer reads, `medium` for 3D specs, high image detail |
+| 13:29 | "We will demo version 1.9": no separate v1.8 release | v1.9 |
+| 13:41 | The demo settings: a selectable round length, 1 minute by default with a boss with almost no life; drawing on the phone by default; a mock Hall of Fame to show; a 30 s wait before the game starts | v1.9 |
+| 14:06 | Submission at 16:00 with time to test: v1.9 freezes with what has landed | v1.9 frozen at 14:18 (120daf9) |
+| 14:08 | PLAY WHILE YOU WAIT: a shared practice world for players waiting in the lobby, no clock and no points | v1.9 |
+| 14:16 | Real jetpack flight on the planet, as v1.9.1 | v1.9.1 |
+| 14:21 | Stop every play server except v1.9 | v1.5, v1.6 and v1.7 stopped; v1.9 live on 8107/8550 |
+| 14:26 | The TV shows the Hall of Fame by itself after the round's time | v1.9.1 |
+| 14:37 | Default round length 2 minutes | v1.9 hotfix 0769faf (the live v1.9 switched at 14:38) and v1.9.1 |
+| 14:46 | No MOCK badge: the example hall's invented scores are replaced by real Decisions API judgements | v1.9 hotfix e7c6b6f and v1.9.1 (16 real calls) |
+| 14:47 | After a round the hall shows only that round, with a THIS ROUND / ALL ROUNDS toggle (T) | v1.9.1 |
+| 14:59 | Kick players the server cannot reach for 30 s | landing (main line and `v1.9-fix`); the live v1.9 needs a restart, on the owner's go |
 
 ## Decisions taken overnight while the owner slept (overrule any in the morning)
 | When | Decision | Why |
